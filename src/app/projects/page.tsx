@@ -25,20 +25,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { DashboardStats } from '@/components/dashboard/dashboard-stats';
-import { ProjectAnalyticsChart } from '@/components/dashboard/project-analytics-chart';
-import { GoalReaderAIChat } from '@/components/dashboard/goal-reader-ai-chat';
-import { ProjectProgress } from '@/components/dashboard/project-progress';
-import { Reminders } from '@/components/dashboard/reminders';
-import { ProjectList } from '@/components/dashboard/project-list';
 import { TimeTracker } from '@/components/dashboard/time-tracker';
 import { Logo } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Noticeboard } from '@/components/dashboard/noticeboard';
 import { Footer } from '@/components/dashboard/footer';
 import { TimeTrackerProvider } from '@/context/time-tracker-context';
+import { CompletedProjectsTable } from '@/components/projects/completed-projects-table';
 
-export default function Home() {
+export default function ProjectsPage() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
   return (
@@ -60,14 +54,14 @@ export default function Home() {
               <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                 <Link
                   href="/"
-                  className="flex items-center gap-3 rounded-lg bg-accent px-3 py-2 text-primary transition-all hover:text-primary"
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                 >
                   <HomeIcon className="h-4 w-4" />
                   Dashboard
                 </Link>
                 <Link
                   href="/projects"
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                  className="flex items-center gap-3 rounded-lg bg-accent px-3 py-2 text-primary transition-all hover:text-primary"
                 >
                   <Package className="h-4 w-4" />
                   Projects
@@ -124,14 +118,14 @@ export default function Home() {
                   </Link>
                   <Link
                     href="/"
-                    className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
+                    className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
                   >
                     <HomeIcon className="h-5 w-5" />
                     Dashboard
                   </Link>
                   <Link
                     href="/projects"
-                    className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                    className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
                   >
                     <Package className="h-5 w-5" />
                     Projects
@@ -201,27 +195,7 @@ export default function Home() {
             </DropdownMenu>
           </header>
           <main className="flex-grow p-4 md:p-8 space-y-4 md:space-y-8">
-            <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-              <DashboardStats />
-            </div>
-            <div className="grid grid-cols-10 gap-4">
-              <div className="col-span-10 lg:col-span-7 h-full md:h-[592px]">
-                <ProjectList />
-              </div>
-              <div className="col-span-10 lg:col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
-                <ProjectAnalyticsChart />
-                <ProjectProgress />
-              </div>
-            </div>
-            <div className="grid grid-cols-10 gap-4">
-              <div className="col-span-10 lg:col-span-7 h-full md:h-[430px]">
-                  <GoalReaderAIChat />
-              </div>
-              <div className="col-span-10 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 auto-rows-min">
-                <Reminders />
-                <Noticeboard />
-              </div>
-            </div>
+            <CompletedProjectsTable />
           </main>
           <Footer />
         </div>

@@ -7,6 +7,7 @@ import {
   Circle,
   Square,
   Eye,
+  Pause,
 } from 'lucide-react';
 import {
   Card,
@@ -79,6 +80,8 @@ export function ProjectList() {
     setTaskDetailsOpen,
     setSelectedTask,
     selectedTask,
+    handleStartStop,
+    isActive,
   } = useTimeTracker();
 
   const handleStopClick = (taskName: string) => {
@@ -97,12 +100,14 @@ export function ProjectList() {
     }
   };
 
+  const ongoingTasks = tasks.filter((task) => task.status !== 'Completed');
+
   return (
     <>
       <Card className="h-full flex flex-col">
         <CardHeader>
           <CardTitle>ToDo List</CardTitle>
-          <CardDescription>A list of your tasks.</CardDescription>
+          <CardDescription>A list of your ongoing tasks.</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
@@ -121,7 +126,7 @@ export function ProjectList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tasks.map((task) => (
+                {ongoingTasks.map((task) => (
                   <TableRow key={task.name}>
                     <TableCell className="font-medium">{task.name}</TableCell>
                     <TableCell>
@@ -140,22 +145,13 @@ export function ProjectList() {
                         </Button>
                       )}
                       {task.status === 'In Progress' && (
-                        <Button
+                         <Button
                           variant="destructive"
                           size="sm"
                           onClick={() => handleStopClick(task.name)}
                         >
                           <Square className="mr-2 h-4 w-4" />
                           Stop
-                        </Button>
-                      )}
-                      {task.status === 'Completed' && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleViewDetailsClick(task.name)}
-                        >
-                          <Eye className="h-4 w-4" />
                         </Button>
                       )}
                     </TableCell>
@@ -169,7 +165,6 @@ export function ProjectList() {
                             aria-haspopup="true"
                             size="icon"
                             variant="ghost"
-                            disabled={task.status === 'Completed'}
                           >
                             <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Toggle menu</span>
