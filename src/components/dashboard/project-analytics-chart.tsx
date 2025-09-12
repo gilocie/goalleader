@@ -103,7 +103,7 @@ export function ProjectAnalyticsChart() {
             </ResponsiveContainer>
          </div>
          <Button 
-            variant="outline" 
+            variant="default"
             size="icon" 
             className="absolute -left-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10"
             onClick={() => handleScroll('left')}
@@ -133,11 +133,20 @@ export function ProjectAnalyticsChart() {
                         backgroundColor: 'hsl(var(--background))',
                         borderColor: 'hsl(var(--border))',
                         borderRadius: 'var(--radius)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
                     }}
                     labelStyle={{
                         color: 'hsl(var(--foreground))'
                     }}
-                    formatter={(value: number) => value !== null ? [`${value}%`, 'Performance'] : ['No data', 'Performance']}
+                    formatter={(value: number, name, props) => {
+                        const { payload } = props;
+                        if (payload.total !== null) {
+                            return [`${payload.total}%`, 'Performance'];
+                        }
+                        return ['No data', 'Performance'];
+                    }}
                     wrapperStyle={{ zIndex: 100 }}
                 />
                 <Bar
@@ -158,7 +167,7 @@ export function ProjectAnalyticsChart() {
             </ResponsiveContainer>
         </div>
         <Button 
-            variant="outline" 
+            variant="default" 
             size="icon" 
             className="absolute -right-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10"
             onClick={() => handleScroll('right')}
@@ -169,3 +178,4 @@ export function ProjectAnalyticsChart() {
     </Card>
   );
 }
+
