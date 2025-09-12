@@ -210,17 +210,13 @@ export default function Home() {
             <div className="col-span-7">
               <ProjectList />
             </div>
-            <div className="col-span-3">
+            <div className="col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
               <ProjectAnalyticsChart />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <GoalReaderAIChat />
-            </div>
-            <div className="grid grid-cols-1 gap-4 auto-rows-min">
               <ProjectProgress />
             </div>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-2">
+            <GoalReaderAIChat />
           </div>
         </main>
       </div>
