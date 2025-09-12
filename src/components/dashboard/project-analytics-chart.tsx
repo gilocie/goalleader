@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 const generateData = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -29,11 +29,20 @@ const getBarColor = (value: number) => {
 export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const barWidth = 35; // Includes gap
 
   useEffect(() => {
     // This should run only on the client
-    setData(generateData());
-    setCurrentMonthIndex(new Date().getMonth());
+    const generatedData = generateData();
+    setData(generatedData);
+    const monthIndex = new Date().getMonth();
+    setCurrentMonthIndex(monthIndex);
+
+    if (scrollContainerRef.current) {
+        const initialScrollPosition = monthIndex * barWidth;
+        scrollContainerRef.current.scrollLeft = initialScrollPosition;
+    }
   }, []);
 
   if (data.length === 0) {
@@ -63,56 +72,58 @@ export function ProjectAnalyticsChart() {
         </CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
-        <ResponsiveContainer width="100%" height={150}>
-          <BarChart data={data}>
-            <defs>
-              <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stopColor="hsl(var(--accent))" />
-                <stop offset="100%" stopColor="hsl(var(--primary))" />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="name"
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              stroke="hsl(var(--muted-foreground))"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${value}%`}
-              domain={[0, 100]}
-            />
-            <Tooltip
-                contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: 'var(--radius)',
-                }}
-                labelStyle={{
-                    color: 'hsl(var(--foreground))'
-                }}
-                formatter={(value: number) => [`${value}%`, 'Performance']}
-            />
-            <Bar
-              dataKey="total"
-              radius={[4, 4, 0, 0]}
-              background={{ fill: 'hsl(var(--border))', radius: 4 }}
-            >
-                {data.map((entry, index) => (
-                    <Cell
-                        key={`cell-${index}`}
-                        fill={getBarColor(entry.total)}
-                        stroke={index === currentMonthIndex ? 'hsl(var(--primary))' : 'transparent'}
-                        strokeWidth={2}
-                    />
-                ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div ref={scrollContainerRef} className="overflow-x-auto">
+            <ResponsiveContainer width={barWidth * 12} height={150}>
+            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%">
+                <defs>
+                <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="0%" stopColor="hsl(var(--accent))" />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" />
+                </linearGradient>
+                </defs>
+                <XAxis
+                dataKey="name"
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                />
+                <YAxis
+                stroke="hsl(var(--muted-foreground))"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}%`}
+                domain={[0, 100]}
+                />
+                <Tooltip
+                    contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        borderColor: 'hsl(var(--border))',
+                        borderRadius: 'var(--radius)',
+                    }}
+                    labelStyle={{
+                        color: 'hsl(var(--foreground))'
+                    }}
+                    formatter={(value: number) => [`${value}%`, 'Performance']}
+                />
+                <Bar
+                dataKey="total"
+                radius={[4, 4, 0, 0]}
+                background={{ fill: 'hsl(var(--border))', radius: 4 }}
+                >
+                    {data.map((entry, index) => (
+                        <Cell
+                            key={`cell-${index}`}
+                            fill={getBarColor(entry.total)}
+                            stroke={index === currentMonthIndex ? 'hsl(var(--primary))' : 'transparent'}
+                            strokeWidth={2}
+                        />
+                    ))}
+                </Bar>
+            </BarChart>
+            </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );
