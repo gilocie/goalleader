@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTimeTracker } from '@/context/time-tracker-context';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '../ui/scroll-area';
 
 const tasks = [
   {
@@ -91,66 +92,68 @@ export function ProjectList() {
   const { activeTask, startTask, completeTask } = useTimeTracker();
 
   return (
-    <Card className="h-[310px]">
+    <Card className="h-auto">
       <CardHeader>
         <CardTitle>ToDo List</CardTitle>
         <CardDescription>A list of your tasks.</CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Task</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead className="hidden md:table-cell text-right">Due Date</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tasks.map((task) => (
-              <TableRow key={task.name}>
-                <TableCell className="font-medium">{task.name}</TableCell>
-                <TableCell>
-                  <StatusIndicator status={task.status} />
-                </TableCell>
-                <TableCell>
-                {task.status !== 'Completed' && (
-                  activeTask === task.name ? (
-                    <Button variant="destructive" size="sm" onClick={() => completeTask(task.name)}>
-                      <Check className="mr-2 h-4 w-4" />
-                      Complete Task
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" onClick={() => startTask(task.name)} disabled={!!activeTask}>
-                      <Play className="mr-2 h-4 w-4" />
-                      Start
-                    </Button>
-                  )
-                )}
-                </TableCell>
-                <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+        <ScrollArea className="h-[200px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Task</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead className="hidden md:table-cell text-right">Due Date</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow key={task.name}>
+                  <TableCell className="font-medium">{task.name}</TableCell>
+                  <TableCell>
+                    <StatusIndicator status={task.status} />
+                  </TableCell>
+                  <TableCell>
+                  {task.status !== 'Completed' && (
+                    activeTask === task.name ? (
+                      <Button variant="destructive" size="sm" onClick={() => completeTask(task.name)}>
+                        <Check className="mr-2 h-4 w-4" />
+                        Complete Task
+                      </Button>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={() => startTask(task.name)} disabled={!!activeTask}>
+                        <Play className="mr-2 h-4 w-4" />
+                        Start
+                      </Button>
+                    )
+                  )}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem>Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

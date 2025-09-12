@@ -207,7 +207,7 @@ export default function Home() {
               <DashboardStats />
             </div>
             <div className="grid grid-cols-10 gap-4">
-              <div className="col-span-10 lg:col-span-7 h-[310px]">
+              <div className="col-span-10 lg:col-span-7">
                 <ProjectList />
               </div>
               <div className="col-span-10 lg:col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
