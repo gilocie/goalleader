@@ -52,11 +52,11 @@ export function TimeTracker() {
   };
 
   return (
-    <Card className="bg-card text-card-foreground">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
         <CardTitle className="text-sm font-medium">Time Tracker</CardTitle>
       </CardHeader>
-      <CardContent className="flex items-center justify-between gap-2 p-4 pt-0">
+      <CardContent className="flex flex-col items-center justify-center gap-2 p-4 pt-0">
         <div className="text-2xl font-bold font-mono tabular-nums">
           {formatTime(time)}
         </div>
