@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A simple chat flow for GoalReader AI.
@@ -54,6 +55,6 @@ const chatFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await chatPrompt(input);
-    return output!;
+    return output || "I'm sorry, I couldn't generate a response. Please try again.";
   }
 );
