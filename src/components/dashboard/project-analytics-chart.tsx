@@ -15,17 +15,18 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const generateData = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months.map(month => ({
+    const currentMonth = new Date().getMonth();
+    return months.map((month, index) => ({
         name: month,
-        total: Math.floor(Math.random() * 101),
+        total: index <= currentMonth ? Math.floor(Math.random() * 101) : null,
     }));
 };
 
-const getBarColor = (value: number) => {
-    if (value >= 50) {
-        return "url(#colorGradient)";
+const getBarColor = (value: number | null) => {
+    if (value === null || value < 50) {
+        return 'hsl(var(--muted))';
     }
-    return 'hsl(var(--muted))';
+    return "url(#colorGradient)";
 }
 
 export function ProjectAnalyticsChart() {
@@ -34,6 +35,7 @@ export function ProjectAnalyticsChart() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const barWidth = 40; 
   const visibleMonths = 4;
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     const generatedData = generateData();
@@ -65,7 +67,7 @@ export function ProjectAnalyticsChart() {
             <CardHeader>
                 <CardTitle>Performance Record</CardTitle>
                 <CardDescription>
-                Track staff performance based on daily completed tasks.
+                {currentYear}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -82,7 +84,7 @@ export function ProjectAnalyticsChart() {
       <CardHeader>
         <CardTitle>Performance Record</CardTitle>
         <CardDescription>
-          Track staff performance based on daily completed tasks.
+          {currentYear}
         </CardDescription>
       </CardHeader>
       <CardContent className="relative flex items-center pr-8">
@@ -103,14 +105,14 @@ export function ProjectAnalyticsChart() {
          <Button 
             variant="outline" 
             size="icon" 
-            className="absolute left-10 top-1/2 -translate-y-1/2 h-6 w-6 z-10"
+            className="absolute -left-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10"
             onClick={() => handleScroll('left')}
             >
              <ChevronLeft className="h-4 w-4" />
         </Button>
         <div ref={scrollContainerRef} className="overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']" style={{width: `${visibleMonths * barWidth}px`}}>
             <ResponsiveContainer width={barWidth * 12} height={150}>
-            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 0, right: 0, left: 0, bottom: 20 }}>
                 <defs>
                 <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
                     <stop offset="0%" stopColor="hsl(var(--accent))" />
@@ -135,7 +137,7 @@ export function ProjectAnalyticsChart() {
                     labelStyle={{
                         color: 'hsl(var(--foreground))'
                     }}
-                    formatter={(value: number) => [`${value}%`, 'Performance']}
+                    formatter={(value: number) => value !== null ? [`${value}%`, 'Performance'] : ['No data', 'Performance']}
                 />
                 <Bar
                 dataKey="total"
@@ -157,7 +159,7 @@ export function ProjectAnalyticsChart() {
         <Button 
             variant="outline" 
             size="icon" 
-            className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 z-10"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10"
             onClick={() => handleScroll('right')}
             >
              <ChevronRight className="h-4 w-4" />
