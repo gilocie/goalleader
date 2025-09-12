@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Card,
@@ -61,16 +62,16 @@ const CircularProgressBar = ({
           className="text-3xl font-bold"
           style={{ color: getRatingColor() }}
         >
-          {rating}
+          {`${Math.round(progress)}%`}
         </span>
-        <p className="text-xs text-muted-foreground">Rating</p>
+        <p className="text-xs text-muted-foreground">{rating}</p>
       </div>
     </div>
   );
 };
 
 export function ProjectProgress() {
-  const [completedTasks] = useState(3); // Demo value
+  const [completedTasks, setCompletedTasks] = useState(3); // Demo value
   const [progress, setProgress] = useState(0);
   const [rating, setRating] = useState('Poor');
 
@@ -80,6 +81,8 @@ export function ProjectProgress() {
       newRating = 'Excellent';
     } else if (completedTasks >= 3) {
       newRating = 'Good';
+    } else if (completedTasks >=1) {
+      newRating = 'Poor'
     }
     setRating(newRating);
 
