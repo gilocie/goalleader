@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, Defs, LinearGradient, Stop } from 'recharts';
 import {
   Card,
   CardContent,
@@ -20,11 +20,8 @@ const generateData = () => {
 };
 
 const getBarColor = (value: number) => {
-    if (value >= 100) {
-        return 'hsl(var(--primary))'; // dark green
-    }
     if (value >= 50) {
-        return 'hsl(var(--accent))'; // light green
+        return "url(#colorGradient)";
     }
     return 'hsl(var(--muted))'; // gray
 }
@@ -68,6 +65,12 @@ export function ProjectAnalyticsChart() {
       <CardContent className="pl-2">
         <ResponsiveContainer width="100%" height={150}>
           <BarChart data={data}>
+            <defs>
+              <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stopColor="hsl(var(--accent))" />
+                <stop offset="100%" stopColor="hsl(var(--primary))" />
+              </linearGradient>
+            </defs>
             <XAxis
               dataKey="name"
               stroke="hsl(var(--muted-foreground))"
