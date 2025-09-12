@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate a proactive initial message for the GoalReader AI.
@@ -37,7 +38,7 @@ export async function getInitialMessage(input: InitialMessageInput): Promise<Ini
 const prompt = ai.definePrompt({
   name: 'initialMessagePrompt',
   input: { schema: InitialMessageInputSchema },
-  output: { schema: z.string().nullable() },
+  output: { schema: z.string() },
   prompt: `You are a helpful AI assistant for GoalLeader. Your name is Goal Reader.
 You are about to send the first message to the user in a chat. Generate a proactive, friendly, and helpful message.
 You can choose one of the following actions:
@@ -71,6 +72,6 @@ const initialMessageFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await prompt(input);
-    return output ?? 'Hello! How can I help you achieve your goals today?';
+    return output || 'Hello! How can I help you achieve your goals today?';
   }
 );
