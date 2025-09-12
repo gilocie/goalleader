@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, Package, Users, ListTodo, LineChart } from 'lucide-react';
+import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
@@ -11,6 +11,8 @@ const links = [
   { href: '/teams', icon: Users, label: 'Teams' },
   { href: '/tasks', icon: ListTodo, label: 'Tasks' },
   { href: '/analytics', icon: LineChart, label: 'Analytics' },
+  { href: '/meetings', icon: Calendar, label: 'Meetings' },
+  { href: '/notices', icon: Megaphone, label: 'Notices' },
 ];
 
 export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {

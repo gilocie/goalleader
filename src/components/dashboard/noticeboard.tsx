@@ -121,7 +121,7 @@ export function Noticeboard() {
           className="p-0 h-auto"
           asChild
         >
-          <Link href="#">View all</Link>
+          <Link href="/notices">View all</Link>
         </Button>
       </CardContent>
     </Card>

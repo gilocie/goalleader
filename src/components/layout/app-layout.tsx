@@ -6,18 +6,21 @@ import { TimeTrackerProvider } from '@/context/time-tracker-context';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { Footer } from '../dashboard/footer';
+import { ThemeProvider } from '@/context/theme-provider';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <TimeTrackerProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <Sidebar />
-        <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px] relative">
-          <Header />
-          {children}
-          <Footer />
+    <ThemeProvider>
+      <TimeTrackerProvider>
+        <div className="flex min-h-screen w-full bg-muted/40">
+          <Sidebar />
+          <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px] relative">
+            <Header />
+            {children}
+            <Footer />
+          </div>
         </div>
-      </div>
-    </TimeTrackerProvider>
+      </TimeTrackerProvider>
+    </ThemeProvider>
   );
 }
