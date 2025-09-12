@@ -91,7 +91,7 @@ export function ProjectList() {
   const { activeTask, startTask, completeTask } = useTimeTracker();
 
   return (
-    <Card className="h-full">
+    <Card className="h-[310px]">
       <CardHeader>
         <CardTitle>ToDo List</CardTitle>
         <CardDescription>A list of your tasks.</CardDescription>
