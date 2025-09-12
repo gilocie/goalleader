@@ -105,7 +105,7 @@ export function ProjectAnalyticsChart() {
          <Button 
             variant="outline" 
             size="icon" 
-            className="absolute -left-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10"
+            className="absolute -left-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10"
             onClick={() => handleScroll('left')}
             >
              <ChevronLeft className="h-4 w-4" />
@@ -138,6 +138,7 @@ export function ProjectAnalyticsChart() {
                         color: 'hsl(var(--foreground))'
                     }}
                     formatter={(value: number) => value !== null ? [`${value}%`, 'Performance'] : ['No data', 'Performance']}
+                    wrapperStyle={{ zIndex: 100 }}
                 />
                 <Bar
                 dataKey="total"
@@ -159,7 +160,7 @@ export function ProjectAnalyticsChart() {
         <Button 
             variant="outline" 
             size="icon" 
-            className="absolute -right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10"
+            className="absolute -right-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10"
             onClick={() => handleScroll('right')}
             >
              <ChevronRight className="h-4 w-4" />
