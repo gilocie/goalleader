@@ -65,7 +65,7 @@ export function GoalReaderAIChat() {
   }, [messages]);
 
   return (
-    <Card className="h-[500px] flex flex-col">
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bot />
