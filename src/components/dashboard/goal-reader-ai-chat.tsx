@@ -199,7 +199,7 @@ export function GoalReaderAIChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask Goal Reader..."
-              className="flex-1 resize-none border-0 bg-transparent p-2 focus:ring-0"
+              className="flex-1 resize-none border-0 bg-transparent p-2 focus:ring-0 focus-visible:outline-none"
               minRows={1}
               maxRows={4}
               onKeyDown={(e) => {
