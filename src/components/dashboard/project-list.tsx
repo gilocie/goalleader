@@ -112,7 +112,7 @@ export function ProjectList() {
         <CardTitle>ToDo List</CardTitle>
         <CardDescription>A list of your tasks.</CardDescription>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <Table>
             <TableHeader>
