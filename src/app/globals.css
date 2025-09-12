@@ -88,3 +88,9 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer components {
+  .nav-link-active {
+    @apply bg-green-800 text-white hover:text-white;
+  }
+}

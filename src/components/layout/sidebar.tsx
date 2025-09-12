@@ -1,0 +1,36 @@
+
+'use client';
+
+import Link from 'next/link';
+import { Bell } from 'lucide-react';
+import { Logo } from '@/components/icons';
+import { Button } from '@/components/ui/button';
+import { TimeTracker } from '@/components/dashboard/time-tracker';
+import { NavLinks } from './nav-links';
+
+export function Sidebar() {
+  return (
+    <div className="hidden md:fixed md:inset-y-0 md:flex md:w-[220px] md:flex-col lg:w-[280px]">
+      <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card">
+        <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+          <Link href="/" className="flex items-center gap-2 font-semibold">
+            <Logo className="h-6 w-6 text-primary" />
+            <span className="">GoalLeader</span>
+          </Link>
+          <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
+            <Bell className="h-4 w-4" />
+            <span className="sr-only">Toggle notifications</span>
+          </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            <NavLinks />
+          </nav>
+        </div>
+        <div className="mt-auto p-4">
+          <TimeTracker />
+        </div>
+      </div>
+    </div>
+  );
+}
