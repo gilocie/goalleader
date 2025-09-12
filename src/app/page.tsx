@@ -206,12 +206,11 @@ export default function Home() {
           <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
             <DashboardStats />
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <ProjectList />
-            </div>
-            <div className="grid auto-rows-min gap-4">
+          <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-2">
+            <ProjectList />
+            <div className="grid grid-cols-1 gap-4 auto-rows-min">
               <ProjectAnalyticsChart />
+              <ProjectProgress />
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-8 xl:grid-cols-3">
@@ -219,7 +218,6 @@ export default function Home() {
               <GoalReaderAIChat />
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
-              <ProjectProgress />
               <Reminders />
             </div>
           </div>
