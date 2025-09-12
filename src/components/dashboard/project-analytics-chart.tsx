@@ -29,7 +29,7 @@ const getBarColor = (value: number | null) => {
 }
 
 const CustomizedLabel = (props: any) => {
-    const { x, y, width, height, value } = props;
+    const { x, y, width, height, value, viewBox } = props;
     if (value === null) {
       return null;
     }
@@ -37,12 +37,12 @@ const CustomizedLabel = (props: any) => {
     return (
       <text
         x={x + width / 2}
-        y={y + height / 2}
+        y={(viewBox.y as number) + viewBox.height / 2}
         fill={value < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))"}
         textAnchor="middle"
         dominantBaseline="middle"
         className="text-xs font-semibold"
-        transform={`rotate(-90, ${x + width / 2}, ${y + height / 2})`}
+        transform={`rotate(-90, ${x + width / 2}, ${(viewBox.y as number) + viewBox.height / 2})`}
       >
         {`${value}%`}
       </text>
@@ -178,4 +178,3 @@ export function ProjectAnalyticsChart() {
     </Card>
   );
 }
-
