@@ -6,7 +6,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
@@ -53,30 +52,30 @@ export function TimeTracker() {
   };
 
   return (
-    <Card className="bg-[#052e16] text-white">
-      <CardHeader className="p-4">
-        <CardTitle className="text-base">Time Tracker</CardTitle>
-        <CardDescription className="text-gray-300 text-xs">Track time spent on your projects.</CardDescription>
+    <Card className="bg-card text-card-foreground">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
+        <CardTitle className="text-sm font-medium">Time Tracker</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center gap-2 p-4 pt-0">
+      <CardContent className="flex items-center justify-between gap-2 p-4 pt-0">
         <div className="text-2xl font-bold font-mono tabular-nums">
           {formatTime(time)}
         </div>
         <div className="flex gap-2">
           <Button
             onClick={handleStartStop}
-            size="sm"
+            size="icon"
+            variant="ghost"
             aria-label={isActive ? 'Pause timer' : 'Start timer'}
-            className="w-16 h-8 bg-white/20 hover:bg-white/30 text-white"
+            className="w-8 h-8"
           >
             {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
           <Button
             onClick={handleReset}
-            variant="destructive"
-            size="sm"
+            variant="ghost"
+            size="icon"
             aria-label="Reset timer"
-            className="w-16 h-8"
+            className="w-8 h-8"
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
