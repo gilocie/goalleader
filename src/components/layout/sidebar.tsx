@@ -22,8 +22,8 @@ export function Sidebar() {
             <span className="sr-only">Toggle notifications</span>
           </Button>
         </div>
-        <div className="flex-1 overflow-y-auto">
-          <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+        <div className="flex-1">
+          <nav className="grid items-start px-2 text-sm font-medium lg:px-4 h-full overflow-y-auto">
             <NavLinks />
           </nav>
         </div>
