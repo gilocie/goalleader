@@ -29,7 +29,8 @@ const InitialMessageInputSchema = z.object({
 });
 export type InitialMessageInput = z.infer<typeof InitialMessageInputSchema>;
 
-export type InitialMessageOutput = string;
+const InitialMessageOutputSchema = z.string();
+export type InitialMessageOutput = z.infer<typeof InitialMessageOutputSchema>;
 
 export async function getInitialMessage(input: InitialMessageInput): Promise<InitialMessageOutput> {
   return initialMessageFlow(input);
@@ -68,10 +69,19 @@ const initialMessageFlow = ai.defineFlow(
   {
     name: 'initialMessageFlow',
     inputSchema: InitialMessageInputSchema,
-    outputSchema: z.string(),
+    outputSchema: InitialMessageOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output || 'Hello! How can I help you achieve your goals today?';
+    try {
+        const { output } = await prompt(input);
+        const safeOutput =
+            output && typeof output === 'string' && output.trim()
+            ? output
+            : 'Hello! How can I help you achieve your goals today?';
+        return safeOutput;
+    } catch (err) {
+        console.error('InitialMessageFlow error:', err);
+        return 'Hello! How can I help you achieve your goals today?';
+    }
   }
 );

@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, User, Loader, Paperclip } from 'lucide-react';
+import { Send, User, Loader, Paperclip } from 'lucide-react';
 import { chat, ChatInput } from '@/ai/flows/chat-flow';
 import { getInitialMessage, InitialMessageInput } from '@/ai/flows/initial-message-flow';
 import { ScrollArea } from '../ui/scroll-area';
@@ -72,7 +72,8 @@ export function GoalReaderAIChat() {
             meetings,
           };
           const response = await getInitialMessage(initialInput);
-          const modelMessage: Message = { role: 'model', content: response };
+          const safeResponse = typeof response === 'string' && response.trim() ? response : 'Hello! How can I help you achieve your goals today?';
+          const modelMessage: Message = { role: 'model', content: safeResponse };
           setMessages([modelMessage]);
         } catch (error) {
           console.error('Error getting initial message:', error);
@@ -199,7 +200,7 @@ export function GoalReaderAIChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask Goal Leader..."
-              className="flex-1 resize-none border-0 bg-transparent p-2 focus:ring-0 focus-visible:outline-none"
+              className="flex-1 resize-none border-0 bg-transparent p-2 focus-visible:outline-none"
               minRows={1}
               maxRows={4}
               onKeyDown={(e) => {
