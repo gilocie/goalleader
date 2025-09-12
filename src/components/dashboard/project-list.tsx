@@ -27,8 +27,9 @@ import {
 import { useTimeTracker } from '@/context/time-tracker-context';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
+import { useState } from 'react';
 
-const tasks = [
+const initialTasks = [
   {
     name: 'Design landing page',
     status: 'In Progress',
@@ -104,7 +105,17 @@ const StatusIndicator = ({ status }: { status: string }) => {
 
 
 export function ProjectList() {
-  const { activeTask, isActive, startTask, completeTask, handleStartStop } = useTimeTracker();
+  const { activeTask, isActive, startTask, completeTask } = useTimeTracker();
+  const [tasks, setTasks] = useState(initialTasks);
+
+  const handleCompleteTask = (taskName: string) => {
+    completeTask(taskName);
+    setTasks(currentTasks => 
+      currentTasks.map(t => 
+        t.name === taskName ? { ...t, status: 'Completed' } : t
+      )
+    );
+  }
 
   return (
     <Card className="h-full flex flex-col">
@@ -134,36 +145,34 @@ export function ProjectList() {
                     <StatusIndicator status={task.status} />
                   </TableCell>
                   <TableCell>
-                    {task.status !== 'Completed' &&
-                      (activeTask === task.name ? (
-                        isActive ? (
-                          <Button variant="outline" size="sm" onClick={handleStartStop}>
-                            <Pause className="mr-2 h-4 w-4" />
-                            Stop
-                          </Button>
-                        ) : (
-                          <div className='flex gap-2'>
-                            <Button variant="outline" size="sm" onClick={handleStartStop}>
-                                <Play className="mr-2 h-4 w-4" />
-                                Start
-                            </Button>
-                             <Button variant="destructive" size="sm" onClick={() => completeTask(task.name)}>
-                                <Check className="mr-2 h-4 w-4" />
-                                Complete
-                            </Button>
-                          </div>
-                        )
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => startTask(task.name)}
-                          disabled={!!activeTask}
-                        >
-                          <Play className="mr-2 h-4 w-4" />
-                          Start
-                        </Button>
-                      ))}
+                    {task.status === 'Pending' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          startTask(task.name);
+                          setTasks(currentTasks => 
+                            currentTasks.map(t => 
+                              t.name === task.name ? { ...t, status: 'In Progress' } : t
+                            )
+                          );
+                        }}
+                        disabled={!!activeTask}
+                      >
+                        <Play className="mr-2 h-4 w-4" />
+                        Start
+                      </Button>
+                    )}
+                    {task.status === 'In Progress' && activeTask === task.name && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleCompleteTask(task.name)}
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        Complete
+                      </Button>
+                    )}
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
                   <TableCell>

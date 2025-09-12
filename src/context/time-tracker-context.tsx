@@ -65,6 +65,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
       // Optionally do something with the final time, like logging it.
       console.log(`Task "${taskName}" completed in ${time} seconds.`);
       setActiveTask(null);
+      // Do not reset time here so it can be seen in the tracker until a new task starts.
     }
   };
 
