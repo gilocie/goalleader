@@ -237,12 +237,10 @@ export default function Home() {
               <ProjectList />
             </div>
             <div className="grid auto-rows-max items-start gap-4 md:gap-8">
+              <TimeTracker />
               <ProjectProgress />
               <TeamCollaboration />
               <Reminders />
-              <div className="sticky bottom-8">
-                <TimeTracker />
-              </div>
             </div>
           </div>
         </main>
