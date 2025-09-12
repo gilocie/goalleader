@@ -1,11 +1,10 @@
 
 'use client';
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, Defs, LinearGradient, Stop } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, Defs, LinearGradient, Stop, LabelList } from 'recharts';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -28,6 +27,26 @@ const getBarColor = (value: number | null) => {
     }
     return "url(#colorGradient)";
 }
+
+const CustomizedLabel = (props: any) => {
+    const { x, y, width, value } = props;
+    if (value === null || value < 50) {
+      return null;
+    }
+  
+    return (
+      <text
+        x={x + width / 2}
+        y={y - 10}
+        fill="hsl(var(--foreground))"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className="text-xs font-semibold"
+      >
+        {`${value}%`}
+      </text>
+    );
+  };
 
 export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
@@ -66,9 +85,7 @@ export function ProjectAnalyticsChart() {
         <Card className="h-[260px]">
             <CardHeader>
                 <CardTitle>Performance Record</CardTitle>
-                <CardDescription>
-                {currentYear}
-                </CardDescription>
+                <div className="text-sm text-muted-foreground">{currentYear}</div>
             </CardHeader>
             <CardContent>
                 <div className="flex items-center justify-center h-[150px]">
@@ -88,7 +105,7 @@ export function ProjectAnalyticsChart() {
       <CardContent className="relative flex items-center pr-8">
          <div className="h-[150px]">
             <ResponsiveContainer width={50} height="100%">
-                <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                      <YAxis
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
@@ -103,14 +120,14 @@ export function ProjectAnalyticsChart() {
          <Button 
             variant="default"
             size="icon" 
-            className="absolute -left-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
+            className="absolute -left-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
             onClick={() => handleScroll('left')}
             >
              <ChevronLeft className="h-4 w-4" />
         </Button>
         <div ref={scrollContainerRef} className="overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']" style={{width: `${visibleMonths * barWidth}px`}}>
             <ResponsiveContainer width={barWidth * 12} height={150}>
-            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                 <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
                     <stop offset="0%" stopColor="hsl(var(--accent))" />
@@ -126,32 +143,12 @@ export function ProjectAnalyticsChart() {
                 interval={0}
                 padding={{ left: barWidth / 4, right: barWidth / 4 }}
                 />
-                <Tooltip
-                    contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        borderColor: 'hsl(var(--border))',
-                        borderRadius: 'var(--radius)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                    }}
-                    labelStyle={{
-                        color: 'hsl(var(--foreground))'
-                    }}
-                    formatter={(value: number, name, props) => {
-                        const { payload } = props;
-                        if (payload.total !== null) {
-                            return [`${payload.total}%`, 'Performance'];
-                        }
-                        return ['No data', 'Performance'];
-                    }}
-                    wrapperStyle={{ zIndex: 100 }}
-                />
                 <Bar
-                dataKey="total"
-                radius={[4, 4, 0, 0]}
-                background={{ fill: 'hsl(var(--border))', radius: 4 }}
+                    dataKey="total"
+                    radius={[4, 4, 0, 0]}
+                    background={{ fill: 'hsl(var(--border))', radius: 4 }}
                 >
+                    <LabelList dataKey="total" content={<CustomizedLabel />} />
                     {data.map((entry, index) => (
                         <Cell
                             key={`cell-${index}`}
@@ -167,7 +164,7 @@ export function ProjectAnalyticsChart() {
         <Button 
             variant="default" 
             size="icon" 
-            className="absolute -right-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
             onClick={() => handleScroll('right')}
             >
              <ChevronRight className="h-4 w-4" />
@@ -176,3 +173,4 @@ export function ProjectAnalyticsChart() {
     </Card>
   );
 }
+
