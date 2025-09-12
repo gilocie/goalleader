@@ -18,7 +18,7 @@ import Textarea from 'react-textarea-autosize';
 import { Logo } from '../icons';
 
 type Message = {
-  role: 'user' | 'model';
+  role: 'user' | 'model' | 'system';
   content: string;
 };
 
@@ -96,23 +96,33 @@ export function GoalReaderAIChat() {
     if (!input.trim()) return;
 
     const userMessage: Message = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
+
+    // Add the user message to history first
+    const updatedHistory = [...messages, userMessage];
+    setMessages(updatedHistory);
     setInput('');
     setIsLoading(true);
 
     try {
       const chatInput: ChatInput = {
-        history: messages,
+        history: updatedHistory.map(({ role, content }) => ({ role: role as 'user' | 'model', content })),
         message: input,
       };
       const response = await chat(chatInput);
-      const modelMessage: Message = { role: 'model', content: response };
+
+      const modelMessage: Message = {
+        role: 'model',
+        content:
+          typeof response === 'string' && response.trim()
+            ? response
+            : "I'm sorry, I couldn't generate a response. Please try again.",
+      };
       setMessages((prev) => [...prev, modelMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
         role: 'model',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: "I'm sorry, I couldn't generate a response. Please try again.",
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -143,6 +153,7 @@ export function GoalReaderAIChat() {
         <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.map((message, index) => (
+              (message.role !== 'system' && 
               <div
                 key={index}
                 className={`flex gap-3 ${
@@ -169,6 +180,7 @@ export function GoalReaderAIChat() {
                   </div>
                 )}
               </div>
+              )
             ))}
             {isLoading && messages.length > 0 && (
               <div className="flex justify-start gap-3">

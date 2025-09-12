@@ -12,7 +12,7 @@ import { z } from 'genkit';
 
 // --- Schema Definitions ---
 const MessageSchema = z.object({
-  role: z.enum(['user', 'model']),
+  role: z.enum(['user', 'model', 'system']),
   content: z.string(),
 });
 
@@ -27,9 +27,13 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
 // --- Main chat function ---
 export async function chat(input: ChatInput): Promise<ChatOutput> {
+  // Ensure history is never empty
   const safeInput = {
-    history: Array.isArray(input.history) ? input.history : [],
-    message: typeof input.message === 'string' ? input.message : "",
+    history:
+      Array.isArray(input.history) && input.history.length > 0
+        ? input.history
+        : [{ role: 'system', content: 'Conversation start' }],
+    message: typeof input.message === 'string' ? input.message : '',
   };
   return chatFlow(safeInput);
 }
@@ -43,9 +47,13 @@ const chatPrompt = ai.definePrompt({
 You help users with their projects, tasks, and goals.
 
 Here is the chat history:
+{{#if history.length}}
 {{#each history}}
 - {{role}}: {{content}}
 {{/each}}
+{{else}}
+- system: Conversation start
+{{/if}}
 
 New message from user:
 {{message}}`,
@@ -60,18 +68,17 @@ const chatFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      // Run the prompt safely
       const { output } = await chatPrompt(input);
 
-      // Ensure output is always a string
+      // Force output to string with fallback
       const safeOutput =
-        output && typeof output === 'string' && output.trim()
+        typeof output === 'string' && output.trim()
           ? output
           : "I'm sorry, I couldn't generate a response. Please try again.";
 
       return safeOutput;
     } catch (err) {
-      console.error("ChatFlow error:", err);
+      console.error('ChatFlow error:', err);
       return "I'm sorry, I couldn't generate a response. Please try again.";
     }
   }
