@@ -212,11 +212,10 @@ export default function Home() {
                 <ProjectAnalyticsChart />
                 <ProjectProgress />
               </div>
-              <ProjectList />
+              <TeamCollaboration />
             </div>
             <div className="grid auto-rows-max items-start gap-4 md:gap-8">
-              
-              <TeamCollaboration />
+              <ProjectList />
               <Reminders />
             </div>
           </div>
