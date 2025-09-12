@@ -30,6 +30,12 @@
       "description": "Main user avatar",
       "imageUrl": "https://picsum.photos/seed/100/40/40",
       "imageHint": "person face"
+    },
+    {
+      "id": "time-tracker-bg",
+      "description": "Green leaves background for time tracker",
+      "imageUrl": "https://picsum.photos/seed/110/250/200",
+      "imageHint": "green leaves"
     }
   ]
 }
