@@ -20,7 +20,7 @@ const generateData = () => {
 };
 
 const getBarColor = (value: number) => {
-    if (value === 100) {
+    if (value >= 100) {
         return 'hsl(var(--primary))'; // dark green
     }
     if (value >= 50) {
@@ -94,6 +94,7 @@ export function ProjectAnalyticsChart() {
                 }}
                 formatter={(value: number) => [`${value}%`, 'Performance']}
             />
+            <Bar dataKey="total" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} background={{ fill: 'hsl(var(--border))', radius: 4 }} />
             <Bar
               dataKey="total"
               radius={[4, 4, 0, 0]}
