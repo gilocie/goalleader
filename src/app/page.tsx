@@ -97,7 +97,7 @@ export default function Home() {
               </Link>
             </nav>
           </div>
-          <div className="p-4 mt-auto">
+          <div className="mt-auto p-4">
             <TimeTracker />
           </div>
         </div>
@@ -206,8 +206,10 @@ export default function Home() {
           <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
             <DashboardStats />
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-2">
-            <ProjectList />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-8 lg:grid-cols-3">
+            <div className="md:col-span-2 lg:col-span-2">
+              <ProjectList />
+            </div>
             <ProjectAnalyticsChart />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-8 xl:grid-cols-3">
@@ -215,8 +217,8 @@ export default function Home() {
               <TeamCollaboration />
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
-                <ProjectProgress />
-                <Reminders />
+              <ProjectProgress />
+              <Reminders />
             </div>
           </div>
         </main>
