@@ -3,15 +3,66 @@
 
 import React, { createContext, useState, useContext, useEffect, useRef, ReactNode } from 'react';
 
+type Task = {
+  name: string;
+  status: 'Pending' | 'In Progress' | 'Completed';
+  dueDate: string;
+};
+
+const initialTasks: Task[] = [
+  {
+    name: 'Design landing page',
+    status: 'In Progress',
+    dueDate: '2024-07-25',
+  },
+  {
+    name: 'Develop API for user authentication',
+    status: 'Completed',
+    dueDate: '2024-07-15',
+  },
+  {
+    name: 'Setup database schema',
+    status: 'Pending',
+    dueDate: '2024-08-01',
+  },
+  {
+    name: 'Deploy to production',
+    status: 'Pending',
+    dueDate: '2024-08-15',
+  },
+  {
+    name: 'Write documentation',
+    status: 'In Progress',
+    dueDate: '2024-08-10',
+  },
+    {
+    name: 'Fix login bug',
+    status: 'Pending',
+    dueDate: '2024-08-05',
+  },
+  {
+    name: 'Refactor chart component',
+    status: 'In Progress',
+    dueDate: '2024-08-12',
+  },
+  {
+    name: 'Add new payment gateway',
+    status: 'Pending',
+    dueDate: '2024-09-01',
+  },
+];
+
+
 interface TimeTrackerContextType {
   time: number;
   isActive: boolean;
   activeTask: string | null;
+  tasks: Task[];
+  completedTasksCount: number;
   handleStartStop: () => void;
   handleReset: () => void;
   startTask: (taskName: string) => void;
-  completeTask: (taskName: string) => void;
-  handleStop: () => void;
+  handleStop: (taskName: string) => void;
 }
 
 const TimeTrackerContext = createContext<TimeTrackerContextType | undefined>(undefined);
@@ -20,7 +71,19 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [activeTask, setActiveTask] = useState<string | null>(null);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [completedTasksCount, setCompletedTasksCount] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Sync active task on initial load
+    const initiallyActiveTask = tasks.find(t => t.status === 'In Progress');
+    if (initiallyActiveTask) {
+        setActiveTask(initiallyActiveTask.name);
+    }
+    // Sync completed tasks count on initial load
+    setCompletedTasksCount(tasks.filter(t => t.status === 'Completed').length);
+  }, []);
 
   useEffect(() => {
     if (isActive) {
@@ -57,23 +120,26 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
       setActiveTask(taskName);
       setTime(0);
       setIsActive(true);
-    }
-  };
-
-  const completeTask = (taskName: string) => {
-    if (activeTask === taskName) {
-      setIsActive(false);
-      // Optionally do something with the final time, like logging it.
-      console.log(`Task "${taskName}" completed in ${time} seconds.`);
-      setActiveTask(null);
-      // Do not reset time here so it can be seen in the tracker until a new task starts.
+      setTasks(currentTasks =>
+        currentTasks.map(t =>
+          t.name === taskName ? { ...t, status: 'In Progress' } : t
+        )
+      );
     }
   };
   
-  const handleStop = () => {
-    setIsActive(false);
-    setActiveTask(null);
-    setTime(0);
+  const handleStop = (taskName: string) => {
+    if (activeTask === taskName) {
+      setIsActive(false);
+      setActiveTask(null);
+      setTime(0);
+      setTasks(currentTasks => 
+        currentTasks.map(t => 
+          t.name === taskName ? { ...t, status: 'Completed' } : t
+        )
+      );
+      setCompletedTasksCount(prev => prev + 1);
+    }
   };
 
 
@@ -81,10 +147,11 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     time,
     isActive,
     activeTask,
+    tasks,
+    completedTasksCount,
     handleStartStop,
     handleReset,
     startTask,
-    completeTask,
     handleStop,
   };
 

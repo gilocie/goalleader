@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useTimeTracker } from '@/context/time-tracker-context';
 import { useEffect, useState } from 'react';
 
 type CircularProgressBarProps = {
@@ -71,34 +72,34 @@ const CircularProgressBar = ({
 };
 
 export function ProjectProgress() {
-  const [completedTasks, setCompletedTasks] = useState(3); // Demo value
+  const { completedTasksCount } = useTimeTracker();
   const [progress, setProgress] = useState(0);
   const [rating, setRating] = useState('Poor');
 
   useEffect(() => {
     let newRating = 'Poor';
-    if (completedTasks >= 5) {
+    if (completedTasksCount >= 5) {
       newRating = 'Excellent';
-    } else if (completedTasks >= 3) {
+    } else if (completedTasksCount >= 3) {
       newRating = 'Good';
-    } else if (completedTasks >=1) {
+    } else if (completedTasksCount >=1) {
       newRating = 'Poor'
     }
     setRating(newRating);
 
     // Animate progress on mount
-    const newProgress = (completedTasks / 5) * 100;
+    const newProgress = (completedTasksCount / 5) * 100;
     const timer = setTimeout(() => setProgress(Math.min(newProgress, 100)), 200);
     return () => clearTimeout(timer);
-  }, [completedTasks]);
+  }, [completedTasksCount]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Daily Task Progress</CardTitle>
         <CardDescription>
-          {completedTasks} task
-          {completedTasks === 1 ? '' : 's'} completed today
+          {completedTasksCount} task
+          {completedTasksCount === 1 ? '' : 's'} completed today
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center p-6">

@@ -27,50 +27,6 @@ import {
 import { useTimeTracker } from '@/context/time-tracker-context';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
-import { useState } from 'react';
-
-const initialTasks = [
-  {
-    name: 'Design landing page',
-    status: 'In Progress',
-    dueDate: '2024-07-25',
-  },
-  {
-    name: 'Develop API for user authentication',
-    status: 'Completed',
-    dueDate: '2024-07-15',
-  },
-  {
-    name: 'Setup database schema',
-    status: 'Pending',
-    dueDate: '2024-08-01',
-  },
-  {
-    name: 'Deploy to production',
-    status: 'Pending',
-    dueDate: '2024-08-15',
-  },
-  {
-    name: 'Write documentation',
-    status: 'In Progress',
-    dueDate: '2024-08-10',
-  },
-    {
-    name: 'Fix login bug',
-    status: 'Pending',
-    dueDate: '2024-08-05',
-  },
-  {
-    name: 'Refactor chart component',
-    status: 'In Progress',
-    dueDate: '2024-08-12',
-  },
-  {
-    name: 'Add new payment gateway',
-    status: 'Pending',
-    dueDate: '2024-09-01',
-  },
-];
 
 const StatusIndicator = ({ status }: { status: string }) => {
   switch (status) {
@@ -105,35 +61,7 @@ const StatusIndicator = ({ status }: { status: string }) => {
 
 
 export function ProjectList() {
-  const { activeTask, isActive, startTask, completeTask, handleStop } = useTimeTracker();
-  const [tasks, setTasks] = useState(initialTasks);
-
-  const handleCompleteTask = (taskName: string) => {
-    completeTask(taskName);
-    setTasks(currentTasks => 
-      currentTasks.map(t => 
-        t.name === taskName ? { ...t, status: 'Completed' } : t
-      )
-    );
-  }
-
-  const handleStartTask = (taskName: string) => {
-    startTask(taskName);
-    setTasks(currentTasks =>
-      currentTasks.map(t =>
-        t.name === taskName ? { ...t, status: 'In Progress' } : (t.status === 'In Progress' ? { ...t, status: 'Pending' } : t)
-      )
-    );
-  };
-  
-  const handleStopTask = (taskName: string) => {
-    handleStop();
-    setTasks(currentTasks => 
-      currentTasks.map(t => 
-        t.name === taskName ? { ...t, status: 'Completed' } : t
-      )
-    );
-  };
+  const { tasks, activeTask, startTask, handleStop } = useTimeTracker();
 
   return (
     <Card className="h-full flex flex-col">
@@ -167,7 +95,7 @@ export function ProjectList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleStartTask(task.name)}
+                      onClick={() => startTask(task.name)}
                       disabled={!!activeTask}
                     >
                       <Play className="mr-2 h-4 w-4" />
@@ -178,7 +106,7 @@ export function ProjectList() {
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleStopTask(task.name)}
+                      onClick={() => handleStop(task.name)}
                     >
                       <Square className="mr-2 h-4 w-4" />
                       Stop
