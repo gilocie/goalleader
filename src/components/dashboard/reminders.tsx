@@ -25,27 +25,27 @@ const meetings = [
 ];
 
 export function Reminders() {
+  const nextMeeting = meetings[0];
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Reminders</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
-        {meetings.map((meeting, index) => (
-          <div key={index} className="flex flex-col gap-2">
+        {nextMeeting && (
+          <div className="flex flex-col gap-2">
             <div className="space-y-1">
               <p className="text-lg font-semibold leading-none">
-                {meeting.title}
+                {nextMeeting.title}
               </p>
-              <p className="text-sm text-muted-foreground">{meeting.time}</p>
+              <p className="text-sm text-muted-foreground">{nextMeeting.time}</p>
             </div>
-            {index === 0 && (
-              <Button>
-                <Video className="mr-2 h-4 w-4" /> Start Meeting
-              </Button>
-            )}
+            <Button>
+              <Video className="mr-2 h-4 w-4" /> Start Meeting
+            </Button>
           </div>
-        ))}
+        )}
       </CardContent>
     </Card>
   );
