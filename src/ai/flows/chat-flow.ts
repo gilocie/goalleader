@@ -26,7 +26,11 @@ const ChatOutputSchema = z.string();
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
 export async function chat(input: ChatInput): Promise<ChatOutput> {
-  return chatFlow(input);
+  const safeInput = {
+    history: input.history || [],
+    message: input.message || "",
+  };
+  return chatFlow(safeInput);
 }
 
 const chatPrompt = ai.definePrompt(
@@ -54,7 +58,15 @@ const chatFlow = ai.defineFlow(
     outputSchema: ChatOutputSchema,
   },
   async (input) => {
-    const { output } = await chatPrompt(input);
-    return output || "I'm sorry, I couldn't generate a response. Please try again.";
+    try {
+        const { output } = await chatPrompt(input);
+        // Force output to be a string
+        return (typeof output === 'string' && output.trim()) 
+          ? output 
+          : "I'm sorry, I couldn't generate a response. Please try again.";
+      } catch (err) {
+        console.error("ChatFlow error:", err);
+        return "I'm sorry, I couldn't generate a response. Please try again.";
+      }
   }
 );
