@@ -23,7 +23,7 @@ export function Sidebar() {
           </Button>
         </div>
         <div className="flex-1 overflow-y-auto px-2 lg:px-4">
-          <nav className="flex flex-col gap-1 text-sm font-medium">
+          <nav className="flex flex-col gap-2 text-sm font-medium">
             <NavLinks />
           </nav>
         </div>

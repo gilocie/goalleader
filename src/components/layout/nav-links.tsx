@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -46,7 +47,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
           key={href}
           href={href}
           className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:bg-green-800 hover:text-white hover:shadow-lg hover:scale-105',
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-card-foreground bg-card shadow-sm transition-all hover:bg-accent hover:shadow-lg',
             pathname === href && 'bg-green-800 text-white shadow-md scale-105'
           )}
         >
