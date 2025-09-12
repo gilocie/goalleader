@@ -11,7 +11,7 @@ import {
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobileOrTablet } from '@/hooks/use-mobile';
 
 const generateData = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -31,8 +31,8 @@ const getBarColor = (value: number | null) => {
 
 const CustomizedLabel = (props: any) => {
     const { x, y, width, value, viewBox } = props;
-    const isMobile = useIsMobile();
-    const yPos = isMobile ? y + 20 : (viewBox.y as number) + viewBox.height / 2;
+    const isMobileOrTablet = useIsMobileOrTablet();
+    const yPos = isMobileOrTablet ? y + 20 : y + viewBox.height / 2;
     const fill = value < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))";
   
     return (
@@ -54,8 +54,8 @@ export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
-  const barWidth = isMobile ? 28 : 40; 
+  const isMobileOrTablet = useIsMobileOrTablet();
+  const barWidth = isMobileOrTablet ? 28 : 40; 
   const visibleMonths = 4;
   const currentYear = new Date().getFullYear();
 
@@ -67,11 +67,11 @@ export function ProjectAnalyticsChart() {
   }, []);
 
   useEffect(() => {
-    if (scrollContainerRef.current && currentMonthIndex !== null && !isMobile) {
+    if (scrollContainerRef.current && currentMonthIndex !== null && !isMobileOrTablet) {
         const initialScrollPosition = Math.max(0, (currentMonthIndex - 1) * barWidth);
         scrollContainerRef.current.scrollLeft = initialScrollPosition;
     }
-  }, [currentMonthIndex, data, isMobile, barWidth]);
+  }, [currentMonthIndex, data, isMobileOrTablet, barWidth]);
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -120,7 +120,7 @@ export function ProjectAnalyticsChart() {
                 </BarChart>
             </ResponsiveContainer>
          </div>
-         {!isMobile && <Button 
+         {!isMobileOrTablet && <Button 
             variant="default"
             size="icon" 
             className="absolute -left-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
@@ -128,9 +128,9 @@ export function ProjectAnalyticsChart() {
             >
              <ChevronLeft className="h-4 w-4" />
         </Button>}
-        <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']`} style={!isMobile ? {width: `${visibleMonths * barWidth}px`} : {width: '100%'}}>
-            <ResponsiveContainer width={isMobile ? '100%' : barWidth * 12} height={150}>
-            <BarChart data={data} barGap={isMobile ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+        <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']`} style={!isMobileOrTablet ? {width: `${visibleMonths * barWidth}px`} : {width: '100%'}}>
+            <ResponsiveContainer width={isMobileOrTablet ? '100%' : barWidth * 12} height={150}>
+            <BarChart data={data} barGap={isMobileOrTablet ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                 <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
                     <stop offset="0%" stopColor="hsl(var(--accent))" />
@@ -148,7 +148,7 @@ export function ProjectAnalyticsChart() {
                 tickLine={false}
                 axisLine={false}
                 interval={0}
-                padding={{ left: isMobile ? 4 : barWidth/4, right: isMobile ? 4 : barWidth/4 }}
+                padding={{ left: isMobileOrTablet ? 4 : barWidth/4, right: isMobileOrTablet ? 4 : barWidth/4 }}
                 />
                 <Bar
                     dataKey="total"
@@ -168,7 +168,7 @@ export function ProjectAnalyticsChart() {
             </BarChart>
             </ResponsiveContainer>
         </div>
-        {!isMobile && <Button 
+        {!isMobileOrTablet && <Button 
             variant="default" 
             size="icon" 
             className="absolute -right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
