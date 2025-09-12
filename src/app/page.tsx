@@ -58,10 +58,7 @@ export default function Home() {
               <span className="sr-only">Toggle notifications</span>
             </Button>
           </div>
-          <div className="p-4">
-            <TimeTracker />
-          </div>
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               <Link
                 href="#"
@@ -99,6 +96,9 @@ export default function Home() {
                 Analytics
               </Link>
             </nav>
+          </div>
+          <div className="p-4">
+            <TimeTracker />
           </div>
         </div>
       </div>
