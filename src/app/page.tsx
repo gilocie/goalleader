@@ -209,14 +209,16 @@ export default function Home() {
           <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
             <div className="grid auto-rows-max items-start gap-4 md:gap-8 lg:col-span-2">
               <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8'>
-                <ProjectAnalyticsChart />
-                <ProjectProgress />
+                <ProjectList />
+                <div className="grid gap-4 auto-rows-max">
+                    <ProjectProgress />
+                    <TeamCollaboration />
+                </div>
               </div>
-              <TeamCollaboration />
             </div>
             <div className="grid auto-rows-max items-start gap-4 md:gap-8">
-              <ProjectList />
-              <Reminders />
+                <ProjectAnalyticsChart />
+                <Reminders />
             </div>
           </div>
         </main>
