@@ -83,14 +83,12 @@ export function ProjectAnalyticsChart() {
     <Card className="h-[260px]">
       <CardHeader>
         <CardTitle>Performance Record</CardTitle>
-        <CardDescription>
-          {currentYear}
-        </CardDescription>
+        <div className="text-sm text-muted-foreground">{currentYear}</div>
       </CardHeader>
       <CardContent className="relative flex items-center pr-8">
          <div className="h-[150px]">
             <ResponsiveContainer width={50} height="100%">
-                <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 20 }}>
+                <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                      <YAxis
                         stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
@@ -105,14 +103,14 @@ export function ProjectAnalyticsChart() {
          <Button 
             variant="default"
             size="icon" 
-            className="absolute -left-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10"
+            className="absolute -left-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
             onClick={() => handleScroll('left')}
             >
              <ChevronLeft className="h-4 w-4" />
         </Button>
         <div ref={scrollContainerRef} className="overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']" style={{width: `${visibleMonths * barWidth}px`}}>
             <ResponsiveContainer width={barWidth * 12} height={150}>
-            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 0, right: 0, left: 0, bottom: 20 }}>
+            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                 <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
                     <stop offset="0%" stopColor="hsl(var(--accent))" />
@@ -169,7 +167,7 @@ export function ProjectAnalyticsChart() {
         <Button 
             variant="default" 
             size="icon" 
-            className="absolute -right-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10"
+            className="absolute -right-4 top-1/3 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
             onClick={() => handleScroll('right')}
             >
              <ChevronRight className="h-4 w-4" />
@@ -178,4 +176,3 @@ export function ProjectAnalyticsChart() {
     </Card>
   );
 }
-
