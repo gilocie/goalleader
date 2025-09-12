@@ -1,12 +1,15 @@
 
 import {
   Bell,
+  Facebook,
   HomeIcon,
+  Instagram,
   LineChart,
   ListTodo,
   Menu,
   Package,
   Search,
+  Twitter,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -41,6 +44,7 @@ import { TimeTracker } from '@/components/dashboard/time-tracker';
 import { Logo } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Noticeboard } from '@/components/dashboard/noticeboard';
+import { Footer } from '@/components/dashboard/footer';
 
 export default function Home() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
@@ -217,7 +221,7 @@ export default function Home() {
             </div>
           </div>
           <div className="grid grid-cols-10 gap-4">
-            <div className="col-span-7">
+            <div className="col-span-7 h-full">
                 <GoalReaderAIChat />
             </div>
             <div className="col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
@@ -226,6 +230,7 @@ export default function Home() {
             </div>
           </div>
         </main>
+        <Footer />
       </div>
     </div>
   );
