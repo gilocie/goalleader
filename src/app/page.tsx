@@ -221,10 +221,10 @@ export default function Home() {
             </div>
           </div>
           <div className="grid grid-cols-10 gap-4">
-            <div className="col-span-10 lg:col-span-7 h-full">
+            <div className="col-span-10 lg:col-span-7 h-full md:h-[500px]">
                 <GoalReaderAIChat />
             </div>
-            <div className="col-span-10 lg:col-span-3 grid grid-cols-1 gap-4 auto-rows-fr">
+            <div className="col-span-10 lg:col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
               <Reminders />
               <Noticeboard />
             </div>
