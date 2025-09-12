@@ -33,7 +33,7 @@ import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { DashboardStats } from '@/components/dashboard/dashboard-stats';
 import { ProjectAnalyticsChart } from '@/components/dashboard/project-analytics-chart';
-import { TeamCollaboration } from '@/components/dashboard/team-collaboration';
+import { GoalReaderAIChat } from '@/components/dashboard/goal-reader-ai-chat';
 import { ProjectProgress } from '@/components/dashboard/project-progress';
 import { Reminders } from '@/components/dashboard/reminders';
 import { ProjectList } from '@/components/dashboard/project-list';
@@ -212,14 +212,14 @@ export default function Home() {
             </div>
             <div className="grid auto-rows-min gap-4">
               <ProjectAnalyticsChart />
-              <ProjectProgress />
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-8 xl:grid-cols-3">
             <div className="xl:col-span-2">
-              <TeamCollaboration />
+              <GoalReaderAIChat />
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
+              <ProjectProgress />
               <Reminders />
             </div>
           </div>
