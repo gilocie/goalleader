@@ -12,8 +12,6 @@ import {
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
-
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -103,7 +101,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px] relative">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-green-800 text-white px-4 lg:h-[60px] lg:px-6">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
             <Sheet>
               <SheetTrigger asChild>
                 <Button
@@ -207,7 +205,7 @@ export default function Home() {
               <DashboardStats />
             </div>
             <div className="grid grid-cols-10 gap-4">
-              <div className="col-span-10 lg:col-span-7 h-full md:h-[592px]">
+              <div className="col-span-10 lg:col-span-7 md:h-[592px]">
                 <ProjectList />
               </div>
               <div className="col-span-10 lg:col-span-3 grid grid-cols-1 gap-4 auto-rows-min">

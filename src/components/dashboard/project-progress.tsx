@@ -72,26 +72,26 @@ const CircularProgressBar = ({
 };
 
 export function ProjectProgress() {
-  const { completedTasksCount } = useTimeTracker();
+  const { tasks } = useTimeTracker();
   const [progress, setProgress] = useState(0);
   const [rating, setRating] = useState('Poor');
+  
+  const totalTasks = tasks.length;
+  const completedTasksCount = tasks.filter(t => t.status === 'Completed').length;
 
   useEffect(() => {
     let newRating = 'Poor';
-    if (completedTasksCount >= 5) {
+    if (completedTasksCount / totalTasks >= 0.8) {
       newRating = 'Excellent';
-    } else if (completedTasksCount >= 3) {
+    } else if (completedTasksCount / totalTasks >= 0.5) {
       newRating = 'Good';
-    } else if (completedTasksCount >=1) {
-      newRating = 'Poor'
     }
     setRating(newRating);
 
-    // Animate progress on mount
-    const newProgress = (completedTasksCount / 5) * 100;
+    const newProgress = totalTasks > 0 ? (completedTasksCount / totalTasks) * 100 : 0;
     const timer = setTimeout(() => setProgress(Math.min(newProgress, 100)), 200);
     return () => clearTimeout(timer);
-  }, [completedTasksCount]);
+  }, [completedTasksCount, totalTasks]);
 
   return (
     <Card>

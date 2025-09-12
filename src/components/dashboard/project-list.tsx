@@ -1,6 +1,13 @@
 
 'use client';
-import { MoreHorizontal, Play, Check, Circle, Pause, Square } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Play,
+  Check,
+  Circle,
+  Square,
+  Eye,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -25,15 +32,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTimeTracker } from '@/context/time-tracker-context';
-import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
+import { CompleteTaskDialog } from './complete-task-dialog';
+import { TaskDetailsDialog } from './task-details-dialog';
 
 const StatusIndicator = ({ status }: { status: string }) => {
   switch (status) {
     case 'Completed':
       return (
-        <div className="flex items-center gap-2">
-          <Check className="h-4 w-4 text-primary" />
+        <div className="flex items-center gap-2 text-primary">
+          <Check className="h-4 w-4" />
           <span>Completed</span>
         </div>
       );
@@ -59,82 +67,143 @@ const StatusIndicator = ({ status }: { status: string }) => {
   }
 };
 
-
 export function ProjectList() {
-  const { tasks, activeTask, startTask, handleStop } = useTimeTracker();
+  const {
+    tasks,
+    activeTask,
+    startTask,
+    handleStop,
+    isCompleteTaskOpen,
+    setCompleteTaskOpen,
+    isTaskDetailsOpen,
+    setTaskDetailsOpen,
+    setSelectedTask,
+    selectedTask,
+  } = useTimeTracker();
+
+  const handleStopClick = (taskName: string) => {
+    const task = tasks.find((t) => t.name === taskName);
+    if (task) {
+      setSelectedTask(task);
+      setCompleteTaskOpen(true);
+    }
+  };
+
+  const handleViewDetailsClick = (taskName: string) => {
+    const task = tasks.find((t) => t.name === taskName);
+    if (task) {
+      setSelectedTask(task);
+      setTaskDetailsOpen(true);
+    }
+  };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader>
-        <CardTitle>ToDo List</CardTitle>
-        <CardDescription>A list of your tasks.</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Task</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Due Date</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.map((task) => (
-                <TableRow key={task.name}>
-                  <TableCell className="font-medium">{task.name}</TableCell>
-                  <TableCell>
-                    <StatusIndicator status={task.status} />
-                  </TableCell>
-                  <TableCell>
-                  {task.status === 'Pending' && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => startTask(task.name)}
-                      disabled={!!activeTask}
-                    >
-                      <Play className="mr-2 h-4 w-4" />
-                      Start
-                    </Button>
-                  )}
-                  {task.status === 'In Progress' && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleStop(task.name)}
-                    >
-                      <Square className="mr-2 h-4 w-4" />
-                      Stop
-                    </Button>
-                  )}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+    <>
+      <Card className="h-full flex flex-col">
+        <CardHeader>
+          <CardTitle>ToDo List</CardTitle>
+          <CardDescription>A list of your tasks.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Task</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead className="hidden md:table-cell text-right">
+                    Due Date
+                  </TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {tasks.map((task) => (
+                  <TableRow key={task.name}>
+                    <TableCell className="font-medium">{task.name}</TableCell>
+                    <TableCell>
+                      <StatusIndicator status={task.status} />
+                    </TableCell>
+                    <TableCell>
+                      {task.status === 'Pending' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => startTask(task.name)}
+                          disabled={!!activeTask}
+                        >
+                          <Play className="mr-2 h-4 w-4" />
+                          Start
+                        </Button>
+                      )}
+                      {task.status === 'In Progress' && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleStopClick(task.name)}
+                        >
+                          <Square className="mr-2 h-4 w-4" />
+                          Stop
+                        </Button>
+                      )}
+                      {task.status === 'Completed' && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleViewDetailsClick(task.name)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-right">
+                      {task.dueDate}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                            disabled={task.status === 'Completed'}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                          <DropdownMenuItem>Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+      {selectedTask && (
+        <>
+          <CompleteTaskDialog
+            isOpen={isCompleteTaskOpen}
+            onOpenChange={setCompleteTaskOpen}
+            task={selectedTask}
+            onConfirm={handleStop}
+          />
+          <TaskDetailsDialog
+            isOpen={isTaskDetailsOpen}
+            onOpenChange={setTaskDetailsOpen}
+            task={selectedTask}
+          />
+        </>
+      )}
+    </>
   );
 }
