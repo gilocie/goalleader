@@ -30,14 +30,16 @@ const getBarColor = (value: number | null) => {
 }
 
 const CustomizedLabel = (props: any) => {
-    const { x, y, width, value } = props;
+    const { x, y, width, height, value } = props;
     const isMobileOrTablet = useIsMobileOrTablet();
     
-    // Always position the label in the middle of the bar's potential height
-    const yPos = y + (150 - 20) / 2; // (chart height - top margin) / 2
-
     const fill = (value ?? 0) < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))";
+    const yPos = y + height / 2;
   
+    if (height === 0 && value === 0) {
+        return null;
+    }
+
     return (
       <text
         x={x + width / 2}
@@ -104,83 +106,87 @@ export function ProjectAnalyticsChart() {
   
   return (
     <Card className="h-[260px] overflow-hidden relative">
-        {!isMobileOrTablet && <Button 
-            variant="default"
-            size="icon" 
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
-            onClick={() => handleScroll('left')}
-            >
-             <ChevronLeft className="h-4 w-4" />
-        </Button>}
-      <CardHeader>
-        <CardTitle>Performance Record</CardTitle>
-        <div className="text-sm text-muted-foreground">{currentYear}</div>
-      </CardHeader>
-      <CardContent className="flex items-center pr-0 sm:pr-4">
-         <div className="h-[150px] -ml-2">
-            <ResponsiveContainer width={50} height="100%">
-                <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
-                     <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => `${value}%`}
-                        domain={[0, 100]}
-                        />
+        <CardHeader>
+            <CardTitle>Performance Record</CardTitle>
+            <div className="text-sm text-muted-foreground">{currentYear}</div>
+        </CardHeader>
+        <CardContent className="flex items-center pr-0 sm:pr-4 relative">
+            {!isMobileOrTablet && (
+                <>
+                    <Button 
+                        variant="default"
+                        size="icon" 
+                        className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
+                        onClick={() => handleScroll('left')}
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                        variant="default" 
+                        size="icon" 
+                        className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
+                        onClick={() => handleScroll('right')}
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
+                </>
+            )}
+            <div className="h-[150px] -ml-2">
+                <ResponsiveContainer width={50} height="100%">
+                    <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+                        <YAxis
+                            stroke="hsl(var(--muted-foreground))"
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => `${value}%`}
+                            domain={[0, 100]}
+                            />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+            <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']`} style={!isMobileOrTablet ? {width: `${visibleMonths * barWidth}px`} : {width: '100%'}}>
+                <ResponsiveContainer width={isMobileOrTablet ? '100%' : barWidth * 12} height={150}>
+                <BarChart data={data} barGap={isMobileOrTablet ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 5 }}>
+                    <defs>
+                    <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
+                        <stop offset="0%" stopColor="hsl(var(--accent))" />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" />
+                    </linearGradient>
+                    </defs>
+                    <Tooltip 
+                        cursor={{fill: 'hsl(var(--accent))', opacity: 0.5}}
+                        contentStyle={{ zIndex: 100 }}
+                        position={{ y: 0 }}
+                    />
+                    <XAxis
+                    dataKey="name"
+                    stroke="hsl(var(--muted-foreground))"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    interval={0}
+                    padding={{ left: isMobileOrTablet ? 4 : barWidth/4, right: isMobileOrTablet ? 4 : barWidth/4 }}
+                    />
+                    <Bar
+                        dataKey="total"
+                        radius={[4, 4, 0, 0]}
+                        background={{ fill: 'hsl(var(--border))', radius: 4 }}
+                    >
+                        <LabelList dataKey="total" content={<CustomizedLabel />} />
+                        {data.map((entry, index) => (
+                            <Cell
+                                key={`cell-${index}`}
+                                fill={getBarColor(entry.total)}
+                                stroke={index === currentMonthIndex ? 'hsl(var(--primary))' : 'transparent'}
+                                strokeWidth={2}
+                            />
+                        ))}
+                    </Bar>
                 </BarChart>
-            </ResponsiveContainer>
-         </div>
-        <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']`} style={!isMobileOrTablet ? {width: `${visibleMonths * barWidth}px`} : {width: '100%'}}>
-            <ResponsiveContainer width={isMobileOrTablet ? '100%' : barWidth * 12} height={150}>
-            <BarChart data={data} barGap={isMobileOrTablet ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 5 }}>
-                <defs>
-                <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
-                    <stop offset="0%" stopColor="hsl(var(--accent))" />
-                    <stop offset="100%" stopColor="hsl(var(--primary))" />
-                </linearGradient>
-                </defs>
-                <Tooltip 
-                    cursor={{fill: 'hsl(var(--accent))', opacity: 0.5}}
-                    contentStyle={{ zIndex: 100 }}
-                    position={{ y: 0 }}
-                />
-                <XAxis
-                dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                interval={0}
-                padding={{ left: isMobileOrTablet ? 4 : barWidth/4, right: isMobileOrTablet ? 4 : barWidth/4 }}
-                />
-                <Bar
-                    dataKey="total"
-                    radius={[4, 4, 0, 0]}
-                    background={{ fill: 'hsl(var(--border))', radius: 4 }}
-                >
-                    <LabelList dataKey="total" content={<CustomizedLabel />} />
-                    {data.map((entry, index) => (
-                        <Cell
-                            key={`cell-${index}`}
-                            fill={getBarColor(entry.total)}
-                            stroke={index === currentMonthIndex ? 'hsl(var(--primary))' : 'transparent'}
-                            strokeWidth={2}
-                        />
-                    ))}
-                </Bar>
-            </BarChart>
-            </ResponsiveContainer>
-        </div>
-      </CardContent>
-      {!isMobileOrTablet && <Button 
-            variant="default" 
-            size="icon" 
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
-            onClick={() => handleScroll('right')}
-            >
-             <ChevronRight className="h-4 w-4" />
-        </Button>}
+                </ResponsiveContainer>
+            </div>
+        </CardContent>
     </Card>
   );
 }
