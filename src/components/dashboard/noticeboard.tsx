@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -48,12 +48,30 @@ const initialNotices: Notice[] = [
 ];
 
 export function Noticeboard() {
-  const [notices, setNotices] = useState(initialNotices);
+  const [notices] = useState(initialNotices);
+  const [currentNoticeIndex, setCurrentNoticeIndex] = useState(0);
+  const [isFading, setIsFading] = useState(false);
 
   const unreadNotices = notices.filter((notice) => !notice.read);
-  const firstUnreadNotice = unreadNotices[0];
+  const currentNotice = unreadNotices[currentNoticeIndex];
 
-  if (!firstUnreadNotice) {
+  useEffect(() => {
+    if (unreadNotices.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setIsFading(true);
+      setTimeout(() => {
+        setCurrentNoticeIndex((prevIndex) =>
+          (prevIndex + 1) % unreadNotices.length
+        );
+        setIsFading(false);
+      }, 500); // fade-out duration
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [unreadNotices.length]);
+
+  if (!currentNotice) {
     return (
         <Card>
             <CardHeader>
@@ -78,10 +96,12 @@ export function Noticeboard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        <h3 className="font-semibold">{firstUnreadNotice.title}</h3>
-        <p className="text-sm text-muted-foreground">
-          {firstUnreadNotice.content}
-        </p>
+        <div className={`transition-opacity duration-500 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+          <h3 className="font-semibold">{currentNotice.title}</h3>
+          <p className="text-sm text-muted-foreground">
+            {currentNotice.content}
+          </p>
+        </div>
         <Button
           variant="link"
           size="sm"
