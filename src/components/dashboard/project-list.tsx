@@ -54,6 +54,21 @@ const tasks = [
     status: 'In Progress',
     dueDate: '2024-08-10',
   },
+    {
+    name: 'Fix login bug',
+    status: 'Pending',
+    dueDate: '2024-08-05',
+  },
+  {
+    name: 'Refactor chart component',
+    status: 'In Progress',
+    dueDate: '2024-08-12',
+  },
+  {
+    name: 'Add new payment gateway',
+    status: 'Pending',
+    dueDate: '2024-09-01',
+  },
 ];
 
 const StatusIndicator = ({ status }: { status: string }) => {
@@ -92,13 +107,13 @@ export function ProjectList() {
   const { activeTask, startTask, completeTask } = useTimeTracker();
 
   return (
-    <Card className="h-auto">
+    <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>ToDo List</CardTitle>
         <CardDescription>A list of your tasks.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[200px]">
+      <CardContent className="flex-grow">
+        <ScrollArea className="h-full">
           <Table>
             <TableHeader>
               <TableRow>
