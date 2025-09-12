@@ -67,7 +67,7 @@ export function TimeTracker() {
                 className="object-cover z-0"
             />
         )}
-      <div className="relative z-10 bg-black/30 p-4 h-full flex flex-col justify-between">
+      <div className="relative z-10 bg-green-900/50 p-4 h-full flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
           <CardTitle className="text-sm font-medium">Time Tracker</CardTitle>
         </CardHeader>
