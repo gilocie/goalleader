@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
@@ -9,10 +8,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Bot, User, Loader } from 'lucide-react';
 import { chat, ChatInput } from '@/ai/flows/chat-flow';
+import { getInitialMessage, InitialMessageInput } from '@/ai/flows/initial-message-flow';
 import { ScrollArea } from '../ui/scroll-area';
 import Textarea from 'react-textarea-autosize';
 
@@ -21,11 +20,73 @@ type Message = {
   content: string;
 };
 
+// Hardcoded data for demonstration purposes
+const tasks = [
+  {
+    name: 'Design landing page',
+    status: 'In Progress',
+    dueDate: '2024-07-25',
+  },
+  {
+    name: 'Develop API for user authentication',
+    status: 'Completed',
+    dueDate: '2024-07-15',
+  },
+  {
+    name: 'Setup database schema',
+    status: 'Pending',
+    dueDate: '2024-08-01',
+  },
+];
+
+const meetings = [
+  {
+    title: 'Meeting with Arc Company',
+    time: '02:00 pm - 04:00 pm',
+  },
+  {
+    title: 'Project Alpha Deadline',
+    time: 'Due: 25th July',
+  },
+];
+
+const performance = 75;
+
+
 export function GoalReaderAIChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchInitialMessage = async () => {
+      if (messages.length === 0) {
+        setIsLoading(true);
+        try {
+          const initialInput: InitialMessageInput = {
+            performance,
+            tasks,
+            meetings,
+          };
+          const response = await getInitialMessage(initialInput);
+          const modelMessage: Message = { role: 'model', content: response };
+          setMessages([modelMessage]);
+        } catch (error) {
+          console.error('Error getting initial message:', error);
+          const errorMessage: Message = {
+            role: 'model',
+            content: 'Hello! How can I help you achieve your goals today?',
+          };
+          setMessages([errorMessage]);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchInitialMessage();
+  }, []);
 
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
@@ -107,7 +168,7 @@ export function GoalReaderAIChat() {
                 )}
               </div>
             ))}
-            {isLoading && (
+            {isLoading && messages.length > 0 && (
               <div className="flex justify-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                   <Bot size={20} />
@@ -115,6 +176,11 @@ export function GoalReaderAIChat() {
                 <div className="bg-muted rounded-lg p-3 flex items-center">
                   <Loader className="animate-spin" size={20} />
                 </div>
+              </div>
+            )}
+             {isLoading && messages.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <Loader className="animate-spin" size={30} />
               </div>
             )}
           </div>
