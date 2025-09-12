@@ -215,8 +215,13 @@ export default function Home() {
               <ProjectProgress />
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-2">
-            <GoalReaderAIChat />
+          <div className="grid grid-cols-10 gap-4">
+            <div className="col-span-7">
+                <GoalReaderAIChat />
+            </div>
+            <div className="col-span-3">
+
+            </div>
           </div>
         </main>
       </div>
