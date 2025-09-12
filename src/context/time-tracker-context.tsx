@@ -11,6 +11,7 @@ interface TimeTrackerContextType {
   handleReset: () => void;
   startTask: (taskName: string) => void;
   completeTask: (taskName: string) => void;
+  handleStop: () => void;
 }
 
 const TimeTrackerContext = createContext<TimeTrackerContextType | undefined>(undefined);
@@ -68,6 +69,12 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
       // Do not reset time here so it can be seen in the tracker until a new task starts.
     }
   };
+  
+  const handleStop = () => {
+    setIsActive(false);
+    setActiveTask(null);
+    setTime(0);
+  };
 
 
   const value = {
@@ -78,6 +85,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     handleReset,
     startTask,
     completeTask,
+    handleStop,
   };
 
   return (

@@ -121,14 +121,13 @@ export function ProjectList() {
     startTask(taskName);
     setTasks(currentTasks =>
       currentTasks.map(t =>
-        t.name === taskName ? { ...t, status: 'In Progress' } : t
+        t.name === taskName ? { ...t, status: 'In Progress' } : (t.status === 'In Progress' ? { ...t, status: 'Pending' } : t)
       )
     );
   };
   
   const handleStopTask = (taskName: string) => {
     handleStop();
-    // The status is updated to completed when stopping
     setTasks(currentTasks => 
       currentTasks.map(t => 
         t.name === taskName ? { ...t, status: 'Completed' } : t
@@ -175,7 +174,7 @@ export function ProjectList() {
                       Start
                     </Button>
                   )}
-                  {task.status === 'In Progress' && activeTask === task.name && (
+                  {task.status === 'In Progress' && (
                     <Button
                       variant="destructive"
                       size="sm"
