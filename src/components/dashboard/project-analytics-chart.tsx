@@ -38,7 +38,7 @@ const CustomizedLabel = (props: any) => {
         return null;
     }
 
-    if (value === null || value === 0) {
+    if (value === null) {
         return null;
     }
 
@@ -62,7 +62,7 @@ export function ProjectAnalyticsChart() {
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobileOrTablet = useIsMobileOrTablet();
-  const barWidth = isMobileOrTablet ? 28 : 40; 
+  const barWidth = 40; 
   const visibleMonths = 4;
   const currentYear = new Date().getFullYear();
 
@@ -107,7 +107,7 @@ export function ProjectAnalyticsChart() {
   }
   
   return (
-    <Card className="h-[260px] overflow-hidden relative">
+    <Card className="h-[260px] overflow-hidden">
         <CardHeader>
             <CardTitle>Performance Record</CardTitle>
             <div className="text-sm text-muted-foreground">{currentYear}</div>
@@ -118,7 +118,7 @@ export function ProjectAnalyticsChart() {
                     <Button 
                         variant="default"
                         size="icon" 
-                        className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
                         onClick={() => handleScroll('left')}
                     >
                         <ChevronLeft className="h-4 w-4" />
@@ -126,16 +126,16 @@ export function ProjectAnalyticsChart() {
                     <Button 
                         variant="default" 
                         size="icon" 
-                        className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
                         onClick={() => handleScroll('right')}
                     >
                         <ChevronRight className="h-4 w-4" />
                     </Button>
                 </>
             )}
-            <div className="h-[150px] -ml-2">
+            <div className="h-[150px]">
                 <ResponsiveContainer width={50} height="100%">
-                    <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+                    <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 5 }}>
                         <YAxis
                             stroke="hsl(var(--muted-foreground))"
                             fontSize={12}
@@ -143,16 +143,14 @@ export function ProjectAnalyticsChart() {
                             axisLine={false}
                             tickFormatter={(value) => `${value}%`}
                             domain={[0, 100]}
-                            ticks={[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]}
-                            interval="preserveStartEnd"
-                            tickCount={21}
+                            ticks={[0, 25, 50, 75, 100]}
                             />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
-            <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']`} style={!isMobileOrTablet ? {width: `${visibleMonths * barWidth}px`} : {width: '100%'}}>
+            <div ref={scrollContainerRef} className={`flex-1 overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']`} style={!isMobileOrTablet ? {width: `${visibleMonths * barWidth}px`} : {}}>
                 <ResponsiveContainer width={isMobileOrTablet ? '100%' : barWidth * 12} height={150}>
-                <BarChart data={data} barGap={isMobileOrTablet ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 5 }}>
+                <BarChart data={data} barGap={0} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 5 }}>
                     <defs>
                     <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
                         <stop offset="0%" stopColor="hsl(var(--accent))" />
@@ -171,7 +169,7 @@ export function ProjectAnalyticsChart() {
                     tickLine={false}
                     axisLine={false}
                     interval={0}
-                    padding={{ left: isMobileOrTablet ? 4 : barWidth/4, right: isMobileOrTablet ? 4 : barWidth/4 }}
+                    padding={{ left: isMobileOrTablet ? 4 : 8, right: isMobileOrTablet ? 4 : 8 }}
                     />
                     <Bar
                         dataKey="total"
