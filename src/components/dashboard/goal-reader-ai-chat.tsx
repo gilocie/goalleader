@@ -190,7 +190,7 @@ export function GoalReaderAIChat() {
           onSubmit={handleSendMessage}
           className="relative border-t pt-4"
         >
-          <div className="relative flex items-center rounded-lg border bg-background focus-within:border-transparent focus-within:ring-2 focus-within:ring-primary">
+          <div className="relative flex items-center rounded-lg border bg-background focus-within:border-transparent">
             <Button variant="ghost" size="icon" className="shrink-0">
               <Paperclip className="w-5 h-5 text-muted-foreground" />
               <span className="sr-only">Attach file</span>
@@ -224,4 +224,3 @@ export function GoalReaderAIChat() {
     </Card>
   );
 }
-
