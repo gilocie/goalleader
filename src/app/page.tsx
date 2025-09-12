@@ -108,7 +108,7 @@ export default function Home() {
         </div>
       </div>
       <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px] relative">
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-green-800 text-white px-4 lg:h-[60px] lg:px-6">
           <Sheet>
             <SheetTrigger asChild>
               <Button
