@@ -37,7 +37,7 @@ export async function getInitialMessage(input: InitialMessageInput): Promise<Ini
 const prompt = ai.definePrompt({
   name: 'initialMessagePrompt',
   input: { schema: InitialMessageInputSchema },
-  output: { schema: z.string() },
+  output: { schema: z.string().nullable() },
   prompt: `You are a helpful AI assistant for GoalLeader. Your name is Goal Reader.
 You are about to send the first message to the user in a chat. Generate a proactive, friendly, and helpful message.
 You can choose one of the following actions:
@@ -46,7 +46,7 @@ You can choose one of the following actions:
 3. Provide a suggestion for a task to work on from their to-do list.
 4. Remind the user of an upcoming meeting.
 
-Choose only one of the above options. Keep the message concise and friendly.
+Choose only one of the above options. Keep the message concise and friendly. If you cannot think of a good message, you can choose to not reply.
 
 Here is the user's current context:
 - Overall Performance: {{performance}}%
