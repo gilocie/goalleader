@@ -220,7 +220,7 @@ export default function Home() {
                 <GoalReaderAIChat />
             </div>
             <div className="col-span-3">
-
+              <Reminders />
             </div>
           </div>
         </main>
