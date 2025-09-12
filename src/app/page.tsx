@@ -107,8 +107,8 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px]">
-        <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
+      <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px] relative">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -207,24 +207,24 @@ export default function Home() {
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+        <main className="flex-grow p-4 md:p-8 space-y-4 md:space-y-8">
           <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
             <DashboardStats />
           </div>
           <div className="grid grid-cols-10 gap-4">
-            <div className="col-span-7">
+            <div className="col-span-10 lg:col-span-7">
               <ProjectList />
             </div>
-            <div className="col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
+            <div className="col-span-10 lg:col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
               <ProjectAnalyticsChart />
               <ProjectProgress />
             </div>
           </div>
           <div className="grid grid-cols-10 gap-4">
-            <div className="col-span-7 h-full">
+            <div className="col-span-10 lg:col-span-7 h-full">
                 <GoalReaderAIChat />
             </div>
-            <div className="col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
+            <div className="col-span-10 lg:col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
               <Reminders />
               <Noticeboard />
             </div>
