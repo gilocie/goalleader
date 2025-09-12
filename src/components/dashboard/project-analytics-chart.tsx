@@ -10,6 +10,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useEffect, useState, useRef } from 'react';
+import { Button } from '../ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const generateData = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -31,6 +33,7 @@ export function ProjectAnalyticsChart() {
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const barWidth = 35; // Includes gap
+  const visibleMonths = 4;
 
   useEffect(() => {
     // This should run only on the client
@@ -40,10 +43,20 @@ export function ProjectAnalyticsChart() {
     setCurrentMonthIndex(monthIndex);
 
     if (scrollContainerRef.current) {
-        const initialScrollPosition = monthIndex * barWidth;
+        const initialScrollPosition = Math.max(0, (monthIndex - 1) * barWidth);
         scrollContainerRef.current.scrollLeft = initialScrollPosition;
     }
   }, []);
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+        const scrollAmount = visibleMonths * barWidth;
+        scrollContainerRef.current.scrollBy({
+            left: direction === 'left' ? -scrollAmount : scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+  }
 
   if (data.length === 0) {
     return (
@@ -71,8 +84,16 @@ export function ProjectAnalyticsChart() {
           Track staff performance based on daily completed tasks.
         </CardDescription>
       </CardHeader>
-      <CardContent className="pl-2">
-        <div ref={scrollContainerRef} className="overflow-x-auto">
+      <CardContent className="pl-2 relative">
+         <Button 
+            variant="outline" 
+            size="icon" 
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-6 z-10"
+            onClick={() => handleScroll('left')}
+            >
+             <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <div ref={scrollContainerRef} className="overflow-x-auto" style={{width: `${visibleMonths * barWidth}px`}}>
             <ResponsiveContainer width={barWidth * 12} height={150}>
             <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%">
                 <defs>
@@ -124,6 +145,14 @@ export function ProjectAnalyticsChart() {
             </BarChart>
             </ResponsiveContainer>
         </div>
+        <Button 
+            variant="outline" 
+            size="icon" 
+            className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 z-10"
+            onClick={() => handleScroll('right')}
+            >
+             <ChevronRight className="h-4 w-4" />
+        </Button>
       </CardContent>
     </Card>
   );
