@@ -84,10 +84,8 @@ export function ProjectAnalyticsChart() {
   const visibleMonths = 4;
   const currentYear = new Date().getFullYear();
 
-  // ticks every 5% (0,5,10,...100)
-  const yTicks = isMobileOrTablet
-    ? Array.from({ length: 11 }, (_, i) => i * 10)    // on small screens reduce labels to every 10%
-    : Array.from({ length: 21 }, (_, i) => i * 5);    // desktop: 0,5,10,...100
+  // ticks every 10% (0,10,20,...100)
+  const yTicks = Array.from({ length: 11 }, (_, i) => i * 10);
 
   useEffect(() => {
     const generatedData = generateData();
