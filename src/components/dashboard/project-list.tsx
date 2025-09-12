@@ -1,7 +1,6 @@
 
 'use client';
-import { MoreHorizontal } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal, Play, Check, Circle } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -26,6 +25,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTimeTracker } from '@/context/time-tracker-context';
+import { cn } from '@/lib/utils';
 
 const tasks = [
   {
@@ -55,16 +55,34 @@ const tasks = [
   },
 ];
 
-const getBadgeVariant = (status: string) => {
+const StatusIndicator = ({ status }: { status: string }) => {
   switch (status) {
     case 'Completed':
-      return 'default';
+      return (
+        <div className="flex items-center gap-2">
+          <Check className="h-4 w-4 text-primary" />
+          <span>Completed</span>
+        </div>
+      );
     case 'In Progress':
-      return 'secondary';
+      return (
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+          </span>
+          <span>In Progress</span>
+        </div>
+      );
     case 'Pending':
-      return 'outline';
+      return (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Circle className="h-3 w-3" fill="currentColor" />
+          <span>Pending</span>
+        </div>
+      );
     default:
-      return 'outline';
+      return <span>{status}</span>;
   }
 };
 
@@ -96,18 +114,22 @@ export function ProjectList() {
               <TableRow key={task.name}>
                 <TableCell className="font-medium">{task.name}</TableCell>
                 <TableCell>
-                  <Badge variant={getBadgeVariant(task.status) as any}>{task.status}</Badge>
+                  <StatusIndicator status={task.status} />
                 </TableCell>
                 <TableCell>
-                {activeTask === task.name ? (
+                {task.status !== 'Completed' && (
+                  activeTask === task.name ? (
                     <Button variant="destructive" size="sm" onClick={() => completeTask(task.name)}>
+                      <Check className="mr-2 h-4 w-4" />
                       Complete Task
                     </Button>
                   ) : (
                     <Button variant="outline" size="sm" onClick={() => startTask(task.name)} disabled={!!activeTask}>
+                      <Play className="mr-2 h-4 w-4" />
                       Start
                     </Button>
-                  )}
+                  )
+                )}
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
                 <TableCell>
