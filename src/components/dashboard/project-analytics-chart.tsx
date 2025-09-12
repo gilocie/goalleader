@@ -35,8 +35,10 @@ export function ProjectAnalyticsChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Project Analytics</CardTitle>
-        <CardDescription>Projects completed over the last year.</CardDescription>
+        <CardTitle>Performance Record</CardTitle>
+        <CardDescription>
+          Track staff performance based on daily completed tasks.
+        </CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
         <ResponsiveContainer width="100%" height={350}>
