@@ -40,6 +40,16 @@ const tasks = [
     status: 'Pending',
     dueDate: '2024-08-01',
   },
+  {
+    name: 'Deploy to production',
+    status: 'Pending',
+    dueDate: '2024-08-15',
+  },
+  {
+    name: 'Write documentation',
+    status: 'In Progress',
+    dueDate: '2024-08-10',
+  },
 ];
 
 const getBadgeVariant = (status: string) => {
@@ -58,7 +68,7 @@ const getBadgeVariant = (status: string) => {
 
 export function ProjectList() {
   return (
-    <Card className="h-[260px]">
+    <Card>
       <CardHeader>
         <CardTitle>ToDo List</CardTitle>
         <CardDescription>A list of your tasks.</CardDescription>
