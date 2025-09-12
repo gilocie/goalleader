@@ -50,7 +50,7 @@ export default function Home() {
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Logo className="h-6 w-6 text-primary" />
-              <span className="">Donezo</span>
+              <span className="">GoalLeader</span>
             </Link>
             <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
               <Bell className="h-4 w-4" />
@@ -134,7 +134,7 @@ export default function Home() {
                   className="flex items-center gap-2 text-lg font-semibold"
                 >
                   <Logo className="h-6 w-6 text-primary" />
-                  <span className="sr-only">Donezo</span>
+                  <span className="sr-only">GoalLeader</span>
                 </Link>
                 <Link
                   href="#"
