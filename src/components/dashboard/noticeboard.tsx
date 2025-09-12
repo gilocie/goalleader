@@ -108,9 +108,9 @@ export function Noticeboard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className={`transition-opacity duration-500 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
-            <Card className="bg-accent/50 p-4">
-                <h3 className="font-semibold text-accent-foreground">{currentNotice.title}</h3>
-                <p className="text-sm text-muted-foreground">
+            <Card className="bg-gradient-to-br from-primary to-green-700 text-primary-foreground p-4 h-[100px] flex flex-col justify-center">
+                <h3 className="font-semibold">{currentNotice.title}</h3>
+                <p className="text-sm text-green-100 line-clamp-2">
                     {currentNotice.content}
                 </p>
             </Card>
