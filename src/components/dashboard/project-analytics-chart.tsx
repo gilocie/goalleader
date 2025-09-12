@@ -30,10 +30,13 @@ const getBarColor = (value: number | null) => {
 }
 
 const CustomizedLabel = (props: any) => {
-    const { x, y, width, value, viewBox } = props;
+    const { x, y, width, value } = props;
     const isMobileOrTablet = useIsMobileOrTablet();
-    const yPos = isMobileOrTablet ? y + 20 : y + viewBox.height / 2;
-    const fill = value < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))";
+    
+    // Always position the label in the middle of the bar's potential height
+    const yPos = y + (150 - 20) / 2; // (chart height - top margin) / 2
+
+    const fill = (value ?? 0) < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))";
   
     return (
       <text
@@ -100,13 +103,21 @@ export function ProjectAnalyticsChart() {
   }
   
   return (
-    <Card className="h-[260px] overflow-hidden">
+    <Card className="h-[260px] overflow-hidden relative">
+        {!isMobileOrTablet && <Button 
+            variant="default"
+            size="icon" 
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
+            onClick={() => handleScroll('left')}
+            >
+             <ChevronLeft className="h-4 w-4" />
+        </Button>}
       <CardHeader>
         <CardTitle>Performance Record</CardTitle>
         <div className="text-sm text-muted-foreground">{currentYear}</div>
       </CardHeader>
-      <CardContent className="relative flex items-center pr-0 sm:pr-4">
-         <div className="h-[150px]">
+      <CardContent className="flex items-center pr-0 sm:pr-4">
+         <div className="h-[150px] -ml-2">
             <ResponsiveContainer width={50} height="100%">
                 <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                      <YAxis
@@ -120,17 +131,9 @@ export function ProjectAnalyticsChart() {
                 </BarChart>
             </ResponsiveContainer>
          </div>
-         {!isMobileOrTablet && <Button 
-            variant="default"
-            size="icon" 
-            className="absolute -left-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
-            onClick={() => handleScroll('left')}
-            >
-             <ChevronLeft className="h-4 w-4" />
-        </Button>}
         <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']`} style={!isMobileOrTablet ? {width: `${visibleMonths * barWidth}px`} : {width: '100%'}}>
             <ResponsiveContainer width={isMobileOrTablet ? '100%' : barWidth * 12} height={150}>
-            <BarChart data={data} barGap={isMobileOrTablet ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+            <BarChart data={data} barGap={isMobileOrTablet ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 5 }}>
                 <defs>
                 <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
                     <stop offset="0%" stopColor="hsl(var(--accent))" />
@@ -138,8 +141,9 @@ export function ProjectAnalyticsChart() {
                 </linearGradient>
                 </defs>
                 <Tooltip 
-                    cursor={{fill: 'transparent'}}
-                    contentStyle={{ display: 'none' }}
+                    cursor={{fill: 'hsl(var(--accent))', opacity: 0.5}}
+                    contentStyle={{ zIndex: 100 }}
+                    position={{ y: 0 }}
                 />
                 <XAxis
                 dataKey="name"
@@ -168,15 +172,15 @@ export function ProjectAnalyticsChart() {
             </BarChart>
             </ResponsiveContainer>
         </div>
-        {!isMobileOrTablet && <Button 
+      </CardContent>
+      {!isMobileOrTablet && <Button 
             variant="default" 
             size="icon" 
-            className="absolute -right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
             onClick={() => handleScroll('right')}
             >
              <ChevronRight className="h-4 w-4" />
         </Button>}
-      </CardContent>
     </Card>
   );
 }
