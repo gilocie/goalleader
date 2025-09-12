@@ -97,7 +97,7 @@ export default function Home() {
               </Link>
             </nav>
           </div>
-          <div className="p-4">
+          <div className="p-4 mt-auto">
             <TimeTracker />
           </div>
         </div>

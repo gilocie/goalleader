@@ -52,7 +52,7 @@ export function TimeTracker() {
   };
 
   return (
-    <Card>
+    <Card className='h-[100px]'>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4">
         <CardTitle className="text-sm font-medium">Time Tracker</CardTitle>
       </CardHeader>
