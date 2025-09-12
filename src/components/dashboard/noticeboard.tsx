@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -10,7 +10,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Megaphone, X } from 'lucide-react';
+import { Megaphone } from 'lucide-react';
+import Link from 'next/link';
 
 type Notice = {
   id: number;
@@ -48,31 +49,11 @@ const initialNotices: Notice[] = [
 
 export function Noticeboard() {
   const [notices, setNotices] = useState(initialNotices);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   const unreadNotices = notices.filter((notice) => !notice.read);
+  const firstUnreadNotice = unreadNotices[0];
 
-  useEffect(() => {
-    if (unreadNotices.length > 1) {
-      const interval = setInterval(() => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % unreadNotices.length);
-      }, 8000); // 8 seconds
-
-      return () => clearInterval(interval);
-    }
-  }, [unreadNotices.length]);
-
-  const handleMarkAsRead = (id: number) => {
-    setNotices((prevNotices) =>
-      prevNotices.map((notice) =>
-        notice.id === id ? { ...notice, read: true } : notice
-      )
-    );
-    // Reset index to avoid out-of-bounds
-    setCurrentIndex(0);
-  };
-
-  if (unreadNotices.length === 0) {
+  if (!firstUnreadNotice) {
     return (
         <Card>
             <CardHeader>
@@ -88,8 +69,6 @@ export function Noticeboard() {
     );
   }
 
-  const currentNotice = unreadNotices[currentIndex];
-
   return (
     <Card className="relative">
       <CardHeader>
@@ -97,27 +76,21 @@ export function Noticeboard() {
           <Megaphone />
           Noticeboard
         </CardTitle>
-        <CardDescription>
-          Important announcements. Automatically changes every 8 seconds.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        <h3 className="font-semibold">{currentNotice.title}</h3>
+        <h3 className="font-semibold">{firstUnreadNotice.title}</h3>
         <p className="text-sm text-muted-foreground">
-          {currentNotice.content}
+          {firstUnreadNotice.content}
         </p>
         <Button
           variant="link"
           size="sm"
           className="p-0 h-auto"
-          onClick={() => handleMarkAsRead(currentNotice.id)}
+          asChild
         >
-          Mark as read
+          <Link href="#">View all</Link>
         </Button>
       </CardContent>
-      <div className="absolute top-4 right-4 text-xs text-muted-foreground">
-        {currentIndex + 1} / {unreadNotices.length}
-      </div>
     </Card>
   );
 }
