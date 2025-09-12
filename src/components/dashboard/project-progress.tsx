@@ -13,8 +13,8 @@ type CircularProgressBarProps = {
 };
 
 const CircularProgressBar = ({ progress }: CircularProgressBarProps) => {
-  const radius = 80;
-  const stroke = 12;
+  const radius = 60;
+  const stroke = 10;
   const normalizedRadius = radius - stroke * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
@@ -47,7 +47,7 @@ const CircularProgressBar = ({ progress }: CircularProgressBarProps) => {
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-4xl font-bold text-primary">{`${Math.round(
+        <span className="text-3xl font-bold text-primary">{`${Math.round(
           progress
         )}%`}</span>
         <p className="text-xs text-muted-foreground">Completed</p>
