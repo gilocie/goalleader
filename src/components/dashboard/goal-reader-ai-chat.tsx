@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
@@ -9,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, User, Loader } from 'lucide-react';
+import { Send, Bot, User, Loader, Paperclip } from 'lucide-react';
 import { chat, ChatInput } from '@/ai/flows/chat-flow';
 import { getInitialMessage, InitialMessageInput } from '@/ai/flows/initial-message-flow';
 import { ScrollArea } from '../ui/scroll-area';
@@ -187,28 +188,40 @@ export function GoalReaderAIChat() {
         </ScrollArea>
         <form
           onSubmit={handleSendMessage}
-          className="flex items-center gap-2 border-t pt-4"
+          className="relative border-t pt-4"
         >
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask Goal Reader..."
-            className="flex-1 resize-none"
-            minRows={1}
-            maxRows={4}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage(e);
-              }
-            }}
-          />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-            <Send />
-            <span className="sr-only">Send</span>
-          </Button>
+          <div className="relative flex items-center rounded-lg border bg-background focus-within:border-transparent focus-within:ring-2 focus-within:ring-primary">
+            <Button variant="ghost" size="icon" className="shrink-0">
+              <Paperclip className="w-5 h-5 text-muted-foreground" />
+              <span className="sr-only">Attach file</span>
+            </Button>
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask Goal Reader..."
+              className="flex-1 resize-none border-0 bg-transparent p-2 focus:ring-0"
+              minRows={1}
+              maxRows={4}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(e);
+                }
+              }}
+            />
+             <Button
+              type="submit"
+              size="icon"
+              disabled={isLoading || !input.trim()}
+              className="m-1 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+            >
+              <Send />
+              <span className="sr-only">Send</span>
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
   );
 }
+
