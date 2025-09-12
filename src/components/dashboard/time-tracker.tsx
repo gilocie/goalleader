@@ -53,13 +53,13 @@ export function TimeTracker() {
   };
 
   return (
-    <Card>
+    <Card className="bg-[#052e16] text-white">
       <CardHeader>
         <CardTitle>Time Tracker</CardTitle>
-        <CardDescription>Track time spent on your projects.</CardDescription>
+        <CardDescription className="text-gray-300">Track time spent on your projects.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col items-center justify-center gap-4">
-        <div className="text-5xl font-bold font-mono text-foreground tabular-nums">
+        <div className="text-5xl font-bold font-mono tabular-nums">
           {formatTime(time)}
         </div>
         <div className="flex gap-2">
@@ -67,13 +67,13 @@ export function TimeTracker() {
             onClick={handleStartStop}
             size="lg"
             aria-label={isActive ? 'Pause timer' : 'Start timer'}
-            className="w-24"
+            className="w-24 bg-white/20 hover:bg-white/30 text-white"
           >
             {isActive ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
           </Button>
           <Button
             onClick={handleReset}
-            variant="outline"
+            variant="destructive"
             size="lg"
             aria-label="Reset timer"
             className="w-24"

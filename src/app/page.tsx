@@ -1,6 +1,6 @@
 import {
   Bell,
-  Home as HomeIcon,
+  HomeIcon,
   LineChart,
   ListTodo,
   Menu,
@@ -44,9 +44,9 @@ export default function Home() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-card md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
+    <div className="flex min-h-screen w-full bg-background">
+      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-[220px] md:flex-col lg:w-[280px]">
+        <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Logo className="h-6 w-6 text-primary" />
@@ -114,7 +114,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px]">
         <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
           <Sheet>
             <SheetTrigger asChild>
@@ -240,7 +240,9 @@ export default function Home() {
               <ProjectProgress />
               <TeamCollaboration />
               <Reminders />
-              <TimeTracker />
+              <div className="sticky bottom-8">
+                <TimeTracker />
+              </div>
             </div>
           </div>
         </main>

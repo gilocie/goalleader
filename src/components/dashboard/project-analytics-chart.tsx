@@ -8,8 +8,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
 
-const data = [
+const generateData = () => [
   { name: 'Jan', total: Math.floor(Math.random() * 20) + 10 },
   { name: 'Feb', total: Math.floor(Math.random() * 20) + 10 },
   { name: 'Mar', total: Math.floor(Math.random() * 20) + 10 },
@@ -25,6 +26,12 @@ const data = [
 ];
 
 export function ProjectAnalyticsChart() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    setData(generateData());
+  }, []);
+  
   return (
     <Card>
       <CardHeader>

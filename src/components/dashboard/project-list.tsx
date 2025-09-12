@@ -79,7 +79,7 @@ export function ProjectList() {
             <TableRow>
               <TableHead>Project</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Due Date</TableHead>
+              <TableHead className="hidden md:table-cell text-right">Due Date</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -92,7 +92,7 @@ export function ProjectList() {
                 <TableCell>
                   <Badge variant={getBadgeVariant(project.status) as any}>{project.status}</Badge>
                 </TableCell>
-                <TableCell className="text-right">{project.dueDate}</TableCell>
+                <TableCell className="hidden md:table-cell text-right">{project.dueDate}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
