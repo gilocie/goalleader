@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, CartesianGrid, LabelList } from 'recharts';
@@ -126,7 +125,7 @@ export function ProjectAnalyticsChart() {
   }
 
   return (
-    <Card className="h-[310px] overflow-visible">
+    <Card className="h-[310px]">
       <CardHeader>
         <CardTitle>Performance Record</CardTitle>
         <div className="text-sm text-muted-foreground">{currentYear}</div>
