@@ -130,12 +130,11 @@ export function GoalReaderAIChat() {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bot />
-          Goal Reader AI Chat
+        <CardTitle>
+          Goal Leader Chat
         </CardTitle>
         <CardDescription>
-          Chat with your AI assistant to manage your goals.
+          Chat with your assistant to manage your goals.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
@@ -198,7 +197,7 @@ export function GoalReaderAIChat() {
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Goal Reader..."
+              placeholder="Ask Goal Leader..."
               className="flex-1 resize-none border-0 bg-transparent p-2 focus:ring-0 focus-visible:outline-none"
               minRows={1}
               maxRows={4}
