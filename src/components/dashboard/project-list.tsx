@@ -1,6 +1,6 @@
 
 'use client';
-import { MoreHorizontal, Play, Check, Circle, Pause } from 'lucide-react';
+import { MoreHorizontal, Play, Check, Circle, Pause, Square } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -105,7 +105,7 @@ const StatusIndicator = ({ status }: { status: string }) => {
 
 
 export function ProjectList() {
-  const { activeTask, isActive, startTask, completeTask } = useTimeTracker();
+  const { activeTask, isActive, startTask, completeTask, handleStop } = useTimeTracker();
   const [tasks, setTasks] = useState(initialTasks);
 
   const handleCompleteTask = (taskName: string) => {
@@ -116,6 +116,25 @@ export function ProjectList() {
       )
     );
   }
+
+  const handleStartTask = (taskName: string) => {
+    startTask(taskName);
+    setTasks(currentTasks =>
+      currentTasks.map(t =>
+        t.name === taskName ? { ...t, status: 'In Progress' } : t
+      )
+    );
+  };
+  
+  const handleStopTask = (taskName: string) => {
+    handleStop();
+    // The status is updated to completed when stopping
+    setTasks(currentTasks => 
+      currentTasks.map(t => 
+        t.name === taskName ? { ...t, status: 'Completed' } : t
+      )
+    );
+  };
 
   return (
     <Card className="h-full flex flex-col">
@@ -145,34 +164,27 @@ export function ProjectList() {
                     <StatusIndicator status={task.status} />
                   </TableCell>
                   <TableCell>
-                    {task.status === 'Pending' && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          startTask(task.name);
-                          setTasks(currentTasks => 
-                            currentTasks.map(t => 
-                              t.name === task.name ? { ...t, status: 'In Progress' } : t
-                            )
-                          );
-                        }}
-                        disabled={!!activeTask}
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        Start
-                      </Button>
-                    )}
-                    {task.status === 'In Progress' && activeTask === task.name && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleCompleteTask(task.name)}
-                      >
-                        <Check className="mr-2 h-4 w-4" />
-                        Complete
-                      </Button>
-                    )}
+                  {task.status === 'Pending' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStartTask(task.name)}
+                      disabled={!!activeTask}
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      Start
+                    </Button>
+                  )}
+                  {task.status === 'In Progress' && activeTask === task.name && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleStopTask(task.name)}
+                    >
+                      <Square className="mr-2 h-4 w-4" />
+                      Stop
+                    </Button>
+                  )}
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
                   <TableCell>
