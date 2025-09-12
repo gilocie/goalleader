@@ -58,27 +58,27 @@ export function TimeTracker() {
         <CardTitle>Time Tracker</CardTitle>
         <CardDescription className="text-gray-300">Track time spent on your projects.</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center gap-4">
-        <div className="text-5xl font-bold font-mono tabular-nums">
+      <CardContent className="flex flex-col items-center justify-center gap-2">
+        <div className="text-3xl font-bold font-mono tabular-nums">
           {formatTime(time)}
         </div>
         <div className="flex gap-2">
           <Button
             onClick={handleStartStop}
-            size="lg"
+            size="sm"
             aria-label={isActive ? 'Pause timer' : 'Start timer'}
-            className="w-24 bg-white/20 hover:bg-white/30 text-white"
+            className="w-20 bg-white/20 hover:bg-white/30 text-white"
           >
-            {isActive ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+            {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
           <Button
             onClick={handleReset}
             variant="destructive"
-            size="lg"
+            size="sm"
             aria-label="Reset timer"
-            className="w-24"
+            className="w-20"
           >
-            <RotateCcw className="h-6 w-6" />
+            <RotateCcw className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>
