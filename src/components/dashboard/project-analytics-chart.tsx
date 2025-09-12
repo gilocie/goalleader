@@ -31,26 +31,28 @@ const getBarColor = (value: number | null) => {
 
 const CustomizedLabel = (props: any) => {
     const { x, y, width, height, value } = props;
-    const isMobileOrTablet = useIsMobileOrTablet();
     
     const fill = (value ?? 0) < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))";
-    const yPos = y + height / 2;
   
     if (height === 0 && value === 0) {
+        return null;
+    }
+
+    if (value === null || value === 0) {
         return null;
     }
 
     return (
       <text
         x={x + width / 2}
-        y={yPos}
+        y={y + height / 2}
         fill={fill}
         textAnchor="middle"
         dominantBaseline="middle"
         className="text-xs font-semibold"
-        transform={`rotate(-90, ${x + width / 2}, ${yPos})`}
+        transform={`rotate(-90, ${x + width / 2}, ${y + height / 2})`}
       >
-        {value !== null ? `${value}%` : ''}
+        {`${value}%`}
       </text>
     );
 };
@@ -141,6 +143,9 @@ export function ProjectAnalyticsChart() {
                             axisLine={false}
                             tickFormatter={(value) => `${value}%`}
                             domain={[0, 100]}
+                            ticks={[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]}
+                            interval="preserveStartEnd"
+                            tickCount={21}
                             />
                     </BarChart>
                 </ResponsiveContainer>
