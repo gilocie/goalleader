@@ -24,29 +24,29 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const projects = [
+const tasks = [
   {
-    name: 'Project Alpha',
+    name: 'Design landing page',
     status: 'In Progress',
     dueDate: '2024-07-25',
   },
   {
-    name: 'Project Beta',
+    name: 'Develop API for user authentication',
     status: 'Completed',
     dueDate: '2024-07-15',
   },
   {
-    name: 'Project Gamma',
+    name: 'Setup database schema',
     status: 'Pending',
     dueDate: '2024-08-01',
   },
   {
-    name: 'Project Delta',
+    name: 'Write unit tests for the API',
     status: 'In Progress',
     dueDate: '2024-08-10',
   },
-    {
-    name: 'Project Epsilon',
+  {
+    name: 'Deploy to staging server',
     status: 'Completed',
     dueDate: '2024-06-30',
   },
@@ -70,14 +70,14 @@ export function ProjectList() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Projects</CardTitle>
-        <CardDescription>A list of your recent projects.</CardDescription>
+        <CardTitle>ToDo List</CardTitle>
+        <CardDescription>A list of your tasks.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Project</TableHead>
+              <TableHead>Task</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="hidden md:table-cell text-right">Due Date</TableHead>
               <TableHead>
@@ -86,13 +86,13 @@ export function ProjectList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {projects.map((project) => (
-              <TableRow key={project.name}>
-                <TableCell className="font-medium">{project.name}</TableCell>
+            {tasks.map((task) => (
+              <TableRow key={task.name}>
+                <TableCell className="font-medium">{task.name}</TableCell>
                 <TableCell>
-                  <Badge variant={getBadgeVariant(project.status) as any}>{project.status}</Badge>
+                  <Badge variant={getBadgeVariant(task.status) as any}>{task.status}</Badge>
                 </TableCell>
-                <TableCell className="hidden md:table-cell text-right">{project.dueDate}</TableCell>
+                <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
