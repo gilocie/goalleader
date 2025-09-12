@@ -27,7 +27,7 @@ export function ProjectAnalyticsChart() {
   }, []);
   
   return (
-    <Card className="h-full">
+    <Card className="h-[260px]">
       <CardHeader>
         <CardTitle>Performance Record</CardTitle>
         <CardDescription>
@@ -35,7 +35,7 @@ export function ProjectAnalyticsChart() {
         </CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={150}>
           <BarChart data={data}>
             <XAxis
               dataKey="name"

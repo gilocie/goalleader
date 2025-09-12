@@ -58,7 +58,7 @@ const getBadgeVariant = (status: string) => {
 
 export function ProjectList() {
   return (
-    <Card>
+    <Card className="h-[260px]">
       <CardHeader>
         <CardTitle>ToDo List</CardTitle>
         <CardDescription>A list of your tasks.</CardDescription>
