@@ -97,20 +97,7 @@ export default function Home() {
             </nav>
           </div>
           <div className="mt-auto p-4">
-            <Card>
-              <CardHeader className="p-2 pt-0 md:p-4">
-                <CardTitle>Upgrade to Pro</CardTitle>
-                <CardDescription>
-                  Unlock all features and get unlimited access to our support
-                  team.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full">
-                  Upgrade
-                </Button>
-              </CardContent>
-            </Card>
+            <TimeTracker />
           </div>
         </div>
       </div>
@@ -173,20 +160,7 @@ export default function Home() {
                 </Link>
               </nav>
               <div className="mt-auto">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Upgrade to Pro</CardTitle>
-                    <CardDescription>
-                      Unlock all features and get unlimited access to our
-                      support team.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button size="sm" className="w-full">
-                      Upgrade
-                    </Button>
-                  </CardContent>
-                </Card>
+                <TimeTracker />
               </div>
             </SheetContent>
           </Sheet>
@@ -237,7 +211,6 @@ export default function Home() {
               <ProjectList />
             </div>
             <div className="grid auto-rows-max items-start gap-4 md:gap-8">
-              <TimeTracker />
               <ProjectProgress />
               <TeamCollaboration />
               <Reminders />
