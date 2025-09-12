@@ -15,6 +15,7 @@ import { chat, ChatInput } from '@/ai/flows/chat-flow';
 import { getInitialMessage, InitialMessageInput } from '@/ai/flows/initial-message-flow';
 import { ScrollArea } from '../ui/scroll-area';
 import Textarea from 'react-textarea-autosize';
+import { Logo } from '../icons';
 
 type Message = {
   role: 'user' | 'model';
@@ -149,7 +150,7 @@ export function GoalReaderAIChat() {
               >
                 {message.role === 'model' && (
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                    <Bot size={20} />
+                    <Logo className="h-5 w-5" />
                   </div>
                 )}
                 <div
@@ -171,7 +172,7 @@ export function GoalReaderAIChat() {
             {isLoading && messages.length > 0 && (
               <div className="flex justify-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                  <Bot size={20} />
+                  <Logo className="h-5 w-5" />
                 </div>
                 <div className="bg-muted rounded-lg p-3 flex items-center">
                   <Loader className="animate-spin" size={20} />
