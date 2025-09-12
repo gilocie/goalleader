@@ -97,10 +97,10 @@ export function ProjectAnalyticsChart() {
                 }}
                 formatter={(value: number) => [`${value}%`, 'Performance']}
             />
-            <Bar dataKey="total" fill="hsl(var(--muted))" radius={[4, 4, 0, 0]} background={{ fill: 'hsl(var(--border))', radius: 4 }} />
             <Bar
               dataKey="total"
               radius={[4, 4, 0, 0]}
+              background={{ fill: 'hsl(var(--border))', radius: 4 }}
             >
                 {data.map((entry, index) => (
                     <Cell
