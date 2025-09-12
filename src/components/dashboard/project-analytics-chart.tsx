@@ -29,24 +29,25 @@ const getBarColor = (value: number | null) => {
 }
 
 const CustomizedLabel = (props: any) => {
-    const { x, y, width, value } = props;
-    if (value === null || value < 50) {
+    const { x, y, width, height, value } = props;
+    if (value === null) {
       return null;
     }
   
     return (
       <text
         x={x + width / 2}
-        y={y - 10}
-        fill="hsl(var(--foreground))"
+        y={y + height / 2}
+        fill={value < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))"}
         textAnchor="middle"
         dominantBaseline="middle"
         className="text-xs font-semibold"
+        transform={`rotate(-90, ${x + width / 2}, ${y + height / 2})`}
       >
         {`${value}%`}
       </text>
     );
-  };
+};
 
 export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
@@ -134,6 +135,10 @@ export function ProjectAnalyticsChart() {
                     <stop offset="100%" stopColor="hsl(var(--primary))" />
                 </linearGradient>
                 </defs>
+                <Tooltip 
+                    cursor={{fill: 'transparent'}}
+                    contentStyle={{ display: 'none' }}
+                />
                 <XAxis
                 dataKey="name"
                 stroke="hsl(var(--muted-foreground))"
