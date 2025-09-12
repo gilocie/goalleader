@@ -1,7 +1,6 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -12,40 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Play, Pause, Square } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Image from 'next/image';
+import { useTimeTracker } from '@/context/time-tracker-context';
 
 export function TimeTracker() {
-  const [time, setTime] = useState(0);
-  const [isActive, setIsActive] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const { time, isActive, handleStartStop, handleReset } = useTimeTracker();
   const timeTrackerBg = PlaceHolderImages.find((img) => img.id === 'time-tracker-bg');
-
-
-  useEffect(() => {
-    if (isActive) {
-      timerRef.current = setInterval(() => {
-        setTime((prevTime) => prevTime + 1);
-      }, 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    }
-
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [isActive]);
-
-  const handleStartStop = () => {
-    setIsActive(!isActive);
-  };
-
-  const handleReset = () => {
-    setIsActive(false);
-    setTime(0);
-  };
 
   const formatTime = (seconds: number) => {
     const getSeconds = `0${seconds % 60}`.slice(-2);

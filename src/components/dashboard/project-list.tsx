@@ -1,3 +1,5 @@
+
+'use client';
 import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -23,6 +25,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTimeTracker } from '@/context/time-tracker-context';
 
 const tasks = [
   {
@@ -67,6 +70,8 @@ const getBadgeVariant = (status: string) => {
 
 
 export function ProjectList() {
+  const { activeTask, startTask, completeTask } = useTimeTracker();
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -79,6 +84,7 @@ export function ProjectList() {
             <TableRow>
               <TableHead>Task</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Action</TableHead>
               <TableHead className="hidden md:table-cell text-right">Due Date</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
@@ -91,6 +97,17 @@ export function ProjectList() {
                 <TableCell className="font-medium">{task.name}</TableCell>
                 <TableCell>
                   <Badge variant={getBadgeVariant(task.status) as any}>{task.status}</Badge>
+                </TableCell>
+                <TableCell>
+                {activeTask === task.name ? (
+                    <Button variant="destructive" size="sm" onClick={() => completeTask(task.name)}>
+                      Complete Task
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => startTask(task.name)} disabled={!!activeTask}>
+                      Start
+                    </Button>
+                  )}
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
                 <TableCell>
