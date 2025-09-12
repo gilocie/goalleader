@@ -10,7 +10,7 @@ import { NavLinks } from './nav-links';
 
 export function Sidebar() {
   return (
-    <div className="hidden md:fixed md:inset-y-0 md:flex md:w-[220px] md:flex-col lg:w-[280px]">
+    <div className="hidden md:fixed md:inset-y-0 md:z-20 md:flex md:w-[220px] md:flex-col lg:w-[280px]">
       <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -22,8 +22,8 @@ export function Sidebar() {
             <span className="sr-only">Toggle notifications</span>
           </Button>
         </div>
-        <div className="flex-1">
-          <nav className="grid items-start px-2 text-sm font-medium lg:px-4 h-full overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-2 lg:px-4">
+          <nav className="flex flex-col gap-1 text-sm font-medium">
             <NavLinks />
           </nav>
         </div>
