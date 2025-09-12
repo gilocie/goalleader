@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import {
   Card,
   CardContent,
@@ -15,18 +15,47 @@ const generateData = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return months.map(month => ({
         name: month,
-        total: Math.floor(Math.random() * 20) + 10,
+        total: Math.floor(Math.random() * 101),
     }));
 };
+
+const getBarColor = (value: number) => {
+    if (value === 100) {
+        return 'hsl(var(--primary))'; // dark green
+    }
+    if (value >= 50) {
+        return 'hsl(var(--accent))'; // light green
+    }
+    return 'hsl(var(--muted))'; // gray
+}
 
 export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
 
   useEffect(() => {
+    // This should run only on the client
     setData(generateData());
     setCurrentMonthIndex(new Date().getMonth());
   }, []);
+
+  if (data.length === 0) {
+    return (
+        <Card className="h-[260px]">
+            <CardHeader>
+                <CardTitle>Performance Record</CardTitle>
+                <CardDescription>
+                Track staff performance based on daily completed tasks.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-center justify-center h-[150px]">
+                    <p>Loading chart data...</p>
+                </div>
+            </CardContent>
+        </Card>
+    )
+  }
   
   return (
     <Card className="h-[260px]">
@@ -41,17 +70,18 @@ export function ProjectAnalyticsChart() {
           <BarChart data={data}>
             <XAxis
               dataKey="name"
-              stroke="#888888"
+              stroke="hsl(var(--muted-foreground))"
               fontSize={12}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
-              stroke="#888888"
+              stroke="hsl(var(--muted-foreground))"
               fontSize={12}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `${value}`}
+              tickFormatter={(value) => `${value}%`}
+              domain={[0, 100]}
             />
             <Tooltip
                 contentStyle={{
@@ -59,19 +89,21 @@ export function ProjectAnalyticsChart() {
                     borderColor: 'hsl(var(--border))',
                     borderRadius: 'var(--radius)',
                 }}
+                labelStyle={{
+                    color: 'hsl(var(--foreground))'
+                }}
+                formatter={(value: number) => [`${value}%`, 'Performance']}
             />
             <Bar
               dataKey="total"
               radius={[4, 4, 0, 0]}
             >
                 {data.map((entry, index) => (
-                    <rect
+                    <Cell
                         key={`cell-${index}`}
-                        x={0}
-                        y={0}
-                        width={0}
-                        height={0}
-                        fill={index === currentMonthIndex ? 'hsl(var(--primary))' : 'hsl(var(--muted))'}
+                        fill={getBarColor(entry.total)}
+                        stroke={index === currentMonthIndex ? 'hsl(var(--primary))' : 'transparent'}
+                        strokeWidth={2}
                     />
                 ))}
             </Bar>
