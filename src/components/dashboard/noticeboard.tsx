@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -45,6 +44,18 @@ const initialNotices: Notice[] = [
     content: 'A mandatory team meeting is scheduled for Friday at 10 AM.',
     read: false,
   },
+  {
+    id: 5,
+    title: 'New Project Kick-off',
+    content: 'Project "Phoenix" will kick-off next week. Get ready!',
+    read: false,
+  },
+  {
+    id: 6,
+    title: 'Security Update',
+    content: 'Please update your passwords by the end of this week.',
+    read: false,
+  }
 ];
 
 export function Noticeboard() {
@@ -66,7 +77,7 @@ export function Noticeboard() {
         );
         setIsFading(false);
       }, 500); // fade-out duration
-    }, 8000);
+    }, 5000); // Change notice every 5 seconds
 
     return () => clearInterval(interval);
   }, [unreadNotices.length]);
@@ -95,12 +106,14 @@ export function Noticeboard() {
           Noticeboard
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-4">
         <div className={`transition-opacity duration-500 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
-          <h3 className="font-semibold">{currentNotice.title}</h3>
-          <p className="text-sm text-muted-foreground">
-            {currentNotice.content}
-          </p>
+            <Card className="bg-accent/50 p-4">
+                <h3 className="font-semibold text-accent-foreground">{currentNotice.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                    {currentNotice.content}
+                </p>
+            </Card>
         </div>
         <Button
           variant="link"
