@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone } from 'lucide-react';
+import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
@@ -13,6 +13,7 @@ const links = [
   { href: '/analytics', icon: LineChart, label: 'Analytics' },
   { href: '/meetings', icon: Calendar, label: 'Meetings' },
   { href: '/notices', icon: Megaphone, label: 'Notices' },
+  { href: '/marketing', icon: Store, label: 'Marketing' },
 ];
 
 export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
