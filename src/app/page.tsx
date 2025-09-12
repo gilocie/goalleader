@@ -207,23 +207,17 @@ export default function Home() {
             <DashboardStats />
           </div>
           <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-3">
-            <div className="grid grid-cols-1 gap-4 auto-rows-min">
-              <ProjectProgress />
-            </div>
-            <div className="lg:col-span-2 grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="md:col-span-2">
+            <div className="grid grid-cols-1 gap-4 lg:col-span-2">
+              <div className="grid grid-cols-1 gap-4 auto-rows-min md:grid-cols-2">
                 <ProjectList />
-              </div>
-              <div className="grid grid-cols-1 gap-4 auto-rows-min">
                 <ProjectAnalyticsChart />
               </div>
               <div className="grid grid-cols-1 gap-4 auto-rows-min">
-                <GoalReaderAIChat />
+                 <ProjectProgress />
               </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
+            <div className="grid grid-cols-1 gap-4 auto-rows-min">
+              <GoalReaderAIChat />
               <Reminders />
             </div>
           </div>
