@@ -56,7 +56,7 @@ export function ProjectAnalyticsChart() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const barWidth = isMobile ? 28 : 40; 
-  const visibleMonths = isMobile ? 12 : 4;
+  const visibleMonths = 4;
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
@@ -128,7 +128,7 @@ export function ProjectAnalyticsChart() {
             >
              <ChevronLeft className="h-4 w-4" />
         </Button>}
-        <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] ${isMobile ? 'w-full' : ''}`} style={!isMobile ? {width: `${visibleMonths * barWidth}px`} : {}}>
+        <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']`} style={!isMobile ? {width: `${visibleMonths * barWidth}px`} : {width: '100%'}}>
             <ResponsiveContainer width={isMobile ? '100%' : barWidth * 12} height={150}>
             <BarChart data={data} barGap={isMobile ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                 <defs>
@@ -148,7 +148,7 @@ export function ProjectAnalyticsChart() {
                 tickLine={false}
                 axisLine={false}
                 interval={0}
-                padding={{ left: barWidth / 4, right: barWidth / 4 }}
+                padding={{ left: isMobile ? 4 : barWidth/4, right: isMobile ? 4 : barWidth/4 }}
                 />
                 <Bar
                     dataKey="total"
