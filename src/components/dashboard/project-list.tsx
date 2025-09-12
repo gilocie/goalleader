@@ -1,6 +1,6 @@
 
 'use client';
-import { MoreHorizontal, Play, Check, Circle } from 'lucide-react';
+import { MoreHorizontal, Play, Check, Circle, Pause } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -104,7 +104,7 @@ const StatusIndicator = ({ status }: { status: string }) => {
 
 
 export function ProjectList() {
-  const { activeTask, startTask, completeTask } = useTimeTracker();
+  const { activeTask, isActive, startTask, completeTask, handleStartStop } = useTimeTracker();
 
   return (
     <Card className="h-full flex flex-col">
@@ -134,19 +134,36 @@ export function ProjectList() {
                     <StatusIndicator status={task.status} />
                   </TableCell>
                   <TableCell>
-                  {task.status !== 'Completed' && (
-                    activeTask === task.name ? (
-                      <Button variant="destructive" size="sm" onClick={() => completeTask(task.name)}>
-                        <Check className="mr-2 h-4 w-4" />
-                        Complete Task
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="sm" onClick={() => startTask(task.name)} disabled={!!activeTask}>
-                        <Play className="mr-2 h-4 w-4" />
-                        Start
-                      </Button>
-                    )
-                  )}
+                    {task.status !== 'Completed' &&
+                      (activeTask === task.name ? (
+                        isActive ? (
+                          <Button variant="outline" size="sm" onClick={handleStartStop}>
+                            <Pause className="mr-2 h-4 w-4" />
+                            Stop
+                          </Button>
+                        ) : (
+                          <div className='flex gap-2'>
+                            <Button variant="outline" size="sm" onClick={handleStartStop}>
+                                <Play className="mr-2 h-4 w-4" />
+                                Start
+                            </Button>
+                             <Button variant="destructive" size="sm" onClick={() => completeTask(task.name)}>
+                                <Check className="mr-2 h-4 w-4" />
+                                Complete
+                            </Button>
+                          </div>
+                        )
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => startTask(task.name)}
+                          disabled={!!activeTask}
+                        >
+                          <Play className="mr-2 h-4 w-4" />
+                          Start
+                        </Button>
+                      ))}
                   </TableCell>
                   <TableCell className="hidden md:table-cell text-right">{task.dueDate}</TableCell>
                   <TableCell>
