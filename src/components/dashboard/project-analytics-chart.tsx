@@ -5,12 +5,14 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, Defs, 
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const generateData = () => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -30,9 +32,6 @@ const getBarColor = (value: number | null) => {
 
 const CustomizedLabel = (props: any) => {
     const { x, y, width, height, value, viewBox } = props;
-    if (value === null) {
-      return null;
-    }
   
     return (
       <text
@@ -44,7 +43,7 @@ const CustomizedLabel = (props: any) => {
         className="text-xs font-semibold"
         transform={`rotate(-90, ${x + width / 2}, ${(viewBox.y as number) + viewBox.height / 2})`}
       >
-        {`${value}%`}
+        {value !== null ? `${value}%` : ''}
       </text>
     );
 };
@@ -53,8 +52,9 @@ export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const barWidth = 40; 
-  const visibleMonths = 4;
+  const isMobile = useIsMobile();
+  const barWidth = isMobile ? 30 : 40; 
+  const visibleMonths = isMobile ? 12 : 4;
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
@@ -65,11 +65,11 @@ export function ProjectAnalyticsChart() {
   }, []);
 
   useEffect(() => {
-    if (scrollContainerRef.current && currentMonthIndex !== null) {
+    if (scrollContainerRef.current && currentMonthIndex !== null && !isMobile) {
         const initialScrollPosition = Math.max(0, (currentMonthIndex - 1) * barWidth);
         scrollContainerRef.current.scrollLeft = initialScrollPosition;
     }
-  }, [currentMonthIndex, data]);
+  }, [currentMonthIndex, data, isMobile, barWidth]);
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -98,12 +98,12 @@ export function ProjectAnalyticsChart() {
   }
   
   return (
-    <Card className="h-[260px]">
+    <Card className="h-[260px] overflow-hidden">
       <CardHeader>
         <CardTitle>Performance Record</CardTitle>
         <div className="text-sm text-muted-foreground">{currentYear}</div>
       </CardHeader>
-      <CardContent className="relative flex items-center pr-8">
+      <CardContent className="relative flex items-center pr-0 sm:pr-8">
          <div className="h-[150px]">
             <ResponsiveContainer width={50} height="100%">
                 <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
@@ -118,14 +118,14 @@ export function ProjectAnalyticsChart() {
                 </BarChart>
             </ResponsiveContainer>
          </div>
-         <Button 
+         {!isMobile && <Button 
             variant="default"
             size="icon" 
             className="absolute -left-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
             onClick={() => handleScroll('left')}
             >
              <ChevronLeft className="h-4 w-4" />
-        </Button>
+        </Button>}
         <div ref={scrollContainerRef} className="overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']" style={{width: `${visibleMonths * barWidth}px`}}>
             <ResponsiveContainer width={barWidth * 12} height={150}>
             <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
@@ -166,14 +166,14 @@ export function ProjectAnalyticsChart() {
             </BarChart>
             </ResponsiveContainer>
         </div>
-        <Button 
+        {!isMobile && <Button 
             variant="default" 
             size="icon" 
             className="absolute -right-4 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full z-10 bg-green-800 hover:bg-green-700"
             onClick={() => handleScroll('right')}
             >
              <ChevronRight className="h-4 w-4" />
-        </Button>
+        </Button>}
       </CardContent>
     </Card>
   );
