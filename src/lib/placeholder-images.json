@@ -1,3 +1,35 @@
+
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "avatar-1",
+      "description": "Female user avatar",
+      "imageUrl": "https://picsum.photos/seed/101/40/40",
+      "imageHint": "woman face"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Male user avatar",
+      "imageUrl": "https://picsum.photos/seed/102/40/40",
+      "imageHint": "man face"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Female user avatar",
+      "imageUrl": "https://picsum.photos/seed/103/40/40",
+      "imageHint": "woman face"
+    },
+    {
+      "id": "avatar-4",
+      "description": "Male user avatar",
+      "imageUrl": "https://picsum.photos/seed/104/40/40",
+      "imageHint": "man face"
+    },
+    {
+      "id": "user-avatar",
+      "description": "Main user avatar",
+      "imageUrl": "https://picsum.photos/seed/100/40/40",
+      "imageHint": "person face"
+    }
+  ]
 }
