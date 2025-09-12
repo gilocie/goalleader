@@ -210,14 +210,18 @@ export default function Home() {
             <div className="md:col-span-2 lg:col-span-2">
               <ProjectList />
             </div>
-            <ProjectAnalyticsChart />
+            <div>
+              <ProjectAnalyticsChart />
+              <div className="mt-4">
+                <ProjectProgress />
+              </div>
+            </div>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-8 xl:grid-cols-3">
             <div className="xl:col-span-2">
               <TeamCollaboration />
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
-              <ProjectProgress />
               <Reminders />
             </div>
           </div>
