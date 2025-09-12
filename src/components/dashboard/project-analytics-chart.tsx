@@ -32,7 +32,7 @@ export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const barWidth = 35; // Includes gap
+  const barWidth = 40; 
   const visibleMonths = 4;
 
   useEffect(() => {
@@ -41,12 +41,14 @@ export function ProjectAnalyticsChart() {
     setData(generatedData);
     const monthIndex = new Date().getMonth();
     setCurrentMonthIndex(monthIndex);
+  }, []);
 
-    if (scrollContainerRef.current) {
-        const initialScrollPosition = Math.max(0, (monthIndex - 1) * barWidth);
+  useEffect(() => {
+    if (scrollContainerRef.current && currentMonthIndex !== null) {
+        const initialScrollPosition = Math.max(0, (currentMonthIndex - 1) * barWidth);
         scrollContainerRef.current.scrollLeft = initialScrollPosition;
     }
-  }, []);
+  }, [currentMonthIndex, data]);
 
   const handleScroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -84,18 +86,32 @@ export function ProjectAnalyticsChart() {
           Track staff performance based on daily completed tasks.
         </CardDescription>
       </CardHeader>
-      <CardContent className="pl-2 relative">
+      <CardContent className="relative flex items-center">
+         <div className="h-[150px]">
+            <ResponsiveContainer width={50} height="100%">
+                <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 20 }}>
+                     <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => `${value}%`}
+                        domain={[0, 100]}
+                        />
+                </BarChart>
+            </ResponsiveContainer>
+         </div>
          <Button 
             variant="outline" 
             size="icon" 
-            className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-6 z-10"
+            className="absolute left-10 top-1/2 -translate-y-1/2 h-6 w-6 z-10"
             onClick={() => handleScroll('left')}
             >
              <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div ref={scrollContainerRef} className="overflow-x-auto" style={{width: `${visibleMonths * barWidth}px`}}>
+        <div ref={scrollContainerRef} className="overflow-x-auto mx-auto" style={{width: `${visibleMonths * barWidth}px`}}>
             <ResponsiveContainer width={barWidth * 12} height={150}>
-            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%">
+            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                 <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
                     <stop offset="0%" stopColor="hsl(var(--accent))" />
@@ -108,14 +124,8 @@ export function ProjectAnalyticsChart() {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                />
-                <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `${value}%`}
-                domain={[0, 100]}
+                interval={0}
+                padding={{ left: barWidth / 4, right: barWidth / 4 }}
                 />
                 <Tooltip
                     contentStyle={{
