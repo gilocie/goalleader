@@ -25,7 +25,7 @@ const getBarColor = (value: number) => {
     if (value >= 50) {
         return "url(#colorGradient)";
     }
-    return 'hsl(var(--muted))'; // gray
+    return 'hsl(var(--muted))';
 }
 
 export function ProjectAnalyticsChart() {
@@ -36,7 +36,6 @@ export function ProjectAnalyticsChart() {
   const visibleMonths = 4;
 
   useEffect(() => {
-    // This should run only on the client
     const generatedData = generateData();
     setData(generatedData);
     const monthIndex = new Date().getMonth();
@@ -86,7 +85,7 @@ export function ProjectAnalyticsChart() {
           Track staff performance based on daily completed tasks.
         </CardDescription>
       </CardHeader>
-      <CardContent className="relative flex items-center">
+      <CardContent className="relative flex items-center pr-8">
          <div className="h-[150px]">
             <ResponsiveContainer width={50} height="100%">
                 <BarChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 20 }}>
@@ -109,7 +108,7 @@ export function ProjectAnalyticsChart() {
             >
              <ChevronLeft className="h-4 w-4" />
         </Button>
-        <div ref={scrollContainerRef} className="overflow-x-auto mx-auto" style={{width: `${visibleMonths * barWidth}px`}}>
+        <div ref={scrollContainerRef} className="overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']" style={{width: `${visibleMonths * barWidth}px`}}>
             <ResponsiveContainer width={barWidth * 12} height={150}>
             <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <defs>
