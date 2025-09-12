@@ -5,7 +5,6 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, Defs, 
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -31,17 +30,20 @@ const getBarColor = (value: number | null) => {
 }
 
 const CustomizedLabel = (props: any) => {
-    const { x, y, width, height, value, viewBox } = props;
+    const { x, y, width, value, viewBox } = props;
+    const isMobile = useIsMobile();
+    const yPos = isMobile ? y + 20 : (viewBox.y as number) + viewBox.height / 2;
+    const fill = value < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))";
   
     return (
       <text
         x={x + width / 2}
-        y={(viewBox.y as number) + viewBox.height / 2}
-        fill={value < 50 ? "hsl(var(--foreground))" : "hsl(var(--primary-foreground))"}
+        y={yPos}
+        fill={fill}
         textAnchor="middle"
         dominantBaseline="middle"
         className="text-xs font-semibold"
-        transform={`rotate(-90, ${x + width / 2}, ${(viewBox.y as number) + viewBox.height / 2})`}
+        transform={`rotate(-90, ${x + width / 2}, ${yPos})`}
       >
         {value !== null ? `${value}%` : ''}
       </text>
@@ -53,7 +55,7 @@ export function ProjectAnalyticsChart() {
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
-  const barWidth = isMobile ? 30 : 40; 
+  const barWidth = isMobile ? 28 : 40; 
   const visibleMonths = isMobile ? 12 : 4;
   const currentYear = new Date().getFullYear();
 
@@ -103,7 +105,7 @@ export function ProjectAnalyticsChart() {
         <CardTitle>Performance Record</CardTitle>
         <div className="text-sm text-muted-foreground">{currentYear}</div>
       </CardHeader>
-      <CardContent className="relative flex items-center pr-0 sm:pr-8">
+      <CardContent className="relative flex items-center pr-0 sm:pr-4">
          <div className="h-[150px]">
             <ResponsiveContainer width={50} height="100%">
                 <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
@@ -126,9 +128,9 @@ export function ProjectAnalyticsChart() {
             >
              <ChevronLeft className="h-4 w-4" />
         </Button>}
-        <div ref={scrollContainerRef} className="overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']" style={{width: `${visibleMonths * barWidth}px`}}>
-            <ResponsiveContainer width={barWidth * 12} height={150}>
-            <BarChart data={data} barGap={-barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+        <div ref={scrollContainerRef} className={`overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] ${isMobile ? 'w-full' : ''}`} style={!isMobile ? {width: `${visibleMonths * barWidth}px`} : {}}>
+            <ResponsiveContainer width={isMobile ? '100%' : barWidth * 12} height={150}>
+            <BarChart data={data} barGap={isMobile ? 0 : -barWidth / 2} barCategoryGap="20%" margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                 <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
                     <stop offset="0%" stopColor="hsl(var(--accent))" />
