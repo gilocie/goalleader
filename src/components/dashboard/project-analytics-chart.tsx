@@ -40,14 +40,15 @@ const CustomizedLabel = (props: any) => {
 
   if (height >= insideThreshold) {
     // inside the bar, choose white or dark depending on fill contrast
+    const fill = (value ?? 0) < 50 ? 'hsl(var(--foreground))' : 'white';
     return (
       <text
         x={cx}
         y={y + height / 2}
-        fill="white"
+        fill={fill}
         textAnchor="middle"
         dominantBaseline="middle"
-        className="text-[10px] font-semibold"
+        className="text-[10px] font-bold"
       >
         {text}
       </text>
@@ -77,7 +78,7 @@ export function ProjectAnalyticsChart() {
   const isMobileOrTablet = useIsMobileOrTablet();
 
   // CHART CONFIG
-  const chartHeight = 150;             // inner drawing height for both charts
+  const chartHeight = 200;             // inner drawing height for both charts
   const chartMargin = { top: 20, right: 0, left: 0, bottom: 5 };
   const barWidth = isMobileOrTablet ? 28 : 40;
   const visibleMonths = 4;
@@ -112,13 +113,13 @@ export function ProjectAnalyticsChart() {
 
   if (!data.length) {
     return (
-      <Card className="h-[260px]">
+      <Card className="h-[310px]">
         <CardHeader>
           <CardTitle>Performance Record</CardTitle>
           <div className="text-sm text-muted-foreground">{currentYear}</div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-[150px]">
+          <div className="flex items-center justify-center h-[200px]">
             <p>Loading chart data...</p>
           </div>
         </CardContent>
@@ -127,7 +128,7 @@ export function ProjectAnalyticsChart() {
   }
 
   return (
-    <Card className="h-[260px] overflow-visible">
+    <Card className="h-[310px] overflow-visible">
       <CardHeader>
         <CardTitle>Performance Record</CardTitle>
         <div className="text-sm text-muted-foreground">{currentYear}</div>
