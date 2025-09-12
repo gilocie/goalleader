@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
@@ -10,20 +11,21 @@ import {
 } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 
-const generateData = () => [
-  { name: 'Jan', total: Math.floor(Math.random() * 20) + 10 },
-  { name: 'Feb', total: Math.floor(Math.random() * 20) + 10 },
-  { name: 'Mar', total: Math.floor(Math.random() * 20) + 10 },
-  { name: 'Apr', total: Math.floor(Math.random() * 20) + 10 },
-  { name: 'May', total: Math.floor(Math.random() * 20) + 10 },
-  { name: 'Jun', total: Math.floor(Math.random() * 20) + 10 },
-];
+const generateData = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months.map(month => ({
+        name: month,
+        total: Math.floor(Math.random() * 20) + 10,
+    }));
+};
 
 export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
+  const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setData(generateData());
+    setCurrentMonthIndex(new Date().getMonth());
   }, []);
   
   return (
@@ -60,9 +62,19 @@ export function ProjectAnalyticsChart() {
             />
             <Bar
               dataKey="total"
-              fill="hsl(var(--primary))"
               radius={[4, 4, 0, 0]}
-            />
+            >
+                {data.map((entry, index) => (
+                    <rect
+                        key={`cell-${index}`}
+                        x={0}
+                        y={0}
+                        width={0}
+                        height={0}
+                        fill={index === currentMonthIndex ? 'hsl(var(--primary))' : 'hsl(var(--muted))'}
+                    />
+                ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
