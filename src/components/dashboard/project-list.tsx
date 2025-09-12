@@ -40,16 +40,6 @@ const tasks = [
     status: 'Pending',
     dueDate: '2024-08-01',
   },
-  {
-    name: 'Write unit tests for the API',
-    status: 'In Progress',
-    dueDate: '2024-08-10',
-  },
-  {
-    name: 'Deploy to staging server',
-    status: 'Completed',
-    dueDate: '2024-06-30',
-  },
 ];
 
 const getBadgeVariant = (status: string) => {
