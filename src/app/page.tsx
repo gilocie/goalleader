@@ -40,6 +40,7 @@ import { ProjectList } from '@/components/dashboard/project-list';
 import { TimeTracker } from '@/components/dashboard/time-tracker';
 import { Logo } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Noticeboard } from '@/components/dashboard/noticeboard';
 
 export default function Home() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
@@ -219,8 +220,9 @@ export default function Home() {
             <div className="col-span-7">
                 <GoalReaderAIChat />
             </div>
-            <div className="col-span-3">
+            <div className="col-span-3 grid grid-cols-1 gap-4 auto-rows-min">
               <Reminders />
+              <Noticeboard />
             </div>
           </div>
         </main>
