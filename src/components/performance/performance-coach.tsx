@@ -66,10 +66,10 @@ export function PerformanceCoach() {
         gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
     return {
-        badge: <Badge variant="destructive">Needs Improvement</Badge>,
+        badge: <Badge variant="destructive" className="bg-white/20 text-white border-0">Needs Improvement</Badge>,
         emoji: '🤔',
-        titleClass: 'text-destructive',
-        gradient: 'bg-gradient-to-br from-red-100 to-yellow-100'
+        titleClass: 'text-primary-foreground',
+        gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
   };
 
@@ -94,7 +94,7 @@ export function PerformanceCoach() {
           </div>
         ) : (
           <div className="space-y-4 text-center">
-             <h3 className={cn("text-xl font-semibold", titleClass)}>
+             <h3 className={cn("text-xl font-semibold", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : 'text-primary')}>
                 {advice?.title}
             </h3>
             <p className="text-sm text-muted-foreground">
