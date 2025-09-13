@@ -16,41 +16,49 @@ const teamMembers = [
     id: 'team-member-1',
     name: 'Sophia Davis',
     role: 'Lead Developer',
+    status: 'online',
   },
   {
     id: 'team-member-2',
     name: 'Liam Martinez',
     role: 'Frontend Developer',
+    status: 'offline',
   },
   {
     id: 'team-member-3',
     name: 'Ava Wilson',
     role: 'Backend Developer',
+    status: 'online',
   },
   {
     id: 'team-member-4',
     name: 'Noah Brown',
     role: 'UI/UX Designer',
+    status: 'online',
   },
   {
     id: 'team-member-5',
     name: 'Emma Johnson',
     role: 'QA Engineer',
+    status: 'offline',
   },
   {
     id: 'team-member-6',
     name: 'Oliver Garcia',
     role: 'DevOps Engineer',
+    status: 'online',
   },
   {
     id: 'team-member-7',
     name: 'Charlotte Rodriguez',
     role: 'Project Manager',
+    status: 'offline',
   },
   {
     id: 'team-member-8',
     name: 'James Smith',
     role: 'Data Scientist',
+    status: 'online',
   },
 ];
 
@@ -92,8 +100,12 @@ export default function TeamsPage() {
                     return (
                     <Card
                         key={member.id}
-                        className="shadow-md transition-shadow hover:shadow-lg"
+                        className="shadow-md transition-shadow hover:shadow-lg relative"
                     >
+                         <div className={cn(
+                            'absolute top-3 right-3 h-3 w-3 rounded-full border-2 border-background',
+                            member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                         )} />
                         <CardContent
                         className={cn(
                             'p-4',
