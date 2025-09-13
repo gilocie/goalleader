@@ -1,8 +1,6 @@
-
-
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Eye,
   MoreHorizontal,
@@ -32,7 +30,6 @@ import { Task, useTimeTracker } from '@/context/time-tracker-context';
 import { ScrollArea } from '../ui/scroll-area';
 import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
 import { format, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import { Checkbox } from '../ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { CreateReportDialog } from './create-report-dialog';
 
@@ -41,8 +38,8 @@ export type FilterType = 'recent' | 'thisWeek' | 'thisMonth';
 export function CompletedProjectsTable() {
   const { tasks, setTaskDetailsOpen, setSelectedTask, selectedTask, isTaskDetailsOpen } = useTimeTracker();
   const [activeFilter, setActiveFilter] = useState<FilterType>('recent');
-  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
   const [isReportDialogOpen, setReportDialogOpen] = useState(false);
+  const [tasksForReport, setTasksForReport] = useState<Task[]>([]);
 
   const handleViewDetailsClick = (task: Task) => {
     setSelectedTask(task);
@@ -83,28 +80,9 @@ export function CompletedProjectsTable() {
     }
   }, [tasks, activeFilter]);
 
-  const tasksForReport = useMemo(() => {
-    return filteredTasks.filter(t => selectedTasks.includes(t.name));
-  }, [selectedTasks, filteredTasks]);
-
-  const handleSelectTask = (taskName: string, checked: boolean | 'indeterminate') => {
-    if (checked) {
-        setSelectedTasks(prev => [...prev, taskName]);
-    } else {
-        setSelectedTasks(prev => prev.filter(name => name !== taskName));
-    }
-  }
-
-  const handleSelectAll = (checked:  boolean | 'indeterminate') => {
-    if (checked) {
-        setSelectedTasks(filteredTasks.map(t => t.name));
-    } else {
-        setSelectedTasks([]);
-    }
-  }
-
-  const isAllSelected = selectedTasks.length > 0 && selectedTasks.length === filteredTasks.length;
-  const isSomeSelected = selectedTasks.length > 0 && selectedTasks.length < filteredTasks.length;
+  useEffect(() => {
+    setTasksForReport(filteredTasks);
+  }, [filteredTasks]);
 
 
   return (
@@ -114,7 +92,7 @@ export function CompletedProjectsTable() {
             <div>
                 <CardTitle>Completed Projects</CardTitle>
                 <CardDescription>
-                    A list of your completed tasks. Select tasks to generate a report.
+                    A list of your completed tasks. Create a report for your manager.
                 </CardDescription>
             </div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 bg-secondary rounded-lg">
@@ -133,12 +111,6 @@ export function CompletedProjectsTable() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center p-4 border-b">
-            <Checkbox
-                checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
-                onCheckedChange={handleSelectAll}
-                aria-label="Select all"
-                className="mr-4"
-            />
             <div className="flex-1 grid grid-cols-3 gap-4 font-medium text-muted-foreground">
                 <div className="col-span-1">Task</div>
                 <div className="col-span-1">Date</div>
@@ -149,13 +121,7 @@ export function CompletedProjectsTable() {
           <ScrollArea className="h-[352px]">
              <div className="space-y-2 p-4">
                 {filteredTasks.map((task) => (
-                  <Card key={task.name} data-state={selectedTasks.includes(task.name) && "selected"} className="shadow-md hover:shadow-lg transition-shadow flex items-center p-4 data-[state=selected]:bg-muted">
-                     <Checkbox
-                        checked={selectedTasks.includes(task.name)}
-                        onCheckedChange={(checked) => handleSelectTask(task.name, checked)}
-                        aria-label="Select row"
-                        className="mr-4"
-                      />
+                  <Card key={task.name} className="shadow-md hover:shadow-lg transition-shadow flex items-center p-4">
                     <div className="flex-1 grid grid-cols-3 gap-4 items-center">
                         <TooltipProvider>
                           <Tooltip>
@@ -215,7 +181,7 @@ export function CompletedProjectsTable() {
         isOpen={isReportDialogOpen}
         onOpenChange={setReportDialogOpen}
         tasks={tasksForReport}
-        period={activeFilter === 'thisWeek' ? 'This Week' : 'This Month'}
+        period={activeFilter === 'thisMonth' ? 'This Month' : 'This Week'}
       />
     </>
   );

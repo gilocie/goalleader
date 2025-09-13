@@ -37,7 +37,7 @@ const prompt = ai.definePrompt({
   name: 'generateReportPrompt',
   input: { schema: GenerateReportInputSchema },
   output: { schema: GenerateReportOutputSchema },
-  prompt: `You are an AI assistant for GoalLeader. Your task is to generate a performance report for a staff member.
+  prompt: `You are an AI assistant for GoalLeader. Your task is to generate a performance report for a staff member to their manager.
 
 The report is for the period: {{period}}.
 The company's target KPI is {{kpi}}%. The staff member's performance for this period is {{performance}}%.
@@ -46,15 +46,15 @@ Based on the completed tasks provided, generate a summary of what the staff memb
 
 Include:
 - An overall summary of performance.
-- A list of completed tasks with their completion dates.
+- A bulleted list of key completed tasks with their completion dates.
 - An analysis of the performance rate against the KPI.
 
 Completed Tasks:
 {{#each tasks}}
-- "{{name}}" completed on {{endTime}}. (Duration: {{duration}} seconds)
+- "{{name}}" completed on {{endTime}}.
 {{/each}}
 
-Generate the report content as a single string.
+Generate the report content as a single string, ready to be sent to a manager.
 `,
 });
 

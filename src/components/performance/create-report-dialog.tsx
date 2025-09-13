@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState } from 'react';
@@ -17,10 +15,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Task } from '@/context/time-tracker-context';
 import { useReports } from '@/context/reports-context';
 import { generateReport, GenerateReportInput } from '@/ai/flows/generate-report-flow';
+import { refineText, RefineTextInput } from '@/ai/flows/refine-text-flow';
 import { Bot, Loader2 } from 'lucide-react';
-import { FilterType } from './completed-projects-table';
 import { format } from 'date-fns';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 interface CreateReportDialogProps {
   isOpen: boolean;
@@ -39,6 +36,7 @@ export function CreateReportDialog({
 }: CreateReportDialogProps) {
   const [reportContent, setReportContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { addReport } = useReports();
   const router = useRouter();
 
@@ -68,15 +66,38 @@ export function CreateReportDialog({
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!reportContent.trim()) return;
-    addReport({
-      title: `Performance Report - ${period} - ${format(new Date(), 'PP')}`,
-      content: reportContent,
-    });
-    onOpenChange(false);
-    setReportContent('');
-    router.push('/reports');
+
+    setIsSubmitting(true);
+    try {
+        const refineInput: RefineTextInput = {
+            report: reportContent,
+            tasks: tasks.map(t => ({ name: t.name, endTime: t.endTime ? format(new Date(t.endTime), 'MMM d, yy') : 'N/A' })),
+        };
+        const finalReport = await refineText(refineInput);
+
+        addReport({
+            title: `Performance Report - ${period} - ${format(new Date(), 'PP')}`,
+            content: finalReport,
+        });
+        
+        onOpenChange(false);
+        setReportContent('');
+        router.push('/reports');
+    } catch (error) {
+        console.error('Failed to refine and save report:', error);
+        // Fallback to saving the original content if refinement fails
+        addReport({
+            title: `Performance Report - ${period} - ${format(new Date(), 'PP')}`,
+            content: reportContent,
+        });
+        onOpenChange(false);
+        setReportContent('');
+        router.push('/reports');
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -85,26 +106,17 @@ export function CreateReportDialog({
         <DialogHeader>
           <DialogTitle>Create Performance Report</DialogTitle>
           <DialogDescription>
-            Generate a report for the selected tasks for '{period}'. You can write it manually or use AI.
+            Generate a report for '{period}'. You can write it manually or ask AI to create a draft for you.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          {tasks.length === 0 ? (
-            <Alert>
-                <AlertTitle>No Tasks Selected</AlertTitle>
-                <AlertDescription>
-                    Please select at least one task from the list to generate a report.
-                </AlertDescription>
-            </Alert>
-          ) : (
             <Textarea
               value={reportContent}
               onChange={(e) => setReportContent(e.target.value)}
-              placeholder="Report content goes here..."
+              placeholder="Write your performance summary here, or click 'Generate with AI' to get a draft..."
               className="h-64"
             />
-          )}
-          <Button onClick={handleGenerateReport} disabled={isGenerating || tasks.length === 0}>
+          <Button onClick={handleGenerateReport} disabled={isGenerating}>
             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
             Generate with AI
           </Button>
@@ -113,7 +125,8 @@ export function CreateReportDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} disabled={!reportContent.trim()}>
+          <Button onClick={handleConfirm} disabled={!reportContent.trim() || isSubmitting}>
+            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Confirm and Save Report
           </Button>
         </DialogFooter>
