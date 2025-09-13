@@ -111,7 +111,7 @@ export function ProjectList() {
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
-            <Table>
+            <Table className="hidden md:table">
               <TableHeader>
                 <TableRow>
                   <TableHead>Task</TableHead>
@@ -181,6 +181,66 @@ export function ProjectList() {
                 ))}
               </TableBody>
             </Table>
+            <div className="grid gap-4 md:hidden">
+              {ongoingTasks.map((task) => (
+                <Card key={task.name} className="flex flex-col">
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                        <span className="font-medium flex-1">{task.name}</span>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button
+                                aria-haspopup="true"
+                                size="icon"
+                                variant="ghost"
+                                className="-mt-2"
+                            >
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    
+                    <div className='flex justify-between items-center'>
+                        <StatusIndicator status={task.status} />
+                        
+                        {task.status === 'Pending' && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => startTask(task.name)}
+                                disabled={!!activeTask}
+                                className="h-8 w-8"
+                            >
+                                <Play className="h-4 w-4" />
+                                <span className='sr-only'>Start</span>
+                            </Button>
+                        )}
+                        {task.status === 'In Progress' && (
+                            <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => handleStopClick(task.name)}
+                                className="h-8 w-8"
+                            >
+                                <Square className="h-4 w-4" />
+                                <span className='sr-only'>Stop</span>
+                            </Button>
+                        )}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Due: {task.dueDate}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </ScrollArea>
         </CardContent>
       </Card>
