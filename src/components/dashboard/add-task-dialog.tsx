@@ -117,11 +117,11 @@ export function AddTaskDialog({
       <DialogContent
         className={cn(
           "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] p-0 transition-all duration-300 flex overflow-hidden",
-          showSuggestions && "sm:max-w-3xl"
+          showSuggestions && "sm:max-w-4xl"
         )}
       >
         {/* --- Form Side --- */}
-        <div className="w-full sm:w-[448px] flex-shrink-0 flex flex-col relative">
+        <div className="w-full sm:flex-1 flex-shrink-0 flex flex-col relative">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
               <DialogHeader className="p-6 pb-2">
@@ -259,7 +259,7 @@ export function AddTaskDialog({
         <div
           className={cn(
             "flex-shrink-0 transition-all duration-300 overflow-hidden",
-            showSuggestions ? "w-full sm:w-1/2" : "w-0"
+            showSuggestions ? "w-full sm:flex-1" : "w-0"
           )}
         >
           <Card className="h-full flex flex-col rounded-none border-l relative">
