@@ -81,7 +81,7 @@ export function AddTaskDialog({
   };
 
   const handleGetSuggestions = async () => {
-    if (suggestions.length > 0) return; 
+    if (suggestions.length > 0) return;
     setIsSuggesting(true);
     try {
       const result = await getTaskSuggestions({ department: 'Engineering' });
@@ -92,7 +92,7 @@ export function AddTaskDialog({
       setIsSuggesting(false);
     }
   };
-  
+
   const toggleSuggestionsPanel = () => {
       setShowSuggestions(prev => !prev);
   }
@@ -104,7 +104,7 @@ export function AddTaskDialog({
 
   const handleCloseDialog = (open: boolean) => {
     if (!open) {
-      setShowSuggestions(false); // Ensure panel is closed when dialog is closed
+      setShowSuggestions(false);
     }
     onOpenChange(open);
   };
