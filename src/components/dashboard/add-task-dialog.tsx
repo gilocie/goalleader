@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -122,20 +123,29 @@ export function AddTaskDialog({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
               <DialogHeader className="p-6 pb-2">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-start">
                   <div>
                     <DialogTitle>Add New Task</DialogTitle>
                     <DialogDescription>
                       Fill in the details for the new task.
                     </DialogDescription>
                   </div>
-                  <button
-                    onClick={toggleSuggestionsPanel}
-                    type="button"
-                    className="w-8 h-8 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 flex items-center justify-center z-20 shadow-lg"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-2 -mt-2">
+                     <DialogClose asChild>
+                       <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full">
+                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                       </Button>
+                     </DialogClose>
+                     <Button
+                        onClick={toggleSuggestionsPanel}
+                        type="button"
+                        variant="default"
+                        size="icon"
+                        className="w-8 h-8 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 flex items-center justify-center z-20 shadow-lg"
+                      >
+                       {showSuggestions ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                     </Button>
+                  </div>
                 </div>
               </DialogHeader>
 
@@ -251,12 +261,6 @@ export function AddTaskDialog({
           )}
         >
           <Card className="h-full flex flex-col rounded-none border-l relative">
-             <button
-                onClick={toggleSuggestionsPanel}
-                className="absolute top-1/2 -translate-y-1/2 -left-4 w-8 h-8 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 flex items-center justify-center z-50 shadow-lg transition-all"
-                >
-                <ChevronRight className="h-4 w-4" />
-            </button>
             <CardHeader>
               <DialogTitle>AI Suggestions</DialogTitle>
               <DialogDescription>Pick a task to get started.</DialogDescription>
