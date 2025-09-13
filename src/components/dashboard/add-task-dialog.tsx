@@ -25,7 +25,6 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
     FormMessage,
 } from "@/components/ui/form";
 import { getTaskSuggestions } from '@/ai/flows/task-suggestion-flow';
@@ -120,7 +119,7 @@ export function AddTaskDialog({
                                   <Button
                                   variant={"outline"}
                                   className={cn(
-                                      "w-[140px] justify-start text-left font-normal",
+                                      "w-[140px] justify-start text-left font-normal bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90",
                                       !field.value && "text-muted-foreground"
                                   )}
                                   >
@@ -156,9 +155,8 @@ export function AddTaskDialog({
                           name="title"
                           render={({ field }) => (
                               <FormItem>
-                              <FormLabel>Title</FormLabel>
                               <FormControl>
-                                  <Input placeholder="e.g. Design a new logo" {...field} />
+                                  <Input placeholder="Title" {...field} />
                               </FormControl>
                               <FormMessage />
                               </FormItem>
@@ -169,9 +167,8 @@ export function AddTaskDialog({
                           name="description"
                           render={({ field }) => (
                               <FormItem>
-                              <FormLabel>Description</FormLabel>
                               <FormControl>
-                                  <Textarea placeholder="Add a more detailed description..." {...field} />
+                                  <Textarea placeholder="Description" {...field} />
                               </FormControl>
                               <FormMessage />
                               </FormItem>
@@ -183,7 +180,6 @@ export function AddTaskDialog({
                               name="startTime"
                               render={({ field }) => (
                                   <FormItem>
-                                      <FormLabel>Start Time</FormLabel>
                                       <FormControl>
                                           <Input type="time" {...field} />
                                       </FormControl>
@@ -196,7 +192,6 @@ export function AddTaskDialog({
                               name="endTime"
                               render={({ field }) => (
                                   <FormItem>
-                                      <FormLabel>End Time</FormLabel>
                                       <FormControl>
                                           <Input type="time" {...field} />
                                       </FormControl>
