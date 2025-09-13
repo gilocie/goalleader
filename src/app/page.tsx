@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8 space-y-4 md:space-y-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <DashboardStats />
         </div>
         <div className="grid grid-cols-10 gap-4">
