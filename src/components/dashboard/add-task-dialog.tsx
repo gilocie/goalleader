@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -103,6 +104,9 @@ export function AddTaskDialog({
   const handleSuggestionClick = (suggestion: Suggestion) => {
     form.setValue('title', suggestion.title);
     form.setValue('description', suggestion.description);
+    form.setValue('date', new Date());
+    form.setValue('startTime', suggestion.startTime);
+    form.setValue('endTime', suggestion.endTime);
   };
 
   const handleCloseDialog = (open: boolean) => {
@@ -269,7 +273,7 @@ export function AddTaskDialog({
             </CardHeader>
             <CardContent className="flex-1 overflow-auto p-0">
               <ScrollArea className="h-full">
-                <div className="space-y-2 pb-4 px-4">
+                <div className="space-y-4 p-4">
                   {isSuggesting && suggestions.length === 0 && (
                     <div className="flex items-center justify-center p-4 h-64">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -284,14 +288,18 @@ export function AddTaskDialog({
                     <div className="space-y-2 pt-2">
                       <TooltipProvider>
                         {suggestions.map((s, i) => (
-                          <Card key={i} className="p-3">
+                          <Card
+                            key={i}
+                            className="p-3 cursor-pointer hover:bg-muted"
+                            onClick={() => handleSuggestionClick(s)}
+                          >
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-sm font-medium truncate flex-1">{s.title}</span>
                               <div className="flex items-center gap-2 flex-shrink-0">
                                 <span className="text-xs text-muted-foreground">{s.duration}</span>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
                                       <HelpCircle className="h-4 w-4" />
                                     </Button>
                                   </TooltipTrigger>
@@ -299,14 +307,6 @@ export function AddTaskDialog({
                                     <p>{s.description}</p>
                                   </TooltipContent>
                                 </Tooltip>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => handleSuggestionClick(s)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
                               </div>
                             </div>
                           </Card>
