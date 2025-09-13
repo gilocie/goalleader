@@ -13,7 +13,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 export default function Home() {
   return (
     <AppLayout>
-      <main className="flex-grow p-4 md:p-8 space-y-4 md:space-y-8">
+      <main className="flex-grow py-4 md:py-8 px-4 lg:px-6 space-y-4 md:space-y-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <DashboardStats />
         </div>
