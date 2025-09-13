@@ -142,10 +142,10 @@ export function GoalReaderAIChat() {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="text-xl font-semibold">
           Goal Leader Chat
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-xs">
           Chat with your assistant to manage your goals.
         </CardDescription>
       </CardHeader>
