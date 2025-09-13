@@ -7,12 +7,12 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { useTimeTracker } from '@/context/time-tracker-context';
 import { getPerformanceAdvice, PerformanceAdviceInput, PerformanceAdviceOutput } from '@/ai/flows/performance-advice-flow';
-import { Bot, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import { cn } from '@/lib/utils';
 
 const COMPANY_KPI = 80; // 80% completion rate as the target
 
@@ -41,7 +41,7 @@ export function PerformanceCoach() {
       } catch (error) {
         console.error('Failed to get performance advice:', error);
         setAdvice({
-            title: 'Welcome!',
+            title: 'Performance Analysis',
             advice: 'Start completing tasks to get personalized performance feedback.'
         });
       } finally {
@@ -52,20 +52,36 @@ export function PerformanceCoach() {
     fetchAdvice();
   }, [tasks]);
 
-  const getPerformanceBadge = () => {
-    if (performance >= COMPANY_KPI) return <Badge variant="default">Excellent</Badge>;
-    if (performance >= COMPANY_KPI / 2) return <Badge variant="secondary">Good</Badge>;
-    return <Badge variant="destructive">Needs Improvement</Badge>;
+  const getPerformanceInfo = () => {
+    if (performance >= COMPANY_KPI) return {
+        badge: <Badge variant="default">Excellent</Badge>,
+        emoji: '🚀',
+        titleClass: 'text-primary'
+    };
+    if (performance >= COMPANY_KPI / 2) return {
+        badge: <Badge variant="secondary">Good</Badge>,
+        emoji: '👍',
+        titleClass: 'text-secondary-foreground'
+    };
+    return {
+        badge: <Badge variant="destructive">Needs Improvement</Badge>,
+        emoji: '🤔',
+        titleClass: 'text-destructive'
+    };
   };
+
+  const { badge, emoji, titleClass } = getPerformanceInfo();
 
   return (
     <Card className="h-full max-h-[460px]">
        <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-            <CardTitle className="font-semibold text-xl">
-            {isLoading ? 'Analyzing...' : advice?.title}
-            </CardTitle>
-            {!isLoading && getPerformanceBadge()}
+        <div className="flex items-center justify-center text-center p-4 rounded-lg bg-muted/50">
+            <div className='flex flex-col items-center gap-2'>
+                <div className="flex items-center gap-2">
+                    <span className="text-2xl">{emoji}</span>
+                    {badge}
+                </div>
+            </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -74,7 +90,10 @@ export function PerformanceCoach() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 text-center">
+             <h3 className={cn("text-xl font-semibold", titleClass)}>
+                {advice?.title}
+            </h3>
             <p className="text-sm text-muted-foreground">
               {advice?.advice}
             </p>
