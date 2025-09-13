@@ -134,7 +134,7 @@ export function CompletedProjectsTable() {
             />
             <div className="flex-1 grid grid-cols-3 gap-4 font-medium text-muted-foreground">
                 <div className="col-span-1">Task</div>
-                <div className="col-span-1">Completed On</div>
+                <div className="col-span-1">Date</div>
                 <div className="col-span-1">Duration</div>
             </div>
             <div className="w-20 text-right font-medium text-muted-foreground">Actions</div>
