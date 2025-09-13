@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -19,6 +20,7 @@ import { generateReport, GenerateReportInput } from '@/ai/flows/generate-report-
 import { Bot, Loader2 } from 'lucide-react';
 import { FilterType } from './completed-projects-table';
 import { format } from 'date-fns';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 interface CreateReportDialogProps {
   isOpen: boolean;
@@ -87,13 +89,22 @@ export function CreateReportDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <Textarea
-            value={reportContent}
-            onChange={(e) => setReportContent(e.target.value)}
-            placeholder="Report content goes here..."
-            className="h-64"
-          />
-          <Button onClick={handleGenerateReport} disabled={isGenerating}>
+          {tasks.length === 0 ? (
+            <Alert>
+                <AlertTitle>No Tasks Selected</AlertTitle>
+                <AlertDescription>
+                    Please select at least one task from the list to generate a report.
+                </AlertDescription>
+            </Alert>
+          ) : (
+            <Textarea
+              value={reportContent}
+              onChange={(e) => setReportContent(e.target.value)}
+              placeholder="Report content goes here..."
+              className="h-64"
+            />
+          )}
+          <Button onClick={handleGenerateReport} disabled={isGenerating || tasks.length === 0}>
             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
             Generate with AI
           </Button>

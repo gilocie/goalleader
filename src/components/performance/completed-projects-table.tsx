@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -117,7 +118,7 @@ export function CompletedProjectsTable() {
                 </CardDescription>
             </div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 bg-secondary rounded-lg">
-                <Button disabled={selectedTasks.length === 0} onClick={() => setReportDialogOpen(true)}>
+                <Button onClick={() => setReportDialogOpen(true)}>
                     <FileText className="mr-2 h-4 w-4" />
                     Create Report
                 </Button>
