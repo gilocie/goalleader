@@ -15,14 +15,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
     Tabs,
     TabsList,
     TabsTrigger,
@@ -110,7 +102,7 @@ export function CompletedProjectsTable() {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
                  <div>
                     <CardTitle>Completed Projects</CardTitle>
@@ -132,39 +124,38 @@ export function CompletedProjectsTable() {
             </Tabs>
         </CardHeader>
         <CardContent>
+          <div className="flex items-center p-4 border-b">
+            <Checkbox
+                checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all"
+                className="mr-4"
+            />
+            <div className="flex-1 grid grid-cols-3 gap-4 font-medium text-muted-foreground">
+                <div className="col-span-1">Task</div>
+                <div className="col-span-1">Completed On</div>
+                <div className="col-span-1">Duration</div>
+            </div>
+            <div className="w-20 text-right font-medium text-muted-foreground">Actions</div>
+          </div>
           <ScrollArea className="h-[360px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                   <TableHead padding="checkbox">
-                        <Checkbox
-                            checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
-                            onCheckedChange={handleSelectAll}
-                            aria-label="Select all"
-                        />
-                    </TableHead>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Completed On</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+             <div className="space-y-2 p-4">
                 {filteredTasks.map((task) => (
-                  <TableRow key={task.name} data-state={selectedTasks.includes(task.name) && "selected"} className="shadow-md hover:shadow-lg transition-shadow">
-                     <TableCell padding="checkbox">
-                      <Checkbox
+                  <Card key={task.name} data-state={selectedTasks.includes(task.name) && "selected"} className="shadow-md hover:shadow-lg transition-shadow flex items-center p-4 data-[state=selected]:bg-muted">
+                     <Checkbox
                         checked={selectedTasks.includes(task.name)}
                         onCheckedChange={(checked) => handleSelectTask(task.name, checked)}
                         aria-label="Select row"
+                        className="mr-4"
                       />
-                    </TableCell>
-                    <TableCell className="font-medium">{task.name}</TableCell>
-                    <TableCell>
-                      {task.endTime ? format(new Date(task.endTime), 'PP') : 'N/A'}
-                    </TableCell>
-                    <TableCell>{formatTime(task.duration)}</TableCell>
-                    <TableCell className="text-right">
+                    <div className="flex-1 grid grid-cols-3 gap-4 items-center">
+                        <div className="font-medium col-span-1">{task.name}</div>
+                        <div className='col-span-1'>
+                        {task.endTime ? format(new Date(task.endTime), 'PP') : 'N/A'}
+                        </div>
+                        <div className='col-span-1'>{formatTime(task.duration)}</div>
+                    </div>
+                    <div className="w-20 text-right">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -189,11 +180,10 @@ export function CompletedProjectsTable() {
                             <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                    </div>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
           </ScrollArea>
         </CardContent>
       </Card>
