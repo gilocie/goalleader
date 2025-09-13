@@ -69,16 +69,18 @@ export function DashboardStats() {
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                 <div className='flex flex-col'>
                     <CardTitle className="text-base font-bold">{stat.title}</CardTitle>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    <CollapsibleTrigger asChild>
-                        <button className="flex items-center gap-2 mt-2" >
-                            <div className="flex items-center gap-1 rounded-full bg-white/20 px-2 py-1 text-xs">
-                                <ArrowUp className="h-3 w-3" />
-                                <span>{stat.trend.value}</span>
-                            </div>
-                             {openCard === stat.title ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                        </button>
-                    </CollapsibleTrigger>
+                    <div className="flex items-end gap-2">
+                        <div className="text-2xl font-bold">{stat.value}</div>
+                        <CollapsibleTrigger asChild>
+                            <button className="flex items-center gap-1" >
+                                <div className="flex items-center gap-1 rounded-full bg-white/20 px-2 py-1 text-xs">
+                                    <ArrowUp className="h-3 w-3" />
+                                    <span>{stat.trend.value}</span>
+                                </div>
+                                {openCard === stat.title ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </button>
+                        </CollapsibleTrigger>
+                    </div>
                 </div>
                 <Button
                 size="icon"
