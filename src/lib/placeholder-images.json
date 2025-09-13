@@ -36,6 +36,36 @@
       "description": "Green leaves background for time tracker",
       "imageUrl": "https://picsum.photos/seed/110/250/200",
       "imageHint": "green leaves"
+    },
+    {
+      "id": "team-member-1",
+      "description": "Team member avatar",
+      "imageUrl": "https://picsum.photos/seed/201/80/80",
+      "imageHint": "woman face professional"
+    },
+    {
+      "id": "team-member-2",
+      "description": "Team member avatar",
+      "imageUrl": "https://picsum.photos/seed/202/80/80",
+      "imageHint": "man face professional"
+    },
+    {
+      "id": "team-member-3",
+      "description": "Team member avatar",
+      "imageUrl": "https://picsum.photos/seed/203/80/80",
+      "imageHint": "woman face smiling"
+    },
+    {
+      "id": "team-member-4",
+      "description": "Team member avatar",
+      "imageUrl": "https://picsum.photos/seed/204/80/80",
+      "imageHint": "man face glasses"
+    },
+    {
+      "id": "team-member-5",
+      "description": "Team member avatar",
+      "imageUrl": "https://picsum.photos/seed/205/80/80",
+      "imageHint": "woman face friendly"
     }
   ]
 }
