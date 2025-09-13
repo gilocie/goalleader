@@ -41,6 +41,16 @@ const teamMembers = [
     name: 'Oliver Garcia',
     role: 'DevOps Engineer',
   },
+  {
+    id: 'team-member-7',
+    name: 'Charlotte Rodriguez',
+    role: 'Project Manager',
+  },
+  {
+    id: 'team-member-8',
+    name: 'James Smith',
+    role: 'Data Scientist',
+  },
 ];
 
 export default function TeamsPage() {
@@ -98,11 +108,11 @@ export default function TeamsPage() {
                         <p className="font-semibold">{member.name}</p>
                         <p className="text-sm text-muted-foreground">{member.role}</p>
                         {layout === 'grid' && (
-                           <Button variant="outline" size="sm">View Profile</Button>
+                           <Button size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">View Performance</Button>
                         )}
                       </div>
                       {layout === 'list' && (
-                        <Button variant="outline" size="sm">View Profile</Button>
+                        <Button size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">View Performance</Button>
                       )}
                     </CardContent>
                   </Card>
