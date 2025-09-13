@@ -31,7 +31,7 @@ import { getTaskSuggestions, TaskSuggestionOutput } from '@/ai/flows/task-sugges
 import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { Card, CardContent, CardHeader } from '../ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '../ui/card';
 
 interface AddTaskDialogProps {
   isOpen: boolean;
@@ -260,27 +260,18 @@ export function AddTaskDialog({
               <DialogTitle>AI Suggestions</DialogTitle>
               <DialogDescription>Pick a task to get started.</DialogDescription>
             </CardHeader>
-            <CardContent className="flex-1 overflow-hidden flex flex-col">
-                 <div className="mb-4">
-                    <Button
-                        onClick={handleGetSuggestions}
-                        disabled={isSuggesting}
-                        className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
-                    >
-                        {isSuggesting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                        <Bot className="mr-2 h-4 w-4" />
-                        )}
-                        Use GoalLeader
-                    </Button>
-                </div>
-              <ScrollArea className="flex-1 -mx-4 px-4">
+            <CardContent className="flex-1 overflow-auto p-4">
+              <ScrollArea className="h-full pr-2">
                 <div className="space-y-2 pb-4">
                   {isSuggesting && suggestions.length === 0 && (
                     <div className="flex items-center justify-center p-4 h-64">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </div>
+                  )}
+                  {!isSuggesting && suggestions.length === 0 && (
+                     <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-muted-foreground">Click below to get suggestions.</p>
+                     </div>
                   )}
                   {suggestions.length > 0 && (
                     <div className="space-y-2 pt-2">
@@ -319,6 +310,20 @@ export function AddTaskDialog({
                 </div>
               </ScrollArea>
             </CardContent>
+             <CardFooter className="border-t pt-6">
+                <Button
+                    onClick={handleGetSuggestions}
+                    disabled={isSuggesting}
+                    className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+                >
+                    {isSuggesting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                    <Bot className="mr-2 h-4 w-4" />
+                    )}
+                    Use GoalLeader
+                </Button>
+            </CardFooter>
           </Card>
         </div>
       </DialogContent>
