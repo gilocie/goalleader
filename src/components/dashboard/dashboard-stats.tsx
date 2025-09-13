@@ -62,7 +62,7 @@ export function DashboardStats() {
     <>
       {stats.map((stat) => (
         <Collapsible key={stat.title} open={openCard === stat.title} onOpenChange={() => toggleCard(stat.title)} asChild>
-            <Card className="relative bg-primary text-primary-foreground pt-2">
+            <Card className="relative bg-gradient-to-r from-primary to-green-700 text-primary-foreground pt-2">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-medium">{stat.title}</CardTitle>
                 <Button
