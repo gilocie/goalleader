@@ -95,7 +95,7 @@ export function AddTaskDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md h-[calc(100vh-105px)] sm:h-auto sm:max-h-[calc(100vh-40px)] flex flex-col p-0">
+      <DialogContent className="sm:max-w-md h-[calc(100vh-40px)] sm:h-auto sm:max-h-[calc(100vh-40px)] flex flex-col p-0">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle>Add New Task</DialogTitle>
           <DialogDescription>
