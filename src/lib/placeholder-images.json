@@ -66,6 +66,12 @@
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/205/80/80",
       "imageHint": "woman face friendly"
+    },
+    {
+      "id": "team-member-6",
+      "description": "Team member avatar",
+      "imageUrl": "https://picsum.photos/seed/206/80/80",
+      "imageHint": "man face professional"
     }
   ]
 }

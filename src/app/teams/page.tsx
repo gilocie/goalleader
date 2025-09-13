@@ -36,6 +36,11 @@ const teamMembers = [
     name: 'Emma Johnson',
     role: 'QA Engineer',
   },
+  {
+    id: 'team-member-6',
+    name: 'Oliver Garcia',
+    role: 'DevOps Engineer',
+  },
 ];
 
 export default function TeamsPage() {
