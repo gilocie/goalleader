@@ -141,7 +141,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
   }, [messages]);
 
   return (
-    <Card className={cn("h-full flex flex-col", className)}>
+    <Card className={cn("h-full flex flex-col min-h-[480px]", className)}>
       <CardHeader>
         <CardTitle className="text-xl font-semibold">
           Goal Leader Chat
