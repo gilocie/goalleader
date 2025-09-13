@@ -32,6 +32,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
 import { format, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { Checkbox } from '../ui/checkbox';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 type FilterType = 'recent' | 'thisWeek' | 'thisMonth';
 
@@ -149,7 +150,16 @@ export function CompletedProjectsTable() {
                         className="mr-4"
                       />
                     <div className="flex-1 grid grid-cols-3 gap-4 items-center">
-                        <div className="font-medium col-span-1">{task.name}</div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                               <div className="font-medium col-span-1 truncate">{task.name}</div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{task.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <div className='col-span-1'>
                         {task.endTime ? format(new Date(task.endTime), 'PP') : 'N/A'}
                         </div>
