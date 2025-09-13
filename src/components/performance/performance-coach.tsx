@@ -57,19 +57,19 @@ export function PerformanceCoach() {
         badge: <Badge variant="default">Excellent</Badge>,
         emoji: '🚀',
         titleClass: 'text-primary',
-        gradient: 'bg-gradient-to-br from-green-50 to-blue-50'
+        gradient: 'bg-gradient-to-br from-primary/20 to-green-100'
     };
     if (performance >= COMPANY_KPI / 2) return {
         badge: <Badge variant="secondary">Good</Badge>,
         emoji: '👍',
         titleClass: 'text-secondary-foreground',
-        gradient: 'bg-gradient-to-br from-blue-50 to-purple-50'
+        gradient: 'bg-gradient-to-br from-accent/50 to-green-50'
     };
     return {
         badge: <Badge variant="destructive">Needs Improvement</Badge>,
         emoji: '🤔',
         titleClass: 'text-destructive',
-        gradient: 'bg-gradient-to-br from-red-50 to-yellow-50'
+        gradient: 'bg-gradient-to-br from-red-100 to-yellow-100'
     };
   };
 
