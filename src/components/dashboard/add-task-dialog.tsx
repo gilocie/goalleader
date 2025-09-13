@@ -103,9 +103,6 @@ export function AddTaskDialog({
   const handleSuggestionClick = (suggestion: Suggestion) => {
     form.setValue('title', suggestion.title);
     form.setValue('description', suggestion.description);
-    form.setValue('date', new Date());
-    form.setValue('startTime', suggestion.startTime);
-    form.setValue('endTime', suggestion.endTime);
   };
 
   const handleCloseDialog = (open: boolean) => {
@@ -120,11 +117,11 @@ export function AddTaskDialog({
       <DialogContent
         className={cn(
           "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] p-0 transition-all duration-300 flex overflow-hidden",
-          showSuggestions && "sm:max-w-4xl"
+          showSuggestions && "sm:max-w-3xl"
         )}
       >
         {/* --- Form Side --- */}
-        <div className="w-full sm:w-1/2 flex-shrink-0 flex flex-col relative">
+        <div className="w-full sm:w-[448px] flex-shrink-0 flex flex-col relative">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
               <DialogHeader className="p-6 pb-2">
@@ -138,10 +135,7 @@ export function AddTaskDialog({
                   <div className="flex items-center gap-2 -mt-2">
                      <DialogClose asChild>
                        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full">
-                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                        </Button>
                      </DialogClose>
                      <Button
@@ -264,8 +258,8 @@ export function AddTaskDialog({
         {/* --- AI Suggestions Panel --- */}
         <div
           className={cn(
-            "flex-shrink-0 basis-1/2 transition-all duration-300 overflow-hidden",
-            showSuggestions ? "w-full" : "w-0"
+            "flex-shrink-0 transition-all duration-300 overflow-hidden",
+            showSuggestions ? "w-full sm:w-1/2" : "w-0"
           )}
         >
           <Card className="h-full flex flex-col rounded-none border-l relative">
@@ -287,26 +281,17 @@ export function AddTaskDialog({
                      </div>
                   )}
                   {suggestions.length > 0 && (
-                    <div className="space-y-3 pt-2">
+                    <div className="space-y-2 pt-2">
                       <TooltipProvider>
                         {suggestions.map((s, i) => (
-                          <Card 
-                            key={i} 
-                            className="p-3 cursor-pointer hover:bg-accent/50"
-                            onClick={() => handleSuggestionClick(s)}
-                          >
+                          <Card key={i} className="p-3">
                             <div className="flex items-center justify-between gap-2">
-                              <div className="flex-1 space-y-1">
-                                <span className="text-sm font-medium truncate">{s.title}</span>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                   <span>{s.startTime} - {s.endTime}</span>
-                                   <span>({s.duration})</span>
-                                </div>
-                              </div>
+                              <span className="text-sm font-medium truncate flex-1">{s.title}</span>
                               <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className="text-xs text-muted-foreground">{s.duration}</span>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6">
                                       <HelpCircle className="h-4 w-4" />
                                     </Button>
                                   </TooltipTrigger>
@@ -318,10 +303,7 @@ export function AddTaskDialog({
                                   variant="ghost"
                                   size="icon"
                                   className="h-6 w-6"
-                                  onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSuggestionClick(s);
-                                  }}
+                                  onClick={() => handleSuggestionClick(s)}
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>

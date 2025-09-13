@@ -20,8 +20,6 @@ const SuggestionSchema = z.object({
     title: z.string().describe('A short, concise title for the task (max 5 words).'),
     description: z.string().describe('A detailed description of what the task involves.'),
     duration: z.string().describe('A suggested time duration, e.g., "30min", "1hr", "2.5hr".'),
-    startTime: z.string().describe('A suggested start time in HH:mm format (e.g., "09:00", "14:30").'),
-    endTime: z.string().describe('A suggested end time in HH:mm format, calculated based on start time and duration.'),
 });
 
 const TaskSuggestionOutputSchema = z.object({
@@ -40,8 +38,7 @@ const prompt = ai.definePrompt({
   prompt: `You are an assistant for GoalLeader, a project management tool.
 Your task is to generate 3 relevant and actionable task suggestions for a user based on their role in the company.
 
-For each suggestion, provide a short title, a detailed description, a suggested duration, a start time, and an end time.
-The start and end times should be in HH:mm format. Calculate the end time based on the start time and duration.
+For each suggestion, provide a short title, a detailed description, and a suggested duration.
 
 User's Department: {{department}}
 
