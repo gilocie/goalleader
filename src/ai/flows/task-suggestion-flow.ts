@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A flow to generate task suggestions based on a department.
+ * @fileOverview A flow to generate task suggestions based on a user's role.
  *
  * - getTaskSuggestions - A function that generates task suggestions.
  * - TaskSuggestionInput - The input type for the getTaskSuggestions function.
@@ -12,7 +12,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const TaskSuggestionInputSchema = z.object({
-  department: z.string().describe('The department to generate task suggestions for (e.g., Engineering, Marketing).'),
+  department: z.string().describe("The user's department (e.g., Engineering, Marketing)."),
 });
 export type TaskSuggestionInput = z.infer<typeof TaskSuggestionInputSchema>;
 
@@ -30,11 +30,11 @@ const prompt = ai.definePrompt({
   input: { schema: TaskSuggestionInputSchema },
   output: { schema: TaskSuggestionOutputSchema },
   prompt: `You are an assistant for GoalLeader, a project management tool.
-Your task is to generate 5 relevant and actionable task suggestions for a user based on their department.
+Your task is to generate 5 relevant and actionable task suggestions for a user based on their role in the company.
 
-Department: {{department}}
+User's Department: {{department}}
 
-Please provide 5 concise task suggestions.
+Please provide 5 concise task suggestions to help the user make progress and contribute effectively.
 `,
 });
 
@@ -49,3 +49,4 @@ const taskSuggestionFlow = ai.defineFlow(
     return output!;
   }
 );
+

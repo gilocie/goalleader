@@ -29,7 +29,6 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { getTaskSuggestions } from '@/ai/flows/task-suggestion-flow';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -44,7 +43,6 @@ const taskSchema = z.object({
   description: z.string().optional(),
   startDate: z.date({ required_error: "A start date is required." }),
   endDate: z.date({ required_error: "An end date is required." }),
-  department: z.string().min(1, 'Department is required'),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -62,7 +60,6 @@ export function AddTaskDialog({
     defaultValues: {
         title: '',
         description: '',
-        department: '',
     }
   });
 
@@ -77,14 +74,12 @@ export function AddTaskDialog({
   };
 
   const handleGetSuggestions = async () => {
-    const department = form.getValues('department');
-    if (!department) {
-        form.setError('department', { type: 'manual', message: 'Please select a department first.' });
-        return;
-    }
+    // In a real app, you would get the user's department from their profile.
+    const userDepartment = 'Engineering';
+
     setIsSuggesting(true);
     try {
-        const result = await getTaskSuggestions({ department });
+        const result = await getTaskSuggestions({ department: userDepartment });
         setSuggestions(result.suggestions);
     } catch (error) {
         console.error("Failed to get suggestions", error);
@@ -215,30 +210,6 @@ export function AddTaskDialog({
                                 )}
                             />
                         </div>
-
-                        <FormField
-                            control={form.control}
-                            name="department"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Department</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a department" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    <SelectItem value="Engineering">Engineering</SelectItem>
-                                    <SelectItem value="Marketing">Marketing</SelectItem>
-                                    <SelectItem value="Sales">Sales</SelectItem>
-                                    <SelectItem value="HR">Human Resources</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
 
                         <div className="space-y-2">
                             <Button
