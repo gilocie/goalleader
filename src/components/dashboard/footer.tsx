@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="sticky bottom-0 z-10 border-t bg-card text-foreground p-6">
+    <footer className="sticky bottom-0 z-10 border-t bg-card text-foreground p-6 md:relative">
       <div className="container mx-auto flex flex-col items-center justify-between gap-4 sm:flex-row">
         <p className="text-sm text-muted-foreground">
           © {new Date().getFullYear()} GoalLeader. All rights reserved.
