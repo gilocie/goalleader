@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LayoutGrid, List } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const teamMembers = [
   {
@@ -77,48 +78,50 @@ export default function TeamsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div
-              className={cn(
-                'transition-all duration-300',
-                layout === 'grid'
-                  ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
-                  : 'flex flex-col gap-4'
-              )}
-            >
-              {teamMembers.map((member) => {
-                const avatar = PlaceHolderImages.find((img) => img.id === member.id);
-                return (
-                  <Card
-                    key={member.id}
-                    className="shadow-md transition-shadow hover:shadow-lg"
-                  >
-                    <CardContent
-                      className={cn(
-                        'p-4',
-                        layout === 'grid' ? 'flex flex-col items-center text-center space-y-4' : 'flex items-center space-x-4'
-                      )}
+            <ScrollArea className="h-[600px] p-4">
+                <div
+                className={cn(
+                    'transition-all duration-300',
+                    layout === 'grid'
+                    ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
+                    : 'flex flex-col gap-4'
+                )}
+                >
+                {teamMembers.map((member) => {
+                    const avatar = PlaceHolderImages.find((img) => img.id === member.id);
+                    return (
+                    <Card
+                        key={member.id}
+                        className="shadow-md transition-shadow hover:shadow-lg"
                     >
-                      <Avatar className={cn(layout === 'grid' ? 'h-20 w-20' : 'h-12 w-12')}>
-                        <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} />
-                        <AvatarFallback>
-                          {member.name.split(' ').map((n) => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className={cn(layout === 'grid' ? 'space-y-2' : 'flex-grow')}>
-                        <p className="font-semibold">{member.name}</p>
-                        <p className="text-sm text-muted-foreground">{member.role}</p>
-                        {layout === 'grid' && (
-                           <Button size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">View Performance</Button>
+                        <CardContent
+                        className={cn(
+                            'p-4',
+                            layout === 'grid' ? 'flex flex-col items-center text-center space-y-4' : 'flex items-center space-x-4'
                         )}
-                      </div>
-                      {layout === 'list' && (
-                        <Button size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">View Performance</Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                        >
+                        <Avatar className={cn(layout === 'grid' ? 'h-20 w-20' : 'h-12 w-12')}>
+                            <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} />
+                            <AvatarFallback>
+                            {member.name.split(' ').map((n) => n[0]).join('')}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className={cn(layout === 'grid' ? 'space-y-2' : 'flex-grow')}>
+                            <p className="font-semibold">{member.name}</p>
+                            <p className="text-sm text-muted-foreground">{member.role}</p>
+                            {layout === 'grid' && (
+                            <Button size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">View Performance</Button>
+                            )}
+                        </div>
+                        {layout === 'list' && (
+                            <Button size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">View Performance</Button>
+                        )}
+                        </CardContent>
+                    </Card>
+                    );
+                })}
+                </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       </main>
