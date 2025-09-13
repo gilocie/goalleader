@@ -193,7 +193,7 @@ export function ProjectList() {
                                 aria-haspopup="true"
                                 size="icon"
                                 variant="ghost"
-                                className="-mt-2"
+                                className="-mt-2 text-green-800"
                             >
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Toggle menu</span>
@@ -216,7 +216,7 @@ export function ProjectList() {
                                 size="icon"
                                 onClick={() => startTask(task.name)}
                                 disabled={!!activeTask}
-                                className="h-8 w-8"
+                                className="h-8 w-8 text-green-600 border-green-600"
                             >
                                 <Play className="h-4 w-4" />
                                 <span className='sr-only'>Start</span>
