@@ -53,21 +53,21 @@ export function PerformanceCoach() {
 
   const getPerformanceInfo = () => {
     if (performance >= COMPANY_KPI) return {
-        badge: <Badge variant="outline" className="border-white/50 text-white bg-transparent">Excellent</Badge>,
+        badge: <Badge variant="outline" className="bg-transparent text-primary border-primary">Excellent</Badge>,
         emoji: '🚀',
-        titleClass: 'text-primary',
+        titleClass: 'text-primary-foreground',
         gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
     if (performance >= COMPANY_KPI / 2) return {
-        badge: <Badge variant="outline" className="border-white/50 text-white bg-transparent">Good</Badge>,
+        badge: <Badge variant="outline" className="bg-transparent text-secondary-foreground border-secondary-foreground/50">Good</Badge>,
         emoji: '👍',
-        titleClass: 'text-secondary-foreground',
+        titleClass: 'text-primary-foreground',
         gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
     return {
-        badge: <Badge variant="outline" className="border-white/50 text-white bg-transparent">Needs Improvement</Badge>,
+        badge: <Badge variant="destructive">Needs Improvement</Badge>,
         emoji: '🤔',
-        titleClass: 'text-destructive',
+        titleClass: 'text-primary-foreground',
         gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
   };
@@ -75,7 +75,7 @@ export function PerformanceCoach() {
   const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
 
   return (
-    <Card className={cn("h-full max-h-[460px]")}>
+    <Card className="h-full max-h-[460px]">
        <CardHeader>
         <div className={cn("flex items-center justify-center text-center p-4 rounded-lg", gradient)}>
             <div className='flex flex-col items-center gap-2'>
@@ -93,7 +93,7 @@ export function PerformanceCoach() {
           </div>
         ) : (
           <div className="space-y-4 text-center">
-             <h3 className={cn("text-xl font-semibold", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : titleClass)}>
+             <h3 className={cn("text-xl font-semibold", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : 'text-foreground')}>
                 {advice?.title}
             </h3>
             <p className="text-sm text-muted-foreground">
