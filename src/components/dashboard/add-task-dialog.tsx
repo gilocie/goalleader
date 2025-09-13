@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -82,7 +81,7 @@ export function AddTaskDialog({
   };
 
   const handleGetSuggestions = async () => {
-    if (suggestions.length > 0) return; // prevent reloading if already have suggestions
+    if (suggestions.length > 0) return; 
     setIsSuggesting(true);
     try {
       const result = await getTaskSuggestions({ department: 'Engineering' });
