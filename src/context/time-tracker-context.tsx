@@ -9,6 +9,7 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
+import { format } from 'date-fns';
 
 export type Task = {
   name: string;
@@ -84,6 +85,7 @@ interface TimeTrackerContextType {
   handleReset: () => void;
   startTask: (taskName: string) => void;
   handleStop: (taskName: string, description: string) => void;
+  addTask: (task: Omit<Task, 'status'>) => void;
 }
 
 const TimeTrackerContext = createContext<TimeTrackerContextType | undefined>(
@@ -178,6 +180,15 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const addTask = (task: Omit<Task, 'status' | 'dueDate'> & { dueDate: Date }) => {
+    const newTask: Task = {
+        ...task,
+        status: 'Pending',
+        dueDate: format(task.dueDate, 'yyyy-MM-dd'),
+    };
+    setTasks(prevTasks => [newTask, ...prevTasks]);
+  };
+
   const value = {
     time,
     isActive,
@@ -188,6 +199,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     handleReset,
     startTask,
     handleStop,
+    addTask,
     isCompleteTaskOpen,
     setCompleteTaskOpen,
     isTaskDetailsOpen,

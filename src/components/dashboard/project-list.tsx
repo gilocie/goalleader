@@ -1,5 +1,6 @@
 
 'use client';
+import { useState } from 'react';
 import {
   MoreHorizontal,
   Play,
@@ -37,6 +38,7 @@ import { useTimeTracker } from '@/context/time-tracker-context';
 import { ScrollArea } from '../ui/scroll-area';
 import { CompleteTaskDialog } from './complete-task-dialog';
 import { TaskDetailsDialog } from './task-details-dialog';
+import { AddTaskDialog } from './add-task-dialog';
 
 const StatusIndicator = ({ status }: { status: string }) => {
   switch (status) {
@@ -83,7 +85,10 @@ export function ProjectList() {
     selectedTask,
     handleStartStop,
     isActive,
+    addTask,
   } = useTimeTracker();
+
+  const [isAddTaskOpen, setAddTaskOpen] = useState(false);
 
   const handleStopClick = (taskName: string) => {
     const task = tasks.find((t) => t.name === taskName);
@@ -111,7 +116,10 @@ export function ProjectList() {
                 <CardTitle>ToDo List</CardTitle>
                 <CardDescription>A list of your ongoing tasks.</CardDescription>
             </div>
-            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+            <Button 
+                className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+                onClick={() => setAddTaskOpen(true)}
+            >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New
             </Button>
@@ -249,6 +257,14 @@ export function ProjectList() {
           </ScrollArea>
         </CardContent>
       </Card>
+      <AddTaskDialog 
+        isOpen={isAddTaskOpen}
+        onOpenChange={setAddTaskOpen}
+        onTaskAdd={(task) => {
+            addTask(task);
+            setAddTaskOpen(false);
+        }}
+      />
       {selectedTask && (
         <>
           <CompleteTaskDialog
