@@ -109,7 +109,7 @@ export function CompletedProjectsTable() {
 
   return (
     <>
-      <Card className="shadow-lg">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-4">
                  <div>
@@ -151,7 +151,7 @@ export function CompletedProjectsTable() {
               </TableHeader>
               <TableBody>
                 {filteredTasks.map((task) => (
-                  <TableRow key={task.name} data-state={selectedTasks.includes(task.name) && "selected"}>
+                  <TableRow key={task.name} data-state={selectedTasks.includes(task.name) && "selected"} className="shadow-md hover:shadow-lg transition-shadow">
                      <TableCell padding="checkbox">
                       <Checkbox
                         checked={selectedTasks.includes(task.name)}
