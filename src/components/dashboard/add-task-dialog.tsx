@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -89,7 +88,7 @@ export function AddTaskDialog({
   };
 
   const handleGetSuggestions = async () => {
-    if (suggestions.length > 0) return;
+    if (isSuggesting) return;
     setIsSuggesting(true);
     try {
       const pendingTasks = tasks
@@ -154,18 +153,7 @@ export function AddTaskDialog({
                   <div className="flex items-center gap-2 -mt-2">
                      <DialogClose asChild>
                        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-4 w-4"
-                        >
-                            <path d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                        </Button>
                      </DialogClose>
                      <Button
@@ -201,7 +189,7 @@ export function AddTaskDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Textarea placeholder="Description" {...field} />
+                          <Textarea placeholder="Description" {...field} className="h-32" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
