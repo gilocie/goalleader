@@ -8,6 +8,7 @@ import {
   Square,
   Eye,
   Pause,
+  PlusCircle,
 } from 'lucide-react';
 import {
   Card,
@@ -105,9 +106,15 @@ export function ProjectList() {
   return (
     <>
       <Card className="h-full flex flex-col">
-        <CardHeader>
-          <CardTitle>ToDo List</CardTitle>
-          <CardDescription>A list of your ongoing tasks.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>ToDo List</CardTitle>
+                <CardDescription>A list of your ongoing tasks.</CardDescription>
+            </div>
+            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 hidden md:flex">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Task
+            </Button>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
@@ -260,3 +267,5 @@ export function ProjectList() {
     </>
   );
 }
+
+    
