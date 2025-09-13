@@ -56,24 +56,27 @@ export function PerformanceCoach() {
     if (performance >= COMPANY_KPI) return {
         badge: <Badge variant="default">Excellent</Badge>,
         emoji: '🚀',
-        titleClass: 'text-primary'
+        titleClass: 'text-primary',
+        gradient: 'bg-gradient-to-br from-green-50 to-blue-50'
     };
     if (performance >= COMPANY_KPI / 2) return {
         badge: <Badge variant="secondary">Good</Badge>,
         emoji: '👍',
-        titleClass: 'text-secondary-foreground'
+        titleClass: 'text-secondary-foreground',
+        gradient: 'bg-gradient-to-br from-blue-50 to-purple-50'
     };
     return {
         badge: <Badge variant="destructive">Needs Improvement</Badge>,
         emoji: '🤔',
-        titleClass: 'text-destructive'
+        titleClass: 'text-destructive',
+        gradient: 'bg-gradient-to-br from-red-50 to-yellow-50'
     };
   };
 
-  const { badge, emoji, titleClass } = getPerformanceInfo();
+  const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
 
   return (
-    <Card className="h-full max-h-[460px]">
+    <Card className={cn("h-full max-h-[460px]", gradient)}>
        <CardHeader>
         <div className="flex items-center justify-center text-center p-4 rounded-lg bg-muted/50">
             <div className='flex flex-col items-center gap-2'>
