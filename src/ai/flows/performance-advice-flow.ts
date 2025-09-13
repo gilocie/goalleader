@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate performance advice for the user.
@@ -63,7 +64,19 @@ const performanceAdviceFlow = ai.defineFlow(
     outputSchema: PerformanceAdviceOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    try {
+      const { output } = await prompt(input);
+      if (output) {
+        return output;
+      }
+      throw new Error('No output from prompt');
+    } catch (err) {
+      console.error('PerformanceAdviceFlow error:', err);
+      // Return a default/fallback object that matches the output schema
+      return {
+        title: 'Performance Analysis Unavailable',
+        advice: 'Sorry, I couldn\'t fetch your performance advice right now. Please try again in a few moments.',
+      };
+    }
   }
 );
