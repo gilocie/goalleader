@@ -100,157 +100,155 @@ export function AddTaskDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md h-[calc(100vh-40px)] sm:h-auto sm:max-h-[calc(100vh-40px)] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-2">
-            <div className='flex justify-between items-center'>
-                <div>
-                    <DialogTitle>Add New Task</DialogTitle>
-                    <DialogDescription>
-                        Fill in the details for the new task.
-                    </DialogDescription>
-                </div>
-                 <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                        <FormItem>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, "PPP")
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                initialFocus
-                            />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
-        </DialogHeader>
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col">
-                <ScrollArea className="flex-1">
-                    <div className="px-6 py-4 space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="title"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Title</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="e.g. Design a new logo" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Description</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="Add a more detailed description..." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="startTime"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Start Time</FormLabel>
-                                        <FormControl>
-                                            <Input type="time" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="endTime"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>End Time</FormLabel>
-                                        <FormControl>
-                                            <Input type="time" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+          <DialogHeader className="p-6 pb-2">
+              <div className='flex justify-between items-center'>
+                  <div>
+                      <DialogTitle>Add New Task</DialogTitle>
+                      <DialogDescription>
+                          Fill in the details for the new task.
+                      </DialogDescription>
+                  </div>
+                  <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                          <FormItem>
+                          <Popover>
+                              <PopoverTrigger asChild>
+                              <FormControl>
+                                  <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                      "pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                  )}
+                                  >
+                                  {field.value ? (
+                                      format(field.value, "PPP")
+                                  ) : (
+                                      <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                                  </Button>
+                              </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="end">
+                              <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  initialFocus
+                              />
+                              </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+              </div>
+          </DialogHeader>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col">
+              <ScrollArea className="flex-1">
+                  <div className="px-6 py-4 space-y-4">
+                      <FormField
+                          control={form.control}
+                          name="title"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Title</FormLabel>
+                              <FormControl>
+                                  <Input placeholder="e.g. Design a new logo" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="description"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Description</FormLabel>
+                              <FormControl>
+                                  <Textarea placeholder="Add a more detailed description..." {...field} />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                              control={form.control}
+                              name="startTime"
+                              render={({ field }) => (
+                                  <FormItem>
+                                      <FormLabel>Start Time</FormLabel>
+                                      <FormControl>
+                                          <Input type="time" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="endTime"
+                              render={({ field }) => (
+                                  <FormItem>
+                                      <FormLabel>End Time</FormLabel>
+                                      <FormControl>
+                                          <Input type="time" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
+                      </div>
 
-                        <div className="space-y-2">
-                            <Button
-                                type="button"
-                                onClick={handleGetSuggestions}
-                                disabled={isSuggesting}
-                                variant="outline"
-                                className='w-full'
-                            >
-                                {isSuggesting ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                <Bot className="mr-2 h-4 w-4" />
-                                )}
-                                Get AI Suggestions
-                            </Button>
-                            {suggestions.length > 0 && (
-                                <div className="space-y-2 rounded-md border p-2">
-                                    <p className='text-sm font-medium'>Suggestions:</p>
-                                    {suggestions.map((s, i) => (
-                                        <Button
-                                            key={i}
-                                            variant="ghost"
-                                            size="sm"
-                                            className="w-full justify-start text-left h-auto"
-                                            onClick={() => handleSuggestionClick(s)}
-                                        >
-                                            {s}
-                                        </Button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </ScrollArea>
+                      <div className="space-y-2">
+                          <Button
+                              type="button"
+                              onClick={handleGetSuggestions}
+                              disabled={isSuggesting}
+                              variant="outline"
+                              className='w-full'
+                          >
+                              {isSuggesting ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                              <Bot className="mr-2 h-4 w-4" />
+                              )}
+                              Get AI Suggestions
+                          </Button>
+                          {suggestions.length > 0 && (
+                              <div className="space-y-2 rounded-md border p-2">
+                                  <p className='text-sm font-medium'>Suggestions:</p>
+                                  {suggestions.map((s, i) => (
+                                      <Button
+                                          key={i}
+                                          variant="ghost"
+                                          size="sm"
+                                          className="w-full justify-start text-left h-auto"
+                                          onClick={() => handleSuggestionClick(s)}
+                                      >
+                                          {s}
+                                      </Button>
+                                  ))}
+                              </div>
+                          )}
+                      </div>
+                  </div>
+              </ScrollArea>
 
-                <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
-                    <Button type="submit" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 w-full">
-                        Add Task
-                    </Button>
-                </DialogFooter>
-            </form>
+              <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
+                  <Button type="submit" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 w-full">
+                      Add Task
+                  </Button>
+              </DialogFooter>
+          </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
 }
-
-    
