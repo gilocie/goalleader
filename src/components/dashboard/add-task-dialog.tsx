@@ -247,10 +247,7 @@ export function AddTaskDialog({
                 </ScrollArea>
 
                 <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
-                    <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                        Cancel
-                    </Button>
-                    <Button type="submit" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                    <Button type="submit" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 w-full">
                         Add Task
                     </Button>
                 </DialogFooter>
