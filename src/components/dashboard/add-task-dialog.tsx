@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Bot, Loader2, HelpCircle, Pencil } from 'lucide-react';
+import { CalendarIcon, Bot, Loader2, HelpCircle, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
@@ -112,11 +112,12 @@ export function AddTaskDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent className={cn(
-        "sm:max-w-md h-[calc(100vh-80px)] sm:h-auto sm:max-h-[calc(100vh-40px)] flex p-0 transition-all duration-300",
+        "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] flex p-0 transition-all duration-300 relative",
         showSuggestions && "sm:max-w-3xl"
         )}>
         <div className={cn("w-full sm:w-[448px] flex-shrink-0 transition-all duration-300", showSuggestions && "sm:w-1/2")}>
             <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col h-full">
             <DialogHeader className="p-6 pb-2">
                 <div className='flex justify-between items-center'>
                     <div>
@@ -164,79 +165,75 @@ export function AddTaskDialog({
                     />
                 </div>
             </DialogHeader>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col h-[calc(100%-80px)]">
-                <ScrollArea className="flex-1 px-6">
-                    <div className="py-4 space-y-4">
+            <ScrollArea className="flex-1 px-6">
+                <div className="py-4 space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormControl>
+                                <Input placeholder="Title" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormControl>
+                                <Textarea placeholder="Description" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
                         <FormField
                             control={form.control}
-                            name="title"
+                            name="startTime"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormControl>
-                                    <Input placeholder="Title" {...field} />
-                                </FormControl>
-                                <FormMessage />
+                                    <FormControl>
+                                        <Input type="time" placeholder="Start Time" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
                         <FormField
                             control={form.control}
-                            name="description"
+                            name="endTime"
                             render={({ field }) => (
                                 <FormItem>
-                                <FormControl>
-                                    <Textarea placeholder="Description" {...field} />
-                                </FormControl>
-                                <FormMessage />
+                                    <FormControl>
+                                        <Input type="time" placeholder="End Time" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="startTime"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input type="time" placeholder="Start Time" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="endTime"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormControl>
-                                            <Input type="time" placeholder="End Time" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-
-                        <div className="space-y-2 pt-4">
-                            <Button
-                                type="button"
-                                onClick={handleGetSuggestions}
-                                disabled={isSuggesting}
-                                className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
-                            >
-                                {isSuggesting ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                <Bot className="mr-2 h-4 w-4" />
-                                )}
-                                Use GoalLeader
-                            </Button>
-                        </div>
                     </div>
-                </ScrollArea>
+                </div>
+            </ScrollArea>
 
-                <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
+                <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10 flex flex-col gap-2">
+                    <Button
+                        type="button"
+                        onClick={handleGetSuggestions}
+                        disabled={isSuggesting}
+                        className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+                    >
+                        {isSuggesting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                        <Bot className="mr-2 h-4 w-4" />
+                        )}
+                        Use GoalLeader
+                    </Button>
                     <Button type="submit" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 w-full">
                         Add Task
                     </Button>
@@ -244,6 +241,12 @@ export function AddTaskDialog({
             </form>
             </Form>
         </div>
+        <button 
+            onClick={() => setShowSuggestions(!showSuggestions)}
+            className={cn("absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 w-6 h-12 rounded-r-lg bg-border flex items-center justify-center transition-all duration-300 z-20", showSuggestions && "bg-card right-[50%]")}
+        >
+            {showSuggestions ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </button>
         <div className={cn(
             "w-0 sm:w-1/2 flex-shrink-0 transition-all duration-300 overflow-hidden",
             showSuggestions ? "w-full sm:w-1/2" : "w-0"
@@ -256,7 +259,7 @@ export function AddTaskDialog({
                     </DialogDescription>
                 </CardHeader>
                 <CardContent className="flex-1 overflow-hidden">
-                     <ScrollArea className="h-full">
+                     <ScrollArea className="h-full pr-4">
                         <div className="space-y-2">
                         {isSuggesting && (
                              <div className="flex items-center justify-center p-4 h-64">
@@ -295,11 +298,6 @@ export function AddTaskDialog({
                         </div>
                     </ScrollArea>
                 </CardContent>
-                 <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
-                    <Button variant="outline" onClick={() => setShowSuggestions(false)} className="w-full">
-                        Close
-                    </Button>
-                </DialogFooter>
             </Card>
         </div>
       </DialogContent>
