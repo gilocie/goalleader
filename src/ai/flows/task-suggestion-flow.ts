@@ -11,8 +11,15 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
+const PendingTaskSchema = z.object({
+  name: z.string(),
+  endTime: z.string().describe("The end time of the task in HH:mm format."),
+});
+
 const TaskSuggestionInputSchema = z.object({
   department: z.string().describe("The user's department (e.g., Engineering, Marketing)."),
+  currentTime: z.string().describe("The current time in HH:mm format."),
+  pendingTasks: z.array(PendingTaskSchema).describe("A list of the user's pending tasks for today."),
 });
 export type TaskSuggestionInput = z.infer<typeof TaskSuggestionInputSchema>;
 
@@ -40,8 +47,20 @@ const prompt = ai.definePrompt({
   prompt: `You are an assistant for GoalLeader, a project management tool.
 Your task is to generate 3 relevant and actionable task suggestions for a user based on their role in the company.
 
-For each suggestion, provide a short title, a detailed description, a suggested duration, a start time, and an end time.
-Base the start and end times on the duration, assuming a standard work day.
+The current time is {{currentTime}}.
+The user has the following tasks already scheduled for today:
+{{#if pendingTasks.length}}
+{{#each pendingTasks}}
+- {{name}} (ends at {{endTime}})
+{{/each}}
+{{else}}
+- No pending tasks.
+{{/if}}
+
+Please analyze the current time and the last pending task's end time. Generate 3 new task suggestions that start AFTER the later of the current time or the last task's end time. Do not suggest tasks for times that have already passed.
+
+For each suggestion, provide a short title, a detailed description, a suggested duration, and calculate a realistic start time and end time.
+Ensure the start times are in the future and do not overlap with existing tasks.
 
 User's Department: {{department}}
 

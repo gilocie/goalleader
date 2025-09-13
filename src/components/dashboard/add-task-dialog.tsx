@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, Bot, Loader2, HelpCircle, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarIcon, Bot, Loader2, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
@@ -28,11 +28,12 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { getTaskSuggestions, TaskSuggestionOutput } from '@/ai/flows/task-suggestion-flow';
+import { getTaskSuggestions, TaskSuggestionInput, TaskSuggestionOutput } from '@/ai/flows/task-suggestion-flow';
 import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Card, CardContent, CardHeader, CardFooter } from '../ui/card';
+import { useTimeTracker } from '@/context/time-tracker-context';
 
 interface AddTaskDialogProps {
   isOpen: boolean;
@@ -59,6 +60,8 @@ export function AddTaskDialog({
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<Suggestion | null>(null);
+  const { tasks } = useTimeTracker();
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
@@ -82,13 +85,23 @@ export function AddTaskDialog({
     form.reset();
     setSuggestions([]);
     setShowSuggestions(false);
+    setSelectedSuggestion(null);
   };
 
   const handleGetSuggestions = async () => {
     if (suggestions.length > 0) return;
     setIsSuggesting(true);
     try {
-      const result = await getTaskSuggestions({ department: 'Engineering' });
+      const pendingTasks = tasks
+        .filter(t => t.status === 'Pending' || t.status === 'In Progress')
+        .map(t => ({ name: t.name, endTime: t.endTime || '00:00' }));
+
+      const input: TaskSuggestionInput = {
+        department: 'Engineering',
+        currentTime: format(new Date(), 'HH:mm'),
+        pendingTasks,
+      };
+      const result = await getTaskSuggestions(input);
       setSuggestions(result.suggestions);
     } catch (error) {
       console.error("Failed to get suggestions", error);
@@ -104,14 +117,16 @@ export function AddTaskDialog({
   const handleSuggestionClick = (suggestion: Suggestion) => {
     form.setValue('title', suggestion.title);
     form.setValue('description', suggestion.description);
-    form.setValue('date', new Date());
+    form.setValue('date', new Date()); // Default to today's date
     form.setValue('startTime', suggestion.startTime);
     form.setValue('endTime', suggestion.endTime);
+    setSelectedSuggestion(suggestion);
   };
 
   const handleCloseDialog = (open: boolean) => {
     if (!open) {
       setShowSuggestions(false);
+      setSelectedSuggestion(null);
     }
     onOpenChange(open);
   };
@@ -139,7 +154,18 @@ export function AddTaskDialog({
                   <div className="flex items-center gap-2 -mt-2">
                      <DialogClose asChild>
                        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full">
-                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
+                        >
+                            <path d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                        </Button>
                      </DialogClose>
                      <Button
@@ -285,12 +311,15 @@ export function AddTaskDialog({
                      </div>
                   )}
                   {suggestions.length > 0 && (
-                    <div className="space-y-2 pt-2">
+                    <div className="space-y-3 pt-2">
                       <TooltipProvider>
                         {suggestions.map((s, i) => (
                           <Card
                             key={i}
-                            className="p-3 cursor-pointer hover:bg-muted"
+                            className={cn(
+                                "p-3 cursor-pointer hover:bg-muted/80 transition-colors",
+                                selectedSuggestion?.title === s.title && "bg-gradient-to-r from-primary/10 to-green-700/10"
+                            )}
                             onClick={() => handleSuggestionClick(s)}
                           >
                             <div className="flex items-center justify-between gap-2">
