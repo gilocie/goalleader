@@ -31,6 +31,7 @@ import {
 import { getTaskSuggestions } from '@/ai/flows/task-suggestion-flow';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface AddTaskDialogProps {
   isOpen: boolean;
@@ -99,182 +100,188 @@ export function AddTaskDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md h-full sm:h-auto sm:max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-2">
           <DialogTitle>Add New Task</DialogTitle>
           <DialogDescription>
             Fill in the details for the new task. Click "Add Task" when you're done.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                            <Input placeholder="e.g. Design a new logo" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                            <Textarea placeholder="Add a more detailed description..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="startDate"
-                        render={({ field }) => (
-                            <FormItem className='flex flex-col'>
-                            <FormLabel>Start Date</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col">
+                <ScrollArea className="flex-1 px-6 py-4">
+                    <div className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="title"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Title</FormLabel>
                                 <FormControl>
-                                    <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, "PPP")
-                                    ) : (
-                                        <span>Pick a date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
+                                    <Input placeholder="e.g. Design a new logo" {...field} />
                                 </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="endDate"
-                        render={({ field }) => (
-                            <FormItem className='flex flex-col'>
-                            <FormLabel>End Date</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="description"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                    <Button
-                                    variant={"outline"}
-                                    className={cn(
-                                        "pl-3 text-left font-normal",
-                                        !field.value && "text-muted-foreground"
-                                    )}
-                                    >
-                                    {field.value ? (
-                                        format(field.value, "PPP")
-                                    ) : (
-                                        <span>Pick a date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
+                                    <Textarea placeholder="Add a more detailed description..." {...field} />
                                 </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                <FormField
-                    control={form.control}
-                    name="department"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Department</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a department" />
-                            </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                            <SelectItem value="Engineering">Engineering</SelectItem>
-                            <SelectItem value="Marketing">Marketing</SelectItem>
-                            <SelectItem value="Sales">Sales</SelectItem>
-                            <SelectItem value="HR">Human Resources</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className="space-y-2">
-                    <Button
-                        type="button"
-                        onClick={handleGetSuggestions}
-                        disabled={isSuggesting}
-                        variant="outline"
-                        className='w-full'
-                    >
-                        {isSuggesting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                        <Bot className="mr-2 h-4 w-4" />
-                        )}
-                        Get AI Suggestions
-                    </Button>
-                    {suggestions.length > 0 && (
-                        <div className="space-y-2 rounded-md border p-2">
-                            <p className='text-sm font-medium'>Suggestions:</p>
-                            {suggestions.map((s, i) => (
-                                <Button
-                                    key={i}
-                                    variant="ghost"
-                                    size="sm"
-                                    className="w-full justify-start text-left h-auto"
-                                    onClick={() => handleSuggestionClick(s)}
-                                >
-                                    {s}
-                                </Button>
-                            ))}
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="startDate"
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-col'>
+                                    <FormLabel>Start Date</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "pl-3 text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                            >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="endDate"
+                                render={({ field }) => (
+                                    <FormItem className='flex flex-col'>
+                                    <FormLabel>End Date</FormLabel>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "pl-3 text-left font-normal",
+                                                !field.value && "text-muted-foreground"
+                                            )}
+                                            >
+                                            {field.value ? (
+                                                format(field.value, "PPP")
+                                            ) : (
+                                                <span>Pick a date</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            initialFocus
+                                        />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
-                    )}
-                </div>
 
-                <DialogFooter>
+                        <FormField
+                            control={form.control}
+                            name="department"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Department</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a department" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    <SelectItem value="Engineering">Engineering</SelectItem>
+                                    <SelectItem value="Marketing">Marketing</SelectItem>
+                                    <SelectItem value="Sales">Sales</SelectItem>
+                                    <SelectItem value="HR">Human Resources</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <div className="space-y-2">
+                            <Button
+                                type="button"
+                                onClick={handleGetSuggestions}
+                                disabled={isSuggesting}
+                                variant="outline"
+                                className='w-full'
+                            >
+                                {isSuggesting ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                <Bot className="mr-2 h-4 w-4" />
+                                )}
+                                Get AI Suggestions
+                            </Button>
+                            {suggestions.length > 0 && (
+                                <div className="space-y-2 rounded-md border p-2">
+                                    <p className='text-sm font-medium'>Suggestions:</p>
+                                    {suggestions.map((s, i) => (
+                                        <Button
+                                            key={i}
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full justify-start text-left h-auto"
+                                            onClick={() => handleSuggestionClick(s)}
+                                        >
+                                            {s}
+                                        </Button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </ScrollArea>
+
+                <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
                     <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                         Cancel
                     </Button>
-                    <Button type="submit">Add Task</Button>
+                    <Button type="submit" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                        Add Task
+                    </Button>
                 </DialogFooter>
             </form>
         </Form>
