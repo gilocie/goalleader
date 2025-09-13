@@ -99,7 +99,7 @@ export function AddTaskDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md h-[calc(100vh-40px)] sm:h-auto sm:max-h-[calc(100vh-40px)] flex flex-col p-0">
+      <DialogContent className="sm:max-w-md h-[calc(100vh-80px)] sm:h-auto sm:max-h-[calc(100vh-40px)] flex flex-col p-0">
         <Form {...form}>
           <DialogHeader className="p-6 pb-2">
               <div className='flex justify-between items-center'>
@@ -120,16 +120,16 @@ export function AddTaskDialog({
                                   <Button
                                   variant={"outline"}
                                   className={cn(
-                                      "pl-3 text-left font-normal",
+                                      "w-[140px] justify-start text-left font-normal",
                                       !field.value && "text-muted-foreground"
                                   )}
                                   >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
                                   {field.value ? (
-                                      format(field.value, "PPP")
+                                      format(field.value, "MMM d")
                                   ) : (
                                       <span>Pick a date</span>
                                   )}
-                                  <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
                                   </Button>
                               </FormControl>
                               </PopoverTrigger>
