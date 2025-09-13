@@ -242,7 +242,7 @@ export function AddTaskDialog({
           {/* Collapse/Expand Toggle stuck to the form */}
           <button
             onClick={toggleSuggestionsPanel}
-            className="absolute top-1/2 -translate-y-1/2 -right-0 w-6 h-12 rounded-l-lg bg-border flex items-center justify-center z-20"
+            className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 w-8 h-8 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 flex items-center justify-center z-20 shadow-lg"
           >
             {showSuggestions ? (
               <ChevronRight className="h-4 w-4" />
