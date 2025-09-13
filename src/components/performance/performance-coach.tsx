@@ -54,16 +54,16 @@ export function PerformanceCoach() {
 
   const getPerformanceInfo = () => {
     if (performance >= COMPANY_KPI) return {
-        badge: <Badge variant="default">Excellent</Badge>,
+        badge: <Badge variant="default" className="bg-white/20 text-white border-0">Excellent</Badge>,
         emoji: '🚀',
         titleClass: 'text-primary',
-        gradient: 'bg-gradient-to-br from-primary/20 to-green-100'
+        gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
     if (performance >= COMPANY_KPI / 2) return {
-        badge: <Badge variant="secondary">Good</Badge>,
+        badge: <Badge variant="secondary" className="bg-white/20 text-white border-0">Good</Badge>,
         emoji: '👍',
         titleClass: 'text-secondary-foreground',
-        gradient: 'bg-gradient-to-br from-accent/50 to-green-50'
+        gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
     return {
         badge: <Badge variant="destructive">Needs Improvement</Badge>,
