@@ -46,12 +46,12 @@ export default function MeetingsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {meetings.map((meeting, index) => (
-                 <Card key={index}>
+                 <Card key={index} className="shadow-md hover:shadow-lg transition-shadow">
                     <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
                         <p className="font-semibold text-lg leading-none">
                             {meeting.title}
                         </p>
-                        <Button>
+                        <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
                             <Video className="mr-2 h-4 w-4" /> Start Meeting
                         </Button>
                         <div className="text-center">
