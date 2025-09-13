@@ -59,7 +59,7 @@ export function PerformanceCoach() {
   };
 
   return (
-    <Card className="h-full max-h-[572px]">
+    <Card className="h-full max-h-[500px]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bot />
