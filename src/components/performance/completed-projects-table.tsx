@@ -161,7 +161,7 @@ export function CompletedProjectsTable() {
                           </Tooltip>
                         </TooltipProvider>
                         <div className='col-span-1'>
-                        {task.endTime ? format(new Date(task.endTime), 'PP') : 'N/A'}
+                        {task.endTime ? format(new Date(task.endTime), 'MMM d, yy') : 'N/A'}
                         </div>
                         <div className='col-span-1'>{formatTime(task.duration)}</div>
                     </div>
