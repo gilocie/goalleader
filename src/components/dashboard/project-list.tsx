@@ -138,7 +138,6 @@ export function ProjectList() {
                           variant="outline"
                           size="sm"
                           onClick={() => startTask(task.name)}
-                          disabled={!!activeTask}
                         >
                           <Play className="mr-2 h-4 w-4" />
                           Start
@@ -215,10 +214,9 @@ export function ProjectList() {
                                 variant="outline"
                                 size="icon"
                                 onClick={() => startTask(task.name)}
-                                disabled={!!activeTask}
                                 className="h-8 w-8 text-green-600 border-green-600"
                             >
-                                <Play className="h-4 w-4" />
+                                <Play className="h-4 w-4 text-green-600" />
                                 <span className='sr-only'>Start</span>
                             </Button>
                         )}
