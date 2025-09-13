@@ -29,7 +29,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
             href={href}
             className={cn(
               'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground',
-              pathname === href && 'bg-muted text-foreground'
+              pathname === href && 'bg-gradient-to-r from-primary to-green-700 text-white'
             )}
           >
             <Icon className="h-5 w-5" />
