@@ -310,7 +310,7 @@ export function AddTaskDialog({
                 </div>
               </ScrollArea>
             </CardContent>
-             <CardFooter className="border-t pt-6">
+             <CardFooter className="border-t p-6">
                 <Button
                     onClick={handleGetSuggestions}
                     disabled={isSuggesting}
