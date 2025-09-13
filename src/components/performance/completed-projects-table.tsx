@@ -103,7 +103,7 @@ export function CompletedProjectsTable() {
             </Tabs>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[400px]">
+          <ScrollArea className="h-[360px]">
             <Table>
               <TableHeader>
                 <TableRow>
