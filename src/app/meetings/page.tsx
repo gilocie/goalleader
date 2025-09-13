@@ -47,16 +47,17 @@ export default function MeetingsPage() {
           <CardContent className="space-y-4">
             {meetings.map((meeting, index) => (
                  <Card key={index}>
-                    <CardContent className="p-4 flex items-center justify-between">
-                        <div className="space-y-1">
-                            <p className="font-semibold leading-none">
-                                {meeting.title}
-                            </p>
-                            <p className="text-sm text-muted-foreground">{new Date(meeting.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at {meeting.time}</p>
-                        </div>
+                    <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+                        <p className="font-semibold text-lg leading-none">
+                            {meeting.title}
+                        </p>
                         <Button>
                             <Video className="mr-2 h-4 w-4" /> Start Meeting
                         </Button>
+                        <div className="text-center">
+                            <p className="text-sm text-muted-foreground">{new Date(meeting.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p className="text-sm text-muted-foreground">{meeting.time}</p>
+                        </div>
                     </CardContent>
                  </Card>
             ))}
