@@ -84,9 +84,10 @@ export function AddTaskDialog({
   const handleGetSuggestions = async () => {
     const userDepartment = 'Engineering';
 
-    setIsSuggesting(true);
     setShowSuggestions(true);
-    setSuggestions([]);
+    if (suggestions.length > 0) return;
+
+    setIsSuggesting(true);
     try {
         const result = await getTaskSuggestions({ department: userDepartment });
         setSuggestions(result.suggestions);
@@ -304,5 +305,3 @@ export function AddTaskDialog({
     </Dialog>
   );
 }
-
-    
