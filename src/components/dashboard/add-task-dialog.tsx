@@ -82,13 +82,10 @@ export function AddTaskDialog({
   };
 
   const handleGetSuggestions = async () => {
-    if (showSuggestions) return; // prevent reloading if already open
-    setShowSuggestions(true);
-
-    const userDepartment = 'Engineering';
+    if (suggestions.length > 0) return; // prevent reloading if already have suggestions
     setIsSuggesting(true);
     try {
-      const result = await getTaskSuggestions({ department: userDepartment });
+      const result = await getTaskSuggestions({ department: 'Engineering' });
       setSuggestions(result.suggestions);
     } catch (error) {
       console.error("Failed to get suggestions", error);
@@ -96,6 +93,14 @@ export function AddTaskDialog({
       setIsSuggesting(false);
     }
   };
+  
+  const toggleSuggestionsPanel = () => {
+      const willBeOpen = !showSuggestions;
+      setShowSuggestions(willBeOpen);
+      if (willBeOpen) {
+          handleGetSuggestions();
+      }
+  }
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
     form.setValue('title', suggestion.title);
@@ -103,7 +108,9 @@ export function AddTaskDialog({
   };
 
   const handleCloseDialog = (open: boolean) => {
-    if (!open) setShowSuggestions(false);
+    if (!open) {
+      setShowSuggestions(false); // Ensure panel is closed when dialog is closed
+    }
     onOpenChange(open);
   };
 
@@ -111,12 +118,12 @@ export function AddTaskDialog({
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent
         className={cn(
-          "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] p-0 transition-all duration-300 flex",
+          "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] p-0 transition-all duration-300 flex overflow-hidden",
           showSuggestions && "sm:max-w-3xl"
         )}
       >
         {/* --- Form Side --- */}
-        <div className="w-full sm:w-[448px] flex-shrink-0">
+        <div className="w-full sm:w-[448px] flex-shrink-0 flex flex-col relative">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
               <DialogHeader className="p-6 pb-2">
@@ -222,7 +229,6 @@ export function AddTaskDialog({
                 </div>
               </ScrollArea>
 
-              {/* Footer: only Add Task now */}
               <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
                 <Button
                   type="submit"
@@ -233,22 +239,10 @@ export function AddTaskDialog({
               </DialogFooter>
             </form>
           </Form>
-        </div>
-
-        {/* --- AI Suggestions Panel --- */}
-        <div
-          className={cn(
-            "w-0 sm:w-1/2 flex-shrink-0 transition-all duration-300 overflow-hidden relative",
-            showSuggestions ? "w-full sm:w-1/2" : "w-0"
-          )}
-        >
-          {/* Collapse/Expand Toggle */}
+          {/* Collapse/Expand Toggle stuck to the form */}
           <button
-            onClick={() => {
-              if (!showSuggestions) handleGetSuggestions();
-              else setShowSuggestions(false);
-            }}
-            className="absolute top-1/2 -translate-y-1/2 -left-6 w-6 h-12 rounded-l-lg bg-border flex items-center justify-center z-20"
+            onClick={toggleSuggestionsPanel}
+            className="absolute top-1/2 -translate-y-1/2 -right-0 w-6 h-12 rounded-l-lg bg-border flex items-center justify-center z-20"
           >
             {showSuggestions ? (
               <ChevronRight className="h-4 w-4" />
@@ -256,8 +250,16 @@ export function AddTaskDialog({
               <ChevronLeft className="h-4 w-4" />
             )}
           </button>
+        </div>
 
-          <Card className="h-full flex flex-col rounded-l-none border-l">
+        {/* --- AI Suggestions Panel --- */}
+        <div
+          className={cn(
+            "flex-shrink-0 transition-all duration-300 overflow-hidden",
+            showSuggestions ? "w-full sm:w-1/2" : "w-0"
+          )}
+        >
+          <Card className="h-full flex flex-col rounded-none border-l">
             <CardHeader>
               <DialogTitle>AI Suggestions</DialogTitle>
               <DialogDescription>Pick a task to get started.</DialogDescription>
@@ -270,7 +272,7 @@ export function AddTaskDialog({
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </div>
                   )}
-                  {suggestions.length > 0 && (
+                  {suggestions.length > 0 && !isSuggesting && (
                     <div className="space-y-2 pt-2">
                       <TooltipProvider>
                         {suggestions.map((s, i) => (
