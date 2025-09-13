@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8 space-y-4 md:space-y-8">
-        <div className="grid grid-cols-2 gap-4 md:gap-8 lg:grid-cols-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
           <DashboardStats />
         </div>
         <div className="grid grid-cols-10 gap-4">
@@ -27,7 +27,7 @@ export default function Home() {
           </div>
         </div>
         <div className="grid grid-cols-10 gap-4">
-          <div className="col-span-10 lg:col-span-7 h-[640px] md:h-[500px] lg:h-[640px]">
+          <div className="col-span-10 lg:col-span-7 h-[600px] md:h-[460px] lg:h-[640px]">
               <GoalReaderAIChat />
           </div>
           <div className="col-span-10 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 auto-rows-min">
