@@ -113,7 +113,7 @@ export function ProjectList() {
             </div>
             <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Task
+                Add New
             </Button>
         </CardHeader>
         <CardContent className="flex-1 overflow-hidden">
