@@ -55,19 +55,19 @@ export function PerformanceCoach() {
     if (performance >= COMPANY_KPI) return {
         badge: <Badge variant="outline" className="bg-transparent text-primary border-primary">Excellent</Badge>,
         emoji: '🚀',
-        titleClass: 'text-primary-foreground',
+        titleClass: 'text-primary',
         gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
     if (performance >= COMPANY_KPI / 2) return {
         badge: <Badge variant="outline" className="bg-transparent text-secondary-foreground border-secondary-foreground/50">Good</Badge>,
         emoji: '👍',
-        titleClass: 'text-primary-foreground',
+        titleClass: 'text-secondary-foreground',
         gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
     return {
         badge: <Badge variant="destructive">Needs Improvement</Badge>,
         emoji: '🤔',
-        titleClass: 'text-primary-foreground',
+        titleClass: 'text-destructive',
         gradient: 'bg-gradient-to-br from-primary to-green-800 text-primary-foreground',
     };
   };
@@ -93,7 +93,7 @@ export function PerformanceCoach() {
           </div>
         ) : (
           <div className="space-y-4 text-center">
-             <h3 className={cn("text-xl font-semibold", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : 'text-foreground')}>
+             <h3 className={cn("text-xl font-semibold", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : titleClass)}>
                 {advice?.title}
             </h3>
             <p className="text-sm text-muted-foreground">
