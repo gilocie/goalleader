@@ -60,14 +60,13 @@ export function PerformanceCoach() {
 
   return (
     <Card className="h-full max-h-[460px]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bot />
-          AI Performance Coach
-        </CardTitle>
-        <CardDescription>
-            Your AI assistant for performance feedback.
-        </CardDescription>
+       <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+            <CardTitle className="font-semibold text-xl">
+            {isLoading ? 'Analyzing...' : advice?.title}
+            </CardTitle>
+            {!isLoading && getPerformanceBadge()}
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -76,10 +75,6 @@ export function PerformanceCoach() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="font-semibold">{advice?.title}</h3>
-                {getPerformanceBadge()}
-            </div>
             <p className="text-sm text-muted-foreground">
               {advice?.advice}
             </p>
