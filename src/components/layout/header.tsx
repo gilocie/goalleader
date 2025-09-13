@@ -21,6 +21,7 @@ import { Logo } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { NavLinks } from './nav-links';
 import { TimeTracker } from '../dashboard/time-tracker';
+import { ScrollArea } from '../ui/scroll-area';
 
 export function Header() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
@@ -39,17 +40,21 @@ export function Header() {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="flex flex-col">
-          <nav className="grid gap-2 text-lg font-medium">
-            <Link
-              href="#"
-              className="flex items-center gap-2 text-lg font-semibold"
-            >
-              <Logo className="h-6 w-6 text-primary" />
-              <span className="sr-only">GoalLeader</span>
-            </Link>
-            <NavLinks isMobile={true} />
-          </nav>
-          <div className="mt-auto">
+            <div className="flex items-center gap-2 text-lg font-semibold border-b pb-4">
+              <Link
+                href="#"
+                className="flex items-center gap-2 text-lg font-semibold"
+              >
+                <Logo className="h-6 w-6 text-primary" />
+                <span className="">GoalLeader</span>
+              </Link>
+            </div>
+            <ScrollArea className="flex-1">
+              <nav className="grid gap-2 text-lg font-medium py-4">
+                <NavLinks isMobile={true} />
+              </nav>
+            </ScrollArea>
+          <div className="mt-auto border-t pt-4">
             <TimeTracker />
           </div>
         </SheetContent>

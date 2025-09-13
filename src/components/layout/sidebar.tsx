@@ -7,6 +7,7 @@ import { Logo } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { TimeTracker } from '@/components/dashboard/time-tracker';
 import { NavLinks } from './nav-links';
+import { ScrollArea } from '../ui/scroll-area';
 
 export function Sidebar() {
   return (
@@ -22,12 +23,12 @@ export function Sidebar() {
             <span className="sr-only">Toggle notifications</span>
           </Button>
         </div>
-        <div className="flex-1 overflow-y-auto px-2 lg:px-4">
-          <nav className="flex flex-col gap-2 text-sm font-medium">
+        <ScrollArea className="flex-1">
+          <nav className="flex flex-col gap-2 text-sm font-medium px-2 lg:px-4 py-4">
             <NavLinks />
           </nav>
-        </div>
-        <div className="mt-auto p-4">
+        </ScrollArea>
+        <div className="mt-auto p-4 border-t">
           <TimeTracker />
         </div>
       </div>
