@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ArrowUp, ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { useIsMobileOrTablet } from '@/hooks/use-mobile';
 
 const stats = [
   {
@@ -53,15 +54,26 @@ const stats = [
 
 export function DashboardStats() {
   const [openCard, setOpenCard] = useState<string | null>(null);
+  const isMobileOrTablet = useIsMobileOrTablet();
 
   const toggleCard = (title: string) => {
     setOpenCard(prev => prev === title ? null : title);
   }
 
+  const isCardOpen = (title: string) => {
+    if (!isMobileOrTablet) return true;
+    return openCard === title;
+  };
+
   return (
     <>
       {stats.map((stat) => (
-        <Collapsible key={stat.title} open={openCard === stat.title} onOpenChange={() => toggleCard(stat.title)} asChild>
+        <Collapsible 
+          key={stat.title} 
+          open={isCardOpen(stat.title)}
+          onOpenChange={isMobileOrTablet ? () => toggleCard(stat.title) : undefined}
+          asChild
+        >
             <Card className="relative bg-gradient-to-r from-primary to-green-700 text-primary-foreground pt-2">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-medium">{stat.title}</CardTitle>
@@ -85,13 +97,15 @@ export function DashboardStats() {
                     <p className="text-xs text-green-100 mt-2">{stat.trend.label}</p>
                 </CollapsibleContent>
             </CardContent>
-            <CollapsibleTrigger asChild>
-                <button 
-                className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-green-800 text-white flex items-center justify-center"
-                >
-                    {openCard === stat.title ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </button>
-            </CollapsibleTrigger>
+            {isMobileOrTablet && (
+              <CollapsibleTrigger asChild>
+                  <button 
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-green-800 text-white flex items-center justify-center"
+                  >
+                      {openCard === stat.title ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </button>
+              </CollapsibleTrigger>
+            )}
             </Card>
         </Collapsible>
       ))}
