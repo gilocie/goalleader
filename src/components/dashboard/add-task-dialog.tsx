@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -133,7 +134,7 @@ export function AddTaskDialog({
                   <div className="flex items-center gap-2 -mt-2">
                      <DialogClose asChild>
                        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full">
-                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                        </Button>
                      </DialogClose>
                      <Button
@@ -335,3 +336,5 @@ export function AddTaskDialog({
     </Dialog>
   );
 }
+
+    
