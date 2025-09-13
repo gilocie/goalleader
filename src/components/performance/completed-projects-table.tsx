@@ -102,26 +102,26 @@ export function CompletedProjectsTable() {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
-                 <div>
-                    <CardTitle>Completed Projects</CardTitle>
-                    <CardDescription>
-                        A list of your completed tasks.
-                    </CardDescription>
-                </div>
-                 <Button disabled={selectedTasks.length === 0}>
+        <CardHeader className="space-y-4">
+            <div>
+                <CardTitle>Completed Projects</CardTitle>
+                <CardDescription>
+                    A list of your completed tasks.
+                </CardDescription>
+            </div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 bg-secondary rounded-lg">
+                <Button disabled={selectedTasks.length === 0}>
                     <FileText className="mr-2 h-4 w-4" />
                     Create Report
                 </Button>
+                <Tabs value={activeFilter} onValueChange={(value) => setActiveFilter(value as FilterType)}>
+                    <TabsList>
+                        <TabsTrigger value="recent">Recent</TabsTrigger>
+                        <TabsTrigger value="thisWeek">This Week</TabsTrigger>
+                        <TabsTrigger value="thisMonth">This Month</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
-            <Tabs value={activeFilter} onValueChange={(value) => setActiveFilter(value as FilterType)}>
-                <TabsList>
-                    <TabsTrigger value="recent">Recent</TabsTrigger>
-                    <TabsTrigger value="thisWeek">This Week</TabsTrigger>
-                    <TabsTrigger value="thisMonth">This Month</TabsTrigger>
-                </TabsList>
-            </Tabs>
         </CardHeader>
         <CardContent>
           <div className="flex items-center p-4 border-b">
