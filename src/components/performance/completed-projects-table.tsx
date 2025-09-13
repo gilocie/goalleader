@@ -139,7 +139,7 @@ export function CompletedProjectsTable() {
             </div>
             <div className="w-20 text-right font-medium text-muted-foreground">Actions</div>
           </div>
-          <ScrollArea className="h-[360px]">
+          <ScrollArea className="h-[352px]">
              <div className="space-y-2 p-4">
                 {filteredTasks.map((task) => (
                   <Card key={task.name} data-state={selectedTasks.includes(task.name) && "selected"} className="shadow-md hover:shadow-lg transition-shadow flex items-center p-4 data-[state=selected]:bg-muted">
