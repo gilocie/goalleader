@@ -5,6 +5,7 @@ import { useState, useMemo } from 'react';
 import {
   Eye,
   MoreHorizontal,
+  FileText
 } from 'lucide-react';
 import {
   Card,
@@ -38,12 +39,14 @@ import { Task, useTimeTracker } from '@/context/time-tracker-context';
 import { ScrollArea } from '../ui/scroll-area';
 import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
 import { format, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { Checkbox } from '../ui/checkbox';
 
 type FilterType = 'recent' | 'thisWeek' | 'thisMonth';
 
 export function CompletedProjectsTable() {
   const { tasks, setTaskDetailsOpen, setSelectedTask, selectedTask, isTaskDetailsOpen } = useTimeTracker();
   const [activeFilter, setActiveFilter] = useState<FilterType>('recent');
+  const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
 
   const handleViewDetailsClick = (task: Task) => {
     setSelectedTask(task);
@@ -84,15 +87,41 @@ export function CompletedProjectsTable() {
     }
   }, [tasks, activeFilter]);
 
+  const handleSelectTask = (taskName: string, checked: boolean | 'indeterminate') => {
+    if (checked) {
+        setSelectedTasks(prev => [...prev, taskName]);
+    } else {
+        setSelectedTasks(prev => prev.filter(name => name !== taskName));
+    }
+  }
+
+  const handleSelectAll = (checked:  boolean | 'indeterminate') => {
+    if (checked) {
+        setSelectedTasks(filteredTasks.map(t => t.name));
+    } else {
+        setSelectedTasks([]);
+    }
+  }
+
+  const isAllSelected = selectedTasks.length > 0 && selectedTasks.length === filteredTasks.length;
+  const isSomeSelected = selectedTasks.length > 0 && selectedTasks.length < filteredTasks.length;
+
+
   return (
     <>
-      <Card>
+      <Card className="shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-                <CardTitle>Completed Projects</CardTitle>
-                <CardDescription>
-                    A list of your completed tasks.
-                </CardDescription>
+            <div className="flex items-center gap-4">
+                 <div>
+                    <CardTitle>Completed Projects</CardTitle>
+                    <CardDescription>
+                        A list of your completed tasks.
+                    </CardDescription>
+                </div>
+                 <Button disabled={selectedTasks.length === 0}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Create Report
+                </Button>
             </div>
             <Tabs value={activeFilter} onValueChange={(value) => setActiveFilter(value as FilterType)}>
                 <TabsList>
@@ -107,6 +136,13 @@ export function CompletedProjectsTable() {
             <Table>
               <TableHeader>
                 <TableRow>
+                   <TableHead padding="checkbox">
+                        <Checkbox
+                            checked={isAllSelected || (isSomeSelected ? 'indeterminate' : false)}
+                            onCheckedChange={handleSelectAll}
+                            aria-label="Select all"
+                        />
+                    </TableHead>
                   <TableHead>Task</TableHead>
                   <TableHead>Completed On</TableHead>
                   <TableHead>Duration</TableHead>
@@ -115,7 +151,14 @@ export function CompletedProjectsTable() {
               </TableHeader>
               <TableBody>
                 {filteredTasks.map((task) => (
-                  <TableRow key={task.name}>
+                  <TableRow key={task.name} data-state={selectedTasks.includes(task.name) && "selected"}>
+                     <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedTasks.includes(task.name)}
+                        onCheckedChange={(checked) => handleSelectTask(task.name, checked)}
+                        aria-label="Select row"
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{task.name}</TableCell>
                     <TableCell>
                       {task.endTime ? format(new Date(task.endTime), 'PP') : 'N/A'}
