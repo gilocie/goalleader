@@ -82,11 +82,10 @@ export function AddTaskDialog({
   };
 
   const handleGetSuggestions = async () => {
-    const userDepartment = 'Engineering';
-
     setShowSuggestions(true);
     if (suggestions.length > 0) return;
 
+    const userDepartment = 'Engineering';
     setIsSuggesting(true);
     try {
         const result = await getTaskSuggestions({ department: userDepartment });
@@ -113,12 +112,12 @@ export function AddTaskDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent className={cn(
-        "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] flex p-0 transition-all duration-300 relative",
+        "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] flex p-0 transition-all duration-300",
         showSuggestions && "sm:max-w-3xl"
         )}>
         <div className={cn("w-full sm:w-[448px] flex-shrink-0 transition-all duration-300", showSuggestions && "sm:w-1/2")}>
             <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col h-full">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
             <DialogHeader className="p-6 pb-2">
                 <div className='flex justify-between items-center'>
                     <div>
@@ -244,7 +243,9 @@ export function AddTaskDialog({
         </div>
         <button 
             onClick={() => setShowSuggestions(!showSuggestions)}
-            className={cn("absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 w-6 h-12 rounded-r-lg bg-border flex items-center justify-center transition-all duration-300 z-20", showSuggestions && "bg-card right-[50%]")}
+            className={cn("absolute top-1/2 -translate-y-1/2 w-6 h-12 rounded-r-lg bg-border flex items-center justify-center transition-all duration-300 z-20", 
+                showSuggestions ? "right-1/2" : "right-0 translate-x-1/2"
+            )}
         >
             {showSuggestions ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
