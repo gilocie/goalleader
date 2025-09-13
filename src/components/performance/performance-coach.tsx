@@ -76,9 +76,9 @@ export function PerformanceCoach() {
   const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
 
   return (
-    <Card className={cn("h-full max-h-[460px]", gradient)}>
+    <Card className={cn("h-full max-h-[460px]")}>
        <CardHeader>
-        <div className="flex items-center justify-center text-center p-4 rounded-lg bg-muted/50">
+        <div className={cn("flex items-center justify-center text-center p-4 rounded-lg", gradient)}>
             <div className='flex flex-col items-center gap-2'>
                 <div className="flex items-center gap-2">
                     <span className="text-2xl">{emoji}</span>
