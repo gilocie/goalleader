@@ -86,7 +86,7 @@ export function CompletedProjectsTable() {
 
   return (
     <>
-      <Card className="bg-green-100/20">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <div>
                 <CardTitle>Completed Projects</CardTitle>
