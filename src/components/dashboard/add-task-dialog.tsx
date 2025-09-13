@@ -104,8 +104,8 @@ export function AddTaskDialog({
         </DialogHeader>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col">
-                <ScrollArea className="flex-1 px-6 py-4">
-                    <div className="space-y-4">
+                <ScrollArea className="flex-1">
+                    <div className="px-6 py-4 space-y-4">
                         <FormField
                             control={form.control}
                             name="title"
