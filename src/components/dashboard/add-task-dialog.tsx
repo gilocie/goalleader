@@ -206,15 +206,14 @@ export function AddTaskDialog({
                               type="button"
                               onClick={handleGetSuggestions}
                               disabled={isSuggesting}
-                              variant="outline"
-                              className='w-full'
+                              className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
                           >
                               {isSuggesting ? (
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               ) : (
                               <Bot className="mr-2 h-4 w-4" />
                               )}
-                              Get AI Suggestions
+                              Use GoalLeader
                           </Button>
                           {suggestions.length > 0 && (
                               <div className="space-y-2 rounded-md border p-2">
