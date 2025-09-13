@@ -129,43 +129,13 @@ export function AddTaskDialog({
                       Fill in the details for the new task.
                     </DialogDescription>
                   </div>
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "w-[140px] justify-start text-left font-normal bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {field.value ? (
-                                  format(field.value, "MMM d")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <button
+                    onClick={toggleSuggestionsPanel}
+                    type="button"
+                    className="w-8 h-8 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 flex items-center justify-center z-20 shadow-lg"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
                 </div>
               </DialogHeader>
 
@@ -195,7 +165,44 @@ export function AddTaskDialog({
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {field.value ? (
+                                    format(field.value, "MMM d, yyyy")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="startTime"
@@ -234,17 +241,6 @@ export function AddTaskDialog({
               </DialogFooter>
             </form>
           </Form>
-          {/* Collapse/Expand Toggle stuck to the form */}
-          <button
-            onClick={toggleSuggestionsPanel}
-            className="absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 w-8 h-8 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 flex items-center justify-center z-20 shadow-lg"
-          >
-            {showSuggestions ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </button>
         </div>
 
         {/* --- AI Suggestions Panel --- */}
@@ -254,7 +250,13 @@ export function AddTaskDialog({
             showSuggestions ? "w-full sm:w-1/2" : "w-0"
           )}
         >
-          <Card className="h-full flex flex-col rounded-none border-l">
+          <Card className="h-full flex flex-col rounded-none border-l relative">
+             <button
+                onClick={toggleSuggestionsPanel}
+                className="absolute top-1/2 -translate-y-1/2 -left-4 w-8 h-8 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 flex items-center justify-center z-50 shadow-lg transition-all"
+                >
+                <ChevronRight className="h-4 w-4" />
+            </button>
             <CardHeader>
               <DialogTitle>AI Suggestions</DialogTitle>
               <DialogDescription>Pick a task to get started.</DialogDescription>
