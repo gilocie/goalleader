@@ -41,8 +41,9 @@ interface AddTaskDialogProps {
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  startDate: z.date({ required_error: "A start date is required." }),
-  endDate: z.date({ required_error: "An end date is required." }),
+  date: z.date({ required_error: "A date is required." }),
+  startTime: z.string().min(1, 'Start time is required'),
+  endTime: z.string().min(1, 'End time is required'),
 });
 
 type TaskFormValues = z.infer<typeof taskSchema>;
@@ -60,14 +61,17 @@ export function AddTaskDialog({
     defaultValues: {
         title: '',
         description: '',
+        date: new Date(),
     }
   });
 
   const onSubmit = (data: TaskFormValues) => {
+    // In a real app, you would combine date and time properly.
+    // For this demo, we'll just format the date.
     onTaskAdd({
         name: data.title,
         description: data.description,
-        dueDate: data.endDate, // In a real app you might use start/end
+        dueDate: data.date, 
     });
     form.reset();
     setSuggestions([]);
@@ -97,10 +101,51 @@ export function AddTaskDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md h-[calc(100vh-40px)] sm:h-auto sm:max-h-[calc(100vh-40px)] flex flex-col p-0">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle>Add New Task</DialogTitle>
-          <DialogDescription>
-            Fill in the details for the new task. Click "Add Task" when you're done.
-          </DialogDescription>
+            <div className='flex justify-between items-center'>
+                <div>
+                    <DialogTitle>Add New Task</DialogTitle>
+                    <DialogDescription>
+                        Fill in the details for the new task.
+                    </DialogDescription>
+                </div>
+                 <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                        <FormItem>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP")
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
         </DialogHeader>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-hidden flex flex-col">
@@ -135,77 +180,27 @@ export function AddTaskDialog({
                         <div className="grid grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
-                                name="startDate"
+                                name="startTime"
                                 render={({ field }) => (
-                                    <FormItem className='flex flex-col'>
-                                    <FormLabel>Start Date</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                                    <FormItem>
+                                        <FormLabel>Start Time</FormLabel>
                                         <FormControl>
-                                            <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                            >
-                                            {field.value ? (
-                                                format(field.value, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
+                                            <Input type="time" {...field} />
                                         </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control}
-                                name="endDate"
+                                name="endTime"
                                 render={({ field }) => (
-                                    <FormItem className='flex flex-col'>
-                                    <FormLabel>End Date</FormLabel>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
+                                    <FormItem>
+                                        <FormLabel>End Time</FormLabel>
                                         <FormControl>
-                                            <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "pl-3 text-left font-normal",
-                                                !field.value && "text-muted-foreground"
-                                            )}
-                                            >
-                                            {field.value ? (
-                                                format(field.value, "PPP")
-                                            ) : (
-                                                <span>Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                            </Button>
+                                            <Input type="time" {...field} />
                                         </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={field.value}
-                                            onSelect={field.onChange}
-                                            initialFocus
-                                        />
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
+                                        <FormMessage />
                                     </FormItem>
                                 )}
                             />
@@ -257,3 +252,5 @@ export function AddTaskDialog({
     </Dialog>
   );
 }
+
+    
