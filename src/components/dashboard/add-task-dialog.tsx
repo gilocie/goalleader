@@ -112,10 +112,10 @@ export function AddTaskDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent className={cn(
-        "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] flex p-0 transition-all duration-300",
+        "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] p-0 transition-all duration-300 flex",
         showSuggestions && "sm:max-w-3xl"
         )}>
-        <div className={cn("w-full sm:w-[448px] flex-shrink-0 transition-all duration-300", showSuggestions && "sm:w-1/2")}>
+        <div className="w-full sm:w-[448px] flex-shrink-0">
             <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
             <DialogHeader className="p-6 pb-2">
@@ -165,8 +165,8 @@ export function AddTaskDialog({
                     />
                 </div>
             </DialogHeader>
-            <ScrollArea className="flex-1 px-6">
-                <div className="py-4 space-y-4">
+            <ScrollArea className="flex-1">
+                <div className="space-y-4 px-6 py-4">
                     <FormField
                         control={form.control}
                         name="title"
@@ -220,7 +220,7 @@ export function AddTaskDialog({
                 </div>
             </ScrollArea>
 
-                <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10 flex flex-col gap-2">
+                <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10 grid grid-cols-2 gap-2">
                     <Button
                         type="button"
                         onClick={handleGetSuggestions}
@@ -244,7 +244,7 @@ export function AddTaskDialog({
         <button 
             onClick={() => setShowSuggestions(!showSuggestions)}
             className={cn("absolute top-1/2 -translate-y-1/2 w-6 h-12 rounded-r-lg bg-border flex items-center justify-center transition-all duration-300 z-20", 
-                showSuggestions ? "right-1/2" : "right-0 translate-x-1/2"
+                showSuggestions ? "right-1/2" : "-right-6"
             )}
         >
             {showSuggestions ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -300,6 +300,15 @@ export function AddTaskDialog({
                         </div>
                     </ScrollArea>
                 </CardContent>
+                <DialogFooter className='p-4 border-t'>
+                    <Button
+                        type="button"
+                        onClick={() => setShowSuggestions(false)}
+                        className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+                    >
+                        Close
+                    </Button>
+                </DialogFooter>
             </Card>
         </div>
       </DialogContent>
