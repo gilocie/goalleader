@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell, CartesianGrid, LabelList } from 'recharts';
@@ -79,8 +80,8 @@ export function ProjectAnalyticsChart() {
   // CHART CONFIG
   const chartHeight = 200;             // inner drawing height for both charts
   const chartMargin = { top: 20, right: 0, left: 0, bottom: 5 };
-  const barWidth = isMobileOrTablet ? 28 : 40;
-  const visibleMonths = 4;
+  const barWidth = 40;
+  const visibleMonths = isMobileOrTablet ? 6 : 4;
   const currentYear = new Date().getFullYear();
 
   // ticks every 10% (0,10,20,...100)
@@ -93,7 +94,7 @@ export function ProjectAnalyticsChart() {
   }, []);
 
   useEffect(() => {
-    if (scrollContainerRef.current && currentMonthIndex !== null && !isMobileOrTablet) {
+    if (scrollContainerRef.current && currentMonthIndex !== null) {
       const initialScrollPosition = Math.max(0, (currentMonthIndex - 1) * barWidth);
       scrollContainerRef.current.scrollLeft = initialScrollPosition;
     }
@@ -155,9 +156,9 @@ export function ProjectAnalyticsChart() {
         <div
           ref={scrollContainerRef}
           className="flex-1 overflow-x-auto mx-auto [&::-webkit-scrollbar]:hidden"
-          style={!isMobileOrTablet ? { width: `${visibleMonths * barWidth}px` } : {}}
+          style={{ width: `${visibleMonths * barWidth}px` }}
         >
-          <ResponsiveContainer width={isMobileOrTablet ? '100%' : barWidth * 12} height={chartHeight}>
+          <ResponsiveContainer width={barWidth * 12} height={chartHeight}>
             <BarChart data={data} barGap={0} margin={chartMargin}>
               <defs>
                 <linearGradient id="colorGradient" x1="0" y1="1" x2="0" y2="0">
@@ -179,7 +180,7 @@ export function ProjectAnalyticsChart() {
                 tickLine={false}
                 axisLine={false}
                 interval={0}
-                padding={{ left: isMobileOrTablet ? 4 : 8, right: isMobileOrTablet ? 4 : 8 }}
+                padding={{ left: 8, right: 8 }}
               />
 
               <Bar dataKey="total" radius={[6, 6, 0, 0]} background={{ fill: 'hsl(var(--border))', radius: 4 }} barSize={barWidth}>
