@@ -189,7 +189,7 @@ export function AddTaskDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Textarea placeholder="Description" {...field} className="h-28" />
+                          <Textarea placeholder="Description" {...field} className="h-40" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
