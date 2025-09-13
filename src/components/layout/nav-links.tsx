@@ -3,12 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store } from 'lucide-react';
+import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
   { href: '/', icon: HomeIcon, label: 'Dashboard' },
   { href: '/performance', icon: Package, label: 'Performance' },
+  { href: '/reports', icon: FileText, label: 'Reports' },
   { href: '/teams', icon: Users, label: 'Teams' },
   { href: '/tasks', icon: ListTodo, label: 'Tasks' },
   { href: '/analytics', icon: LineChart, label: 'Analytics' },

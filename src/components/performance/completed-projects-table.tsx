@@ -33,13 +33,15 @@ import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
 import { format, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { Checkbox } from '../ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { CreateReportDialog } from './create-report-dialog';
 
-type FilterType = 'recent' | 'thisWeek' | 'thisMonth';
+export type FilterType = 'recent' | 'thisWeek' | 'thisMonth';
 
 export function CompletedProjectsTable() {
   const { tasks, setTaskDetailsOpen, setSelectedTask, selectedTask, isTaskDetailsOpen } = useTimeTracker();
   const [activeFilter, setActiveFilter] = useState<FilterType>('recent');
   const [selectedTasks, setSelectedTasks] = useState<string[]>([]);
+  const [isReportDialogOpen, setReportDialogOpen] = useState(false);
 
   const handleViewDetailsClick = (task: Task) => {
     setSelectedTask(task);
@@ -80,6 +82,10 @@ export function CompletedProjectsTable() {
     }
   }, [tasks, activeFilter]);
 
+  const tasksForReport = useMemo(() => {
+    return filteredTasks.filter(t => selectedTasks.includes(t.name));
+  }, [selectedTasks, filteredTasks]);
+
   const handleSelectTask = (taskName: string, checked: boolean | 'indeterminate') => {
     if (checked) {
         setSelectedTasks(prev => [...prev, taskName]);
@@ -107,11 +113,11 @@ export function CompletedProjectsTable() {
             <div>
                 <CardTitle>Completed Projects</CardTitle>
                 <CardDescription>
-                    A list of your completed tasks.
+                    A list of your completed tasks. Select tasks to generate a report.
                 </CardDescription>
             </div>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 bg-secondary rounded-lg">
-                <Button disabled={selectedTasks.length === 0}>
+                <Button disabled={selectedTasks.length === 0} onClick={() => setReportDialogOpen(true)}>
                     <FileText className="mr-2 h-4 w-4" />
                     Create Report
                 </Button>
@@ -204,6 +210,12 @@ export function CompletedProjectsTable() {
             task={selectedTask}
         />
       )}
+      <CreateReportDialog
+        isOpen={isReportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        tasks={tasksForReport}
+        period={activeFilter === 'thisWeek' ? 'This Week' : 'This Month'}
+      />
     </>
   );
 }
