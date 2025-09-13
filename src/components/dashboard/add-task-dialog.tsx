@@ -260,9 +260,9 @@ export function AddTaskDialog({
               <DialogTitle>AI Suggestions</DialogTitle>
               <DialogDescription>Pick a task to get started.</DialogDescription>
             </CardHeader>
-            <CardContent className="flex-1 overflow-auto p-4">
-              <ScrollArea className="h-full pr-2">
-                <div className="space-y-2 pb-4">
+            <CardContent className="flex-1 overflow-auto p-0">
+              <ScrollArea className="h-full">
+                <div className="space-y-2 pb-4 px-4">
                   {isSuggesting && suggestions.length === 0 && (
                     <div className="flex items-center justify-center p-4 h-64">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
