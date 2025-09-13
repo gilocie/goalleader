@@ -26,8 +26,8 @@ export default function Home() {
             <ProjectProgress />
           </div>
         </div>
-        <div className="grid grid-cols-10 gap-4">
-          <div className="col-span-10 lg:col-span-7 h-[515px] md:h-[415px] lg:h-[640px]">
+        <div className="grid grid-cols-10 gap-4 items-stretch">
+          <div className="col-span-10 lg:col-span-7 flex">
               <GoalReaderAIChat />
           </div>
           <div className="col-span-10 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 auto-rows-min">
