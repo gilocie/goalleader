@@ -16,6 +16,7 @@ import { getInitialMessage, InitialMessageInput } from '@/ai/flows/initial-messa
 import { ScrollArea } from '../ui/scroll-area';
 import Textarea from 'react-textarea-autosize';
 import { Logo } from '../icons';
+import { cn } from '@/lib/utils';
 
 type Message = {
   role: 'user' | 'model' | 'system';
@@ -55,7 +56,7 @@ const meetings = [
 const performance = 75;
 
 
-export function GoalReaderAIChat() {
+export function GoalReaderAIChat({ className }: { className?: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -140,7 +141,7 @@ export function GoalReaderAIChat() {
   }, [messages]);
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className={cn("h-full flex flex-col", className)}>
       <CardHeader>
         <CardTitle className="text-xl font-semibold">
           Goal Leader Chat
