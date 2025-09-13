@@ -241,18 +241,17 @@ export function AddTaskDialog({
             </form>
             </Form>
         </div>
-        <button 
-            onClick={() => setShowSuggestions(!showSuggestions)}
-            className={cn("absolute top-1/2 -translate-y-1/2 w-6 h-12 rounded-r-lg bg-border flex items-center justify-center transition-all duration-300 z-20", 
-                showSuggestions ? "right-1/2" : "-right-6"
-            )}
-        >
-            {showSuggestions ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
         <div className={cn(
-            "w-0 sm:w-1/2 flex-shrink-0 transition-all duration-300 overflow-hidden",
+            "w-0 sm:w-1/2 flex-shrink-0 transition-all duration-300 overflow-hidden relative",
             showSuggestions ? "w-full sm:w-1/2" : "w-0"
         )}>
+            <button 
+                onClick={() => setShowSuggestions(!showSuggestions)}
+                className={cn("absolute top-1/2 -translate-y-1/2 w-6 h-12 rounded-l-lg bg-border flex items-center justify-center transition-all duration-300 z-20 -left-6",
+                )}
+            >
+                {showSuggestions ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </button>
             <Card className="h-full flex flex-col rounded-l-none border-l">
                  <CardHeader>
                     <DialogTitle>AI Suggestions</DialogTitle>
@@ -306,7 +305,7 @@ export function AddTaskDialog({
                         onClick={() => setShowSuggestions(false)}
                         className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
                     >
-                        Close
+                         <Bot className="mr-2 h-4 w-4" /> Use GoalLeader
                     </Button>
                 </DialogFooter>
             </Card>
@@ -315,3 +314,5 @@ export function AddTaskDialog({
     </Dialog>
   );
 }
+
+    
