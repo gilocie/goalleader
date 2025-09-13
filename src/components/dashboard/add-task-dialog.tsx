@@ -21,11 +21,11 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
 } from "@/components/ui/form";
 import { getTaskSuggestions, TaskSuggestionOutput } from '@/ai/flows/task-suggestion-flow';
 import { Textarea } from '../ui/textarea';
@@ -62,19 +62,19 @@ export function AddTaskDialog({
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
-        title: '',
-        description: '',
-        date: new Date(),
-        startTime: '',
-        endTime: '',
+      title: '',
+      description: '',
+      date: new Date(),
+      startTime: '',
+      endTime: '',
     }
   });
 
   const onSubmit = (data: TaskFormValues) => {
     onTaskAdd({
-        name: data.title,
-        description: data.description,
-        dueDate: data.date, 
+      name: data.title,
+      description: data.description,
+      dueDate: data.date,
     });
     form.reset();
     setSuggestions([]);
@@ -82,18 +82,18 @@ export function AddTaskDialog({
   };
 
   const handleGetSuggestions = async () => {
+    if (showSuggestions) return; // prevent reloading if already open
     setShowSuggestions(true);
-    if (suggestions.length > 0) return;
 
     const userDepartment = 'Engineering';
     setIsSuggesting(true);
     try {
-        const result = await getTaskSuggestions({ department: userDepartment });
-        setSuggestions(result.suggestions);
+      const result = await getTaskSuggestions({ department: userDepartment });
+      setSuggestions(result.suggestions);
     } catch (error) {
-        console.error("Failed to get suggestions", error);
+      console.error("Failed to get suggestions", error);
     } finally {
-        setIsSuggesting(false);
+      setIsSuggesting(false);
     }
   };
 
@@ -103,213 +103,211 @@ export function AddTaskDialog({
   };
 
   const handleCloseDialog = (open: boolean) => {
-    if (!open) {
-      setShowSuggestions(false);
-    }
+    if (!open) setShowSuggestions(false);
     onOpenChange(open);
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
-      <DialogContent className={cn(
-        "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] p-0 transition-all duration-300 flex",
-        showSuggestions && "sm:max-w-3xl"
-        )}>
+      <DialogContent
+        className={cn(
+          "sm:max-w-md h-[calc(100vh-80px)] sm:h-[580px] sm:max-h-[calc(100vh-40px)] p-0 transition-all duration-300 flex",
+          showSuggestions && "sm:max-w-3xl"
+        )}
+      >
+        {/* --- Form Side --- */}
         <div className="w-full sm:w-[448px] flex-shrink-0">
-            <Form {...form}>
+          <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
-            <DialogHeader className="p-6 pb-2">
-                <div className='flex justify-between items-center'>
-                    <div>
-                        <DialogTitle>Add New Task</DialogTitle>
-                        <DialogDescription>
-                            Fill in the details for the new task.
-                        </DialogDescription>
-                    </div>
-                    <FormField
-                        control={form.control}
-                        name="date"
-                        render={({ field }) => (
-                            <FormItem>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                    variant="outline"
-                                    className={cn(
-                                        "w-[140px] justify-start text-left font-normal bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90",
-                                        !field.value && "text-muted-foreground"
-                                    )}
-                                    >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {field.value ? (
-                                        format(field.value, "MMM d")
-                                    ) : (
-                                        <span>Pick a date</span>
-                                    )}
-                                    </Button>
-                                </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="end">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                />
-                                </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-            </DialogHeader>
-            <ScrollArea className="flex-1">
-                <div className="space-y-4 px-6 py-4">
-                    <FormField
-                        control={form.control}
-                        name="title"
-                        render={({ field }) => (
-                            <FormItem>
+              <DialogHeader className="p-6 pb-2">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <DialogTitle>Add New Task</DialogTitle>
+                    <DialogDescription>
+                      Fill in the details for the new task.
+                    </DialogDescription>
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <Popover>
+                          <PopoverTrigger asChild>
                             <FormControl>
-                                <Input placeholder="Title" {...field} />
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "w-[140px] justify-start text-left font-normal bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {field.value ? (
+                                  format(field.value, "MMM d")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                              </Button>
                             </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormControl>
-                                <Textarea placeholder="Description" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="startTime"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input type="time" placeholder="Start Time" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="endTime"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input type="time" placeholder="End Time" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-            </ScrollArea>
+              </DialogHeader>
 
-                <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10 grid grid-cols-2 gap-2">
-                    <Button
-                        type="button"
-                        onClick={handleGetSuggestions}
-                        disabled={isSuggesting}
-                        className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
-                    >
-                        {isSuggesting ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                        <Bot className="mr-2 h-4 w-4" />
-                        )}
-                        Use GoalLeader
-                    </Button>
-                    <Button type="submit" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 w-full">
-                        Add Task
-                    </Button>
-                </DialogFooter>
+              <ScrollArea className="flex-1">
+                <div className="space-y-4 px-6 py-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input placeholder="Title" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea placeholder="Description" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="startTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input type="time" placeholder="Start Time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="endTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input type="time" placeholder="End Time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </ScrollArea>
+
+              {/* Footer: only Add Task now */}
+              <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
+                <Button
+                  type="submit"
+                  className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 w-full"
+                >
+                  Add Task
+                </Button>
+              </DialogFooter>
             </form>
-            </Form>
+          </Form>
         </div>
-        <div className={cn(
+
+        {/* --- AI Suggestions Panel --- */}
+        <div
+          className={cn(
             "w-0 sm:w-1/2 flex-shrink-0 transition-all duration-300 overflow-hidden relative",
             showSuggestions ? "w-full sm:w-1/2" : "w-0"
-        )}>
-            <button 
-                onClick={() => setShowSuggestions(!showSuggestions)}
-                className={cn("absolute top-1/2 -translate-y-1/2 w-6 h-12 rounded-l-lg bg-border flex items-center justify-center transition-all duration-300 z-20",
-                showSuggestions ? "-left-6" : "-left-6" // This seems wrong, should probably be different
-                )}
-            >
-                {showSuggestions ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </button>
-            <Card className="h-full flex flex-col rounded-l-none border-l">
-                 <CardHeader>
-                    <DialogTitle>AI Suggestions</DialogTitle>
-                    <DialogDescription>
-                        Pick a task to get started.
-                    </DialogDescription>
-                </CardHeader>
-                <CardContent className="flex-1 overflow-hidden">
-                     <ScrollArea className="h-full pr-4">
-                        <div className="space-y-2">
-                        {isSuggesting && (
-                             <div className="flex items-center justify-center p-4 h-64">
-                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                             </div>
-                        )}
-                        {suggestions.length > 0 && (
-                            <div className="space-y-2 pt-2">
-                                <TooltipProvider>
-                                {suggestions.map((s, i) => (
-                                    <Card key={i} className="p-3">
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span className="text-sm font-medium truncate flex-1">{s.title}</span>
-                                            <div className="flex items-center gap-2 flex-shrink-0">
-                                                <span className="text-xs text-muted-foreground">{s.duration}</span>
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6">
-                                                            <HelpCircle className="h-4 w-4" />
-                                                        </Button>
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="top" align="center" className="max-w-xs">
-                                                        <p>{s.description}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleSuggestionClick(s)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </Card>
-                                ))}
-                                </TooltipProvider>
+          )}
+        >
+          {/* Collapse/Expand Toggle */}
+          <button
+            onClick={() => {
+              if (!showSuggestions) handleGetSuggestions();
+              else setShowSuggestions(false);
+            }}
+            className="absolute top-1/2 -translate-y-1/2 -left-6 w-6 h-12 rounded-l-lg bg-border flex items-center justify-center z-20"
+          >
+            {showSuggestions ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </button>
+
+          <Card className="h-full flex flex-col rounded-l-none border-l">
+            <CardHeader>
+              <DialogTitle>AI Suggestions</DialogTitle>
+              <DialogDescription>Pick a task to get started.</DialogDescription>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-hidden">
+              <ScrollArea className="h-full pr-4">
+                <div className="space-y-2">
+                  {isSuggesting && (
+                    <div className="flex items-center justify-center p-4 h-64">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  )}
+                  {suggestions.length > 0 && (
+                    <div className="space-y-2 pt-2">
+                      <TooltipProvider>
+                        {suggestions.map((s, i) => (
+                          <Card key={i} className="p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-medium truncate flex-1">{s.title}</span>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className="text-xs text-muted-foreground">{s.duration}</span>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                                      <HelpCircle className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" align="center" className="max-w-xs">
+                                    <p>{s.description}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => handleSuggestionClick(s)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                        )}
-                        </div>
-                    </ScrollArea>
-                </CardContent>
-                <DialogFooter className='p-4 border-t'>
-                    <Button
-                        type="button"
-                        onClick={() => setShowSuggestions(false)}
-                        className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
-                    >
-                         Close
-                    </Button>
-                </DialogFooter>
-            </Card>
+                          </Card>
+                        ))}
+                      </TooltipProvider>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
         </div>
       </DialogContent>
     </Dialog>
