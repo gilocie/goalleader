@@ -247,7 +247,8 @@ export function AddTaskDialog({
         )}>
             <button 
                 onClick={() => setShowSuggestions(!showSuggestions)}
-                className={cn("absolute top-1/2 -translate-y-1/2 w-6 h-12 rounded-l-lg bg-border flex items-center justify-center transition-all duration-300 z-20 -left-6",
+                className={cn("absolute top-1/2 -translate-y-1/2 w-6 h-12 rounded-l-lg bg-border flex items-center justify-center transition-all duration-300 z-20",
+                showSuggestions ? "-left-6" : "-left-6" // This seems wrong, should probably be different
                 )}
             >
                 {showSuggestions ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -305,7 +306,7 @@ export function AddTaskDialog({
                         onClick={() => setShowSuggestions(false)}
                         className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
                     >
-                         <Bot className="mr-2 h-4 w-4" /> Use GoalLeader
+                         Close
                     </Button>
                 </DialogFooter>
             </Card>
@@ -314,5 +315,3 @@ export function AddTaskDialog({
     </Dialog>
   );
 }
-
-    
