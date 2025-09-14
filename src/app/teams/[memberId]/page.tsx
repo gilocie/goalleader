@@ -10,14 +10,14 @@ import { PerformanceCoach } from '@/components/performance/performance-coach';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const teamMembers = [
-  { id: 'sophia-davis-m1', name: 'Sophia Davis', role: 'Lead Developer', status: 'online' },
-  { id: 'liam-martinez-m2', name: 'Liam Martinez', role: 'Frontend Developer', status: 'offline' },
-  { id: 'ava-wilson-m3', name: 'Ava Wilson', role: 'Backend Developer', status: 'online' },
-  { id: 'noah-brown-m4', name: 'Noah Brown', role: 'UI/UX Designer', status: 'online' },
-  { id: 'emma-johnson-m5', name: 'Emma Johnson', role: 'QA Engineer', status: 'offline' },
-  { id: 'oliver-garcia-m6', name: 'Oliver Garcia', role: 'DevOps Engineer', status: 'online' },
-  { id: 'charlotte-rodriguez-m7', name: 'Charlotte Rodriguez', role: 'Project Manager', status: 'offline' },
-  { id: 'james-smith-m8', name: 'James Smith', role: 'Data Scientist', status: 'online' },
+  { id: 'sophia-davis-m1', name: 'Sophia Davis', role: 'Lead Developer', status: 'online' as const },
+  { id: 'liam-martinez-m2', name: 'Liam Martinez', role: 'Frontend Developer', status: 'offline' as const },
+  { id: 'ava-wilson-m3', name: 'Ava Wilson', role: 'Backend Developer', status: 'online' as const },
+  { id: 'noah-brown-m4', name: 'Noah Brown', role: 'UI/UX Designer', status: 'online' as const },
+  { id: 'emma-johnson-m5', name: 'Emma Johnson', role: 'QA Engineer', status: 'offline' as const },
+  { id: 'oliver-garcia-m6', name: 'Oliver Garcia', role: 'DevOps Engineer', status: 'online' as const },
+  { id: 'charlotte-rodriguez-m7', name: 'Charlotte Rodriguez', role: 'Project Manager', status: 'offline' as const },
+  { id: 'james-smith-m8', name: 'James Smith', role: 'Data Scientist', status: 'online' as const },
 ];
 
 export default function MemberPerformancePage({ params }: { params: { memberId: string } }) {
@@ -38,7 +38,7 @@ export default function MemberPerformancePage({ params }: { params: { memberId: 
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8 space-y-8">
-        <MemberHeader name={member.name} role={member.role} avatarUrl={avatar?.imageUrl} avatarHint={avatar?.imageHint} />
+        <MemberHeader name={member.name} role={member.role} status={member.status} avatarUrl={avatar?.imageUrl} avatarHint={avatar?.imageHint} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <PerformanceOverview />
