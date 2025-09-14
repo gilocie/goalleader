@@ -1,13 +1,17 @@
 
 'use client';
 
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Bot } from 'lucide-react';
+import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
 
 export default function MarketingPage() {
+  const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
+
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8">
@@ -49,7 +53,7 @@ export default function MarketingPage() {
                         <p className="text-muted-foreground max-w-md">
                             Create engaging blog posts, social media updates, and email newsletters effortlessly. Our AI will help you craft the perfect message to connect with your audience.
                         </p>
-                        <Button>
+                        <Button onClick={() => setGenerateDialogOpen(true)}>
                             <Bot className="mr-2 h-4 w-4" />
                             Start Generating
                         </Button>
@@ -82,6 +86,10 @@ export default function MarketingPage() {
           </CardContent>
         </Card>
       </main>
+      <GenerateContentDialog 
+        isOpen={isGenerateDialogOpen}
+        onOpenChange={setGenerateDialogOpen}
+      />
     </AppLayout>
   );
 }
