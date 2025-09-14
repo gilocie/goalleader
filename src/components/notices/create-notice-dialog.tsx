@@ -29,7 +29,6 @@ import { allUsers } from '@/lib/users';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '../ui/scroll-area';
-import { Portal } from '@/components/ui/portal'; // <-- Import Portal
 
 const noticeSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -128,15 +127,12 @@ export function CreateNoticeDialog({
                       <FormItem>
                         <FormLabel>Recipients</FormLabel>
                         <FormControl>
-                          {/* Wrap the MultiSelectCombobox in a Portal */}
-                          <Portal>
-                            <MultiSelectCombobox
-                              options={allUsers}
-                              selected={field.value}
-                              onChange={field.onChange}
-                              placeholder="Select recipients..."
-                            />
-                          </Portal>
+                          <MultiSelectCombobox
+                            options={allUsers}
+                            selected={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select recipients..."
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
