@@ -44,6 +44,8 @@ interface CreateNoticeDialogProps {
   onNoticeCreate: (data: NoticeFormValues) => void;
 }
 
+const DIALOG_ID = 'create-notice-dialog';
+
 export function CreateNoticeDialog({
   isOpen,
   onOpenChange,
@@ -75,7 +77,7 @@ export function CreateNoticeDialog({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent id="create-notice-dialog" className="sm:max-w-xl h-auto max-h-[90vh] sm:h-[470px] flex flex-col p-0">
+      <DialogContent id={DIALOG_ID} className="sm:max-w-xl h-[420px] max-h-[90vh] sm:h-[470px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle>Create New Notice</DialogTitle>
           <DialogDescription>
@@ -132,6 +134,7 @@ export function CreateNoticeDialog({
                                   selected={field.value}
                                   onChange={field.onChange}
                                   placeholder="Select recipients..."
+                                  containerId={DIALOG_ID}
                                   />
                               </FormControl>
                               <FormMessage />

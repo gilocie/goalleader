@@ -31,6 +31,7 @@ interface MultiSelectComboboxProps {
   onChange: (selected: string[]) => void;
   className?: string;
   placeholder?: string;
+  containerId?: string;
 }
 
 export function MultiSelectCombobox({
@@ -39,15 +40,18 @@ export function MultiSelectCombobox({
   onChange,
   className,
   placeholder = 'Select options...',
+  containerId,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [container, setContainer] = React.useState<HTMLElement | null>(null);
 
+  // This effect ensures we only try to get the container element on the client-side
   React.useEffect(() => {
-    if (open) {
-      setContainer(document.getElementById('create-notice-dialog'));
+    if (containerId) {
+      setContainer(document.getElementById(containerId));
     }
-  }, [open]);
+  }, [containerId, open]);
+
 
   const handleSelect = (value: string) => {
     const newSelected = selected.includes(value)
