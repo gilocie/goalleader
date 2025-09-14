@@ -59,7 +59,7 @@ export default function MeetingsPage() {
               <CardTitle>Meetings</CardTitle>
               <CardDescription>A list of your upcoming meetings.</CardDescription>
             </div>
-            <Button>
+            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
               <PlusCircle className="mr-2 h-4 w-4" /> Create New Meeting
             </Button>
           </CardHeader>
