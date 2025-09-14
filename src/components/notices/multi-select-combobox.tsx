@@ -43,15 +43,6 @@ export function MultiSelectCombobox({
   containerId,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  const [container, setContainer] = React.useState<HTMLElement | null>(null);
-
-  // This effect ensures we only try to get the container element on the client-side
-  React.useEffect(() => {
-    if (containerId) {
-      setContainer(document.getElementById(containerId));
-    }
-  }, [containerId, open]);
-
 
   const handleSelect = (value: string) => {
     const newSelected = selected.includes(value)
@@ -107,8 +98,8 @@ export function MultiSelectCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        container={container}
-        className="w-[--radix-popover-trigger-width] p-0"
+        container={containerId ? document.getElementById(containerId) : undefined}
+        className="w-[--radix-popover-trigger-width] p-0 z-[60]"
       >
         <Command>
           <CommandInput placeholder="Search..." />
