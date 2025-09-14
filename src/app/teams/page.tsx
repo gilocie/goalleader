@@ -75,7 +75,7 @@ export default function TeamsPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Our Team</CardTitle>
-              <CardDescription>Members of the engineering department.</CardDescription>
+              <CardDescription>Engineering department</CardDescription>
             </div>
             <div className="flex items-center gap-2">
                 <TooltipProvider>
