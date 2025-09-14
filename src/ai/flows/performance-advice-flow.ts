@@ -51,10 +51,12 @@ Analyze the staff member's performance based on their completed tasks and perfor
 
 The tone should be professional and analytical, suitable for a manager reviewing a team member.
 
-Format your response using Markdown-style headings and bullet points for readability. Structure the 'advice' field with:
-- A short overall summary paragraph.
-- A "Strengths" section with a bulleted list.
-- An "Areas for Improvement" section with a bulleted list.
+Format your response for the 'advice' field using the following Markdown structure:
+- A short overall summary as a paragraph.
+- A "### Strengths" heading.
+- A bulleted list starting with '*' for strengths.
+- An "### Areas for Improvement" heading.
+- A bulleted list starting with '*' for areas for improvement.
 
 Staff member's completed tasks:
 {{#each completedTasks}}
