@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Bot, User, Trash2, CheckSquare } from 'lucide-react';
+import { PlusCircle, Bot, User, Trash2, CheckSquare, Send } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -71,7 +71,7 @@ const initialAiNotices = [
 
 export type Notice = (typeof initialStaffNotices)[0];
 
-const NoticeCard = ({ notice, icon, onSelect, isSelected, onCardClick }: { notice: Notice, icon?: React.ReactNode, onSelect: (id: number, checked: boolean) => void, isSelected: boolean, onCardClick: (notice: Notice) => void }) => (
+const NoticeCard = ({ notice, icon, onSelect, isSelected, onCardClick }: { notice: Notice, icon?: React.ReactNode, onSelect?: (id: number, checked: boolean) => void, isSelected?: boolean, onCardClick: (notice: Notice) => void }) => (
     <div 
         className={cn("relative transition-all rounded-lg cursor-pointer", isSelected && 'ring-2 ring-primary ring-offset-2')}
         onClick={() => onCardClick(notice)}
@@ -79,17 +79,19 @@ const NoticeCard = ({ notice, icon, onSelect, isSelected, onCardClick }: { notic
         <Card className={cn(isSelected && 'bg-primary/5 border-primary/20')}>
             <CardHeader>
                 <div className="flex items-start gap-3">
-                    <div 
-                        className="flex items-center h-full pt-1" 
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                         <Checkbox 
-                            checked={isSelected}
-                            onCheckedChange={(checked) => onSelect(notice.id, !!checked)}
-                        />
-                    </div>
+                    {onSelect && (
+                        <div 
+                            className="flex items-center h-full pt-1" 
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Checkbox 
+                                checked={isSelected}
+                                onCheckedChange={(checked) => onSelect(notice.id, !!checked)}
+                            />
+                        </div>
+                    )}
                     {icon && <div className="bg-primary/10 text-primary p-2 rounded-full">{icon}</div>}
-                    <div className='flex-1'>
+                    <div className={cn('flex-1', !onSelect && 'pl-8')}>
                         <CardTitle className='text-lg'>{notice.title}</CardTitle>
                         <CardDescription>
                             Posted by {notice.author} on {new Date(notice.date).toLocaleDateString()}
@@ -97,7 +99,7 @@ const NoticeCard = ({ notice, icon, onSelect, isSelected, onCardClick }: { notic
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className='pl-16'>
+            <CardContent className={cn('pl-16', !onSelect && 'pl-24')}>
                 <p className="text-sm text-muted-foreground line-clamp-2">{notice.content}</p>
             </CardContent>
         </Card>
@@ -131,6 +133,7 @@ export default function NoticesPage() {
   const [staffNotices, setStaffNotices] = useState(initialStaffNotices);
   const [aiNotices, setAiNotices] = useState(initialAiNotices);
   const [readNotices, setReadNotices] = useState(initialReadNotices);
+  const [myNotices, setMyNotices] = useState<Notice[]>([]);
 
   const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
   const [selectedAi, setSelectedAi] = useState<number[]>([]);
@@ -202,9 +205,9 @@ export default function NoticesPage() {
         content: newNoticeData.description,
         author: 'You', // Assuming the current user is the author
         date: new Date().toISOString().split('T')[0],
-        read: false,
+        read: false, // Created notices are technically 'read' by the author
     };
-    setStaffNotices(prev => [newNotice, ...prev]);
+    setMyNotices(prev => [newNotice, ...prev]);
     setIsCreateDialogOpen(false);
   };
 
@@ -227,16 +230,23 @@ export default function NoticesPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="unread">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="unread">Unread ({unreadCount})</TabsTrigger>
+                    <TabsTrigger value="my-notices">My Notices ({myNotices.length})</TabsTrigger>
                     <TabsTrigger value="read">Read ({readCount})</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="unread" className="mt-4">
                     <Tabs defaultValue="staff">
                          <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="staff">From Staff ({staffNotices.length})</TabsTrigger>
-                            <TabsTrigger value="ai">GoalLeader AI ({aiNotices.length})</TabsTrigger>
+                            <TabsTrigger value="staff">
+                                <User className="mr-2 h-4 w-4" />
+                                From Staff ({staffNotices.length})
+                            </TabsTrigger>
+                            <TabsTrigger value="ai">
+                                <Bot className="mr-2 h-4 w-4" />
+                                GoalLeader AI ({aiNotices.length})
+                            </TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="staff" className="mt-4 space-y-4">
@@ -280,20 +290,25 @@ export default function NoticesPage() {
                         </TabsContent>
                     </Tabs>
                 </TabsContent>
-
+                 <TabsContent value="my-notices" className="mt-4 space-y-4">
+                     {myNotices.map((notice) => (
+                        <NoticeCard 
+                            key={notice.id}
+                            notice={notice}
+                            icon={<Send className="h-5 w-5" />}
+                            onCardClick={handleCardClick}
+                        />
+                    ))}
+                    {myNotices.length === 0 && <p className='text-center text-muted-foreground py-4'>You haven't created any notices.</p>}
+                </TabsContent>
                 <TabsContent value="read" className="mt-4 space-y-4">
                      {readNotices.map((notice) => (
-                        <Card key={notice.id}>
-                            <CardHeader>
-                                <CardTitle className='text-lg'>{notice.title}</CardTitle>
-                                <CardDescription>
-                                    Posted by {notice.author} on {new Date(notice.date).toLocaleDateString()}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground">{notice.content}</p>
-                            </CardContent>
-                        </Card>
+                         <NoticeCard 
+                            key={notice.id}
+                            notice={notice}
+                            icon={notice.author === 'GoalLeader AI' ? <Bot className="h-5 w-5" /> : <User className="h-5 w-5" />}
+                            onCardClick={handleCardClick}
+                        />
                     ))}
                     {readNotices.length === 0 && <p className='text-center text-muted-foreground py-4'>No read notices.</p>}
                 </TabsContent>

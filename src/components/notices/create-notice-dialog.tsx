@@ -11,11 +11,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { MultiSelectCombobox, ComboboxOption } from '@/components/meetings/multi-select-combobox';
+import { MultiSelectCombobox } from '@/components/meetings/multi-select-combobox';
 import {
     Form,
     FormControl,
@@ -99,7 +100,7 @@ export function CreateNoticeDialog({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Write your notice here..." {...field} className="h-32" />
+                    <Textarea placeholder="Write your notice here..." {...field} className="h-24" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -123,12 +124,17 @@ export function CreateNoticeDialog({
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="button" variant="secondary" onClick={handleSendToAll}>
+            <DialogFooter className="gap-2 sm:gap-0">
+                <DialogClose asChild>
+                    <Button type="button" variant="outline">
+                        Cancel
+                    </Button>
+                </DialogClose>
+              <Button type="button" onClick={handleSendToAll} className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
                 Send to All
               </Button>
               <Button type="submit" disabled={!form.watch('recipients').length}>
-                Send
+                Send to Selected
               </Button>
             </DialogFooter>
           </form>
