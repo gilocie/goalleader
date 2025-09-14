@@ -123,7 +123,7 @@ export function TasksPageContent() {
               </Button>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[calc(100vh-280px)]">
+            <ScrollArea className="h-[460px]">
               <Table>
                 <TableHeader>
                   <TableRow>
