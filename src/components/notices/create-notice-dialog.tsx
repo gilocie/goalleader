@@ -76,86 +76,88 @@ export function CreateNoticeDialog({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl h-auto max-h-[90vh] sm:h-[470px] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-xl h-auto max-h-[90vh] sm:h-[470px] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-0">
           <DialogTitle>Create New Notice</DialogTitle>
           <DialogDescription>
             Compose your announcement and send it to specific team members or everyone.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto -mx-6">
-          <ScrollArea className="h-full px-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Notice Title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Write your notice here..." {...field} className="h-24" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        <div className="flex-1 overflow-y-auto">
+          <ScrollArea className="h-full">
+            <div className="px-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Notice Title" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Write your notice here..." {...field} className="h-24" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="flex items-center space-x-2">
-                    <Switch id="send-to-all" checked={sendToAll} onCheckedChange={setSendToAll} />
-                    <Label htmlFor="send-to-all">Send to All Team Members</Label>
-                </div>
+                  <div className="flex items-center space-x-2">
+                      <Switch id="send-to-all" checked={sendToAll} onCheckedChange={setSendToAll} />
+                      <Label htmlFor="send-to-all">Send to All Team Members</Label>
+                  </div>
 
-                {!sendToAll && (
-                    <FormField
-                        control={form.control}
-                        name="recipients"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Recipients</FormLabel>
-                            <FormControl>
-                                <MultiSelectCombobox
-                                options={allUsers}
-                                selected={field.value}
-                                onChange={field.onChange}
-                                placeholder="Select recipients..."
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                )}
-              
-                <DialogFooter className="gap-2 sm:gap-0 pt-4 sticky bottom-0 bg-background pb-2">
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Cancel
-                        </Button>
-                    </DialogClose>
-                  <Button
-                    type="submit"
-                    disabled={!sendToAll && !form.watch('recipients').length}
-                    className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
-                  >
-                    Send Notice
-                  </Button>
-                </DialogFooter>
-              </form>
-            </Form>
+                  {!sendToAll && (
+                      <FormField
+                          control={form.control}
+                          name="recipients"
+                          render={({ field }) => (
+                              <FormItem>
+                              <FormLabel>Recipients</FormLabel>
+                              <FormControl>
+                                  <MultiSelectCombobox
+                                  options={allUsers}
+                                  selected={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="Select recipients..."
+                                  />
+                              </FormControl>
+                              <FormMessage />
+                              </FormItem>
+                          )}
+                          />
+                  )}
+                
+                  <DialogFooter className="gap-2 sm:gap-0 pt-4 sticky bottom-0 bg-background pb-2">
+                      <DialogClose asChild>
+                          <Button type="button" variant="outline">
+                              Cancel
+                          </Button>
+                      </DialogClose>
+                    <Button
+                      type="submit"
+                      disabled={!sendToAll && !form.watch('recipients').length}
+                      className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+                    >
+                      Send Notice
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </div>
           </ScrollArea>
         </div>
       </DialogContent>
