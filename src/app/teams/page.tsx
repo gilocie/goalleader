@@ -7,11 +7,12 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LayoutGrid, List, MessageSquare, Phone } from 'lucide-react';
+import { LayoutGrid, List, MessageSquare, Phone, Video } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
 
 const teamMembers = [
   {
@@ -77,6 +78,27 @@ export default function TeamsPage() {
               <CardDescription>Members of the engineering department.</CardDescription>
             </div>
             <div className="flex items-center gap-2">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <MessageSquare className="h-4 w-4" />
+                                <span className="sr-only">Start Chat</span>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Start Team Chat</TooltipContent>
+                    </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <Video className="h-4 w-4" />
+                                <span className="sr-only">Start Meeting</span>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Start Team Meeting</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+              <Separator orientation="vertical" className="h-6 mx-2" />
               <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('grid')}>
                 <LayoutGrid className="h-4 w-4" />
                 <span className="sr-only">Grid View</span>
