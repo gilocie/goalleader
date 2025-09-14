@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -142,11 +143,15 @@ export default function TeamsPage() {
                                 <p className="font-semibold">{member.name}</p>
                                 <p className="text-sm text-muted-foreground">{member.role}</p>
                                 {layout === 'grid' && (
-                                <Button size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">View Performance</Button>
+                                <Button asChild size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                                    <Link href={`/teams/${member.id}`}>View Performance</Link>
+                                </Button>
                                 )}
                             </div>
                             {layout === 'list' && (
-                                <Button size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">View Performance</Button>
+                                <Button asChild size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                                    <Link href={`/teams/${member.id}`}>View Performance</Link>
+                                </Button>
                             )}
                             </CardContent>
                         </Card>
