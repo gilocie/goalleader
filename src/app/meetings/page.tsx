@@ -141,7 +141,7 @@ const InvitedMeetingCard = ({ title, time, date, organizer }: { title: string; t
     <Card className="shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
             <p className="font-semibold text-lg leading-none">{title}</p>
-            <div className="flex gap-4">
+            <div className="flex flex-col gap-2 w-full">
                  <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
                     <Check className="mr-2 h-4 w-4" /> Accept
                 </Button>
