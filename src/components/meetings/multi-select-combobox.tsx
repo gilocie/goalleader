@@ -12,6 +12,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from '@/components/ui/command';
 import {
   Popover,
@@ -51,6 +52,14 @@ export function MultiSelectCombobox({
 
   const handleRemove = (value: string) => {
     onChange(selected.filter((item) => item !== value));
+  };
+  
+  const handleSelectAll = () => {
+    if (selected.length === options.length) {
+      onChange([]);
+    } else {
+      onChange(options.map((option) => option.value));
+    }
   };
 
   return (
@@ -93,12 +102,26 @@ export function MultiSelectCombobox({
           <CommandList>
             <CommandEmpty>No options found.</CommandEmpty>
             <CommandGroup>
+                <CommandItem
+                    onSelect={handleSelectAll}
+                    className="cursor-pointer"
+                >
+                    <Check
+                        className={cn(
+                        'mr-2 h-4 w-4',
+                        selected.length === options.length ? 'opacity-100' : 'opacity-0'
+                        )}
+                    />
+                    {selected.length === options.length ? 'Unselect all' : 'Select all'}
+                </CommandItem>
+                <CommandSeparator />
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
                   onSelect={() => {
                     handleSelect(option.value);
                   }}
+                  className="cursor-pointer"
                 >
                   <Check
                     className={cn(
