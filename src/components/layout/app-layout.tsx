@@ -20,8 +20,9 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
         <Sidebar />
         <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px] relative">
           <Header />
-          <div className="flex-1">{children}</div>
-          {isMobile && isActive ? <TimeTracker isMobileFooter={true} /> : <Footer />}
+          <div className="flex-1 pb-16 md:pb-0">{children}</div>
+          {isMobile && isActive && <TimeTracker isMobileFooter={true} />}
+          <Footer />
         </div>
       </div>
     );
