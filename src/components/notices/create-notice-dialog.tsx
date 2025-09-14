@@ -75,7 +75,7 @@ export function CreateNoticeDialog({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl h-auto max-h-[90vh] sm:max-h-[520px]">
         <DialogHeader>
           <DialogTitle>Create New Notice</DialogTitle>
           <DialogDescription>
