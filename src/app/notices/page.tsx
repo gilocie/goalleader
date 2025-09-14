@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,13 @@ import { PlusCircle, Bot, User, Trash2, CheckSquare } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
+import { NoticeDetailsDialog } from '@/components/notices/notice-details-dialog';
 
 const initialStaffNotices = [
     {
       id: 1,
       title: 'System Maintenance',
-      content: 'The system will be down for maintenance on Sunday at 2 AM.',
+      content: 'The system will be down for maintenance on Sunday at 2 AM. This is a scheduled maintenance to upgrade our servers and improve performance. We expect the downtime to last approximately 2 hours. We apologize for any inconvenience.',
       author: 'Admin',
       date: '2024-07-28',
       read: false,
@@ -23,7 +23,7 @@ const initialStaffNotices = [
     {
       id: 3,
       title: 'Holiday Schedule',
-      content: 'The office will be closed on Monday for the public holiday.',
+      content: 'The office will be closed on Monday for the public holiday. Please plan your work accordingly. We will resume normal operations on Tuesday.',
       author: 'HR Department',
       date: '2024-07-26',
       read: false,
@@ -31,7 +31,7 @@ const initialStaffNotices = [
     {
       id: 4,
       title: 'Team Meeting',
-      content: 'A mandatory team meeting is scheduled for Friday at 10 AM.',
+      content: 'A mandatory team meeting is scheduled for Friday at 10 AM in the main conference room. Please come prepared to discuss Q3 goals.',
       author: 'Management',
       date: '2024-07-25',
       read: false,
@@ -42,7 +42,7 @@ const initialReadNotices = [
     {
         id: 2,
         title: 'New Feature: Dark Mode',
-        content: 'We have launched a new dark mode. Check it out in settings!',
+        content: 'We have launched a new dark mode. You can enable it in your account settings under the "Appearance" tab. Let us know what you think!',
         author: 'Product Team',
         date: '2024-07-27',
         read: true,
@@ -53,7 +53,7 @@ const initialAiNotices = [
     {
         id: 101,
         title: 'Performance Anomaly Detected',
-        content: 'Liam Martinez\'s task completion rate has dropped by 15% this week. Consider scheduling a check-in.',
+        content: 'Liam Martinez\'s task completion rate has dropped by 15% this week compared to his average. This could be a normal fluctuation, but it may be worth scheduling a brief check-in to see if he needs any support.',
         author: 'GoalLeader AI',
         date: '2024-07-29',
         read: false,
@@ -61,37 +61,46 @@ const initialAiNotices = [
     {
         id: 102,
         title: 'Upcoming Project Milestone',
-        content: 'Project "Phoenix" is 90% complete and the deadline is approaching. Ensure all dependencies are resolved.',
+        content: 'Project "Phoenix" is 90% complete and the deadline is approaching in 3 days. Ensure all dependencies are resolved and final checks are in place for a smooth launch.',
         author: 'GoalLeader AI',
         date: '2024-07-28',
         read: false,
     }
 ];
 
-type Notice = (typeof initialStaffNotices)[0];
+export type Notice = (typeof initialStaffNotices)[0];
 
-const NoticeCard = ({ notice, icon, onSelect, isSelected }: { notice: Notice, icon?: React.ReactNode, onSelect: (id: number, checked: boolean) => void, isSelected: boolean }) => (
-    <Card className={cn("transition-all", isSelected && 'bg-primary/5 border-primary/50')}>
-        <CardHeader>
-            <div className="flex items-start gap-3">
-                <Checkbox 
-                    checked={isSelected}
-                    onCheckedChange={(checked) => onSelect(notice.id, !!checked)}
-                    className="mt-1"
-                />
-                {icon && <div className="bg-primary/10 text-primary p-2 rounded-full">{icon}</div>}
-                <div className='flex-1'>
-                    <CardTitle className='text-lg'>{notice.title}</CardTitle>
-                    <CardDescription>
-                        Posted by {notice.author} on {new Date(notice.date).toLocaleDateString()}
-                    </CardDescription>
+const NoticeCard = ({ notice, icon, onSelect, isSelected, onCardClick }: { notice: Notice, icon?: React.ReactNode, onSelect: (id: number, checked: boolean) => void, isSelected: boolean, onCardClick: (notice: Notice) => void }) => (
+    <div 
+        className={cn("relative transition-all rounded-lg cursor-pointer", isSelected && 'ring-2 ring-primary ring-offset-2')}
+        onClick={() => onCardClick(notice)}
+    >
+        <Card className={cn(isSelected && 'bg-primary/5 border-primary/20')}>
+            <CardHeader>
+                <div className="flex items-start gap-3">
+                    <div 
+                        className="flex items-center h-full pt-1" 
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                         <Checkbox 
+                            checked={isSelected}
+                            onCheckedChange={(checked) => onSelect(notice.id, !!checked)}
+                        />
+                    </div>
+                    {icon && <div className="bg-primary/10 text-primary p-2 rounded-full">{icon}</div>}
+                    <div className='flex-1'>
+                        <CardTitle className='text-lg'>{notice.title}</CardTitle>
+                        <CardDescription>
+                            Posted by {notice.author} on {new Date(notice.date).toLocaleDateString()}
+                        </CardDescription>
+                    </div>
                 </div>
-            </div>
-        </CardHeader>
-        <CardContent className='pl-12'>
-            <p className="text-sm text-muted-foreground">{notice.content}</p>
-        </CardContent>
-    </Card>
+            </CardHeader>
+            <CardContent className='pl-16'>
+                <p className="text-sm text-muted-foreground line-clamp-2">{notice.content}</p>
+            </CardContent>
+        </Card>
+    </div>
 );
 
 
@@ -125,6 +134,9 @@ export default function NoticesPage() {
   const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
   const [selectedAi, setSelectedAi] = useState<number[]>([]);
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+
   const unreadCount = staffNotices.length + aiNotices.length;
   const readCount = readNotices.length;
 
@@ -146,7 +158,7 @@ export default function NoticesPage() {
     
     if (action === 'read') {
       const toMarkRead = notices.filter(n => selectedIds.includes(n.id));
-      setReadNotices(prev => [...toMarkRead.map(n => ({...n, read: true})), ...prev]);
+      setReadNotices(prev => [...toMarkRead.map(n => ({...n, read: true})), ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     }
 
     setNotices(prev => prev.filter(n => !selectedIds.includes(n.id)));
@@ -155,7 +167,31 @@ export default function NoticesPage() {
     else setSelectedAi([]);
   };
 
-  const selectedCount = selectedStaff.length + selectedAi.length;
+  const handleCardClick = (notice: Notice) => {
+    setSelectedNotice(notice);
+    setIsDialogOpen(true);
+  }
+
+  const handleMarkAsReadFromDialog = (noticeId: number) => {
+    let noticeToMove: Notice | undefined;
+    
+    noticeToMove = staffNotices.find(n => n.id === noticeId);
+    if (noticeToMove) {
+        setStaffNotices(prev => prev.filter(n => n.id !== noticeId));
+    } else {
+        noticeToMove = aiNotices.find(n => n.id === noticeId);
+        if (noticeToMove) {
+            setAiNotices(prev => prev.filter(n => n.id !== noticeId));
+        }
+    }
+
+    if (noticeToMove) {
+        setReadNotices(prev => [{...noticeToMove, read: true}, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    }
+    
+    setIsDialogOpen(false);
+    setSelectedNotice(null);
+  };
 
   return (
     <AppLayout>
@@ -200,6 +236,7 @@ export default function NoticesPage() {
                                     icon={<User className="h-5 w-5" />} 
                                     isSelected={selectedStaff.includes(notice.id)}
                                     onSelect={(id, checked) => handleSelect(id, checked, 'staff')}
+                                    onCardClick={handleCardClick}
                                 />
                             )) : <p className='text-center text-muted-foreground py-4'>No new staff notices.</p>}
                         </TabsContent>
@@ -219,6 +256,7 @@ export default function NoticesPage() {
                                     icon={<Bot className="h-5 w-5" />} 
                                     isSelected={selectedAi.includes(notice.id)}
                                     onSelect={(id, checked) => handleSelect(id, checked, 'ai')}
+                                    onCardClick={handleCardClick}
                                 />
                             )) : <p className='text-center text-muted-foreground py-4'>No new AI notices.</p>}
                         </TabsContent>
@@ -227,7 +265,17 @@ export default function NoticesPage() {
 
                 <TabsContent value="read" className="mt-4 space-y-4">
                      {readNotices.map((notice) => (
-                        <NoticeCard key={notice.id} notice={notice} onSelect={() => {}} isSelected={false} />
+                        <Card key={notice.id}>
+                            <CardHeader>
+                                <CardTitle className='text-lg'>{notice.title}</CardTitle>
+                                <CardDescription>
+                                    Posted by {notice.author} on {new Date(notice.date).toLocaleDateString()}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">{notice.content}</p>
+                            </CardContent>
+                        </Card>
                     ))}
                     {readNotices.length === 0 && <p className='text-center text-muted-foreground py-4'>No read notices.</p>}
                 </TabsContent>
@@ -235,6 +283,16 @@ export default function NoticesPage() {
           </CardContent>
         </Card>
       </main>
+
+       {selectedNotice && (
+        <NoticeDetailsDialog 
+            isOpen={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            notice={selectedNotice}
+            onMarkAsRead={handleMarkAsReadFromDialog}
+        />
+      )}
+
     </AppLayout>
   );
 }
