@@ -5,10 +5,11 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, PlusCircle, Bot } from 'lucide-react';
+import { Video, PlusCircle, Bot, Check, X } from 'lucide-react';
 import { ScheduleMeetingDialog } from '@/components/meetings/schedule-meeting-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const meetings = [
+const upcomingMeetings = [
   {
     title: 'Meeting with Arc Company',
     time: '02:00 pm - 04:00 pm',
@@ -24,17 +25,43 @@ const meetings = [
     time: '2:00 PM - 3:00 PM',
     date: '2024-07-30',
   },
-  {
-    title: 'Weekly Sync',
-    time: '10:00 AM - 10:30 AM',
-    date: '2024-08-01',
-  },
-  {
-    title: 'Client Demo',
-    time: '03:00 PM - 04:00 PM',
-    date: '2024-08-02',
-  },
 ];
+
+const invitedMeetings = [
+    {
+        title: 'Q3 Brainstorming Session',
+        time: '11:00 AM - 12:00 PM',
+        date: '2024-08-05',
+        organizer: 'Sophia Davis',
+    },
+    {
+        title: 'Frontend Architecture Review',
+        time: '01:00 PM - 02:00 PM',
+        date: '2024-08-06',
+        organizer: 'Liam Martinez',
+    },
+];
+
+const myMeetings = [
+    {
+        title: 'Weekly Sync',
+        time: '10:00 AM - 10:30 AM',
+        date: '2024-08-01',
+    },
+    {
+        title: 'Client Demo',
+        time: '03:00 PM - 04:00 PM',
+        date: '2024-08-02',
+    },
+];
+
+const endedMeetings = [
+    {
+        title: 'Project Kick-off',
+        time: '10:00 AM - 11:00 AM',
+        date: '2024-07-15',
+    }
+]
 
 const aiSuggestedMeetings = [
     {
@@ -50,6 +77,41 @@ const aiSuggestedMeetings = [
 ];
 
 export type AISuggestedMeeting = (typeof aiSuggestedMeetings)[0];
+
+const MeetingCard = ({ title, time, date }: { title: string; time: string; date: string }) => (
+    <Card className="shadow-md hover:shadow-lg transition-shadow">
+        <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+            <p className="font-semibold text-lg leading-none">{title}</p>
+            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                <Video className="mr-2 h-4 w-4" /> Start Meeting
+            </Button>
+            <div className="text-center">
+                <p className="text-sm text-muted-foreground">{new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p className="text-sm text-muted-foreground">{time}</p>
+            </div>
+        </CardContent>
+    </Card>
+);
+
+const InvitedMeetingCard = ({ title, time, date, organizer }: { title: string; time: string; date: string; organizer: string }) => (
+    <Card className="shadow-md hover:shadow-lg transition-shadow">
+        <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+            <p className="font-semibold text-lg leading-none">{title}</p>
+            <div className="flex gap-2">
+                 <Button variant="outline" className="border-primary text-primary hover:bg-primary/10">
+                    <Check className="mr-2 h-4 w-4" /> Accept
+                </Button>
+                <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10">
+                    <X className="mr-2 h-4 w-4" /> Decline
+                </Button>
+            </div>
+            <div className="text-center">
+                <p className="text-sm text-muted-foreground">{new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - {time}</p>
+                <p className="text-xs text-muted-foreground">From: {organizer}</p>
+            </div>
+        </CardContent>
+    </Card>
+);
 
 
 export default function MeetingsPage() {
@@ -68,29 +130,56 @@ export default function MeetingsPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Meetings</CardTitle>
-              <CardDescription>A list of your upcoming meetings.</CardDescription>
+              <CardDescription>Manage all your meetings in one place.</CardDescription>
             </div>
-            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+            <Button 
+                onClick={() => setScheduleDialogOpen(true)}
+                className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+            >
               <PlusCircle className="mr-2 h-4 w-4" /> Create New Meeting
             </Button>
           </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {meetings.map((meeting, index) => (
-                 <Card key={index} className="shadow-md hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
-                        <p className="font-semibold text-lg leading-none">
-                            {meeting.title}
-                        </p>
-                        <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
-                            <Video className="mr-2 h-4 w-4" /> Start Meeting
-                        </Button>
-                        <div className="text-center">
-                            <p className="text-sm text-muted-foreground">{new Date(meeting.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                            <p className="text-sm text-muted-foreground">{meeting.time}</p>
-                        </div>
-                    </CardContent>
-                 </Card>
-            ))}
+          <CardContent>
+            <Tabs defaultValue="upcoming">
+                <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+                    <TabsTrigger value="invited">Invited</TabsTrigger>
+                    <TabsTrigger value="my-meetings">My Meetings</TabsTrigger>
+                    <TabsTrigger value="ended">Ended</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="upcoming">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+                        {upcomingMeetings.map((meeting, index) => (
+                           <MeetingCard key={index} {...meeting} />
+                        ))}
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="invited">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+                        {invitedMeetings.map((meeting, index) => (
+                            <InvitedMeetingCard key={index} {...meeting} />
+                        ))}
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="my-meetings">
+                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+                        {myMeetings.map((meeting, index) => (
+                           <MeetingCard key={index} {...meeting} />
+                        ))}
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="ended">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+                        {endedMeetings.map((meeting, index) => (
+                           <MeetingCard key={index} {...meeting} />
+                        ))}
+                    </div>
+                </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
