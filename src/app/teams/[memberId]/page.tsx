@@ -10,14 +10,14 @@ import { PerformanceCoach } from '@/components/performance/performance-coach';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const teamMembers = [
-  { id: 'team-member-1', name: 'Sophia Davis', role: 'Lead Developer', status: 'online' },
-  { id: 'team-member-2', name: 'Liam Martinez', role: 'Frontend Developer', status: 'offline' },
-  { id: 'team-member-3', name: 'Ava Wilson', role: 'Backend Developer', status: 'online' },
-  { id: 'team-member-4', name: 'Noah Brown', role: 'UI/UX Designer', status: 'online' },
-  { id: 'team-member-5', name: 'Emma Johnson', role: 'QA Engineer', status: 'offline' },
-  { id: 'team-member-6', name: 'Oliver Garcia', role: 'DevOps Engineer', status: 'online' },
-  { id: 'team-member-7', name: 'Charlotte Rodriguez', role: 'Project Manager', status: 'offline' },
-  { id: 'team-member-8', name: 'James Smith', role: 'Data Scientist', status: 'online' },
+  { id: 'sophia-davis-m1', name: 'Sophia Davis', role: 'Lead Developer', status: 'online' },
+  { id: 'liam-martinez-m2', name: 'Liam Martinez', role: 'Frontend Developer', status: 'offline' },
+  { id: 'ava-wilson-m3', name: 'Ava Wilson', role: 'Backend Developer', status: 'online' },
+  { id: 'noah-brown-m4', name: 'Noah Brown', role: 'UI/UX Designer', status: 'online' },
+  { id: 'emma-johnson-m5', name: 'Emma Johnson', role: 'QA Engineer', status: 'offline' },
+  { id: 'oliver-garcia-m6', name: 'Oliver Garcia', role: 'DevOps Engineer', status: 'online' },
+  { id: 'charlotte-rodriguez-m7', name: 'Charlotte Rodriguez', role: 'Project Manager', status: 'offline' },
+  { id: 'james-smith-m8', name: 'James Smith', role: 'Data Scientist', status: 'online' },
 ];
 
 export default function MemberPerformancePage({ params }: { params: { memberId: string } }) {
