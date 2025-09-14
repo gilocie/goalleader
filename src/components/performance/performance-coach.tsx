@@ -76,30 +76,43 @@ export function PerformanceCoach() {
   const parseMarkdown = (text: string) => {
     if (!text) return { __html: '' };
   
-    // Process headings, paragraphs, and list items in a structured way.
     let html = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/^\* (.*$)/gim, '<li>$1</li>');
-  
-    // Group consecutive list items into a single <ul>
-    html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>').replace(/<\/li>\n<ul>/g, '</li><li>');
+      .replace(/^(Strengths|Areas for Improvement):$/gim, '<h3>$1</h3>')
+      .replace(/^\* (.*$)/gim, '<li>$1</li>')
+      .replace(/^- (.*$)/gim, '<li>$1</li>');
   
     const lines = html.split('\n').filter(line => line.trim() !== '');
     
+    let inList = false;
     const processedLines = lines.map(line => {
-      // Wrap lines that are not already part of a list or a heading in a paragraph tag.
-      if (line.startsWith('<h3>') || line.startsWith('<ul>') || line.startsWith('<li>') || line.startsWith('</ul>')) {
+      if (line.startsWith('<li>')) {
+        if (!inList) {
+          inList = true;
+          return `<ul>${line}`;
+        }
         return line;
       }
-      return `<p>${line}</p>`;
+      
+      if (inList) {
+        inList = false;
+        return `</ul>${line}`;
+      }
+      return line;
     });
 
+    if (inList) {
+        processedLines.push('</ul>');
+    }
+  
     const finalHtml = processedLines.join('\n')
       .replace(/<h3>/g, '<h3 class="font-semibold text-base mb-2 mt-4">')
       .replace(/<ul>/g, '<ul class="list-disc list-inside space-y-1 mt-2">')
-      .replace(/<p>/g, '<p class="mb-2">');
-  
+      .split('\n')
+      .map(line => (line.startsWith('<h3') || line.startsWith('<ul') || line.startsWith('<li>') || line.startsWith('</ul') || line.startsWith('<strong')) ? line : `<p class="mb-2">${line}</p>`)
+      .join('');
+
     return { __html: finalHtml };
   };
   
