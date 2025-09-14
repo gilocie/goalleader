@@ -73,6 +73,28 @@ export function PerformanceCoach() {
     };
   };
 
+  const parseMarkdown = (text: string) => {
+    if (!text) return { __html: '' };
+
+    let html = text
+      .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-base mb-2">$1</h3>')
+      .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc">$1</li>');
+
+    // Wrap list items in a <ul>
+    html = html.replace(/<li class="ml-4 list-disc">/g, '<ul><li class="ml-4 list-disc">');
+    html = html.replace(/<\/li>(?!<li class="ml-4 list-disc">)/g, '</li></ul>');
+    
+    // Wrap non-tagged lines in <p>
+    const lines = html.split('\n').map(line => {
+      if (line.trim().startsWith('<h3') || line.trim().startsWith('<ul') || line.trim().startsWith('<li') || line.trim() === '</ul>' || line.trim() === '') {
+        return line;
+      }
+      return `<p class="mb-2">${line}</p>`;
+    });
+    
+    return { __html: lines.join('\n') };
+  };
+
   const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
 
   return (
@@ -97,10 +119,11 @@ export function PerformanceCoach() {
              <h3 className={cn("text-xl font-semibold text-center", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : titleClass)}>
                 {advice?.title}
             </h3>
-            <ScrollArea className="flex-1">
-                <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-body p-1">
-                    {advice?.advice}
-                </pre>
+            <ScrollArea className="flex-1 pr-4">
+                <div 
+                    className="text-sm text-muted-foreground font-body"
+                    dangerouslySetInnerHTML={parseMarkdown(advice?.advice || '')}
+                />
             </ScrollArea>
           </div>
         )}
