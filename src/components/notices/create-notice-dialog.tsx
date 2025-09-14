@@ -83,8 +83,8 @@ export function CreateNoticeDialog({
             Compose your announcement and send it to specific team members or everyone.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto -mx-6 px-6">
-          <ScrollArea className="h-full pr-2">
+        <div className="flex-1 overflow-y-auto -mx-6">
+          <ScrollArea className="h-full px-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
                 <FormField
@@ -146,7 +146,11 @@ export function CreateNoticeDialog({
                             Cancel
                         </Button>
                     </DialogClose>
-                  <Button type="submit" disabled={!sendToAll && !form.watch('recipients').length}>
+                  <Button
+                    type="submit"
+                    disabled={!sendToAll && !form.watch('recipients').length}
+                    className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+                  >
                     Send Notice
                   </Button>
                 </DialogFooter>
