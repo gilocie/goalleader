@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { Portal } from '@/components/ui/portal'; // <-- IMPORTANT
+import { Portal } from '@/components/ui/portal';
 
 export type ComboboxOption = {
   value: string;
@@ -97,7 +97,6 @@ export function MultiSelectCombobox({
         </Button>
       </PopoverTrigger>
 
-      {/* Render popover via Portal to avoid clipping */}
       <Portal>
         <PopoverContent
           className="w-[--radix-popover-trigger-width] p-0 z-[1000] pointer-events-auto bg-background shadow-lg"
