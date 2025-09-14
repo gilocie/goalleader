@@ -23,6 +23,7 @@ import { AISuggestedMeeting } from '@/app/meetings/page';
 import { generateAgenda } from '@/ai/flows/generate-agenda-flow';
 import { MultiSelectCombobox } from './multi-select-combobox';
 import { allUsers } from '@/lib/users';
+import { ScrollArea } from '../ui/scroll-area';
 
 
 interface ScheduleMeetingDialogProps {
@@ -96,94 +97,96 @@ export function ScheduleMeetingDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl flex flex-col h-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{suggestion ? `Schedule Meeting: ${suggestion.title}` : 'Create New Meeting'}</DialogTitle>
           <DialogDescription>
             {suggestion ? 'Confirm the details for this meeting.' : 'Fill in the details for your new meeting.'}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-                Title
-            </Label>
-             <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="col-span-3"
-                placeholder="Meeting Title"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right">
-              Date & Time
-            </Label>
-            <div className="col-span-3 grid grid-cols-2 gap-2">
-                <Popover>
-                    <PopoverTrigger asChild>
-                    <Button
-                        variant={'outline'}
-                        className={cn(
-                        'justify-start text-left font-normal',
-                        !date && 'text-muted-foreground'
-                        )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, 'PPP') : <span>Pick a date</span>}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
+        <ScrollArea className='-mx-6 px-6'>
+            <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">
+                    Title
+                </Label>
+                <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="col-span-3"
+                    placeholder="Meeting Title"
+                />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="date" className="text-right">
+                Date & Time
+                </Label>
+                <div className="col-span-3 grid grid-cols-2 gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            variant={'outline'}
+                            className={cn(
+                            'justify-start text-left font-normal',
+                            !date && 'text-muted-foreground'
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                        <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={setDate}
+                            initialFocus
+                        />
+                        </PopoverContent>
+                    </Popover>
+                    <Input 
+                        id="time"
+                        type="time"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
                     />
-                    </PopoverContent>
-                </Popover>
-                <Input 
-                    id="time"
-                    type="time"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                />
-            </div>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="participants" className="text-right">
-                Participants
-            </Label>
-            <div className="col-span-3">
-                <MultiSelectCombobox 
-                    options={allUsers}
-                    selected={participants}
-                    onChange={setParticipants}
-                    placeholder="Select participants..."
-                />
-            </div>
-          </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="agenda" className="text-right pt-2">
-              Agenda
-            </Label>
-            <div className="col-span-3">
-              {isGenerating ? (
-                <div className="h-20 flex items-center justify-center bg-muted rounded-md">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
-              ) : (
-                <Textarea
-                  id="agenda"
-                  value={agenda}
-                  onChange={(e) => setAgenda(e.target.value)}
-                  className="h-20"
-                />
-              )}
             </div>
-          </div>
-        </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="participants" className="text-right">
+                    Participants
+                </Label>
+                <div className="col-span-3">
+                    <MultiSelectCombobox 
+                        options={allUsers}
+                        selected={participants}
+                        onChange={setParticipants}
+                        placeholder="Select participants..."
+                    />
+                </div>
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="agenda" className="text-right pt-2">
+                Agenda
+                </Label>
+                <div className="col-span-3">
+                {isGenerating ? (
+                    <div className="h-40 flex items-center justify-center bg-muted rounded-md">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                ) : (
+                    <Textarea
+                    id="agenda"
+                    value={agenda}
+                    onChange={(e) => setAgenda(e.target.value)}
+                    className="h-40"
+                    />
+                )}
+                </div>
+            </div>
+            </div>
+        </ScrollArea>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
