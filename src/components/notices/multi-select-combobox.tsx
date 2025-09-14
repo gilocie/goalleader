@@ -52,7 +52,7 @@ export function MultiSelectCombobox({
   const handleRemove = (value: string) => {
     onChange(selected.filter((item) => item !== value));
   };
-  
+
   const handleSelectAll = () => {
     if (selected.length === options.length) {
       onChange([]);
@@ -78,10 +78,10 @@ export function MultiSelectCombobox({
                   <Badge
                     variant="secondary"
                     key={option.value}
-                    className="mr-1 mb-1"
+                    className="mr-1 mb-1 cursor-pointer"
                     onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemove(option.value);
+                      e.stopPropagation();
+                      handleRemove(option.value);
                     }}
                   >
                     {option.label}
@@ -89,39 +89,41 @@ export function MultiSelectCombobox({
                   </Badge>
                 ))
             ) : (
-              <span>{placeholder}</span>
+              <span className="text-muted-foreground">{placeholder}</span>
             )}
           </div>
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
+
+      {/* Portal Popover to body to avoid clipping in Dialog/ScrollArea */}
       <PopoverContent
         className="w-[--radix-popover-trigger-width] p-0 z-[60] pointer-events-auto bg-background shadow-lg"
+        side="bottom"
+        align="start"
       >
         <Command>
           <CommandInput placeholder="Search..." />
           <CommandList>
             <CommandEmpty>No options found.</CommandEmpty>
             <CommandGroup>
-                <CommandItem
-                    onSelect={handleSelectAll}
-                    className="cursor-pointer"
-                >
-                    <Check
-                        className={cn(
-                        'mr-2 h-4 w-4',
-                        selected.length === options.length ? 'opacity-100' : 'opacity-0'
-                        )}
-                    />
-                    {selected.length === options.length ? 'Unselect all' : 'Select all'}
-                </CommandItem>
-                <CommandSeparator />
+              <CommandItem
+                onSelect={handleSelectAll}
+                className="cursor-pointer"
+              >
+                <Check
+                  className={cn(
+                    'mr-2 h-4 w-4',
+                    selected.length === options.length ? 'opacity-100' : 'opacity-0'
+                  )}
+                />
+                {selected.length === options.length ? 'Unselect all' : 'Select all'}
+              </CommandItem>
+              <CommandSeparator />
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  onSelect={() => {
-                    handleSelect(option.value);
-                  }}
+                  onSelect={() => handleSelect(option.value)}
                   className="cursor-pointer"
                 >
                   <Check
