@@ -1,11 +1,12 @@
 
 'use client';
 
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Video, PlusCircle, Bot } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { ScheduleMeetingDialog } from '@/components/meetings/schedule-meeting-dialog';
 
 const meetings = [
   {
@@ -48,8 +49,18 @@ const aiSuggestedMeetings = [
     },
 ];
 
+export type AISuggestedMeeting = (typeof aiSuggestedMeetings)[0];
+
 
 export default function MeetingsPage() {
+  const [isScheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [selectedSuggestion, setSelectedSuggestion] = useState<AISuggestedMeeting | null>(null);
+
+  const handleScheduleClick = (suggestion: AISuggestedMeeting) => {
+    setSelectedSuggestion(suggestion);
+    setScheduleDialogOpen(true);
+  };
+
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8 space-y-8">
@@ -103,7 +114,7 @@ export default function MeetingsPage() {
                                 <h4 className="text-sm font-medium">Suggested Participants</h4>
                                 <p className="text-sm text-muted-foreground">{suggestion.participants.join(', ')}</p>
                             </div>
-                            <Button>
+                            <Button onClick={() => handleScheduleClick(suggestion)}>
                                 <PlusCircle className="mr-2 h-4 w-4" /> Schedule Meeting
                             </Button>
                         </CardContent>
@@ -112,6 +123,13 @@ export default function MeetingsPage() {
             </CardContent>
         </Card>
       </main>
+      {selectedSuggestion && (
+        <ScheduleMeetingDialog
+            isOpen={isScheduleDialogOpen}
+            onOpenChange={setScheduleDialogOpen}
+            suggestion={selectedSuggestion}
+        />
+      )}
     </AppLayout>
   );
 }

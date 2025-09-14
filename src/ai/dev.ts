@@ -6,3 +6,4 @@ import './flows/refine-text-flow';
 import './flows/performance-advice-flow';
 import './flows/task-suggestion-flow';
 import './flows/generate-report-flow';
+import './flows/generate-agenda-flow';
