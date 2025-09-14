@@ -21,25 +21,15 @@ import { Calendar as CalendarIcon, Loader2, Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AISuggestedMeeting } from '@/app/meetings/page';
 import { generateAgenda } from '@/ai/flows/generate-agenda-flow';
-import { MultiSelectCombobox, ComboboxOption } from './multi-select-combobox';
+import { MultiSelectCombobox } from './multi-select-combobox';
+import { allUsers } from '@/lib/users';
+
 
 interface ScheduleMeetingDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   suggestion: AISuggestedMeeting | null;
 }
-
-const allUsers: ComboboxOption[] = [
-    { value: 'sophia-davis-m1', label: 'Sophia Davis' },
-    { value: 'liam-martinez-m2', label: 'Liam Martinez' },
-    { value: 'ava-wilson-m3', label: 'Ava Wilson' },
-    { value: 'noah-brown-m4', label: 'Noah Brown' },
-    { value: 'emma-johnson-m5', label: 'Emma Johnson' },
-    { value: 'oliver-garcia-m6', label: 'Oliver Garcia' },
-    { value: 'charlotte-rodriguez-m7', label: 'Charlotte Rodriguez' },
-    { value: 'james-smith-m8', label: 'James Smith' },
-    { value: 'user', label: 'You' },
-];
 
 export function ScheduleMeetingDialog({
   isOpen,

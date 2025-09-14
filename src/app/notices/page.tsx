@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { NoticeDetailsDialog } from '@/components/notices/notice-details-dialog';
+import { CreateNoticeDialog } from '@/components/notices/create-notice-dialog';
 
 const initialStaffNotices = [
     {
@@ -134,7 +135,8 @@ export default function NoticesPage() {
   const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
   const [selectedAi, setSelectedAi] = useState<number[]>([]);
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
 
   const unreadCount = staffNotices.length + aiNotices.length;
@@ -169,7 +171,7 @@ export default function NoticesPage() {
 
   const handleCardClick = (notice: Notice) => {
     setSelectedNotice(notice);
-    setIsDialogOpen(true);
+    setIsDetailsDialogOpen(true);
   }
 
   const handleMarkAsReadFromDialog = (noticeId: number) => {
@@ -189,8 +191,21 @@ export default function NoticesPage() {
         setReadNotices(prev => [{...noticeToMove, read: true}, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     }
     
-    setIsDialogOpen(false);
+    setIsDetailsDialogOpen(false);
     setSelectedNotice(null);
+  };
+  
+  const handleNoticeCreate = (newNoticeData: { title: string, description: string, recipients: string[] }) => {
+    const newNotice: Notice = {
+        id: Date.now(),
+        title: newNoticeData.title,
+        content: newNoticeData.description,
+        author: 'You', // Assuming the current user is the author
+        date: new Date().toISOString().split('T')[0],
+        read: false,
+    };
+    setStaffNotices(prev => [newNotice, ...prev]);
+    setIsCreateDialogOpen(false);
   };
 
   return (
@@ -202,7 +217,10 @@ export default function NoticesPage() {
                 <CardTitle>Noticeboard</CardTitle>
                 <CardDescription>All company announcements and notices.</CardDescription>
             </div>
-            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+            <Button 
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+            >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create Notice
             </Button>
@@ -286,12 +304,18 @@ export default function NoticesPage() {
 
        {selectedNotice && (
         <NoticeDetailsDialog 
-            isOpen={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
+            isOpen={isDetailsDialogOpen}
+            onOpenChange={setIsDetailsDialogOpen}
             notice={selectedNotice}
             onMarkAsRead={handleMarkAsReadFromDialog}
         />
       )}
+      
+      <CreateNoticeDialog
+        isOpen={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onNoticeCreate={handleNoticeCreate}
+      />
 
     </AppLayout>
   );
