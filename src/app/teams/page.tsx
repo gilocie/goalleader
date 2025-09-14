@@ -81,9 +81,11 @@ export default function TeamsPage() {
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon">
-                                <MessageSquare className="h-4 w-4" />
-                                <span className="sr-only">Start Chat</span>
+                            <Button variant="outline" size="icon" asChild>
+                                <Link href="/chat">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span className="sr-only">Start Chat</span>
+                                </Link>
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>Start Team Chat</TooltipContent>

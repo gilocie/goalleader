@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText } from 'lucide-react';
+import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
@@ -11,6 +11,7 @@ const links = [
   { href: '/performance', icon: Package, label: 'Performance' },
   { href: '/reports', icon: FileText, label: 'Reports' },
   { href: '/teams', icon: Users, label: 'Teams' },
+  { href: '/chat', icon: ChatIcon, label: 'Chat' },
   { href: '/tasks', icon: ListTodo, label: 'Tasks' },
   { href: '/analytics', icon: LineChart, label: 'Analytics' },
   { href: '/meetings', icon: Calendar, label: 'Meetings' },
@@ -30,7 +31,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
             href={href}
             className={cn(
               'flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground',
-              pathname === href && 'bg-gradient-to-r from-primary to-green-700 text-white'
+              (pathname === href || (href !== '/' && pathname.startsWith(href))) && 'bg-gradient-to-r from-primary to-green-700 text-white'
             )}
           >
             <Icon className="h-5 w-5" />
@@ -49,7 +50,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
           href={href}
           className={cn(
             'flex items-center gap-3 rounded-lg px-3 py-2 text-secondary-foreground bg-secondary shadow-sm transition-all hover:bg-secondary/80 hover:shadow-lg',
-            pathname === href && 'bg-green-800 text-white shadow-md'
+            (pathname === href || (href !== '/' && pathname.startsWith(href))) && 'bg-green-800 text-white shadow-md'
           )}
         >
           <Icon className="h-4 w-4" />
