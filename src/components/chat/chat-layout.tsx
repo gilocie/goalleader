@@ -28,19 +28,12 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
   }
 
   return (
-    <div className="grid grid-cols-10 h-full w-full">
-      <div className="col-span-10 md:col-span-4 lg:col-span-3 border-r">
+    <div className="grid grid-cols-1 h-full w-full">
+      <div className="col-span-1 border-r">
         <ChatContactList 
           contacts={contacts} 
           onSelectContact={onSelectContact}
         />
-      </div>
-      <div className="col-span-10 md:col-span-6 lg:col-span-7 hidden md:flex flex-col">
-        {/* Placeholder for when no chat is selected */}
-        <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-          <p className="text-lg font-medium">Select a contact to start chatting</p>
-          <p className="text-sm">Your conversations will appear here.</p>
-        </div>
       </div>
     </div>
   );
