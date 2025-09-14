@@ -4,7 +4,8 @@
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video } from 'lucide-react';
+import { Video, PlusCircle, Bot } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const meetings = [
   {
@@ -34,17 +35,35 @@ const meetings = [
   },
 ];
 
+const aiSuggestedMeetings = [
+    {
+      title: 'Follow-up on Project Phoenix',
+      reason: 'AI detected the project is nearing a major milestone.',
+      participants: ['Sophia Davis', 'Liam Martinez'],
+    },
+    {
+      title: 'Q3 Planning Session',
+      reason: 'It\'s time to plan for the next quarter based on current project velocity.',
+      participants: ['Charlotte Rodriguez', 'You'],
+    },
+];
+
 
 export default function MeetingsPage() {
   return (
     <AppLayout>
-      <main className="flex-grow p-4 md:p-8">
+      <main className="flex-grow p-4 md:p-8 space-y-8">
         <Card>
-          <CardHeader>
-            <CardTitle>Meetings</CardTitle>
-            <CardDescription>A list of your upcoming meetings.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Meetings</CardTitle>
+              <CardDescription>A list of your upcoming meetings.</CardDescription>
+            </div>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Create New Meeting
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {meetings.map((meeting, index) => (
                  <Card key={index} className="shadow-md hover:shadow-lg transition-shadow">
                     <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
@@ -62,6 +81,35 @@ export default function MeetingsPage() {
                  </Card>
             ))}
           </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Bot className="text-primary" />
+                    GoalLeader AI Suggestions
+                </CardTitle>
+                <CardDescription>AI-powered recommendations for meetings you should schedule.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+                {aiSuggestedMeetings.map((suggestion, index) => (
+                    <Card key={index} className="bg-muted/50">
+                        <CardHeader>
+                            <CardTitle className="text-lg">{suggestion.title}</CardTitle>
+                            <CardDescription>{suggestion.reason}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div>
+                                <h4 className="text-sm font-medium">Suggested Participants</h4>
+                                <p className="text-sm text-muted-foreground">{suggestion.participants.join(', ')}</p>
+                            </div>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Schedule Meeting
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ))}
+            </CardContent>
         </Card>
       </main>
     </AppLayout>
