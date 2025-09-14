@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -156,7 +157,7 @@ export function ScheduleMeetingDialog({
             </Label>
             <div className="col-span-3">
               {isGenerating ? (
-                <div className="h-28 flex items-center justify-center bg-muted rounded-md">
+                <div className="h-20 flex items-center justify-center bg-muted rounded-md">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : (
@@ -164,7 +165,7 @@ export function ScheduleMeetingDialog({
                   id="agenda"
                   value={agenda}
                   onChange={(e) => setAgenda(e.target.value)}
-                  className="h-28"
+                  className="h-20"
                 />
               )}
             </div>
@@ -174,7 +175,7 @@ export function ScheduleMeetingDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm}>
+          <Button onClick={handleConfirm} className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
             Confirm Schedule
           </Button>
         </DialogFooter>
