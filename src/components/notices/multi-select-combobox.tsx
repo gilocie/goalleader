@@ -41,6 +41,13 @@ export function MultiSelectCombobox({
   placeholder = 'Select options...',
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false);
+  const [container, setContainer] = React.useState<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      setContainer(document.getElementById('create-notice-dialog'));
+    }
+  }, [open]);
 
   const handleSelect = (value: string) => {
     const newSelected = selected.includes(value)
@@ -95,7 +102,10 @@ export function MultiSelectCombobox({
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+      <PopoverContent
+        container={container}
+        className="w-[--radix-popover-trigger-width] p-0"
+      >
         <Command>
           <CommandInput placeholder="Search..." />
           <CommandList>

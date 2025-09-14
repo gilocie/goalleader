@@ -75,7 +75,7 @@ export function CreateNoticeDialog({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl h-auto max-h-[90vh] sm:h-[470px] flex flex-col p-0">
+      <DialogContent id="create-notice-dialog" className="sm:max-w-xl h-auto max-h-[90vh] sm:h-[470px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle>Create New Notice</DialogTitle>
           <DialogDescription>
@@ -83,8 +83,8 @@ export function CreateNoticeDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto">
-          <ScrollArea className="h-full px-6">
-            <div className="py-2">
+          <ScrollArea className="h-full">
+            <div className="px-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
                   <FormField
@@ -140,7 +140,7 @@ export function CreateNoticeDialog({
                           />
                   )}
                 
-                  <DialogFooter className="gap-2 sm:gap-0 pt-4 sticky bottom-0 bg-background pb-2">
+                  <DialogFooter className="gap-2 sm:gap-0 pt-4 sticky bottom-0 bg-background pb-6">
                       <DialogClose asChild>
                           <Button type="button" variant="outline">
                               Cancel
