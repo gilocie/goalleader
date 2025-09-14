@@ -230,7 +230,7 @@ export default function NoticesPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="unread">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-3 gap-1">
                     <TabsTrigger value="unread">Unread ({unreadCount})</TabsTrigger>
                     <TabsTrigger value="read">Read ({readCount})</TabsTrigger>
                     <TabsTrigger value="my-notices">My Notices ({myNotices.length})</TabsTrigger>
@@ -238,7 +238,7 @@ export default function NoticesPage() {
                 
                 <TabsContent value="unread" className="mt-4">
                     <Tabs defaultValue="staff">
-                         <TabsList className="grid w-full grid-cols-2">
+                         <TabsList className="grid w-full grid-cols-2 gap-1">
                             <TabsTrigger value="staff">
                                 <User className="mr-2 h-4 w-4" />
                                 Staff ({staffNotices.length})
