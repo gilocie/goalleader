@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -17,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { MultiSelectCombobox } from '@/components/meetings/multi-select-combobox';
+import { MultiSelectCombobox } from '@/components/notices/multi-select-combobox';
 import {
     Form,
     FormControl,
@@ -84,8 +83,8 @@ export function CreateNoticeDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto">
-          <ScrollArea className="h-full">
-            <div className="px-6">
+          <ScrollArea className="h-full px-6">
+            <div className="py-2">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
                   <FormField
