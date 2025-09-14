@@ -1,13 +1,13 @@
 
 'use client';
 
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { Contact } from '@/types/chat';
+import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface ChatContactListProps {
