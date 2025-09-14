@@ -19,7 +19,7 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
   return (
     <div className="grid grid-cols-10 h-full w-full">
       <div className={cn(
-          "col-span-10 md:col-span-3 border-r", 
+          "col-span-10 border-r", 
           selectedContact ? 'hidden' : 'block'
       )}>
         <ChatContactList 
@@ -31,9 +31,9 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
 
       <div className={cn(
           "col-span-10", 
-          selectedContact ? 'md:col-span-10' : 'hidden md:flex md:col-span-7'
+          !selectedContact && 'hidden'
       )}>
-        {selectedContact ? (
+        {selectedContact && (
           <div className="h-full w-full">
             <ChatMessages 
               messages={messages} 
@@ -41,12 +41,6 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
               onExitChat={() => onSelectContact(null)}
               isFullScreen={!!selectedContact} 
             />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
-            <Bot className="h-16 w-16 mb-4" />
-            <h2 className="text-xl font-semibold">Welcome to Goal Leader Chat</h2>
-            <p>Select a contact to start chatting.</p>
           </div>
         )}
       </div>
