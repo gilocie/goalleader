@@ -11,6 +11,7 @@ import { Contact, Message } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import { ReadIndicator } from './read-indicator';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -93,9 +94,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, isFullScre
                 )}
               >
                 <p>{message.content}</p>
-                 <p className={cn("text-xs mt-1", message.senderId === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                    {message.timestamp}
-                </p>
+                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1", message.senderId === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                    <span>{message.timestamp}</span>
+                    {message.senderId === 'user' && <ReadIndicator status={message.readStatus} />}
+                </div>
               </div>
               {message.senderId === 'user' && (
                 <Avatar className="h-8 w-8">

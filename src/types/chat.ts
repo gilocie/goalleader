@@ -3,9 +3,11 @@ export interface Contact {
     id: string;
     name: string;
     role: string;
-    status: 'online' | 'offline';
+    status: 'online' | string; // 'online' or a "last seen" string
     lastMessage: string;
     lastMessageTime: string;
+    unreadCount?: number;
+    lastMessageReadStatus?: 'sent' | 'delivered' | 'read';
 }
 
 export interface Message {
@@ -14,4 +16,5 @@ export interface Message {
     recipientId: string;
     content: string;
     timestamp: string;
+    readStatus?: 'sent' | 'delivered' | 'read';
 }

@@ -9,13 +9,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { ReadIndicator } from './read-indicator';
+import { Badge } from '../ui/badge';
 
 interface ChatContactListProps {
   contacts: Contact[];
   onSelectContact: (contact: Contact) => void;
+  selectedContactId?: string | null;
 }
 
-export function ChatContactList({ contacts, onSelectContact }: ChatContactListProps) {
+export function ChatContactList({ contacts, onSelectContact, selectedContactId }: ChatContactListProps) {
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       <CardHeader className="p-4 border-b">
@@ -32,7 +35,8 @@ export function ChatContactList({ contacts, onSelectContact }: ChatContactListPr
               <Card
                 key={contact.id}
                 className={cn(
-                  'cursor-pointer transition-all hover:shadow-lg shadow-md'
+                  'cursor-pointer transition-all hover:shadow-lg shadow-md',
+                  selectedContactId === contact.id && 'bg-accent'
                 )}
                 onClick={() => onSelectContact(contact)}
               >
@@ -51,9 +55,19 @@ export function ChatContactList({ contacts, onSelectContact }: ChatContactListPr
                   </div>
                   <div className="flex-1 truncate">
                     <p className="font-semibold text-sm">{contact.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{contact.lastMessage}</p>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                        <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" />
+                        <span>{contact.lastMessage}</span>
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">{contact.lastMessageTime}</div>
+                  <div className="flex flex-col items-end text-xs text-muted-foreground space-y-1">
+                    <span>{contact.lastMessageTime}</span>
+                    {contact.unreadCount && contact.unreadCount > 0 && (
+                        <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center">
+                            {contact.unreadCount}
+                        </Badge>
+                    )}
+                  </div>
                 </div>
               </Card>
             );
