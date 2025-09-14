@@ -203,9 +203,9 @@ export default function NoticesPage() {
         id: Date.now(),
         title: newNoticeData.title,
         content: newNoticeData.description,
-        author: 'You', // Assuming the current user is the author
+        author: 'You',
         date: new Date().toISOString().split('T')[0],
-        read: false, // Created notices are technically 'read' by the author
+        read: false,
     };
     setMyNotices(prev => [newNotice, ...prev]);
     setIsCreateDialogOpen(false);
@@ -232,8 +232,8 @@ export default function NoticesPage() {
             <Tabs defaultValue="unread">
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="unread">Unread ({unreadCount})</TabsTrigger>
-                    <TabsTrigger value="my-notices">My Notices ({myNotices.length})</TabsTrigger>
                     <TabsTrigger value="read">Read ({readCount})</TabsTrigger>
+                    <TabsTrigger value="my-notices">My Notices ({myNotices.length})</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="unread" className="mt-4">
@@ -241,11 +241,11 @@ export default function NoticesPage() {
                          <TabsList className="grid w-full grid-cols-2">
                             <TabsTrigger value="staff">
                                 <User className="mr-2 h-4 w-4" />
-                                From Staff ({staffNotices.length})
+                                Staff ({staffNotices.length})
                             </TabsTrigger>
                             <TabsTrigger value="ai">
                                 <Bot className="mr-2 h-4 w-4" />
-                                GoalLeader AI ({aiNotices.length})
+                                GoalLeader ({aiNotices.length})
                             </TabsTrigger>
                         </TabsList>
 
@@ -290,6 +290,17 @@ export default function NoticesPage() {
                         </TabsContent>
                     </Tabs>
                 </TabsContent>
+                 <TabsContent value="read" className="mt-4 space-y-4">
+                     {readNotices.map((notice) => (
+                         <NoticeCard 
+                            key={notice.id}
+                            notice={notice}
+                            icon={notice.author === 'GoalLeader AI' ? <Bot className="h-5 w-5" /> : <User className="h-5 w-5" />}
+                            onCardClick={handleCardClick}
+                        />
+                    ))}
+                    {readNotices.length === 0 && <p className='text-center text-muted-foreground py-4'>No read notices.</p>}
+                </TabsContent>
                  <TabsContent value="my-notices" className="mt-4 space-y-4">
                      {myNotices.map((notice) => (
                         <NoticeCard 
@@ -300,17 +311,6 @@ export default function NoticesPage() {
                         />
                     ))}
                     {myNotices.length === 0 && <p className='text-center text-muted-foreground py-4'>You haven't created any notices.</p>}
-                </TabsContent>
-                <TabsContent value="read" className="mt-4 space-y-4">
-                     {readNotices.map((notice) => (
-                         <NoticeCard 
-                            key={notice.id}
-                            notice={notice}
-                            icon={notice.author === 'GoalLeader AI' ? <Bot className="h-5 w-5" /> : <User className="h-5 w-5" />}
-                            onCardClick={handleCardClick}
-                        />
-                    ))}
-                    {readNotices.length === 0 && <p className='text-center text-muted-foreground py-4'>No read notices.</p>}
                 </TabsContent>
             </Tabs>
           </CardContent>
