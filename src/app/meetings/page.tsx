@@ -5,9 +5,11 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Video, PlusCircle, Bot, Check, X } from 'lucide-react';
+import { Video, PlusCircle, Bot, Check, X, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { ScheduleMeetingDialog } from '@/components/meetings/schedule-meeting-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 const upcomingMeetings = [
   {
@@ -19,11 +21,6 @@ const upcomingMeetings = [
     title: 'Project Alpha Deadline',
     time: 'Due: 25th July',
     date: '2024-07-25',
-  },
-  {
-    title: 'Design Review',
-    time: '2:00 PM - 3:00 PM',
-    date: '2024-07-30',
   },
 ];
 
@@ -78,9 +75,40 @@ const aiSuggestedMeetings = [
 
 export type AISuggestedMeeting = (typeof aiSuggestedMeetings)[0];
 
-const MeetingCard = ({ title, time, date }: { title: string; time: string; date: string }) => (
+const UpcomingMeetingCard = ({ title, time, date }: { title: string; time: string; date: string }) => (
     <Card className="shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+            <p className="font-semibold text-lg leading-none">{title}</p>
+            <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-500/90 hover:to-indigo-600/90">
+                <Video className="mr-2 h-4 w-4" /> Join Meeting
+            </Button>
+            <div className="text-center">
+                <p className="text-sm text-muted-foreground">{new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p className="text-sm text-muted-foreground">{time}</p>
+            </div>
+        </CardContent>
+    </Card>
+);
+
+const MyMeetingCard = ({ title, time, date }: { title: string; time: string; date: string }) => (
+    <Card className="shadow-md hover:shadow-lg transition-shadow relative">
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="absolute top-2 right-2">
+                    <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem>
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+        <CardContent className="p-6 flex flex-col items-center text-center space-y-4 pt-12">
             <p className="font-semibold text-lg leading-none">{title}</p>
             <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
                 <Video className="mr-2 h-4 w-4" /> Start Meeting
@@ -92,6 +120,22 @@ const MeetingCard = ({ title, time, date }: { title: string; time: string; date:
         </CardContent>
     </Card>
 );
+
+const EndedMeetingCard = ({ title, time, date }: { title: string; time: string; date: string }) => (
+    <Card className="shadow-md hover:shadow-lg transition-shadow">
+        <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+            <p className="font-semibold text-lg leading-none">{title}</p>
+            <Button variant="outline">
+                <Eye className="mr-2 h-4 w-4" /> View Details
+            </Button>
+            <div className="text-center">
+                <p className="text-sm text-muted-foreground">{new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p className="text-sm text-muted-foreground">{time}</p>
+            </div>
+        </CardContent>
+    </Card>
+);
+
 
 const InvitedMeetingCard = ({ title, time, date, organizer }: { title: string; time: string; date: string; organizer: string }) => (
     <Card className="shadow-md hover:shadow-lg transition-shadow">
@@ -123,6 +167,11 @@ export default function MeetingsPage() {
     setScheduleDialogOpen(true);
   };
 
+  const handleCloseDialog = () => {
+    setScheduleDialogOpen(false);
+    setSelectedSuggestion(null);
+  }
+
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8 space-y-8">
@@ -151,7 +200,7 @@ export default function MeetingsPage() {
                 <TabsContent value="upcoming">
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
                         {upcomingMeetings.map((meeting, index) => (
-                           <MeetingCard key={index} {...meeting} />
+                           <UpcomingMeetingCard key={index} {...meeting} />
                         ))}
                     </div>
                 </TabsContent>
@@ -167,7 +216,7 @@ export default function MeetingsPage() {
                 <TabsContent value="my-meetings">
                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
                         {myMeetings.map((meeting, index) => (
-                           <MeetingCard key={index} {...meeting} />
+                           <MyMeetingCard key={index} {...meeting} />
                         ))}
                     </div>
                 </TabsContent>
@@ -175,7 +224,7 @@ export default function MeetingsPage() {
                 <TabsContent value="ended">
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
                         {endedMeetings.map((meeting, index) => (
-                           <MeetingCard key={index} {...meeting} />
+                           <EndedMeetingCard key={index} {...meeting} />
                         ))}
                     </div>
                 </TabsContent>
@@ -212,13 +261,11 @@ export default function MeetingsPage() {
             </CardContent>
         </Card>
       </main>
-      {selectedSuggestion && (
-        <ScheduleMeetingDialog
+      <ScheduleMeetingDialog
             isOpen={isScheduleDialogOpen}
-            onOpenChange={setScheduleDialogOpen}
+            onOpenChange={handleCloseDialog}
             suggestion={selectedSuggestion}
         />
-      )}
     </AppLayout>
   );
 }

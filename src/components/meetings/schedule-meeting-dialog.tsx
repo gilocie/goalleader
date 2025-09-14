@@ -26,7 +26,7 @@ import { MultiSelectCombobox, ComboboxOption } from './multi-select-combobox';
 interface ScheduleMeetingDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  suggestion: AISuggestedMeeting;
+  suggestion: AISuggestedMeeting | null;
 }
 
 const allUsers: ComboboxOption[] = [
@@ -46,6 +46,7 @@ export function ScheduleMeetingDialog({
   onOpenChange,
   suggestion,
 }: ScheduleMeetingDialogProps) {
+  const [title, setTitle] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [time, setTime] = useState('10:00');
   const [agenda, setAgenda] = useState('');
@@ -53,7 +54,9 @@ export function ScheduleMeetingDialog({
   const [participants, setParticipants] = useState<string[]>([]);
 
   useEffect(() => {
-    if (isOpen && suggestion) {
+    if (isOpen) {
+      if (suggestion) {
+        setTitle(suggestion.title);
         // Prefill participants
         const initialParticipants = allUsers
             .filter(user => suggestion.participants.includes(user.label))
@@ -61,30 +64,38 @@ export function ScheduleMeetingDialog({
         setParticipants(initialParticipants);
 
         // Generate agenda
-      const fetchAgenda = async () => {
-        setIsGenerating(true);
+        const fetchAgenda = async () => {
+          setIsGenerating(true);
+          setAgenda('');
+          try {
+            const generatedAgenda = await generateAgenda({
+              title: suggestion.title,
+              reason: suggestion.reason,
+            });
+            setAgenda(generatedAgenda);
+          } catch (error) {
+            console.error('Failed to generate agenda:', error);
+            setAgenda('Could not generate agenda. Please write one manually.');
+          } finally {
+            setIsGenerating(false);
+          }
+        };
+        fetchAgenda();
+      } else {
+        // Reset fields for "Create New Meeting"
+        setTitle('');
         setAgenda('');
-        try {
-          const generatedAgenda = await generateAgenda({
-            title: suggestion.title,
-            reason: suggestion.reason,
-          });
-          setAgenda(generatedAgenda);
-        } catch (error) {
-          console.error('Failed to generate agenda:', error);
-          setAgenda('Could not generate agenda. Please write one manually.');
-        } finally {
-          setIsGenerating(false);
-        }
-      };
-      fetchAgenda();
+        setParticipants([]);
+        setDate(new Date());
+        setTime('10:00');
+      }
     }
   }, [isOpen, suggestion]);
 
   const handleConfirm = () => {
     // Logic to schedule the meeting would go here
     console.log({
-        title: suggestion.title,
+        title,
         date,
         time,
         agenda,
@@ -97,12 +108,24 @@ export function ScheduleMeetingDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Schedule Meeting: {suggestion.title}</DialogTitle>
+          <DialogTitle>{suggestion ? `Schedule Meeting: ${suggestion.title}` : 'Create New Meeting'}</DialogTitle>
           <DialogDescription>
-            Confirm the details for this meeting.
+            {suggestion ? 'Confirm the details for this meeting.' : 'Fill in the details for your new meeting.'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="title" className="text-right">
+                Title
+            </Label>
+             <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="col-span-3"
+                placeholder="Meeting Title"
+            />
+          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="date" className="text-right">
               Date & Time
