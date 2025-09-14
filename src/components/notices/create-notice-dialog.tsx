@@ -84,8 +84,7 @@ export function CreateNoticeDialog({
             Compose your announcement and send it to specific team members or everyone.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto">
-          <ScrollArea className="h-full">
+        <ScrollArea className="flex-1 overflow-y-auto">
             <div className="px-6">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
@@ -130,11 +129,10 @@ export function CreateNoticeDialog({
                               <FormLabel>Recipients</FormLabel>
                               <FormControl>
                                   <MultiSelectCombobox
-                                  options={allUsers}
-                                  selected={field.value}
-                                  onChange={field.onChange}
-                                  placeholder="Select recipients..."
-                                  containerId={DIALOG_ID}
+                                    options={allUsers}
+                                    selected={field.value}
+                                    onChange={field.onChange}
+                                    placeholder="Select recipients..."
                                   />
                               </FormControl>
                               <FormMessage />
@@ -161,7 +159,6 @@ export function CreateNoticeDialog({
               </Form>
             </div>
           </ScrollArea>
-        </div>
       </DialogContent>
     </Dialog>
   );

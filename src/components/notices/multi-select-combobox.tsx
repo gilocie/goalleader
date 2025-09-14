@@ -31,7 +31,6 @@ interface MultiSelectComboboxProps {
   onChange: (selected: string[]) => void;
   className?: string;
   placeholder?: string;
-  containerId?: string;
 }
 
 export function MultiSelectCombobox({
@@ -40,7 +39,6 @@ export function MultiSelectCombobox({
   onChange,
   className,
   placeholder = 'Select options...',
-  containerId,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -98,8 +96,7 @@ export function MultiSelectCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        container={containerId ? document.getElementById(containerId) : undefined}
-        className="w-[--radix-popover-trigger-width] p-0 z-[60]"
+        className="w-[--radix-popover-trigger-width] p-0 z-[60] pointer-events-auto bg-background shadow-lg"
       >
         <Command>
           <CommandInput placeholder="Search..." />
