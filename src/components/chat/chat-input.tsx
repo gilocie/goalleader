@@ -10,9 +10,9 @@ export function ChatInput() {
     <div className="relative">
       <Input
         placeholder="Type a message..."
-        className="pr-24 pl-10"
+        className="pr-24 pl-20"
       />
-      <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center">
+      <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
         <Button variant="ghost" size="icon">
           <Paperclip className="h-4 w-4" />
         </Button>
