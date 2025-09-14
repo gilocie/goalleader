@@ -202,7 +202,7 @@ export default function NoticesPage() {
                 <CardTitle>Noticeboard</CardTitle>
                 <CardDescription>All company announcements and notices.</CardDescription>
             </div>
-            <Button>
+            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create Notice
             </Button>
