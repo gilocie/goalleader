@@ -76,44 +76,44 @@ export function PerformanceCoach() {
   const parseMarkdown = (text: string) => {
     if (!text) return { __html: '' };
   
-    let html = text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-      .replace(/^(Strengths|Areas for Improvement):$/gim, '<h3>$1</h3>')
-      .replace(/^\* (.*$)/gim, '<li>$1</li>')
-      .replace(/^- (.*$)/gim, '<li>$1</li>');
-  
-    const lines = html.split('\n').filter(line => line.trim() !== '');
-    
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    let html = '';
     let inList = false;
-    const processedLines = lines.map(line => {
-      if (line.startsWith('<li>')) {
-        if (!inList) {
-          inList = true;
-          return `<ul>${line}`;
-        }
-        return line;
-      }
+  
+    for (const line of lines) {
+      let processedLine = line.trim().replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       
-      if (inList) {
-        inList = false;
-        return `</ul>${line}`;
+      // Handle headings
+      if (processedLine.startsWith('### ') || processedLine.toLowerCase().startsWith('strengths') || processedLine.toLowerCase().startsWith('areas for improvement')) {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        html += `<h3 class="font-semibold text-base mb-2 mt-4">${processedLine.replace(/^###\s*/, '')}</h3>`;
+      } 
+      // Handle list items
+      else if (processedLine.startsWith('* ') || processedLine.startsWith('- ')) {
+        if (!inList) {
+          html += '<ul>';
+          inList = true;
+        }
+        html += `<li class="ml-4 list-disc">${processedLine.substring(2)}</li>`;
+      } 
+      // Handle paragraphs
+      else {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        html += `<p class="mb-2">${processedLine}</p>`;
       }
-      return line;
-    });
-
-    if (inList) {
-        processedLines.push('</ul>');
     }
   
-    const finalHtml = processedLines.join('\n')
-      .replace(/<h3>/g, '<h3 class="font-semibold text-base mb-2 mt-4">')
-      .replace(/<ul>/g, '<ul class="list-disc list-inside space-y-1 mt-2">')
-      .split('\n')
-      .map(line => (line.startsWith('<h3') || line.startsWith('<ul') || line.startsWith('<li>') || line.startsWith('</ul') || line.startsWith('<strong')) ? line : `<p class="mb-2">${line}</p>`)
-      .join('');
-
-    return { __html: finalHtml };
+    if (inList) {
+      html += '</ul>';
+    }
+  
+    return { __html: html };
   };
   
 
