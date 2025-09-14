@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,6 +27,7 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { allUsers } from '@/lib/users';
+import { Switch } from '@/components/ui/switch';
 
 const noticeSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -46,6 +48,8 @@ export function CreateNoticeDialog({
   onOpenChange,
   onNoticeCreate,
 }: CreateNoticeDialogProps) {
+    const [sendToAll, setSendToAll] = useState(false);
+
   const form = useForm<NoticeFormValues>({
     resolver: zodResolver(noticeSchema),
     defaultValues: {
@@ -56,19 +60,18 @@ export function CreateNoticeDialog({
   });
 
   const onSubmit = (data: NoticeFormValues) => {
-    onNoticeCreate(data);
+    if (sendToAll) {
+        onNoticeCreate({
+            ...data,
+            recipients: allUsers.map(u => u.value),
+        });
+    } else {
+        onNoticeCreate(data);
+    }
     form.reset();
+    setSendToAll(false);
   };
   
-  const handleSendToAll = () => {
-    const data = form.getValues();
-    onNoticeCreate({
-        ...data,
-        recipients: allUsers.map(u => u.value),
-    });
-    form.reset();
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
@@ -79,7 +82,7 @@ export function CreateNoticeDialog({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
             <FormField
               control={form.control}
               name="title"
@@ -106,35 +109,41 @@ export function CreateNoticeDialog({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="recipients"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Recipients</FormLabel>
-                  <FormControl>
-                    <MultiSelectCombobox
-                      options={allUsers}
-                      selected={field.value}
-                      onChange={field.onChange}
-                      placeholder="Select recipients..."
+
+            <div className="flex items-center space-x-2">
+                <Switch id="send-to-all" checked={sendToAll} onCheckedChange={setSendToAll} />
+                <Label htmlFor="send-to-all">Send to All Team Members</Label>
+            </div>
+
+            {!sendToAll && (
+                 <FormField
+                    control={form.control}
+                    name="recipients"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Recipients</FormLabel>
+                        <FormControl>
+                            <MultiSelectCombobox
+                            options={allUsers}
+                            selected={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select recipients..."
+                            />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="gap-2 sm:gap-0">
+            )}
+           
+            <DialogFooter className="gap-2 sm:gap-0 pt-4">
                 <DialogClose asChild>
                     <Button type="button" variant="outline">
                         Cancel
                     </Button>
                 </DialogClose>
-              <Button type="button" onClick={handleSendToAll} className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
-                Send to All
-              </Button>
-              <Button type="submit" disabled={!form.watch('recipients').length}>
-                Send to Selected
+              <Button type="submit" disabled={!sendToAll && !form.watch('recipients').length}>
+                Send Notice
               </Button>
             </DialogFooter>
           </form>
