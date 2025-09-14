@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/form";
 import { allUsers } from '@/lib/users';
 import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const noticeSchema = z.object({
   title: z.string().min(1, 'Title is required'),
