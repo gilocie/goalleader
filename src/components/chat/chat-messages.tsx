@@ -4,7 +4,7 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, LogOut } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -33,7 +33,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, isFullScre
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" onClick={onExitChat}>
-                            <LogOut className="h-5 w-5" />
+                            <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>Exit Chat</TooltipContent>

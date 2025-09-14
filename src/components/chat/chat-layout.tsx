@@ -18,7 +18,10 @@ interface ChatLayoutProps {
 export function ChatLayout({ contacts, messages, selectedContact, onSelectContact }: ChatLayoutProps) {
   return (
     <div className="grid grid-cols-10 h-full w-full">
-      <div className={cn("col-span-10 md:col-span-3 border-r", !selectedContact && "col-span-10")}>
+      <div className={cn(
+          "col-span-10 md:col-span-3 border-r", 
+          selectedContact ? 'hidden' : 'block'
+      )}>
         <ChatContactList 
           contacts={contacts} 
           onSelectContact={onSelectContact}
@@ -26,14 +29,17 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
         />
       </div>
 
-      <div className={cn("col-span-10 md:col-span-7", selectedContact ? 'block' : 'hidden md:flex')}>
+      <div className={cn(
+          "col-span-10", 
+          selectedContact ? 'md:col-span-10' : 'hidden md:flex md:col-span-7'
+      )}>
         {selectedContact ? (
           <div className="h-full w-full">
             <ChatMessages 
               messages={messages} 
               selectedContact={selectedContact} 
               onExitChat={() => onSelectContact(null)}
-              isFullScreen={!selectedContact} 
+              isFullScreen={!!selectedContact} 
             />
           </div>
         ) : (
