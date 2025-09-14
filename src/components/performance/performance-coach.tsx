@@ -12,6 +12,7 @@ import { getPerformanceAdvice, PerformanceAdviceInput, PerformanceAdviceOutput }
 import { Loader2 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '../ui/scroll-area';
 
 const COMPANY_KPI = 80; // 80% completion rate as the target
 
@@ -75,7 +76,7 @@ export function PerformanceCoach() {
   const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
 
   return (
-    <Card className="h-full max-h-[460px]">
+    <Card className="h-full max-h-[460px] flex flex-col">
        <CardHeader>
         <div className={cn("flex items-center justify-center text-center p-4 rounded-lg", gradient)}>
             <div className='flex flex-col items-center gap-2'>
@@ -86,19 +87,21 @@ export function PerformanceCoach() {
             </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center h-40">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="space-y-4 text-center">
-             <h3 className={cn("text-xl font-semibold", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : titleClass)}>
+          <div className="space-y-4 text-left flex-1 flex flex-col">
+             <h3 className={cn("text-xl font-semibold text-center", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : titleClass)}>
                 {advice?.title}
             </h3>
-            <p className="text-sm text-muted-foreground">
-              {advice?.advice}
-            </p>
+            <ScrollArea className="flex-1">
+                <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-body p-1">
+                    {advice?.advice}
+                </pre>
+            </ScrollArea>
           </div>
         )}
       </CardContent>
