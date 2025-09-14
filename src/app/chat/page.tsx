@@ -27,7 +27,7 @@ const messages = [
 export default function ChatPage() {
   return (
     <AppLayout>
-      <main className="flex-grow p-4 md:p-6 lg:p-8 h-full">
+      <main className="flex-grow h-full">
         <ChatLayout
             contacts={teamMembers}
             messages={messages}

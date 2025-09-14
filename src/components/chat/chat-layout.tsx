@@ -14,7 +14,7 @@ interface ChatLayoutProps {
 
 export function ChatLayout({ contacts, messages, selectedContact }: ChatLayoutProps) {
   return (
-    <div className="grid grid-cols-10 h-[calc(100vh-140px)] w-full">
+    <div className="grid grid-cols-10 h-full w-full">
       <div className="col-span-10 md:col-span-3 lg:col-span-2 border-r">
         <ChatContactList contacts={contacts} selectedContactId={selectedContact.id} />
       </div>
