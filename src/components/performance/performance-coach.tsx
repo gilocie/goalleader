@@ -75,25 +75,26 @@ export function PerformanceCoach() {
 
   const parseMarkdown = (text: string) => {
     if (!text) return { __html: '' };
-
+  
     let html = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/^### (.*$)/gim, '<h3 class="font-semibold text-base mb-2">$1</h3>')
-      .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc">$1</li>');
-
-    // Wrap list items in a <ul>
-    html = html.replace(/<li class="ml-4 list-disc">/g, '<ul><li class="ml-4 list-disc">');
-    html = html.replace(/<\/li>(?!<li class="ml-4 list-disc">)/g, '</li></ul>');
+      .replace(/^\* (.*$)/gim, '<li>$1</li>');
+  
+    html = html.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>').replace(/<\/li><ul>/g, '</li><li>').replace(/<\/ul><li>/g, '<ul><li>');
+  
+    const lines = html.split('\n').filter(line => line.trim() !== '');
     
-    // Wrap non-tagged lines in <p>
-    const lines = html.split('\n').map(line => {
-      if (line.trim().startsWith('<h3') || line.trim().startsWith('<ul') || line.trim().startsWith('<li') || line.trim() === '</ul>' || line.trim() === '') {
+    const processedLines = lines.map(line => {
+      if (line.startsWith('<h3') || line.startsWith('<ul') || line.startsWith('</ul') || line.startsWith('<li')) {
         return line;
       }
       return `<p class="mb-2">${line}</p>`;
     });
-    
-    return { __html: lines.join('\n') };
+  
+    return { __html: processedLines.join('') };
   };
+  
 
   const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
 
@@ -111,11 +112,11 @@ export function PerformanceCoach() {
       </CardHeader>
       <CardContent className="flex-1 flex flex-col overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center h-40">
+          <div className="flex items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="space-y-4 text-left flex-1 flex flex-col">
+          <div className="space-y-4 text-left flex-1 flex flex-col min-h-0">
              <h3 className={cn("text-xl font-semibold text-center", advice?.title === 'Performance Analysis' ? 'text-muted-foreground' : titleClass)}>
                 {advice?.title}
             </h3>
