@@ -156,7 +156,7 @@ export function ScheduleMeetingDialog({
             </Label>
             <div className="col-span-3">
               {isGenerating ? (
-                <div className="h-48 flex items-center justify-center bg-muted rounded-md">
+                <div className="h-28 flex items-center justify-center bg-muted rounded-md">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : (
@@ -164,7 +164,7 @@ export function ScheduleMeetingDialog({
                   id="agenda"
                   value={agenda}
                   onChange={(e) => setAgenda(e.target.value)}
-                  className="h-48"
+                  className="h-28"
                 />
               )}
             </div>
