@@ -20,7 +20,8 @@ const teamMembers = [
   { id: 'team-member-8', name: 'James Smith', role: 'Data Scientist', status: 'online' },
 ];
 
-export default function MemberPerformancePage({ params: { memberId } }: { params: { memberId: string } }) {
+export default function MemberPerformancePage({ params }: { params: { memberId: string } }) {
+  const { memberId } = params;
   const member = teamMembers.find(m => m.id === memberId);
   const avatar = PlaceHolderImages.find(img => img.id === memberId);
 
