@@ -19,6 +19,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { Portal } from '@/components/ui/portal'; // <-- IMPORTANT
 
 export type ComboboxOption = {
   value: string;
@@ -96,49 +97,51 @@ export function MultiSelectCombobox({
         </Button>
       </PopoverTrigger>
 
-      {/* Portal Popover to body to avoid clipping in Dialog/ScrollArea */}
-      <PopoverContent
-        className="w-[--radix-popover-trigger-width] p-0 z-[60] pointer-events-auto bg-background shadow-lg"
-        side="bottom"
-        align="start"
-      >
-        <Command>
-          <CommandInput placeholder="Search..." />
-          <CommandList>
-            <CommandEmpty>No options found.</CommandEmpty>
-            <CommandGroup>
-              <CommandItem
-                onSelect={handleSelectAll}
-                className="cursor-pointer"
-              >
-                <Check
-                  className={cn(
-                    'mr-2 h-4 w-4',
-                    selected.length === options.length ? 'opacity-100' : 'opacity-0'
-                  )}
-                />
-                {selected.length === options.length ? 'Unselect all' : 'Select all'}
-              </CommandItem>
-              <CommandSeparator />
-              {options.map((option) => (
+      {/* Render popover via Portal to avoid clipping */}
+      <Portal>
+        <PopoverContent
+          className="w-[--radix-popover-trigger-width] p-0 z-[1000] pointer-events-auto bg-background shadow-lg"
+          side="bottom"
+          align="start"
+        >
+          <Command>
+            <CommandInput placeholder="Search..." />
+            <CommandList>
+              <CommandEmpty>No options found.</CommandEmpty>
+              <CommandGroup>
                 <CommandItem
-                  key={option.value}
-                  onSelect={() => handleSelect(option.value)}
+                  onSelect={handleSelectAll}
                   className="cursor-pointer"
                 >
                   <Check
                     className={cn(
                       'mr-2 h-4 w-4',
-                      selected.includes(option.value) ? 'opacity-100' : 'opacity-0'
+                      selected.length === options.length ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  {option.label}
+                  {selected.length === options.length ? 'Unselect all' : 'Select all'}
                 </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
+                <CommandSeparator />
+                {options.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    onSelect={() => handleSelect(option.value)}
+                    className="cursor-pointer"
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        selected.includes(option.value) ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Portal>
     </Popover>
   );
 }
