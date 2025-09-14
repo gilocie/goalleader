@@ -1,10 +1,12 @@
 
 'use client';
 
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { ChatLayout } from '@/components/chat/chat-layout';
+import type { Contact, Message } from '@/types/chat';
 
-const teamMembers = [
+const teamMembers: Contact[] = [
     { id: 'sophia-davis-m1', name: 'Sophia Davis', role: 'Lead Developer', status: 'online' as const, lastMessage: 'On it!', lastMessageTime: '5m' },
     { id: 'liam-martinez-m2', name: 'Liam Martinez', role: 'Frontend Developer', status: 'offline' as const, lastMessage: 'See you tomorrow.', lastMessageTime: '1h' },
     { id: 'ava-wilson-m3', name: 'Ava Wilson', role: 'Backend Developer', status: 'online' as const, lastMessage: 'I pushed the latest changes.', lastMessageTime: '20m' },
@@ -15,7 +17,7 @@ const teamMembers = [
     { id: 'james-smith-m8', name: 'James Smith', role: 'Data Scientist', status: 'online' as const, lastMessage: 'The data analysis is complete.', lastMessageTime: '30m' },
 ];
 
-const messages = [
+const messages: Message[] = [
     { id: 'msg1', senderId: 'sophia-davis-m1', recipientId: 'user', content: "Hey! Just wanted to check in on the progress for the new auth flow.", timestamp: "10:00 AM" },
     { id: 'msg2', senderId: 'user', recipientId: 'sophia-davis-m1', content: "Hey Sophia, things are going well. I've finished the main logic and am now working on the UI.", timestamp: "10:01 AM" },
     { id: 'msg3', senderId: 'sophia-davis-m1', recipientId: 'user', content: "Great to hear! Let me know if you run into any blockers.", timestamp: "10:02 AM" },
@@ -25,13 +27,20 @@ const messages = [
 
 
 export default function ChatPage() {
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+
+  const contactMessages = messages.filter(
+      (msg) => msg.senderId === selectedContact?.id || msg.recipientId === selectedContact?.id
+  );
+
   return (
     <AppLayout>
       <main className="flex-grow h-full">
         <ChatLayout
             contacts={teamMembers}
-            messages={messages}
-            selectedContact={teamMembers[0]}
+            messages={contactMessages}
+            selectedContact={selectedContact}
+            onSelectContact={setSelectedContact}
         />
       </main>
     </AppLayout>

@@ -4,19 +4,22 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical } from 'lucide-react';
+import { Phone, Video, MoreVertical, LogOut } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 
 interface ChatMessagesProps {
   messages: Message[];
   selectedContact: Contact;
+  onExitChat?: () => void;
+  isFullScreen?: boolean;
 }
 
-export function ChatMessages({ messages, selectedContact }: ChatMessagesProps) {
+export function ChatMessages({ messages, selectedContact, onExitChat, isFullScreen = false }: ChatMessagesProps) {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
 
@@ -24,6 +27,18 @@ export function ChatMessages({ messages, selectedContact }: ChatMessagesProps) {
     <Card className="h-full flex flex-col rounded-none border-none">
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
+          {isFullScreen && (
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={onExitChat}>
+                            <LogOut className="h-5 w-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Exit Chat</TooltipContent>
+                </Tooltip>
+             </TooltipProvider>
+          )}
           <div className="relative">
             <Avatar className="h-10 w-10">
               <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />

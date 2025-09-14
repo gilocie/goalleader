@@ -12,10 +12,10 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface ChatContactListProps {
   contacts: Contact[];
-  selectedContactId: string;
+  onSelectContact: (contact: Contact) => void;
 }
 
-export function ChatContactList({ contacts, selectedContactId }: ChatContactListProps) {
+export function ChatContactList({ contacts, onSelectContact }: ChatContactListProps) {
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       <CardHeader className="p-4 border-b">
@@ -32,9 +32,9 @@ export function ChatContactList({ contacts, selectedContactId }: ChatContactList
               <div
                 key={contact.id}
                 className={cn(
-                  'flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-muted',
-                  contact.id === selectedContactId && 'bg-gradient-to-r from-primary/20 to-green-700/20'
+                  'flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors hover:bg-muted'
                 )}
+                onClick={() => onSelectContact(contact)}
               >
                 <div className="relative">
                   <Avatar className="h-10 w-10">
