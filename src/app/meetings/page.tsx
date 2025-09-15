@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import NextLink from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,8 +80,10 @@ const UpcomingMeetingCard = ({ title, time, date }: { title: string; time: strin
     <Card className="shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
             <p className="font-semibold text-lg leading-none">{title}</p>
-            <Button className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-500/90 hover:to-indigo-600/90">
-                <Video className="mr-2 h-4 w-4" /> Join Meeting
+            <Button asChild className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-500/90 hover:to-indigo-600/90">
+                <NextLink href="/meetings/sample-meeting">
+                    <Video className="mr-2 h-4 w-4" /> Join Meeting
+                </NextLink>
             </Button>
             <div className="text-center">
                 <p className="text-sm text-muted-foreground">{new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
@@ -110,8 +113,10 @@ const MyMeetingCard = ({ title, time, date }: { title: string; time: string; dat
         </DropdownMenu>
         <CardContent className="p-6 flex flex-col items-center text-center space-y-4 pt-12">
             <p className="font-semibold text-lg leading-none">{title}</p>
-            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
-                <Video className="mr-2 h-4 w-4" /> Start Meeting
+            <Button asChild className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                 <NextLink href="/meetings/sample-meeting">
+                    <Video className="mr-2 h-4 w-4" /> Start Meeting
+                </NextLink>
             </Button>
             <div className="text-center">
                 <p className="text-sm text-muted-foreground">{new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>

@@ -84,6 +84,30 @@
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/208/80/80",
       "imageHint": "man face bearded"
+    },
+    {
+      "id": "john-isner-p1",
+      "description": "Video call participant",
+      "imageUrl": "https://picsum.photos/seed/301/200/150",
+      "imageHint": "man professional office"
+    },
+    {
+      "id": "mia-jones-p2",
+      "description": "Video call participant",
+      "imageUrl": "https://picsum.photos/seed/302/200/150",
+      "imageHint": "woman professional smiling"
+    },
+    {
+      "id": "janice-wallberg-p3",
+      "description": "Video call participant",
+      "imageUrl": "https://picsum.photos/seed/303/200/150",
+      "imageHint": "woman face glasses"
+    },
+    {
+      "id": "camille-valdez-p4",
+      "description": "Video call participant",
+      "imageUrl": "https://picsum.photos/seed/304/200/150",
+      "imageHint": "woman face friendly"
     }
   ]
 }
