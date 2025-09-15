@@ -276,9 +276,9 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-10 overflow-hidden">
         
-        <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted">
+        <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted h-[350px]">
             <div className="flex-1 relative">
-                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                 
                 {isVideoOff && selfParticipant && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
@@ -346,8 +346,8 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
                 <div className="absolute bottom-5 left-5">
                     <VolumeControl />
                 </div>
-
-                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3">
+                
+                 <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3">
                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                         <ScreenShare />
                     </Button>
@@ -409,5 +409,3 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
     </div>
   );
 }
-
-    
