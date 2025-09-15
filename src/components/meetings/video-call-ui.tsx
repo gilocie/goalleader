@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -191,7 +190,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
       <div className="flex-1 grid grid-cols-1 md:grid-cols-10 overflow-hidden">
         {/* Main Content: Video */}
         <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted">
-            <div className="flex-1 relative">
+            <div className="flex-1 relative h-full">
                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                 {!hasCameraPermission && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
