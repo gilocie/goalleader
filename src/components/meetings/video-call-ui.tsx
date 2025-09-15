@@ -1,12 +1,9 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  ChevronLeft,
   Settings,
-  Bell,
   Users,
   Plus,
   Maximize,
@@ -16,7 +13,6 @@ import {
   VideoOff,
   Phone,
   Volume2,
-  Users2,
   MessageSquare,
   Send,
 } from 'lucide-react';
@@ -24,7 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -158,28 +154,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
   const otherParticipants = participants.filter(p => p.role !== 'You');
 
   return (
-    <main className="flex-1 bg-background flex flex-col h-[calc(100vh-60px)]">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ChevronLeft />
-          </Button>
-          <div>
-            <h1 className="font-semibold text-lg">{meeting.title}</h1>
-            <Badge variant="outline" className="text-xs">{meeting.category}</Badge>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon"><Settings /></Button>
-          <Button variant="ghost" size="icon"><Bell /></Button>
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={PlaceHolderImages.find(p => p.id === 'user-avatar')?.imageUrl} />
-            <AvatarFallback>U</AvatarFallback>
-          </Avatar>
-        </div>
-      </header>
-
+    <div className="flex-1 bg-background flex flex-col h-[calc(100vh-60px)]">
       <div className="flex-1 grid grid-cols-1 md:grid-cols-10 lg:grid-cols-12 overflow-hidden">
         {/* Main Content: Video + Participants */}
         <div className="col-span-1 md:col-span-7 lg:col-span-9 flex flex-col p-4">
@@ -188,7 +163,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             <span className="font-medium">People attending the call</span>
             <Badge>{participants.length}</Badge>
             <Button variant="outline" size="sm" className="ml-4">
-              <Plus className="mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Add person to the call
             </Button>
           </div>
@@ -196,13 +171,17 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
           <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
             {/* Main Video */}
             <div className="lg:col-span-10 relative rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
-              {hasCameraPermission ? (
-                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted />
-              ) : (
-                 <div className="flex flex-col items-center gap-2 text-destructive">
-                    <VideoOff size={48} />
-                    <p>Camera is off or not available</p>
-                 </div>
+              <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+              {!hasCameraPermission && (
+                  <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
+                      <Alert variant="destructive">
+                          <VideoOff className="h-4 w-4" />
+                          <AlertTitle>Camera Access Required</AlertTitle>
+                          <AlertDescription>
+                          Please allow camera access in your browser to use this feature.
+                          </AlertDescription>
+                      </Alert>
+                  </div>
               )}
                {isVideoOff && (
                   <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
@@ -391,6 +370,6 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             <p className="text-sm text-muted-foreground">Your resume is quite impressive. Did you just finish Oxford and now you just...</p>
         </div>
       </footer>
-    </main>
+    </div>
   );
 }

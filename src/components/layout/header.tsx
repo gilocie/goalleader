@@ -1,9 +1,8 @@
-
 'use client';
 
-import { Menu, Search } from 'lucide-react';
+import { Menu, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useParams } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -15,16 +14,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { NavLinks } from './nav-links';
 import { TimeTracker } from '../dashboard/time-tracker';
 import { ScrollArea } from '../ui/scroll-area';
+import { Badge } from '../ui/badge';
+
+const meetings: { [key: string]: { title: string; category: string } } = {
+    'sample-meeting': {
+        title: 'Job interview for Senior UX Engineer',
+        category: 'Design'
+    }
+}
+
 
 export function Header() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const pathname = usePathname();
+  const router = useRouter();
+  const params = useParams();
+
+  const isMeetingPage = pathname.startsWith('/meetings/');
+  const meetingId = isMeetingPage && typeof params.meetingId === 'string' ? params.meetingId : null;
+  const meetingDetails = meetingId ? meetings[meetingId] : null;
 
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
@@ -62,7 +76,17 @@ export function Header() {
       </Sheet>
 
       <div className="w-full flex-1">
-        {/* Search bar removed */}
+        {isMeetingPage && meetingDetails && (
+            <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                    <ChevronLeft />
+                </Button>
+                <div>
+                    <h1 className="font-semibold text-lg">{meetingDetails.title}</h1>
+                    <Badge variant="outline" className="text-xs">{meetingDetails.category}</Badge>
+                </div>
+            </div>
+        )}
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
