@@ -276,7 +276,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-10 overflow-hidden">
         
-        <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted h-[calc(100vh-125px)]">
+        <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted" style={{ height: 350 }}>
             <div className="flex-1 relative">
                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                 
@@ -409,3 +409,5 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
     </div>
   );
 }
+
+    
