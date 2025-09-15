@@ -108,7 +108,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isTyping, setIsTyping] = useState(true);
-  const [activeTab, setActiveTab] = useState('messages');
+  const [activeTab, setActiveTab] = useState('participants');
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -266,7 +266,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             {/* Video Controls */}
             <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-3">
                 <Button variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
-                    <Maximize />
+                    <ScreenShare />
                 </Button>
                 <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
                     {isMuted ? <MicOff /> : <Mic />}
@@ -299,16 +299,16 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             <div className="flex-shrink-0 border-b">
                 <div className="grid grid-cols-2 text-center">
                     <button
-                        onClick={() => setActiveTab('messages')}
-                        className={cn("p-3 font-medium text-sm", activeTab === 'messages' && "bg-background border-b-2 border-primary text-primary")}
-                    >
-                        Messages
-                    </button>
-                    <button
                         onClick={() => setActiveTab('participants')}
                         className={cn("p-3 font-medium text-sm", activeTab === 'participants' && "bg-background border-b-2 border-primary text-primary")}
                     >
                         Participants
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('messages')}
+                        className={cn("p-3 font-medium text-sm", activeTab === 'messages' && "bg-background border-b-2 border-primary text-primary")}
+                    >
+                        Messages
                     </button>
                 </div>
             </div>
