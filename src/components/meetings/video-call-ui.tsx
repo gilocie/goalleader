@@ -278,7 +278,17 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
         <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted">
             <div className="flex-1 relative">
                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                {!hasCameraPermission && (
+                
+                {isVideoOff && selfParticipant && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                       <Avatar className="h-40 w-40">
+                          <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
+                          <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                  </div>
+                )}
+                
+                {!hasCameraPermission && !isVideoOff && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
                         <Alert variant="destructive">
                             <VideoOff className="h-4 w-4" />
@@ -289,14 +299,6 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
                         </Alert>
                     </div>
                 )}
-                {isVideoOff && selfParticipant && (
-                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                       <Avatar className="h-40 w-40">
-                          <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
-                          <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                  </div>
-              )}
             </div>
 
             <div className="absolute top-5 left-5 flex items-center gap-3">
@@ -401,5 +403,3 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
     </div>
   );
 }
-
-    
