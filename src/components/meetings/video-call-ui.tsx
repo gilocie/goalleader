@@ -7,7 +7,6 @@ import {
   Settings,
   Users,
   Plus,
-  Maximize,
   Mic,
   MicOff,
   Video,
@@ -18,7 +17,6 @@ import {
   Send,
   ScreenShare,
   VolumeX,
-  Volume1
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -192,9 +190,9 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
 
       <div className="flex-1 grid grid-cols-1 md:grid-cols-10 overflow-hidden">
         {/* Main Content: Video */}
-        <div className="col-span-10 md:col-span-7 flex flex-col relative overflow-hidden">
-            <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+        <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted">
+            <div className="flex-1 relative">
+                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                 {!hasCameraPermission && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
                         <Alert variant="destructive">
@@ -283,7 +281,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             </div>
 
              {/* Footer / Transcription */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none">
                 <div className="flex items-center gap-2">
                     <div className="w-12 h-5 bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground font-bold">Now</div>
                     <p className="text-sm text-white">Your resume is quite impressive. Did you just finish Oxford and now you just...</p>
@@ -396,6 +394,3 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
     </div>
   );
 }
-    
-
-    
