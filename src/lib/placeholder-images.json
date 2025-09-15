@@ -38,52 +38,58 @@
       "imageHint": "green leaves"
     },
     {
-      "id": "sophia-davis-m1",
+      "id": "patrick-achitabwino-m1",
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/201/80/80",
-      "imageHint": "woman face professional"
+      "imageHint": "man face professional"
     },
     {
-      "id": "liam-martinez-m2",
+      "id": "frank-mhango-m2",
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/202/80/80",
       "imageHint": "man face professional"
     },
     {
-      "id": "ava-wilson-m3",
+      "id": "denis-maluwasa-m3",
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/203/80/80",
-      "imageHint": "woman face smiling"
+      "imageHint": "man face smiling"
     },
     {
-      "id": "noah-brown-m4",
+      "id": "gift-banda-m4",
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/204/80/80",
       "imageHint": "man face glasses"
     },
     {
-      "id": "emma-johnson-m5",
+      "id": "chiyanjano-mkandawire-m5",
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/205/80/80",
       "imageHint": "woman face friendly"
     },
     {
-      "id": "oliver-garcia-m6",
+      "id": "wezi-chisale-m6",
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/206/80/80",
-      "imageHint": "man face professional"
+      "imageHint": "woman face professional"
     },
     {
-      "id": "charlotte-rodriguez-m7",
+      "id": "charity-moyo-m7",
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/207/80/80",
       "imageHint": "woman face modern"
     },
     {
-      "id": "james-smith-m8",
+      "id": "fumbani-mwenefumbo-m8",
       "description": "Team member avatar",
       "imageUrl": "https://picsum.photos/seed/208/80/80",
       "imageHint": "man face bearded"
+    },
+    {
+      "id": "rose-kabudula-m9",
+      "description": "Team member avatar",
+      "imageUrl": "https://picsum.photos/seed/209/80/80",
+      "imageHint": "woman professional"
     },
     {
       "id": "john-isner-p1",

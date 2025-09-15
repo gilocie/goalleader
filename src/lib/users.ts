@@ -2,13 +2,14 @@
 import type { ComboboxOption } from "@/components/meetings/multi-select-combobox";
 
 export const allUsers: ComboboxOption[] = [
-    { value: 'sophia-davis-m1', label: 'Sophia Davis' },
-    { value: 'liam-martinez-m2', label: 'Liam Martinez' },
-    { value: 'ava-wilson-m3', label: 'Ava Wilson' },
-    { value: 'noah-brown-m4', label: 'Noah Brown' },
-    { value: 'emma-johnson-m5', label: 'Emma Johnson' },
-    { value: 'oliver-garcia-m6', label: 'Oliver Garcia' },
-    { value: 'charlotte-rodriguez-m7', label: 'Charlotte Rodriguez' },
-    { value: 'james-smith-m8', label: 'James Smith' },
+    { value: 'patrick-achitabwino-m1', label: 'Patrick Achitabwino' },
+    { value: 'frank-mhango-m2', label: 'Frank Mhango' },
+    { value: 'denis-maluwasa-m3', label: 'Denis Maluwasa' },
+    { value: 'gift-banda-m4', label: 'Gift Banda' },
+    { value: 'chiyanjano-mkandawire-m5', label: 'Chiyanjano Mkandawire' },
+    { value: 'wezi-chisale-m6', label: 'Wezi Chisale' },
+    { value: 'charity-moyo-m7', label: 'Charity Moyo' },
+    { value: 'fumbani-mwenefumbo-m8', label: 'Fumbani Mwenefumbo' },
+    { value: 'rose-kabudula-m9', label: 'Rose Kabudula' },
     { value: 'user', label: 'You' },
 ];

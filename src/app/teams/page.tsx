@@ -16,51 +16,57 @@ import { Separator } from '@/components/ui/separator';
 
 const teamMembers = [
   {
-    id: 'sophia-davis-m1',
-    name: 'Sophia Davis',
-    role: 'Lead Developer',
+    id: 'patrick-achitabwino-m1',
+    name: 'Patrick Achitabwino',
+    role: 'Consultant',
     status: 'online',
   },
   {
-    id: 'liam-martinez-m2',
-    name: 'Liam Martinez',
-    role: 'Frontend Developer',
+    id: 'frank-mhango-m2',
+    name: 'Frank Mhango',
+    role: 'Consultant',
     status: 'offline',
   },
   {
-    id: 'ava-wilson-m3',
-    name: 'Ava Wilson',
-    role: 'Backend Developer',
+    id: 'denis-maluwasa-m3',
+    name: 'Denis Maluwasa',
+    role: 'Consultant',
     status: 'online',
   },
   {
-    id: 'noah-brown-m4',
-    name: 'Noah Brown',
-    role: 'UI/UX Designer',
+    id: 'gift-banda-m4',
+    name: 'Gift Banda',
+    role: 'Consultant',
     status: 'online',
   },
   {
-    id: 'emma-johnson-m5',
-    name: 'Emma Johnson',
-    role: 'QA Engineer',
+    id: 'chiyanjano-mkandawire-m5',
+    name: 'Chiyanjano Mkandawire',
+    role: 'Consultant',
     status: 'offline',
   },
   {
-    id: 'oliver-garcia-m6',
-    name: 'Oliver Garcia',
-    role: 'DevOps Engineer',
+    id: 'wezi-chisale-m6',
+    name: 'Wezi Chisale',
+    role: 'Consultant',
     status: 'online',
   },
   {
-    id: 'charlotte-rodriguez-m7',
-    name: 'Charlotte Rodriguez',
-    role: 'Project Manager',
+    id: 'charity-moyo-m7',
+    name: 'Charity Moyo',
+    role: 'Consultant',
     status: 'offline',
   },
   {
-    id: 'james-smith-m8',
-    name: 'James Smith',
-    role: 'Data Scientist',
+    id: 'fumbani-mwenefumbo-m8',
+    name: 'Fumbani Mwenefumbo',
+    role: 'Consultant',
+    status: 'online',
+  },
+  {
+    id: 'rose-kabudula-m9',
+    name: 'Rose Kabudula',
+    role: 'Consultant',
     status: 'online',
   },
 ];
@@ -75,7 +81,7 @@ export default function TeamsPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Our Team</CardTitle>
-              <CardDescription>Engineering department</CardDescription>
+              <CardDescription>Customer Service</CardDescription>
             </div>
             <div className="flex items-center gap-2">
                 <TooltipProvider>
@@ -113,7 +119,7 @@ export default function TeamsPage() {
           </CardHeader>
           <CardContent>
             <TooltipProvider>
-                <ScrollArea className="h-[350px] p-4">
+                <ScrollArea className="h-[400px] p-4">
                     <div
                     className={cn(
                         'transition-all duration-300',

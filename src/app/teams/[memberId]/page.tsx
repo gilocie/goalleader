@@ -10,14 +10,15 @@ import { PerformanceCoach } from '@/components/performance/performance-coach';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const teamMembers = [
-  { id: 'sophia-davis-m1', name: 'Sophia Davis', role: 'Lead Developer', status: 'online' as const },
-  { id: 'liam-martinez-m2', name: 'Liam Martinez', role: 'Frontend Developer', status: 'offline' as const },
-  { id: 'ava-wilson-m3', name: 'Ava Wilson', role: 'Backend Developer', status: 'online' as const },
-  { id: 'noah-brown-m4', name: 'Noah Brown', role: 'UI/UX Designer', status: 'online' as const },
-  { id: 'emma-johnson-m5', name: 'Emma Johnson', role: 'QA Engineer', status: 'offline' as const },
-  { id: 'oliver-garcia-m6', name: 'Oliver Garcia', role: 'DevOps Engineer', status: 'online' as const },
-  { id: 'charlotte-rodriguez-m7', name: 'Charlotte Rodriguez', role: 'Project Manager', status: 'offline' as const },
-  { id: 'james-smith-m8', name: 'James Smith', role: 'Data Scientist', status: 'online' as const },
+  { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const },
+  { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'offline' as const },
+  { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const },
+  { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const },
+  { id: 'chiyanjano-mkandawire-m5', name: 'Chiyanjano Mkandawire', role: 'Consultant', status: 'offline' as const },
+  { id: 'wezi-chisale-m6', name: 'Wezi Chisale', role: 'Consultant', status: 'online' as const },
+  { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'offline' as const },
+  { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const },
+  { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const },
 ];
 
 export default function MemberPerformancePage({ params }: { params: { memberId: string } }) {
