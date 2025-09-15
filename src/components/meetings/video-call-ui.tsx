@@ -173,7 +173,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
   );
 
   return (
-    <div className="flex-1 bg-background flex flex-col h-[calc(100vh-60px)]">
+    <div className="flex-1 bg-background flex flex-col">
         {/* Top Bar */}
         <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
@@ -187,10 +187,10 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             </Button>
         </div>
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-10 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-10">
         {/* Main Content: Video */}
-        <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted">
-            <div className="flex-1 relative">
+        <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted h-[400px] md:h-auto">
+            <div className="flex-1 relative overflow-hidden">
                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                 {!hasCameraPermission && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
@@ -261,26 +261,26 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             </div>
 
             {/* Video Controls */}
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-20">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                     <ScreenShare />
                 </Button>
-                <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
+                <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                     {isMuted ? <MicOff /> : <Mic />}
                 </Button>
-                <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-14 w-14">
+                <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
                     <Phone />
                 </Button>
-                <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
+                <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                     {isVideoOff ? <VideoOff /> : <Video />}
                 </Button>
-                <Button variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                     <Settings />
                 </Button>
             </div>
 
              {/* Footer / Transcription */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10">
                 <div className="flex items-center gap-2">
                     <div className="w-12 h-5 bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground font-bold">Now</div>
                     <p className="text-sm text-white">Your resume is quite impressive. Did you just finish Oxford and now you just...</p>
@@ -289,7 +289,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
         </div>
 
         {/* Chat Panel */}
-        <div className="col-span-10 md:col-span-3 bg-muted/50 border-l flex flex-col h-[350px]">
+        <div className="col-span-10 md:col-span-3 bg-muted/50 border-l flex flex-col">
             <div className="p-4 border-b">
                 <h2 className="font-semibold text-lg">Group Chat</h2>
             </div>
