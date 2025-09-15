@@ -345,23 +345,24 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
                 <VolumeControl />
             </div>
 
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                     <ScreenShare />
                 </Button>
-                <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
+                <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                     {isMuted ? <MicOff /> : <Mic />}
                 </Button>
-                <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-14 w-14">
+                <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
                     <Phone />
                 </Button>
-                <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
+                <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                     {isVideoOff ? <VideoOff /> : <Video />}
                 </Button>
-                <Button variant="ghost" size="icon" className="text-white bg-black/40 hover:bg-white/20 rounded-full">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                     <Settings />
                 </Button>
             </div>
+
 
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none">
                 <div className="flex items-center gap-2">
@@ -400,3 +401,5 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
     </div>
   );
 }
+
+    
