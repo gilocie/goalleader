@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -170,9 +169,9 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             </Button>
           </div>
 
-          <div className="flex-1 grid grid-cols-12 gap-4">
+          <div className="flex-1 grid grid-rows-6 gap-4">
             {/* Main Video */}
-            <div className="col-span-12 md:col-span-10 relative rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
+            <div className="row-span-5 relative rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
               <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
               {!hasCameraPermission && (
                   <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
@@ -195,62 +194,50 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
               )}
 
               {/* Video Controls */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-end gap-2">
-                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm p-2 rounded-full">
-                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                        <ScreenShare />
-                    </Button>
-                    <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                        {isMuted ? <MicOff /> : <Mic />}
-                    </Button>
-                    <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
-                        <Phone />
-                    </Button>
-                    <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                        {isVideoOff ? <VideoOff /> : <Video />}
-                    </Button>
-                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                        <Settings />
-                    </Button>
-                </div>
-                 <Card className="p-2 bg-black/40 backdrop-blur-sm border-none">
-                    <div className="flex flex-col items-center gap-2 h-24">
-                        <Volume2 className="text-white" />
-                        <Slider
-                            defaultValue={[60]}
-                            max={100}
-                            step={1}
-                            orientation="vertical"
-                            className="h-full"
-                        />
-                    </div>
-                </Card>
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/40 backdrop-blur-sm p-2 rounded-full">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                    <ScreenShare />
+                </Button>
+                <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                    {isMuted ? <MicOff /> : <Mic />}
+                </Button>
+                <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
+                    <Phone />
+                </Button>
+                <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                    {isVideoOff ? <VideoOff /> : <Video />}
+                </Button>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                    <Settings />
+                </Button>
               </div>
             </div>
 
             {/* Other Participants */}
-            <ScrollArea className="col-span-12 md:col-span-2">
-              <div className="space-y-4 pr-2">
-                {otherParticipants.map((p) => {
-                    const avatar = PlaceHolderImages.find(img => img.id === p.id);
-                    return (
-                        <Card key={p.id} className="overflow-hidden relative">
-                           <Image src={avatar?.imageUrl || ''} alt={p.name} width={200} height={150} className="w-full object-cover" data-ai-hint={avatar?.imageHint} />
-                            <div className="absolute inset-0 bg-black/30"></div>
-                           <div className="absolute top-2 left-2 text-white text-sm">
-                               <p className="font-semibold">{p.name}</p>
-                               <p className="text-xs">{p.role}</p>
-                           </div>
-                           {p.isSpeaking && (
-                                <div className="absolute bottom-2 right-2 p-1.5 bg-green-500 rounded-full">
-                                    <Mic className="h-3 w-3 text-white" />
-                                </div>
-                           )}
-                        </Card>
-                    )
-                })}
-              </div>
-            </ScrollArea>
+            <div className="row-span-1">
+                <ScrollArea className="h-full">
+                <div className="flex gap-4 pb-2">
+                    {otherParticipants.map((p) => {
+                        const avatar = PlaceHolderImages.find(img => img.id === p.id);
+                        return (
+                            <Card key={p.id} className="overflow-hidden relative min-w-[200px]">
+                            <Image src={avatar?.imageUrl || ''} alt={p.name} width={200} height={112} className="w-full h-full object-cover" data-ai-hint={avatar?.imageHint} />
+                                <div className="absolute inset-0 bg-black/30"></div>
+                            <div className="absolute top-2 left-2 text-white text-sm">
+                                <p className="font-semibold">{p.name}</p>
+                                <p className="text-xs">{p.role}</p>
+                            </div>
+                            {p.isSpeaking && (
+                                    <div className="absolute bottom-2 right-2 p-1.5 bg-green-500 rounded-full">
+                                        <Mic className="h-3 w-3 text-white" />
+                                    </div>
+                            )}
+                            </Card>
+                        )
+                    })}
+                </div>
+                </ScrollArea>
+            </div>
           </div>
         </div>
 
@@ -375,3 +362,4 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
     </div>
   );
 }
+    
