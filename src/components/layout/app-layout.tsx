@@ -11,21 +11,26 @@ import { ThemeProvider } from '@/context/theme-provider';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TimeTracker } from '../dashboard/time-tracker';
 import { ReportsProvider } from '@/context/reports-context';
+import { cn } from '@/lib/utils';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
     const isMobile = useIsMobile();
     const pathname = usePathname();
     const isChatPage = pathname === '/chat';
+    const isMeetingPage = pathname.startsWith('/meetings/');
   
     return (
-      <div className="flex min-h-screen w-full bg-muted/40">
-        <Sidebar />
-        <div className="flex flex-1 flex-col md:pl-[220px] lg:pl-[280px] relative">
+      <div className={cn("flex min-h-screen w-full bg-muted/40", isMeetingPage && 'flex-col')}>
+        {!isMeetingPage && <Sidebar />}
+        <div className={cn(
+            "flex flex-1 flex-col relative", 
+            !isMeetingPage && "md:pl-[220px] lg:pl-[280px]"
+        )}>
           <Header />
           <div className="flex-1 flex flex-col pb-16 md:pb-0">
             <div className="flex-1">{children}</div>
-            {!isChatPage && <Footer />}
+            {!isChatPage && !isMeetingPage && <Footer />}
           </div>
           {isMobile && isActive && <TimeTracker isMobileFooter={true} />}
         </div>

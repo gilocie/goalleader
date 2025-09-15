@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -15,6 +16,7 @@ import {
   Volume2,
   MessageSquare,
   Send,
+  ScreenShare,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -155,9 +157,9 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
 
   return (
     <div className="flex-1 bg-background flex flex-col h-[calc(100vh-60px)]">
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-10 lg:grid-cols-12 overflow-hidden">
+      <div className="flex-1 grid grid-cols-10 overflow-hidden">
         {/* Main Content: Video + Participants */}
-        <div className="col-span-1 md:col-span-7 lg:col-span-9 flex flex-col p-4">
+        <div className="col-span-10 md:col-span-7 flex flex-col p-4">
           <div className="flex items-center gap-2 mb-4">
             <Users size={20} />
             <span className="font-medium">People attending the call</span>
@@ -168,9 +170,9 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             </Button>
           </div>
 
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="flex-1 grid grid-cols-12 gap-4">
             {/* Main Video */}
-            <div className="lg:col-span-10 relative rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
+            <div className="col-span-12 md:col-span-10 relative rounded-2xl overflow-hidden bg-muted flex items-center justify-center">
               <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
               {!hasCameraPermission && (
                   <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
@@ -196,7 +198,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-end gap-2">
                 <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm p-2 rounded-full">
                     <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                        <Maximize />
+                        <ScreenShare />
                     </Button>
                     <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white hover:bg-white/20">
                         {isMuted ? <MicOff /> : <Mic />}
@@ -227,7 +229,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             </div>
 
             {/* Other Participants */}
-            <ScrollArea className="lg:col-span-2">
+            <ScrollArea className="col-span-12 md:col-span-2">
               <div className="space-y-4 pr-2">
                 {otherParticipants.map((p) => {
                     const avatar = PlaceHolderImages.find(img => img.id === p.id);
@@ -253,7 +255,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
         </div>
 
         {/* Chat Panel */}
-        <div className="col-span-1 md:col-span-3 lg:col-span-3 bg-muted/50 border-l flex flex-col">
+        <div className="col-span-10 md:col-span-3 bg-muted/50 border-l flex flex-col">
             <div className="p-4 border-b">
                 <h2 className="font-semibold text-lg">Group Chat</h2>
             </div>
