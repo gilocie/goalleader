@@ -101,7 +101,8 @@ const messages = [
   },
 ];
 
-const ParticipantsList = () => (
+
+const ParticipantsList = ({ participants }: { participants: any[] }) => (
     <div className="p-4 space-y-4">
         {participants.map(p => {
                 const avatar = PlaceHolderImages.find(img => img.id === p.id);
@@ -127,7 +128,7 @@ const ParticipantsList = () => (
     </div>
 );
 
-const MessagesList = () => {
+const MessagesList = ({ messages, participants }: { messages: any[], participants: any[]}) => {
     const [isTyping, setIsTyping] = useState(true);
     return (
         <div className="p-4 space-y-4">
@@ -395,7 +396,11 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
                 </div>
             </div>
             <ScrollArea className="flex-1">
-                {activeTab === 'participants' ? <ParticipantsList /> : <MessagesList />}
+               {activeTab === 'messages' ? (
+                <MessagesList messages={messages} participants={participants} />
+                ) : (
+                <ParticipantsList participants={participants} />
+                )}
             </ScrollArea>
            <MessageInput />
         </div>
