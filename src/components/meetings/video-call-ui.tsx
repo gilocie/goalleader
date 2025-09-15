@@ -289,7 +289,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
         </div>
 
         {/* Chat Panel */}
-        <div className="col-span-10 md:col-span-3 bg-muted/50 border-l flex flex-col">
+        <div className="col-span-10 md:col-span-3 bg-muted/50 border-l flex flex-col h-[350px]">
             <div className="p-4 border-b">
                 <h2 className="font-semibold text-lg">Group Chat</h2>
             </div>
