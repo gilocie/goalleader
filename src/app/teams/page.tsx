@@ -113,7 +113,7 @@ export default function TeamsPage() {
           </CardHeader>
           <CardContent>
             <TooltipProvider>
-                <ScrollArea className="h-[350px] p-4">
+                <ScrollArea className="h-[400px] p-4">
                     <div
                     className={cn(
                         'transition-all duration-300',
