@@ -79,14 +79,16 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
+  const animationFrameId = useRef<number>();
 
   const { toast } = useToast();
   const router = useRouter();
-
+  
   useEffect(() => {
+    // Generate a random participant count on the client-side
     setParticipantCount(Math.floor(Math.random() * 20) + 5);
   }, []);
+
 
   // Check connection quality
   useEffect(() => {
@@ -111,22 +113,18 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   }, []);
 
   const stopCurrentStream = useCallback(() => {
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+    }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
-
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
-      analyserRef.current = null;
     }
-
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-
+    analyserRef.current = null;
     setAudioLevel(0);
   }, []);
 
@@ -151,37 +149,38 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
       const audioTrack = stream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !isAudioMuted;
-        if (!isAudioMuted) {
-          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-          const analyser = audioCtx.createAnalyser();
-          analyser.fftSize = 256;
-          const source = audioCtx.createMediaStreamSource(stream);
-          source.connect(analyser);
-
-          audioContextRef.current = audioCtx;
-          analyserRef.current = analyser;
-
-          const processAudioLoop = () => {
-            if (analyserRef.current) {
-              const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-              analyserRef.current.getByteTimeDomainData(dataArray);
-              let sumSquares = 0.0;
-              for (const amplitude of dataArray) {
-                const val = (amplitude - 128) / 128;
-                sumSquares += val * val;
-              }
-              const rms = Math.sqrt(sumSquares / dataArray.length);
-              setAudioLevel(rms * 5);
-            }
-            animationFrameRef.current = requestAnimationFrame(processAudioLoop);
-          };
-          animationFrameRef.current = requestAnimationFrame(processAudioLoop);
-        }
       }
-
+      
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !isVideoOff;
+      }
+      
+      // Start audio analysis if not muted
+      if (!isAudioMuted) {
+        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        audioContextRef.current = audioCtx;
+        analyserRef.current = analyser;
+
+        const processAudio = () => {
+          if (!analyserRef.current) return;
+          const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+          analyserRef.current.getByteTimeDomainData(dataArray);
+          let sumSquares = 0.0;
+          for (const amplitude of dataArray) {
+            const val = (amplitude - 128) / 128;
+            sumSquares += val * val;
+          }
+          const rms = Math.sqrt(sumSquares / dataArray.length);
+          setAudioLevel(rms * 5);
+          animationFrameId.current = requestAnimationFrame(processAudio);
+        };
+        animationFrameId.current = requestAnimationFrame(processAudio);
       }
     } catch (error) {
       console.error('Error accessing media devices:', error);
@@ -204,14 +203,13 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
         setAudioDevices(audio);
         setVideoDevices(video);
 
-        const audioId = audio[0]?.deviceId;
-        const videoId = video[0]?.deviceId;
+        const defaultAudioId = audio[0]?.deviceId;
+        const defaultVideoId = video[0]?.deviceId;
         
-        setSelectedAudioDevice(audioId || '');
-        setSelectedVideoDevice(videoId || '');
-
-        await startMediaStream(audioId, videoId);
-
+        setSelectedAudioDevice(defaultAudioId || '');
+        setSelectedVideoDevice(defaultVideoId || '');
+        
+        await startMediaStream(defaultAudioId, defaultVideoId);
       } catch (err) {
         console.error('Permission denied or no devices found:', err);
         setHasCameraPermission(false);
@@ -224,27 +222,14 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
     };
   }, [startMediaStream, stopCurrentStream]);
 
-  const toggleAudio = () => {
-    const newMuted = !isAudioMuted;
-    setIsAudioMuted(newMuted);
-    const audioTrack = streamRef.current?.getAudioTracks()[0];
-    if (audioTrack) {
-      audioTrack.enabled = !newMuted;
-    }
-    // Restart stream to handle audio analyser on unmute
-    if (!newMuted) {
-      startMediaStream(selectedAudioDevice, selectedVideoDevice);
-    }
-  };
-  
-  const toggleVideo = () => {
-    const newVideoOff = !isVideoOff;
-    setIsVideoOff(newVideoOff);
-    const videoTrack = streamRef.current?.getVideoTracks()[0];
-    if (videoTrack) {
-      videoTrack.enabled = !newVideoOff;
-    }
-  };
+
+  const toggleAudio = () => setIsAudioMuted(!isAudioMuted);
+  const toggleVideo = () => setIsVideoOff(!isVideoOff);
+
+  useEffect(() => {
+    startMediaStream(selectedAudioDevice, selectedVideoDevice);
+  }, [isAudioMuted, isVideoOff, selectedAudioDevice, selectedVideoDevice, startMediaStream]);
+
 
   const checklist = [
     { label: 'Camera working', isChecked: hasCameraPermission === true && !isVideoOff },
@@ -255,13 +240,11 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-auto py-10">
-      <div className="h-full flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-auto flex items-center justify-center p-4">
         <div className="w-full max-w-7xl grid lg:grid-cols-[1fr,400px] gap-6">
           {/* Left side - Video Preview */}
           <div className="space-y-4">
-            {/* Video Preview Card */}
-            <Card className="relative overflow-hidden bg-card/50 backdrop-blur-xl border-border/50">
+             <Card className="relative overflow-hidden bg-card/50 backdrop-blur-xl border-border/50">
                <div className="absolute top-0 left-0 right-0 p-4 z-10 flex items-center justify-between gap-4 bg-gradient-to-b from-black/50 to-transparent">
                   <div className="flex items-center gap-2">
                     <Button onClick={() => router.back()} variant="outline" size="icon" className="rounded-full bg-background/20 hover:bg-background/40 border-0 text-white">
@@ -272,9 +255,12 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                         <Badge variant="outline" className="bg-background/20 text-white/90 border-0 text-xs">Design</Badge>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
-                    <Users className="w-3 h-3 mr-1" />
-                    {participantCount} waiting
+                   <Badge className="bg-destructive/90 text-destructive-foreground border-0">
+                    <span className="relative flex h-2 w-2 mr-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                    </span>
+                    PREVIEW
                   </Badge>
               </div>
 
@@ -304,14 +290,11 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                   />
                 )}
 
-                {/* Live indicator */}
-                 <div className="absolute top-5 left-5 pt-16">
-                  <Badge className="bg-destructive/90 text-destructive-foreground border-0 animate-pulse">
-                    <span className="relative flex h-2 w-2 mr-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                    </span>
-                    PREVIEW
+                {/* Participants count */}
+                <div className="absolute top-5 right-5 pt-16">
+                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
+                    <Users className="w-3 h-3 mr-1" />
+                    {participantCount} waiting
                   </Badge>
                 </div>
 
@@ -437,10 +420,9 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                     });
                     router.push(`/meetings/${meetingId}`);
                   }}
-                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-accent text-primary-foreground hover:from-primary/90 hover:to-accent/90 transition-opacity"
+                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 transition-opacity"
                   disabled={!userName.trim()}
                 >
-                  <Monitor className="mr-2 h-5 w-5" />
                   Join Meeting
                 </Button>
               </div>
@@ -534,7 +516,6 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
             </Card>
           </div>
         </div>
-      </div>
     </div>
   );
 }
