@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -16,6 +17,7 @@ import {
   Sparkles,
   FlipHorizontal,
   ChevronLeft,
+  Volume2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,11 +79,11 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationFrameId = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
 
   const { toast } = useToast();
   const router = useRouter();
-
+  
   useEffect(() => {
     setParticipantCount(Math.floor(Math.random() * 20) + 5);
   }, []);
@@ -91,12 +93,13 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
     const checkConnection = async () => {
       try {
         const startTime = performance.now();
-        await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
+        // Use a more reliable endpoint that allows CORS for timing
+        await fetch('https://picsum.photos/1', { mode: 'cors' });
         const endTime = performance.now();
         const latency = endTime - startTime;
         
-        if (latency < 100) setConnectionQuality('good');
-        else if (latency < 300) setConnectionQuality('fair');
+        if (latency < 150) setConnectionQuality('good');
+        else if (latency < 400) setConnectionQuality('fair');
         else setConnectionQuality('poor');
       } catch {
         setConnectionQuality('poor');
@@ -109,14 +112,15 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   }, []);
 
   const stopCurrentStream = useCallback(() => {
-    if (animationFrameId.current) {
-      cancelAnimationFrame(animationFrameId.current);
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
-    if (audioContextRef.current) {
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
     }
@@ -139,13 +143,8 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         if (videoRef.current.paused) {
-          videoRef.current.play().catch(e => console.error("Video play failed", e));
+           videoRef.current.play().catch(e => console.error("Video play failed", e));
         }
-      }
-
-      const audioTrack = stream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !isAudioMuted;
       }
       
       const videoTrack = stream.getVideoTracks()[0];
@@ -155,13 +154,12 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
       
       if (!isAudioMuted) {
         const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioContextRef.current = audioCtx;
         const analyser = audioCtx.createAnalyser();
         analyser.fftSize = 256;
+        analyserRef.current = analyser;
         const source = audioCtx.createMediaStreamSource(stream);
         source.connect(analyser);
-
-        audioContextRef.current = audioCtx;
-        analyserRef.current = analyser;
 
         const processAudio = () => {
           if (!analyserRef.current) return;
@@ -174,10 +172,16 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
           }
           const rms = Math.sqrt(sumSquares / dataArray.length);
           setAudioLevel(rms * 5);
-          animationFrameId.current = requestAnimationFrame(processAudio);
+          animationFrameRef.current = requestAnimationFrame(processAudio);
         };
-        animationFrameId.current = requestAnimationFrame(processAudio);
+        animationFrameRef.current = requestAnimationFrame(processAudio);
       }
+      
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !isAudioMuted;
+      }
+
     } catch (error) {
       console.error('Error accessing media devices:', error);
       setHasCameraPermission(false);
@@ -188,6 +192,7 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
       });
     }
   }, [stopCurrentStream, isAudioMuted, isVideoOff, toast]);
+
 
   useEffect(() => {
     const initializeMedia = async () => {
@@ -202,8 +207,8 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
         const defaultAudioId = audio[0]?.deviceId;
         const defaultVideoId = video[0]?.deviceId;
         
-        setSelectedAudioDevice(defaultAudioId || '');
-        setSelectedVideoDevice(defaultVideoId || '');
+        setSelectedAudioDevice(prev => prev || defaultAudioId || '');
+        setSelectedVideoDevice(prev => prev || defaultVideoId || '');
         
         await startMediaStream(defaultAudioId, defaultVideoId);
       } catch (err) {
