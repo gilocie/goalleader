@@ -28,8 +28,8 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
             !isMeetingPage && "md:pl-[220px] lg:pl-[280px]"
         )}>
           <Header />
-          <div className="flex-1 flex flex-col pb-16 md:pb-0">
-            <div className="flex-1">{children}</div>
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1 pb-16 md:pb-0">{children}</div>
             {!isChatPage && !isMeetingPage && <Footer />}
           </div>
           {isMobile && isActive && <TimeTracker isMobileFooter={true} />}
