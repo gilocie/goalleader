@@ -158,7 +158,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange }: GenerateContentD
                           </CardHeader>
                           <CardContent className="space-y-2">
                             <p className="font-semibold">{suggestion.blogTitle}</p>
-                            <div className="prose prose-sm text-muted-foreground max-w-none prose-headings:font-semibold prose-headings:text-card-foreground">
+                            <div className="prose prose-sm text-muted-foreground max-w-none prose-headings:font-semibold prose-headings:text-card-foreground prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-h1:mb-2 prose-h2:mb-2 prose-h3:mb-2 prose-h1:mt-4 prose-h2:mt-4 prose-h3:mt-4">
                                 <ReactMarkdown>{suggestion.blogOutline}</ReactMarkdown>
                             </div>
                           </CardContent>
