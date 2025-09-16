@@ -141,11 +141,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
 
   const getDevices = useCallback(async () => {
     try {
-        // Ensure permissions are requested before enumerating devices
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        // We can stop these tracks immediately as they are only for permission granting
-        stream.getTracks().forEach(track => track.stop());
-
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audio = devices.filter(d => d.kind === 'audioinput');
         const video = devices.filter(d => d.kind === 'videoinput');
@@ -153,20 +148,19 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         setAudioDevices(audio);
         setVideoDevices(video);
 
-        const currentAudioDevice = audio.length > 0 ? audio[0].deviceId : '';
-        const currentVideoDevice = video.length > 0 ? video[0].deviceId : '';
-
+        // Don't auto-select if already selected
         if (audio.length > 0 && !selectedAudioDevice) {
-            setSelectedAudioDevice(currentAudioDevice);
+            setSelectedAudioDevice(audio[0].deviceId);
         }
         if (video.length > 0 && !selectedVideoDevice) {
-            setSelectedVideoDevice(currentVideoDevice);
+            setSelectedVideoDevice(video[0].deviceId);
         }
 
-        getMediaStream(selectedAudioDevice || currentAudioDevice, selectedVideoDevice || currentVideoDevice);
-        setHasCameraPermission(true);
+        // Trigger stream with initial devices
+        getMediaStream(selectedAudioDevice || audio[0]?.deviceId, selectedVideoDevice || video[0]?.deviceId);
+
     } catch (err) {
-        console.error('Could not enumerate devices or get permissions', err);
+        console.error('Could not enumerate devices', err);
         setHasCameraPermission(false);
         toast({
             variant: 'destructive',
@@ -176,8 +170,26 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     }
   }, [getMediaStream, selectedAudioDevice, selectedVideoDevice, toast]);
 
-  useEffect(() => {
-    getDevices();
+   useEffect(() => {
+    const initPermissions = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+            setHasCameraPermission(true);
+            getDevices(); // Now enumerate devices
+            stream.getTracks().forEach(track => track.stop()); // Stop the initial permission stream
+        } catch (err) {
+            console.error('Permission denied:', err);
+            setHasCameraPermission(false);
+            toast({
+                variant: 'destructive',
+                title: 'Media Access Denied',
+                description: 'Please enable camera and microphone permissions in your browser settings.',
+            });
+        }
+    };
+    
+    initPermissions();
+
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -193,7 +205,8 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   }, []);
 
   useEffect(() => {
-    if (selectedAudioDevice && selectedVideoDevice) {
+    // This effect runs when device selection changes
+    if (selectedAudioDevice || selectedVideoDevice) {
         getMediaStream(selectedAudioDevice, selectedVideoDevice);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -237,7 +250,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   
   const VolumeControl = () => (
     <div className="flex flex-col items-center gap-2 bg-black/40 backdrop-blur-sm p-3 rounded-full">
-        <Volume2 className="text-white" />
         <Slider
             defaultValue={[0]}
             value={[isAudioMuted ? 0 : audioLevel * 100]}
@@ -246,7 +258,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
             orientation="vertical"
             className="h-20"
         />
-        <VolumeX className="text-white" />
     </div>
   );
 
@@ -355,3 +366,5 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     </div>
   );
 }
+
+    
