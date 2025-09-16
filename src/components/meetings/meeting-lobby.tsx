@@ -85,6 +85,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
 
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
+            // Respect the user's choice if they've turned it off, otherwise default to on
             videoTrack.enabled = !isVideoOff;
         }
 
@@ -104,7 +105,9 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   const getDevices = useCallback(async () => {
     try {
         // We need to request permission before we can enumerate devices.
-        await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        // This will also trigger the permission prompt.
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audio = devices.filter(d => d.kind === 'audioinput');
         const video = devices.filter(d => d.kind === 'videoinput');
@@ -118,19 +121,39 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         if (video.length > 0 && !selectedVideoDevice) {
             setSelectedVideoDevice(video[0].deviceId);
         }
+        
+        // We got the stream, so permission is granted.
+        setHasCameraPermission(true);
+
+        // We already have the stream, let's use it and then close it.
+        if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+        }
+        
+        // Stop the initial tracks, getMediaStream will be called later with specific devices
+        stream.getTracks().forEach(track => track.stop());
+
+
     } catch (err) {
         console.error('Could not enumerate devices or get permissions', err);
         setHasCameraPermission(false);
+        toast({
+            variant: 'destructive',
+            title: 'Media Access Denied',
+            description: 'Please enable camera and microphone permissions.',
+        });
     }
-  }, []);
+  }, [selectedAudioDevice, selectedVideoDevice, toast]);
 
 
   useEffect(() => {
     getDevices();
-  }, [getDevices]);
+  }, []);
 
   useEffect(() => {
-    if (selectedVideoDevice) { // We can start stream once we have a video device
+    // Only get the stream if we have devices selected.
+    // This prevents trying to get a stream before device enumeration is complete.
+    if (selectedAudioDevice && selectedVideoDevice) {
         getMediaStream(selectedAudioDevice, selectedVideoDevice);
     }
 
@@ -143,26 +166,24 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   }, [selectedAudioDevice, selectedVideoDevice, getMediaStream]);
   
   const toggleAudio = () => {
+    const newIsMuted = !isAudioMuted;
+    setIsAudioMuted(newIsMuted);
     if (streamRef.current) {
         const audioTrack = streamRef.current.getAudioTracks()[0];
         if (audioTrack) {
-            audioTrack.enabled = !audioTrack.enabled;
-            setIsAudioMuted(!audioTrack.enabled);
+            audioTrack.enabled = !newIsMuted;
         }
-    } else {
-        setIsAudioMuted(prev => !prev);
     }
   };
 
   const toggleVideo = () => {
+    const newIsVideoOff = !isVideoOff;
+    setIsVideoOff(newIsVideoOff);
     if (streamRef.current) {
         const videoTrack = streamRef.current.getVideoTracks()[0];
         if (videoTrack) {
-            videoTrack.enabled = !videoTrack.enabled;
-            setIsVideoOff(!videoTrack.enabled);
+            videoTrack.enabled = !newIsVideoOff;
         }
-    } else {
-        setIsVideoOff(prev => !prev);
     }
   };
 
@@ -172,25 +193,28 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   };
 
   const VideoPreview = () => {
-    if (hasCameraPermission === false || isVideoOff) {
+    // Show avatar if video is off or permission is explicitly denied
+    if (isVideoOff || hasCameraPermission === false) {
       return (
         <div className="bg-gray-900 aspect-video rounded-md flex flex-col items-center justify-center text-white">
             <Avatar className="h-24 w-24">
                 <AvatarImage src={userAvatar?.imageUrl} alt={userName} data-ai-hint={userAvatar?.imageHint} />
                 <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
             </Avatar>
-           {hasCameraPermission === false ? (
+           {hasCameraPermission === false && (
              <Alert variant="destructive" className="w-auto mt-4">
                 <AlertTitle>Camera Access Required</AlertTitle>
                 <AlertDescription>
                     Please allow camera access to see your video.
                 </AlertDescription>
             </Alert>
-           ) : <p className="mt-4">Your camera is off</p>}
+           )}
+           {hasCameraPermission && isVideoOff && <p className="mt-4">Your camera is off</p>}
         </div>
       );
     }
     
+    // Otherwise, show the video feed
     return <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline />;
   };
 
