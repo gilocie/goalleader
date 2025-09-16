@@ -15,9 +15,10 @@ import {
   X,
   Sparkles,
   FlipHorizontal,
+  Bot,
   Volume2,
   ChevronLeft,
-  Bot,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +41,7 @@ import { Card } from './ui/card';
 import { Progress } from '../ui/progress';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from '@/components/ui/alert-dialog';
-import { Loader2 } from 'lucide-react';
+
 
 interface MediaDevice {
   deviceId: string;
@@ -239,6 +240,7 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
         const audioTrack = streamRef.current.getAudioTracks()[0];
         if (audioTrack) audioTrack.enabled = !isAudioMuted;
     }
+    // Restart stream to handle audio analyser
     startMediaStream(selectedAudioDevice, selectedVideoDevice);
   }, [isAudioMuted, selectedAudioDevice, selectedVideoDevice, startMediaStream]);
 
@@ -309,18 +311,6 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                       <p className="text-muted-foreground">
                         {hasCameraPermission === false ? 'Camera access required' : 'Camera is off'}
                       </p>
-                       <Card className="p-3 bg-background/20 backdrop-blur-sm border-border/20 max-w-sm">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                              <Bot className="h-6 w-6 text-primary" />
-                              <div>
-                                <p className="font-semibold text-sm">GoalLeader AI</p>
-                                <p className="text-xs text-muted-foreground">Join as a participant</p>
-                              </div>
-                            </div>
-                            <Switch checked={allowAi} onCheckedChange={setAllowAi} />
-                          </div>
-                        </Card>
                     </div>
                   ) : (
                     <video
@@ -434,6 +424,19 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                   </div>
                 </Card>
               )}
+
+              <Card className="p-3 bg-card/50 backdrop-blur-xl border-border/50">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <Bot className="h-6 w-6 text-primary" />
+                    <div>
+                      <p className="font-semibold text-sm">GoalLeader AI</p>
+                      <p className="text-xs text-muted-foreground">Join as a participant</p>
+                    </div>
+                  </div>
+                  <Switch checked={allowAi} onCheckedChange={setAllowAi} />
+                </div>
+              </Card>
             </div>
 
             {/* Right side - Controls & Info */}
