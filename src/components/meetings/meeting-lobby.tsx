@@ -16,12 +16,13 @@ import {
   Sparkles,
   FlipHorizontal,
   Monitor,
-  Volume2
+  Volume2,
+  ChevronLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/meetings/ui/badge';
+import { Badge } from './ui/badge';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -32,11 +33,11 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/meetings/ui/avatar';
-import { Switch } from '@/components/meetings/ui/switch';
-import { Label } from '@/components/meetings/ui/label';
-import { Card } from '@/components/meetings/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback } from './ui/avatar';
+import { Switch } from './ui/switch';
+import { Label } from './ui/label';
+import { Card } from './ui/card';
+import { Progress } from '../ui/progress';
 
 interface MediaDevice {
   deviceId: string;
@@ -44,21 +45,21 @@ interface MediaDevice {
 }
 
 const AudioVisualizer = ({ audioLevel }: { audioLevel: number }) => (
-    <div className="flex items-center gap-1 h-8">
-        {[...Array(12)].map((_, i) => (
-        <div
-            key={i}
-            className="w-1 bg-gradient-to-t from-primary to-accent rounded-full transition-all duration-100"
-            style={{
-            height: `${Math.max(8, audioLevel * 100 * (1 - i * 0.05))}%`,
-            opacity: audioLevel > i * 0.08 ? 1 : 0.3,
-            }}
-        />
-        ))}
-    </div>
+  <div className="flex items-center gap-1 h-8">
+    {[...Array(12)].map((_, i) => (
+      <div
+        key={i}
+        className="w-1 bg-gradient-to-t from-primary to-accent rounded-full transition-all duration-100"
+        style={{
+          height: `${Math.max(8, audioLevel * 100 * (1 - i * 0.05))}%`,
+          opacity: audioLevel > i * 0.08 ? 1 : 0.3,
+        }}
+      />
+    ))}
+  </div>
 );
 
-export function MeetingLobby() {
+export function MeetingLobby({ meetingId }: { meetingId: string }) {
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
@@ -66,7 +67,7 @@ export function MeetingLobby() {
   const [isBlurred, setIsBlurred] = useState(false);
   const [isMirrored, setIsMirrored] = useState(true);
   const [connectionQuality, setConnectionQuality] = useState<'good' | 'fair' | 'poor'>('good');
-  const [participantCount] = useState(Math.floor(Math.random() * 20) + 5);
+  const [participantCount, setParticipantCount] = useState(0);
 
   const [audioDevices, setAudioDevices] = useState<MediaDevice[]>([]);
   const [videoDevices, setVideoDevices] = useState<MediaDevice[]>([]);
@@ -83,6 +84,11 @@ export function MeetingLobby() {
   const { toast } = useToast();
   const router = useRouter();
 
+  // FIX: Hydration Mismatch
+  useEffect(() => {
+    setParticipantCount(Math.floor(Math.random() * 20) + 5);
+  }, []);
+
   // Check connection quality
   useEffect(() => {
     const checkConnection = async () => {
@@ -91,7 +97,7 @@ export function MeetingLobby() {
         await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
         const endTime = performance.now();
         const latency = endTime - startTime;
-        
+
         if (latency < 100) setConnectionQuality('good');
         else if (latency < 300) setConnectionQuality('fair');
         else setConnectionQuality('poor');
@@ -99,7 +105,7 @@ export function MeetingLobby() {
         setConnectionQuality('poor');
       }
     };
-    
+
     checkConnection();
     const interval = setInterval(checkConnection, 5000);
     return () => clearInterval(interval);
@@ -115,9 +121,9 @@ export function MeetingLobby() {
       animationFrameRef.current = null;
     }
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
+      audioContextRef.current.close();
     }
+    audioContextRef.current = null;
     analyserRef.current = null;
     setAudioLevel(0);
   }, []);
@@ -227,7 +233,7 @@ export function MeetingLobby() {
     }
     // Restart stream to handle audio analyser
     startMediaStream(selectedAudioDevice, selectedVideoDevice);
-  }, [isAudioMuted]);
+  }, [isAudioMuted, selectedAudioDevice, selectedVideoDevice, startMediaStream]);
 
   useEffect(() => {
     if(streamRef.current) {
@@ -236,14 +242,9 @@ export function MeetingLobby() {
     }
   }, [isVideoOff]);
 
-  useEffect(() => {
-      startMediaStream(selectedAudioDevice, selectedVideoDevice);
-  }, [selectedAudioDevice, selectedVideoDevice]);
-
-
   const checklist = [
-    { label: 'Camera working', isChecked: hasCameraPermission && !isVideoOff },
-    { label: 'Microphone ready', isChecked: hasCameraPermission && !isAudioMuted },
+    { label: 'Camera working', isChecked: hasCameraPermission === true && !isVideoOff },
+    { label: 'Microphone ready', isChecked: hasCameraPermission === true && !isAudioMuted },
     { label: 'Good lighting', isChecked: true },
     { label: 'Professional background', isChecked: isBlurred || isVideoOff },
     { label: 'Connection stable', isChecked: connectionQuality !== 'poor' },
@@ -251,20 +252,19 @@ export function MeetingLobby() {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-hidden">
-      {/* Background gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 pointer-events-none" />
-      
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
+        <Button onClick={() => router.back()} variant="outline" size="icon" className="rounded-full">
+            <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <div>
+            <h1 className="font-semibold text-lg">Job interview for Senior UX Engineer</h1>
+            <Badge variant="outline">Design</Badge>
+        </div>
+      </div>
       <div className="h-full flex items-center justify-center p-4">
         <div className="w-full max-w-7xl grid lg:grid-cols-[1fr,400px] gap-6">
           {/* Left side - Video Preview */}
           <div className="space-y-4">
-            <div className="text-center lg:text-left">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Get Ready to Join
-              </h1>
-              <p className="text-muted-foreground mt-2">Prepare your setup for a professional meeting experience</p>
-            </div>
-
             {/* Video Preview Card */}
             <Card className="relative overflow-hidden bg-card/50 backdrop-blur-xl border-border/50">
               <div className="aspect-video lg:aspect-video md:aspect-[4/3] sm:aspect-square relative min-h-[300px] md:min-h-[400px]">
@@ -432,6 +432,7 @@ export function MeetingLobby() {
                       title: 'Joining Meeting',
                       description: 'You would be redirected to the meeting room.',
                     });
+                    router.push(`/meetings/${meetingId}`);
                   }}
                   className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
                   disabled={!userName.trim()}
