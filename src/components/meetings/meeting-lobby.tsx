@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -257,14 +258,20 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
           <div className="space-y-4">
             {/* Video Preview Card */}
             <Card className="relative overflow-hidden bg-card/50 backdrop-blur-xl border-border/50">
-               <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
-                  <Button onClick={() => router.back()} variant="outline" size="icon" className="rounded-full">
-                      <ChevronLeft className="h-5 w-5" />
-                  </Button>
-                  <div>
-                      <h1 className="font-semibold text-lg">Job interview for Senior UX Engineer</h1>
-                      <Badge variant="outline">Design</Badge>
+               <div className="absolute top-0 left-0 right-0 p-4 z-10 flex items-center justify-between gap-4 bg-gradient-to-b from-black/50 to-transparent">
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => router.back()} variant="outline" size="icon" className="rounded-full bg-background/20 hover:bg-background/40 border-0 text-white">
+                        <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <div>
+                        <h1 className="font-semibold text-lg text-white shadow-black/50 [text-shadow:0_1px_2px_var(--tw-shadow-color)]">Job interview for Senior UX Engineer</h1>
+                        <Badge variant="outline" className="bg-background/20 text-white/90 border-0 text-xs">Design</Badge>
+                    </div>
                   </div>
+                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
+                    <Users className="w-3 h-3 mr-1" />
+                    {participantCount} waiting
+                  </Badge>
               </div>
 
               <div className="aspect-video lg:aspect-video md:aspect-[4/3] sm:aspect-square relative min-h-[300px] md:min-h-[400px]">
@@ -294,7 +301,7 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                 )}
 
                 {/* Live indicator */}
-                <div className="absolute top-4 left-4">
+                 <div className="absolute top-5 left-5 pt-16">
                   <Badge className="bg-destructive/90 text-destructive-foreground border-0 animate-pulse">
                     <span className="relative flex h-2 w-2 mr-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
@@ -304,13 +311,6 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                   </Badge>
                 </div>
 
-                {/* Participants count */}
-                <div className="absolute top-4 right-4">
-                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
-                    <Users className="w-3 h-3 mr-1" />
-                    {participantCount} waiting
-                  </Badge>
-                </div>
 
                 {/* Controls overlay */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
