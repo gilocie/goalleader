@@ -19,6 +19,11 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
+    const isLobbyPage = pathname.includes('/lobby');
+
+    if (isLobbyPage) {
+      return <>{children}</>;
+    }
   
     return (
       <div className={cn("flex min-h-screen w-full bg-muted/40", isMeetingPage && 'flex-col')}>

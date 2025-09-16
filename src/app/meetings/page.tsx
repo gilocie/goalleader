@@ -17,11 +17,13 @@ const upcomingMeetings = [
     title: 'Meeting with Arc Company',
     time: '02:00 pm - 04:00 pm',
     date: '2024-07-29',
+    id: 'sample-meeting-1',
   },
   {
     title: 'Project Alpha Deadline',
     time: 'Due: 25th July',
     date: '2024-07-25',
+    id: 'sample-meeting-2',
   },
 ];
 
@@ -45,11 +47,13 @@ const myMeetings = [
         title: 'Weekly Sync',
         time: '10:00 AM - 10:30 AM',
         date: '2024-08-01',
+        id: 'sample-meeting-3',
     },
     {
         title: 'Client Demo',
         time: '03:00 PM - 04:00 PM',
         date: '2024-08-02',
+        id: 'sample-meeting-4',
     },
 ];
 
@@ -76,12 +80,12 @@ const aiSuggestedMeetings = [
 
 export type AISuggestedMeeting = (typeof aiSuggestedMeetings)[0];
 
-const UpcomingMeetingCard = ({ title, time, date }: { title: string; time: string; date: string }) => (
+const UpcomingMeetingCard = ({ title, time, date, id }: { title: string; time: string; date: string, id: string }) => (
     <Card className="shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
             <p className="font-semibold text-lg leading-none">{title}</p>
             <Button asChild className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-500/90 hover:to-indigo-600/90">
-                <NextLink href="/meetings/sample-meeting">
+                <NextLink href={`/meetings/${id}/lobby`}>
                     <Video className="mr-2 h-4 w-4" /> Join Meeting
                 </NextLink>
             </Button>
@@ -93,7 +97,7 @@ const UpcomingMeetingCard = ({ title, time, date }: { title: string; time: strin
     </Card>
 );
 
-const MyMeetingCard = ({ title, time, date }: { title: string; time: string; date: string }) => (
+const MyMeetingCard = ({ title, time, date, id }: { title: string; time: string; date: string, id: string }) => (
     <Card className="shadow-md hover:shadow-lg transition-shadow relative">
          <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -114,7 +118,7 @@ const MyMeetingCard = ({ title, time, date }: { title: string; time: string; dat
         <CardContent className="p-6 flex flex-col items-center text-center space-y-4 pt-12">
             <p className="font-semibold text-lg leading-none">{title}</p>
             <Button asChild className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
-                 <NextLink href="/meetings/sample-meeting">
+                 <NextLink href={`/meetings/${id}/lobby`}>
                     <Video className="mr-2 h-4 w-4" /> Start Meeting
                 </NextLink>
             </Button>
