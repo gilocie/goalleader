@@ -182,16 +182,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen text-white p-4 bg-gradient-to-br from-gray-900 to-gray-800">
-        <Button 
-            onClick={() => router.back()} 
-            variant="ghost" 
-            size="icon" 
-            className="absolute top-4 left-4 text-white hover:bg-gray-700 rounded-full h-10 w-10"
-        >
-            <ChevronLeft />
-        </Button>
-
+    <div className="flex items-center justify-center min-h-screen text-white p-4 bg-gradient-to-br from-gray-900 to-gray-800">
       <div className="w-full max-w-3xl">
         <div className="text-center space-y-2 mb-8">
             <div className="inline-block p-3 bg-gray-700 rounded-full">
@@ -217,6 +208,14 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         <div className="bg-gray-900/50 backdrop-blur-sm p-6 rounded-lg border border-gray-700">
           <div className="relative mb-4">
              <VideoPreview />
+             <Button 
+                onClick={() => router.back()} 
+                variant="ghost" 
+                size="icon" 
+                className="absolute top-1/2 -translate-y-1/2 -left-5 text-white bg-gray-800 hover:bg-gray-700 rounded-full h-10 w-10 z-10"
+            >
+                <ChevronLeft />
+            </Button>
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-black/50 backdrop-blur-sm rounded-full">
               <Button
                 onClick={toggleAudio}
