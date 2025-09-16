@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -66,6 +65,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   const stopCurrentStream = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
     if (audioContextRef.current) {
       audioContextRef.current.close();
@@ -74,6 +74,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     if(animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
     }
+    setAudioLevel(0);
   }, []);
 
   const processAudio = useCallback(() => {
@@ -88,8 +89,8 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
       const rms = Math.sqrt(sumSquares / dataArray.length);
       const level = Math.min(1, rms * 5);
       setAudioLevel(level);
+      animationFrameRef.current = requestAnimationFrame(processAudio);
     }
-    animationFrameRef.current = requestAnimationFrame(processAudio);
   }, []);
 
   const startMediaStream = useCallback(async (audioId?: string, videoId?: string) => {
@@ -97,7 +98,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
       stopCurrentStream();
 
       const constraints: MediaStreamConstraints = {
-        audio: audioId ? { deviceId: { exact: audioId } } : true,
+        audio: audioId ? { deviceId: { exact: audioId } } : { noiseSuppression: true, echoCancellation: true },
         video: videoId ? { deviceId: { exact: videoId } } : true,
       };
 
@@ -108,24 +109,25 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         videoRef.current.srcObject = stream;
       }
 
-      // Explicitly set track states based on current react state
       const audioTrack = stream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !isAudioMuted;
-        if (!isAudioMuted) {
-          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-          analyserRef.current = audioContextRef.current.createAnalyser();
-          analyserRef.current.fftSize = 256;
-          const source = audioContextRef.current.createMediaStreamSource(stream);
-          source.connect(analyserRef.current);
-          processAudio();
-        }
       }
-
+      
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !isVideoOff;
       }
+
+      if (audioTrack && !isAudioMuted) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        analyserRef.current = audioContextRef.current.createAnalyser();
+        analyserRef.current.fftSize = 256;
+        const source = audioContextRef.current.createMediaStreamSource(stream);
+        source.connect(analyserRef.current);
+        processAudio();
+      }
+      
       setHasCameraPermission(true);
     } catch (error) {
       console.error('Error accessing media devices:', error);
@@ -142,13 +144,11 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   useEffect(() => {
     const initializeMedia = async () => {
       try {
-        // First, just get permission
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        setHasCameraPermission(true);
-        // We got permission, so we can stop this temporary stream
+        // Got permission, we can stop the tracks
         stream.getTracks().forEach(track => track.stop());
+        setHasCameraPermission(true);
 
-        // Now, enumerate devices
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audio = devices.filter(d => d.kind === 'audioinput');
         const video = devices.filter(d => d.kind === 'videoinput');
@@ -156,18 +156,13 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         setAudioDevices(audio);
         setVideoDevices(video);
 
-        const currentAudioDevice = selectedAudioDevice || audio[0]?.deviceId;
-        const currentVideoDevice = selectedVideoDevice || video[0]?.deviceId;
+        const defaultAudioId = audio[0]?.deviceId;
+        const defaultVideoId = video[0]?.deviceId;
 
-        if (currentAudioDevice && !selectedAudioDevice) {
-            setSelectedAudioDevice(currentAudioDevice);
-        }
-        if (currentVideoDevice && !selectedVideoDevice) {
-            setSelectedVideoDevice(currentVideoDevice);
-        }
-        
-        // Finally, start the stream with the default devices
-        await startMediaStream(currentAudioDevice, currentVideoDevice);
+        if (defaultAudioId) setSelectedAudioDevice(defaultAudioId);
+        if (defaultVideoId) setSelectedVideoDevice(defaultVideoId);
+
+        await startMediaStream(defaultAudioId, defaultVideoId);
 
       } catch (err) {
         console.error('Permission denied or no devices found:', err);
@@ -189,7 +184,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   }, []);
 
   useEffect(() => {
-    // This effect runs only when device selection changes
     if (selectedAudioDevice || selectedVideoDevice) {
         startMediaStream(selectedAudioDevice, selectedVideoDevice);
     }
@@ -199,26 +193,15 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   const toggleAudio = () => {
     const newMutedState = !isAudioMuted;
     setIsAudioMuted(newMutedState);
-    const audioTrack = streamRef.current?.getAudioTracks()[0];
-    if (audioTrack) {
-      audioTrack.enabled = !newMutedState;
-      if (!newMutedState && streamRef.current) {
-        // If unmuting, restart audio processing
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        analyserRef.current = audioContextRef.current.createAnalyser();
-        analyserRef.current.fftSize = 256;
-        const source = audioContextRef.current.createMediaStreamSource(streamRef.current);
-        source.connect(analyserRef.current);
-        processAudio();
-      } else {
-        // If muting, stop audio processing
-        if (audioContextRef.current) {
-          audioContextRef.current.close();
-          audioContextRef.current = null;
-        }
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
+    if (streamRef.current) {
+      const audioTrack = streamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !newMutedState;
+        if (newMutedState) {
+          if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
           setAudioLevel(0);
+        } else {
+          processAudio();
         }
       }
     }
@@ -227,10 +210,12 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   const toggleVideo = () => {
     const newVideoOffState = !isVideoOff;
     setIsVideoOff(newVideoOffState);
-    const videoTrack = streamRef.current?.getVideoTracks()[0];
-    if (videoTrack) {
-      videoTrack.enabled = !newVideoOffState;
-    }
+     if (streamRef.current) {
+        const videoTrack = streamRef.current.getVideoTracks()[0];
+        if (videoTrack) {
+            videoTrack.enabled = !newVideoOffState;
+        }
+     }
   };
 
   const handleJoin = () => {
@@ -375,3 +360,5 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     </div>
   );
 }
+
+    
