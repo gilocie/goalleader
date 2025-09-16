@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 import {
   Card,
   CardContent,
@@ -73,50 +74,6 @@ export function PerformanceCoach() {
     };
   };
 
-  const parseMarkdown = (text: string) => {
-    if (!text) return { __html: '' };
-  
-    const lines = text.split('\n').filter(line => line.trim() !== '');
-    let html = '';
-    let inList = false;
-  
-    for (const line of lines) {
-      let processedLine = line.trim().replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      
-      // Handle headings
-      if (processedLine.startsWith('### ') || processedLine.toLowerCase().startsWith('strengths') || processedLine.toLowerCase().startsWith('areas for improvement')) {
-        if (inList) {
-          html += '</ul>';
-          inList = false;
-        }
-        html += `<h3 class="font-semibold text-base mb-2 mt-4">${processedLine.replace(/^###\s*/, '')}</h3>`;
-      } 
-      // Handle list items
-      else if (processedLine.startsWith('* ') || processedLine.startsWith('- ')) {
-        if (!inList) {
-          html += '<ul>';
-          inList = true;
-        }
-        html += `<li class="ml-4 list-disc">${processedLine.substring(2)}</li>`;
-      } 
-      // Handle paragraphs
-      else {
-        if (inList) {
-          html += '</ul>';
-          inList = false;
-        }
-        html += `<p class="mb-2">${processedLine}</p>`;
-      }
-    }
-  
-    if (inList) {
-      html += '</ul>';
-    }
-  
-    return { __html: html };
-  };
-  
-
   const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
 
   return (
@@ -142,10 +99,9 @@ export function PerformanceCoach() {
                 {advice?.title}
             </h3>
             <ScrollArea className="flex-1 pr-4">
-                <div 
-                    className="text-sm text-muted-foreground font-body"
-                    dangerouslySetInnerHTML={parseMarkdown(advice?.advice || '')}
-                />
+                <div className="prose prose-sm max-w-none text-muted-foreground prose-headings:font-semibold prose-headings:text-card-foreground prose-strong:text-card-foreground">
+                  <ReactMarkdown>{advice?.advice || ''}</ReactMarkdown>
+                </div>
             </ScrollArea>
           </div>
         )}
