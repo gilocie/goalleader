@@ -16,6 +16,7 @@ import {
   Send,
   ScreenShare,
   VolumeX,
+  Bot,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,7 @@ import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
-const participants = [
+const initialParticipants = [
   {
     id: 'john-isner-p1',
     name: 'John Isner',
@@ -100,15 +101,35 @@ const messages = [
   },
 ];
 
-export function VideoCallUI({ meeting }: { meeting: { id: string; title: string, category: string } }) {
-  const [isMuted, setIsMuted] = useState(false);
-  const [isVideoOff, setIsVideoOff] = useState(false);
+interface VideoCallUIProps {
+    meeting: { id: string; title: string, category: string };
+    initialIsMuted?: boolean;
+    initialIsVideoOff?: boolean;
+    aiAllowed?: boolean;
+}
+
+export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff = false, aiAllowed = false }: VideoCallUIProps) {
+  const [isMuted, setIsMuted] = useState(initialIsMuted);
+  const [isVideoOff, setIsVideoOff] = useState(initialIsVideoOff);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isTyping, setIsTyping] = useState(true);
   const [activeTab, setActiveTab] = useState('participants');
+  const [participants, setParticipants] = useState(initialParticipants);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    if (aiAllowed) {
+        setParticipants(prev => [...prev, {
+            id: 'goalleader-ai',
+            name: 'GoalLeader AI',
+            role: 'Assistant',
+            isSpeaking: false,
+            isMuted: true,
+        }])
+    }
+  }, [aiAllowed]);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -140,7 +161,9 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
       }
     };
 
-    getCameraPermission();
+    if (!initialIsVideoOff) {
+        getCameraPermission();
+    }
     
     return () => {
         if (videoRef.current && videoRef.current.srcObject) {
@@ -148,15 +171,16 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
             stream.getTracks().forEach(track => track.stop());
         }
     }
-  }, [toast]);
+  }, [initialIsVideoOff, toast]);
 
   const handleEndCall = () => {
     router.push('/meetings');
   };
   
   const mainSpeaker = participants.find(p => p.role === 'Organizer');
-  const otherParticipants = participants.filter(p => p.role !== 'Organizer' && p.role !== 'You');
+  const otherParticipants = participants.filter(p => p.role !== 'Organizer' && p.role !== 'You' && p.role !== 'Assistant').slice(0, 2);
   const selfParticipant = participants.find(p => p.role === 'You');
+  const aiParticipant = participants.find(p => p.role === 'Assistant');
 
   const VolumeControl = () => (
     <div className="flex flex-col items-center gap-2 bg-black/40 backdrop-blur-sm p-3 rounded-full">
@@ -192,7 +216,7 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
         <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted h-[400px] md:h-auto">
             <div className="flex-1 relative overflow-hidden">
                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                {!hasCameraPermission && (
+                {!hasCameraPermission && !isVideoOff && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
                         <Alert variant="destructive">
                             <VideoOff className="h-4 w-4" />
@@ -254,6 +278,23 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
                             </div>
                         )
                     })}
+                {aiParticipant && (
+                    <div className="relative">
+                        <Avatar className="h-14 w-14 border-2 border-primary shadow-lg">
+                            <div className="h-full w-full flex items-center justify-center bg-background">
+                                <Bot className="h-7 w-7 text-primary" />
+                            </div>
+                        </Avatar>
+                         <div className="absolute -bottom-1 -right-1 p-1 bg-black/50 rounded-full">
+                            <MicOff className="h-3 w-3 text-red-500" />
+                        </div>
+                    </div>
+                )}
+                {participants.length > 4 && (
+                    <Button variant="outline" size="sm" className="w-14 h-14 rounded-full bg-background/80 backdrop-blur-sm border-dashed">
+                        +{participants.length - 3}
+                    </Button>
+                )}
             </div>
 
             <div className="absolute bottom-5 left-5">
@@ -358,6 +399,27 @@ export function VideoCallUI({ meeting }: { meeting: { id: string; title: string,
                     <div className="p-4 space-y-4">
                         {participants.map(p => {
                              const avatar = PlaceHolderImages.find(img => img.id === p.id);
+                             if (p.role === 'Assistant') {
+                                return (
+                                    <div key={p.id} className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-10 w-10 border-2 border-primary">
+                                                <div className="h-full w-full flex items-center justify-center bg-background">
+                                                    <Bot className="h-5 w-5 text-primary" />
+                                                </div>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-semibold">{p.name}</p>
+                                                <p className="text-xs text-muted-foreground">{p.role}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Mic className={cn("h-4 w-4", p.isMuted && 'text-destructive')} />
+                                            <Video className="h-4 w-4 text-destructive" />
+                                        </div>
+                                    </div>
+                                )
+                             }
                              return (
                                 <div key={p.id} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">

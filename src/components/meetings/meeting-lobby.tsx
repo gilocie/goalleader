@@ -263,7 +263,13 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
     setIsWaiting(true);
     setTimeout(() => {
       setIsWaiting(false);
-      router.push(`/meetings/${meetingId}`);
+      
+      const params = new URLSearchParams();
+      params.set('muted', String(isAudioMuted));
+      params.set('videoOff', String(isVideoOff));
+      params.set('aiAllowed', String(allowAi));
+
+      router.push(`/meetings/${meetingId}?${params.toString()}`);
     }, 5000);
   };
 
