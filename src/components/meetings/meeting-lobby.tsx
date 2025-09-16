@@ -103,18 +103,26 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
 
   const getDevices = useCallback(async () => {
     try {
-        await navigator.mediaDevices.getUserMedia({ audio: true, video: true }); // Request permission first
+        // We need to request permission before we can enumerate devices.
+        await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audio = devices.filter(d => d.kind === 'audioinput');
         const video = devices.filter(d => d.kind === 'videoinput');
+        
         setAudioDevices(audio);
         setVideoDevices(video);
-        if (audio.length > 0 && !selectedAudioDevice) setSelectedAudioDevice(audio[0].deviceId);
-        if (video.length > 0 && !selectedVideoDevice) setSelectedVideoDevice(video[0].deviceId);
+
+        if (audio.length > 0 && !selectedAudioDevice) {
+            setSelectedAudioDevice(audio[0].deviceId);
+        }
+        if (video.length > 0 && !selectedVideoDevice) {
+            setSelectedVideoDevice(video[0].deviceId);
+        }
     } catch (err) {
-        console.error('Could not enumerate devices', err);
+        console.error('Could not enumerate devices or get permissions', err);
+        setHasCameraPermission(false);
     }
-  }, [selectedAudioDevice, selectedVideoDevice]);
+  }, []);
 
 
   useEffect(() => {
@@ -122,10 +130,11 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   }, [getDevices]);
 
   useEffect(() => {
-    if (selectedAudioDevice || selectedVideoDevice) {
+    if (selectedVideoDevice) { // We can start stream once we have a video device
         getMediaStream(selectedAudioDevice, selectedVideoDevice);
     }
-     // Cleanup stream on component unmount
+
+    // Cleanup stream on component unmount
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -140,6 +149,8 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
             audioTrack.enabled = !audioTrack.enabled;
             setIsAudioMuted(!audioTrack.enabled);
         }
+    } else {
+        setIsAudioMuted(prev => !prev);
     }
   };
 
@@ -150,6 +161,8 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
             videoTrack.enabled = !videoTrack.enabled;
             setIsVideoOff(!videoTrack.enabled);
         }
+    } else {
+        setIsVideoOff(prev => !prev);
     }
   };
 
@@ -212,7 +225,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
                 onClick={() => router.back()} 
                 variant="ghost" 
                 size="icon" 
-                className="absolute top-1/2 -translate-y-1/2 -left-5 text-white bg-gray-800 hover:bg-gray-700 rounded-full h-10 w-10 z-10"
+                className="absolute top-1/2 -translate-y-1/2 -left-5 text-white bg-gray-800 hover:bg-gray-700 rounded-full h-10 w-10 z-10 hidden sm:flex"
             >
                 <ChevronLeft />
             </Button>
@@ -225,9 +238,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
               >
                 {isAudioMuted ? <MicOff /> : <Mic />}
               </Button>
-               <Button variant="ghost" size="icon" className="text-white hover:bg-gray-700 rounded-full h-10 w-10">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
               <Button
                 onClick={toggleVideo}
                 variant="ghost"
@@ -235,9 +245,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
                 className={cn("rounded-full h-10 w-10 text-white", !isVideoOff ? 'hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700')}
               >
                 {isVideoOff ? <VideoOff /> : <Video />}
-              </Button>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-gray-700 rounded-full h-10 w-10">
-                <MoreVertical className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon" className="text-white hover:bg-gray-700 rounded-full h-10 w-10">
                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9.09 9-.28 2.89 2.07.54L13.1 9l-2.89-.28L9.09 9z"/><path d="M14.91 15l.28-2.89-2.07-.54L10.9 15l2.89.28L14.91 15z"/><path d="M12 12.5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1z"/></svg>
@@ -252,25 +259,25 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Audio Settings</DropdownMenuLabel>
                     <DropdownMenuRadioGroup value={selectedAudioDevice} onValueChange={setSelectedAudioDevice}>
-                        {audioDevices.map(device => (
+                        {audioDevices.map((device, index) => (
                             <DropdownMenuRadioItem key={device.deviceId} value={device.deviceId}>
-                               {device.label || `Microphone ${audioDevices.indexOf(device) + 1}`}
+                               {device.label || `Microphone ${index + 1}`}
                             </DropdownMenuRadioItem>
                         ))}
                     </DropdownMenuRadioGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel>Video Settings</DropdownMenuLabel>
                      <DropdownMenuRadioGroup value={selectedVideoDevice} onValueChange={setSelectedVideoDevice}>
-                        {videoDevices.map(device => (
+                        {videoDevices.map((device, index) => (
                             <DropdownMenuRadioItem key={device.deviceId} value={device.deviceId}>
-                               {device.label || `Camera ${videoDevices.indexOf(device) + 1}`}
+                               {device.label || `Camera ${index + 1}`}
                             </DropdownMenuRadioItem>
                         ))}
                     </DropdownMenuRadioGroup>
                 </DropdownMenuContent>
              </DropdownMenu>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
             <Input
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
@@ -279,7 +286,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
             />
             <Button
               onClick={handleJoin}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold text-base px-8 py-6"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold text-base px-8 py-6 w-full sm:w-auto"
             >
               JOIN NOW
             </Button>
@@ -289,5 +296,3 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     </div>
   );
 }
-
-    
