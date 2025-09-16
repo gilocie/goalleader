@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -16,8 +15,9 @@ import {
   X,
   Sparkles,
   FlipHorizontal,
-  ChevronLeft,
+  Monitor,
   Volume2,
+  ChevronLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,20 +84,22 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   const { toast } = useToast();
   const router = useRouter();
 
+  // FIX: Hydration Mismatch
   useEffect(() => {
     setParticipantCount(Math.floor(Math.random() * 20) + 5);
   }, []);
 
+  // Check connection quality
   useEffect(() => {
     const checkConnection = async () => {
       try {
         const startTime = performance.now();
-        await fetch('https://picsum.photos/1', { mode: 'cors' });
+        await fetch('https://picsum.photos/1');
         const endTime = performance.now();
         const latency = endTime - startTime;
 
-        if (latency < 150) setConnectionQuality('good');
-        else if (latency < 400) setConnectionQuality('fair');
+        if (latency < 100) setConnectionQuality('good');
+        else if (latency < 300) setConnectionQuality('fair');
         else setConnectionQuality('poor');
       } catch {
         setConnectionQuality('poor');
@@ -119,7 +121,7 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
       animationFrameRef.current = null;
     }
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current.close();
     }
     audioContextRef.current = null;
     analyserRef.current = null;
@@ -251,8 +253,8 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-auto flex items-center justify-center p-4 py-10">
-      <div className="w-full max-w-7xl grid lg:grid-cols-[1fr,400px] gap-6">
+    <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-auto py-10">
+      <div className="w-full max-w-7xl mx-auto grid lg:grid-cols-[1fr,400px] gap-6 px-4">
           {/* Left side - Video Preview */}
           <div className="space-y-4">
             {/* Video Preview Card */}
@@ -532,4 +534,3 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
     </div>
   );
 }
-
