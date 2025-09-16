@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -85,7 +84,6 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   const { toast } = useToast();
   const router = useRouter();
 
-  // FIX: Hydration Mismatch
   useEffect(() => {
     setParticipantCount(Math.floor(Math.random() * 20) + 5);
   }, []);
@@ -98,7 +96,7 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
         await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' });
         const endTime = performance.now();
         const latency = endTime - startTime;
-
+        
         if (latency < 100) setConnectionQuality('good');
         else if (latency < 300) setConnectionQuality('fair');
         else setConnectionQuality('poor');
@@ -106,7 +104,7 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
         setConnectionQuality('poor');
       }
     };
-
+    
     checkConnection();
     const interval = setInterval(checkConnection, 5000);
     return () => clearInterval(interval);
@@ -117,15 +115,18 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+      analyserRef.current = null;
+    }
+
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      audioContextRef.current.close();
-    }
-    audioContextRef.current = null;
-    analyserRef.current = null;
+
     setAudioLevel(0);
   }, []);
 
@@ -150,38 +151,37 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
       const audioTrack = stream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !isAudioMuted;
+        if (!isAudioMuted) {
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          const source = audioCtx.createMediaStreamSource(stream);
+          source.connect(analyser);
+
+          audioContextRef.current = audioCtx;
+          analyserRef.current = analyser;
+
+          const processAudioLoop = () => {
+            if (analyserRef.current) {
+              const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+              analyserRef.current.getByteTimeDomainData(dataArray);
+              let sumSquares = 0.0;
+              for (const amplitude of dataArray) {
+                const val = (amplitude - 128) / 128;
+                sumSquares += val * val;
+              }
+              const rms = Math.sqrt(sumSquares / dataArray.length);
+              setAudioLevel(rms * 5);
+            }
+            animationFrameRef.current = requestAnimationFrame(processAudioLoop);
+          };
+          animationFrameRef.current = requestAnimationFrame(processAudioLoop);
+        }
       }
 
       const videoTrack = stream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !isVideoOff;
-      }
-
-      if (!isAudioMuted) {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        const source = audioCtx.createMediaStreamSource(stream);
-        source.connect(analyser);
-
-        audioContextRef.current = audioCtx;
-        analyserRef.current = analyser;
-
-        const processAudioLoop = () => {
-          if (analyserRef.current) {
-            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-            analyserRef.current.getByteTimeDomainData(dataArray);
-            let sumSquares = 0.0;
-            for (const amplitude of dataArray) {
-              const val = (amplitude - 128) / 128;
-              sumSquares += val * val;
-            }
-            const rms = Math.sqrt(sumSquares / dataArray.length);
-            setAudioLevel(rms * 5);
-          }
-          animationFrameRef.current = requestAnimationFrame(processAudioLoop);
-        };
-        animationFrameRef.current = requestAnimationFrame(processAudioLoop);
       }
     } catch (error) {
       console.error('Error accessing media devices:', error);
@@ -224,24 +224,27 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
     };
   }, [startMediaStream, stopCurrentStream]);
 
-  const toggleAudio = () => setIsAudioMuted(prev => !prev);
-  const toggleVideo = () => setIsVideoOff(prev => !prev);
-
-  useEffect(() => {
-    if(streamRef.current) {
-        const audioTrack = streamRef.current.getAudioTracks()[0];
-        if (audioTrack) audioTrack.enabled = !isAudioMuted;
+  const toggleAudio = () => {
+    const newMuted = !isAudioMuted;
+    setIsAudioMuted(newMuted);
+    const audioTrack = streamRef.current?.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = !newMuted;
     }
-    // Restart stream to handle audio analyser
-    startMediaStream(selectedAudioDevice, selectedVideoDevice);
-  }, [isAudioMuted, selectedAudioDevice, selectedVideoDevice, startMediaStream]);
-
-  useEffect(() => {
-    if(streamRef.current) {
-        const videoTrack = streamRef.current.getVideoTracks()[0];
-        if (videoTrack) videoTrack.enabled = !isVideoOff;
+    // Restart stream to handle audio analyser on unmute
+    if (!newMuted) {
+      startMediaStream(selectedAudioDevice, selectedVideoDevice);
     }
-  }, [isVideoOff]);
+  };
+  
+  const toggleVideo = () => {
+    const newVideoOff = !isVideoOff;
+    setIsVideoOff(newVideoOff);
+    const videoTrack = streamRef.current?.getVideoTracks()[0];
+    if (videoTrack) {
+      videoTrack.enabled = !newVideoOff;
+    }
+  };
 
   const checklist = [
     { label: 'Camera working', isChecked: hasCameraPermission === true && !isVideoOff },
@@ -253,7 +256,8 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-auto py-10">
-      <div className="w-full max-w-7xl mx-auto grid lg:grid-cols-[1fr,400px] gap-6 px-4">
+      <div className="h-full flex items-center justify-center p-4">
+        <div className="w-full max-w-7xl grid lg:grid-cols-[1fr,400px] gap-6">
           {/* Left side - Video Preview */}
           <div className="space-y-4">
             {/* Video Preview Card */}
@@ -310,7 +314,6 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                     PREVIEW
                   </Badge>
                 </div>
-
 
                 {/* Controls overlay */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -434,7 +437,7 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
                     });
                     router.push(`/meetings/${meetingId}`);
                   }}
-                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
+                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-accent text-primary-foreground hover:from-primary/90 hover:to-accent/90 transition-opacity"
                   disabled={!userName.trim()}
                 >
                   <Monitor className="mr-2 h-5 w-5" />
@@ -531,6 +534,7 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
             </Card>
           </div>
         </div>
+      </div>
     </div>
   );
 }
