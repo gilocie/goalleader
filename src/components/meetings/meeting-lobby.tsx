@@ -43,6 +43,20 @@ interface MediaDevice {
   label: string;
 }
 
+const AudioWave = ({ audioLevel }: { audioLevel: number }) => {
+    const scale = 1 + audioLevel * 2;
+    return (
+      <div
+        className="absolute inset-0 rounded-full bg-primary/30 transition-transform duration-100"
+        style={{
+          transform: `scale(${scale})`,
+          opacity: audioLevel > 0.01 ? 1 : 0,
+        }}
+      />
+    );
+};
+
+
 export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
@@ -53,12 +67,34 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   const [videoDevices, setVideoDevices] = useState<MediaDevice[]>([]);
   const [selectedAudioDevice, setSelectedAudioDevice] = useState<string>('');
   const [selectedVideoDevice, setSelectedVideoDevice] = useState<string>('');
+  const [audioLevel, setAudioLevel] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number>();
+
+
   const { toast } = useToast();
   const router = useRouter();
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+
+    const processAudio = useCallback(() => {
+        if (analyserRef.current) {
+            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+            analyserRef.current.getByteTimeDomainData(dataArray);
+            let sumSquares = 0.0;
+            for (const amplitude of dataArray) {
+                const val = (amplitude - 128) / 128;
+                sumSquares += val * val;
+            }
+            const rms = Math.sqrt(sumSquares / dataArray.length);
+            setAudioLevel(rms);
+        }
+        animationFrameRef.current = requestAnimationFrame(processAudio);
+    }, []);
+
 
   const getMediaStream = useCallback(async (audioId?: string, videoId?: string) => {
     try {
@@ -81,11 +117,19 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         const audioTrack = stream.getAudioTracks()[0];
         if (audioTrack) {
             audioTrack.enabled = !isAudioMuted;
+
+            if (!audioContextRef.current) {
+                audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+                analyserRef.current = audioContextRef.current.createAnalyser();
+                analyserRef.current.fftSize = 256;
+                const source = audioContextRef.current.createMediaStreamSource(stream);
+                source.connect(analyserRef.current);
+                processAudio();
+            }
         }
 
         const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
-            // Respect the user's choice if they've turned it off, otherwise default to on
             videoTrack.enabled = !isVideoOff;
         }
 
@@ -100,14 +144,10 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
             description: 'Please enable camera and microphone permissions.',
         });
     }
-  }, [isAudioMuted, isVideoOff, toast]);
+  }, [isAudioMuted, isVideoOff, toast, processAudio]);
 
   const getDevices = useCallback(async () => {
     try {
-        // We need to request permission before we can enumerate devices.
-        // This will also trigger the permission prompt.
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audio = devices.filter(d => d.kind === 'audioinput');
         const video = devices.filter(d => d.kind === 'videoinput');
@@ -121,18 +161,15 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         if (video.length > 0 && !selectedVideoDevice) {
             setSelectedVideoDevice(video[0].deviceId);
         }
-        
-        // We got the stream, so permission is granted.
-        setHasCameraPermission(true);
 
-        // We already have the stream, let's use it and then close it.
-        if (videoRef.current) {
-            videoRef.current.srcObject = stream;
+        // Trigger media stream acquisition now that we have device IDs
+        if (audio.length > 0 && video.length > 0) {
+            getMediaStream(audio[0].deviceId, video[0].deviceId);
+        } else {
+             // Fallback for devices without separate device enumeration
+             getMediaStream();
         }
-        
-        // Stop the initial tracks, getMediaStream will be called later with specific devices
-        stream.getTracks().forEach(track => track.stop());
-
+        setHasCameraPermission(true);
 
     } catch (err) {
         console.error('Could not enumerate devices or get permissions', err);
@@ -143,26 +180,29 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
             description: 'Please enable camera and microphone permissions.',
         });
     }
-  }, [selectedAudioDevice, selectedVideoDevice, toast]);
+  }, [selectedAudioDevice, selectedVideoDevice, toast, getMediaStream]);
 
 
   useEffect(() => {
     getDevices();
-  }, []);
 
-  useEffect(() => {
-    // Only get the stream if we have devices selected.
-    // This prevents trying to get a stream before device enumeration is complete.
-    if (selectedAudioDevice && selectedVideoDevice) {
-        getMediaStream(selectedAudioDevice, selectedVideoDevice);
-    }
-
-    // Cleanup stream on component unmount
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
+  }, [getDevices]);
+
+  useEffect(() => {
+    if (selectedAudioDevice && selectedVideoDevice) {
+        getMediaStream(selectedAudioDevice, selectedVideoDevice);
+    }
   }, [selectedAudioDevice, selectedVideoDevice, getMediaStream]);
   
   const toggleAudio = () => {
@@ -193,7 +233,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   };
 
   const VideoPreview = () => {
-    // Show avatar if video is off or permission is explicitly denied
     if (isVideoOff || hasCameraPermission === false) {
       return (
         <div className="bg-gray-900 aspect-video rounded-md flex flex-col items-center justify-center text-white">
@@ -214,7 +253,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
       );
     }
     
-    // Otherwise, show the video feed
     return <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline />;
   };
 
@@ -254,12 +292,13 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
                 <ChevronLeft />
             </Button>
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 bg-black/50 backdrop-blur-sm rounded-full">
-              <Button
+               <Button
                 onClick={toggleAudio}
                 variant="ghost"
                 size="icon"
-                className={cn("rounded-full h-10 w-10 text-white", !isAudioMuted ? 'hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700')}
+                className={cn("rounded-full h-10 w-10 text-white relative", !isAudioMuted ? 'hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700')}
               >
+                {!isAudioMuted && <AudioWave audioLevel={audioLevel} />}
                 {isAudioMuted ? <MicOff /> : <Mic />}
               </Button>
               <Button
@@ -320,3 +359,4 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     </div>
   );
 }
+
