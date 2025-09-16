@@ -8,6 +8,7 @@ import { DailyTodoList } from '@/components/teams/daily-todo-list';
 import { ManagerFeedback } from '@/components/teams/manager-feedback';
 import { PerformanceCoach } from '@/components/performance/performance-coach';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useParams } from 'next/navigation';
 
 const teamMembers = [
   { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const },
@@ -21,8 +22,9 @@ const teamMembers = [
   { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const },
 ];
 
-export default function MemberPerformancePage({ params }: { params: { memberId: string } }) {
-  const { memberId } = params;
+export default function MemberPerformancePage() {
+  const params = useParams();
+  const memberId = typeof params.memberId === 'string' ? params.memberId : '';
   const member = teamMembers.find(m => m.id === memberId);
   const avatar = PlaceHolderImages.find(img => img.id === memberId);
 
