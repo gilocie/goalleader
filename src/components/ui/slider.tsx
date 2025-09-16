@@ -21,14 +21,16 @@ const Slider = React.forwardRef<
   >
     <SliderPrimitive.Track className={cn(
         "relative grow overflow-hidden rounded-full bg-white/30",
-        props.orientation === 'horizontal' ? "h-1.5 w-full" : "w-1.5 h-full",
+        props.orientation === 'horizontal' ? "h-1.5 w-full" : "w-1.5 h-full flex flex-col-reverse",
     )}>
       <SliderPrimitive.Range className={cn(
           "absolute bg-primary",
            props.orientation === 'horizontal' ? "h-full" : "w-full",
       )} />
     </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+     {props.orientation !== 'vertical' && (
+      <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border-2 border-primary bg-background ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+    )}
   </SliderPrimitive.Root>
 ))
 Slider.displayName = SliderPrimitive.Root.displayName

@@ -13,6 +13,8 @@ import {
   Camera,
   ChevronLeft,
   Check,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +35,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Slider } from '../ui/slider';
 
 interface MeetingLobbyProps {
   meetingId: string;
@@ -42,20 +45,6 @@ interface MediaDevice {
   deviceId: string;
   label: string;
 }
-
-const AudioWave = ({ audioLevel }: { audioLevel: number }) => {
-    const scale = 1 + audioLevel * 2;
-    return (
-      <div
-        className="absolute inset-0 rounded-full bg-primary/30 transition-transform duration-100"
-        style={{
-          transform: `scale(${scale})`,
-          opacity: audioLevel > 0.01 ? 1 : 0,
-        }}
-      />
-    );
-};
-
 
 export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   const [isAudioMuted, setIsAudioMuted] = useState(false);
@@ -75,31 +64,37 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number>();
 
-
   const { toast } = useToast();
   const router = useRouter();
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
-    const processAudio = useCallback(() => {
-        if (analyserRef.current) {
-            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-            analyserRef.current.getByteTimeDomainData(dataArray);
-            let sumSquares = 0.0;
-            for (const amplitude of dataArray) {
-                const val = (amplitude - 128) / 128;
-                sumSquares += val * val;
-            }
-            const rms = Math.sqrt(sumSquares / dataArray.length);
-            setAudioLevel(rms);
+  const processAudio = useCallback(() => {
+    if (analyserRef.current) {
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+        analyserRef.current.getByteTimeDomainData(dataArray);
+        let sumSquares = 0.0;
+        for (const amplitude of dataArray) {
+            const val = (amplitude - 128) / 128;
+            sumSquares += val * val;
         }
-        animationFrameRef.current = requestAnimationFrame(processAudio);
-    }, []);
-
+        const rms = Math.sqrt(sumSquares / dataArray.length);
+        const level = Math.min(1, rms * 5); // Amplify for better visualization
+        setAudioLevel(level);
+    }
+    animationFrameRef.current = requestAnimationFrame(processAudio);
+  }, []);
 
   const getMediaStream = useCallback(async (audioId?: string, videoId?: string) => {
     try {
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
+            if (audioContextRef.current) {
+                audioContextRef.current.close();
+                audioContextRef.current = null;
+            }
+            if(animationFrameRef.current) {
+                cancelAnimationFrame(animationFrameRef.current);
+            }
         }
 
         const constraints: MediaStreamConstraints = {
@@ -117,8 +112,8 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         const audioTrack = stream.getAudioTracks()[0];
         if (audioTrack) {
             audioTrack.enabled = !isAudioMuted;
-
-            if (!audioContextRef.current) {
+            
+            if (!isAudioMuted) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
                 analyserRef.current = audioContextRef.current.createAnalyser();
                 analyserRef.current.fftSize = 256;
@@ -132,9 +127,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         if (videoTrack) {
             videoTrack.enabled = !isVideoOff;
         }
-
         setHasCameraPermission(true);
-
     } catch (error) {
         console.error('Error accessing media devices:', error);
         setHasCameraPermission(false);
@@ -148,6 +141,11 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
 
   const getDevices = useCallback(async () => {
     try {
+        // Ensure permissions are requested before enumerating devices
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        // We can stop these tracks immediately as they are only for permission granting
+        stream.getTracks().forEach(track => track.stop());
+
         const devices = await navigator.mediaDevices.enumerateDevices();
         const audio = devices.filter(d => d.kind === 'audioinput');
         const video = devices.filter(d => d.kind === 'videoinput');
@@ -155,22 +153,18 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         setAudioDevices(audio);
         setVideoDevices(video);
 
+        const currentAudioDevice = audio.length > 0 ? audio[0].deviceId : '';
+        const currentVideoDevice = video.length > 0 ? video[0].deviceId : '';
+
         if (audio.length > 0 && !selectedAudioDevice) {
-            setSelectedAudioDevice(audio[0].deviceId);
+            setSelectedAudioDevice(currentAudioDevice);
         }
         if (video.length > 0 && !selectedVideoDevice) {
-            setSelectedVideoDevice(video[0].deviceId);
+            setSelectedVideoDevice(currentVideoDevice);
         }
 
-        // Trigger media stream acquisition now that we have device IDs
-        if (audio.length > 0 && video.length > 0) {
-            getMediaStream(audio[0].deviceId, video[0].deviceId);
-        } else {
-             // Fallback for devices without separate device enumeration
-             getMediaStream();
-        }
+        getMediaStream(selectedAudioDevice || currentAudioDevice, selectedVideoDevice || currentVideoDevice);
         setHasCameraPermission(true);
-
     } catch (err) {
         console.error('Could not enumerate devices or get permissions', err);
         setHasCameraPermission(false);
@@ -180,12 +174,10 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
             description: 'Please enable camera and microphone permissions.',
         });
     }
-  }, [selectedAudioDevice, selectedVideoDevice, toast, getMediaStream]);
-
+  }, [getMediaStream, selectedAudioDevice, selectedVideoDevice, toast]);
 
   useEffect(() => {
     getDevices();
-
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -197,36 +189,23 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [getDevices]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (selectedAudioDevice && selectedVideoDevice) {
         getMediaStream(selectedAudioDevice, selectedVideoDevice);
     }
-  }, [selectedAudioDevice, selectedVideoDevice, getMediaStream]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAudioDevice, selectedVideoDevice, isAudioMuted, isVideoOff]);
   
   const toggleAudio = () => {
-    const newIsMuted = !isAudioMuted;
-    setIsAudioMuted(newIsMuted);
-    if (streamRef.current) {
-        const audioTrack = streamRef.current.getAudioTracks()[0];
-        if (audioTrack) {
-            audioTrack.enabled = !newIsMuted;
-        }
-    }
+    setIsAudioMuted(prev => !prev);
   };
 
   const toggleVideo = () => {
-    const newIsVideoOff = !isVideoOff;
-    setIsVideoOff(newIsVideoOff);
-    if (streamRef.current) {
-        const videoTrack = streamRef.current.getVideoTracks()[0];
-        if (videoTrack) {
-            videoTrack.enabled = !newIsVideoOff;
-        }
-    }
+    setIsVideoOff(prev => !prev);
   };
-
 
   const handleJoin = () => {
     router.push(`/meetings/${meetingId}`);
@@ -255,6 +234,21 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     
     return <video ref={videoRef} className="w-full aspect-video rounded-md" autoPlay muted playsInline />;
   };
+  
+  const VolumeControl = () => (
+    <div className="flex flex-col items-center gap-2 bg-black/40 backdrop-blur-sm p-3 rounded-full">
+        <Volume2 className="text-white" />
+        <Slider
+            defaultValue={[0]}
+            value={[isAudioMuted ? 0 : audioLevel * 100]}
+            max={100}
+            step={1}
+            orientation="vertical"
+            className="h-20"
+        />
+        <VolumeX className="text-white" />
+    </div>
+  );
 
   return (
     <div className="flex items-center justify-center min-h-screen text-white p-4 bg-gradient-to-br from-gray-900 to-gray-800">
@@ -283,6 +277,9 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         <div className="bg-gray-900/50 backdrop-blur-sm p-6 rounded-lg border border-gray-700">
           <div className="relative mb-4">
              <VideoPreview />
+              <div className="absolute bottom-4 left-4">
+                <VolumeControl />
+             </div>
              <Button 
                 onClick={() => router.back()} 
                 variant="ghost" 
@@ -298,7 +295,6 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
                 size="icon"
                 className={cn("rounded-full h-10 w-10 text-white relative", !isAudioMuted ? 'hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700')}
               >
-                {!isAudioMuted && <AudioWave audioLevel={audioLevel} />}
                 {isAudioMuted ? <MicOff /> : <Mic />}
               </Button>
               <Button
@@ -359,4 +355,3 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     </div>
   );
 }
-
