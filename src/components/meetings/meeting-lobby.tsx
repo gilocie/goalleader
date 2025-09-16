@@ -251,22 +251,22 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-hidden">
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
-        <Button onClick={() => router.back()} variant="outline" size="icon" className="rounded-full">
-            <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div>
-            <h1 className="font-semibold text-lg">Job interview for Senior UX Engineer</h1>
-            <Badge variant="outline">Design</Badge>
-        </div>
-      </div>
-      <div className="h-full flex items-center justify-center p-4">
-        <div className="w-full max-w-7xl grid lg:grid-cols-[1fr,400px] gap-6">
+    <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-auto py-10">
+      <div className="w-full max-w-7xl mx-auto grid lg:grid-cols-[1fr,400px] gap-6 px-4">
           {/* Left side - Video Preview */}
           <div className="space-y-4">
             {/* Video Preview Card */}
             <Card className="relative overflow-hidden bg-card/50 backdrop-blur-xl border-border/50">
+               <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
+                  <Button onClick={() => router.back()} variant="outline" size="icon" className="rounded-full">
+                      <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <div>
+                      <h1 className="font-semibold text-lg">Job interview for Senior UX Engineer</h1>
+                      <Badge variant="outline">Design</Badge>
+                  </div>
+              </div>
+
               <div className="aspect-video lg:aspect-video md:aspect-[4/3] sm:aspect-square relative min-h-[300px] md:min-h-[400px]">
                 {isVideoOff || hasCameraPermission === false ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -531,7 +531,6 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
             </Card>
           </div>
         </div>
-      </div>
     </div>
   );
 }
