@@ -15,8 +15,6 @@ import {
   X,
   Sparkles,
   FlipHorizontal,
-  Monitor,
-  Volume2,
   ChevronLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -83,12 +81,10 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
 
   const { toast } = useToast();
   const router = useRouter();
-  
+
   useEffect(() => {
-    // Generate a random participant count on the client-side
     setParticipantCount(Math.floor(Math.random() * 20) + 5);
   }, []);
-
 
   // Check connection quality
   useEffect(() => {
@@ -142,8 +138,9 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.muted = true;
-        videoRef.current.play().catch(e => console.error("Video play failed", e));
+        if (videoRef.current.paused) {
+          videoRef.current.play().catch(e => console.error("Video play failed", e));
+        }
       }
 
       const audioTrack = stream.getAudioTracks()[0];
@@ -156,7 +153,6 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
         videoTrack.enabled = !isVideoOff;
       }
       
-      // Start audio analysis if not muted
       if (!isAudioMuted) {
         const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
         const analyser = audioCtx.createAnalyser();
@@ -240,282 +236,282 @@ export function MeetingLobby({ meetingId }: { meetingId: string }) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-auto flex items-center justify-center p-4">
-        <div className="w-full max-w-7xl grid lg:grid-cols-[1fr,400px] gap-6">
-          {/* Left side - Video Preview */}
-          <div className="space-y-4">
-             <Card className="relative overflow-hidden bg-card/50 backdrop-blur-xl border-border/50">
-               <div className="absolute top-0 left-0 right-0 p-4 z-10 flex items-center justify-between gap-4 bg-gradient-to-b from-black/50 to-transparent">
-                  <div className="flex items-center gap-2">
-                    <Button onClick={() => router.back()} variant="outline" size="icon" className="rounded-full bg-background/20 hover:bg-background/40 border-0 text-white">
-                        <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <div>
-                        <h1 className="font-semibold text-lg text-white shadow-black/50 [text-shadow:0_1px_2px_var(--tw-shadow-color)]">Job interview for Senior UX Engineer</h1>
-                        <Badge variant="outline" className="bg-background/20 text-white/90 border-0 text-xs">Design</Badge>
-                    </div>
+    <div className="fixed inset-0 bg-gradient-to-br from-background via-card to-background overflow-auto flex items-center justify-center p-4 py-10">
+      <div className="w-full max-w-7xl grid lg:grid-cols-[1fr,400px] gap-6">
+        {/* Left side - Video Preview */}
+        <div className="space-y-4">
+           <Card className="relative overflow-hidden bg-card/50 backdrop-blur-xl border-border/50">
+             <div className="absolute top-0 left-0 right-0 p-4 z-10 flex items-center justify-between gap-4 bg-gradient-to-b from-black/50 to-transparent">
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => router.back()} variant="outline" size="icon" className="rounded-full bg-background/20 hover:bg-background/40 border-0 text-white">
+                      <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <div>
+                      <h1 className="font-semibold text-lg text-white shadow-black/50 [text-shadow:0_1px_2px_var(--tw-shadow-color)]">Job interview for Senior UX Engineer</h1>
+                      <Badge variant="outline" className="bg-background/20 text-white/90 border-0 text-xs">Design</Badge>
                   </div>
-                   <Badge className="bg-destructive/90 text-destructive-foreground border-0">
-                    <span className="relative flex h-2 w-2 mr-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                    </span>
-                    PREVIEW
-                  </Badge>
+                </div>
+                 <Badge className="bg-destructive/90 text-destructive-foreground border-0">
+                  <span className="relative flex h-2 w-2 mr-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                  </span>
+                  PREVIEW
+                </Badge>
+            </div>
+
+            <div className="aspect-video lg:aspect-video md:aspect-[4/3] sm:aspect-square relative min-h-[300px] md:min-h-[400px]">
+              {isVideoOff || hasCameraPermission === false ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <Avatar className="h-24 w-24 border-4 border-primary/20">
+                    <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-accent text-white">
+                      {userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p className="mt-4 text-muted-foreground">
+                    {hasCameraPermission === false ? 'Camera access required' : 'Camera is off'}
+                  </p>
+                </div>
+              ) : (
+                <video
+                  ref={videoRef}
+                  className={cn(
+                    "w-full h-full object-cover",
+                    isMirrored && "scale-x-[-1]",
+                    isBlurred && "blur-md"
+                  )}
+                  autoPlay
+                  playsInline
+                  muted
+                />
+              )}
+
+              {/* Participants count */}
+              <div className="absolute top-5 right-5 pt-16">
+                <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
+                  <Users className="w-3 h-3 mr-1" />
+                  {participantCount} waiting
+                </Badge>
               </div>
 
-              <div className="aspect-video lg:aspect-video md:aspect-[4/3] sm:aspect-square relative min-h-[300px] md:min-h-[400px]">
-                {isVideoOff || hasCameraPermission === false ? (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <Avatar className="h-24 w-24 border-4 border-primary/20">
-                      <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-accent text-white">
-                        {userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <p className="mt-4 text-muted-foreground">
-                      {hasCameraPermission === false ? 'Camera access required' : 'Camera is off'}
-                    </p>
-                  </div>
-                ) : (
-                  <video
-                    ref={videoRef}
-                    className={cn(
-                      "w-full h-full object-cover",
-                      isMirrored && "scale-x-[-1]",
-                      isBlurred && "blur-md"
-                    )}
-                    autoPlay
-                    playsInline
-                    muted
-                  />
-                )}
+              {/* Controls overlay */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                <div className="bg-background/80 backdrop-blur-xl rounded-full p-2 flex items-center gap-2">
+                  <Button
+                    onClick={toggleAudio}
+                    size="icon"
+                    variant={isAudioMuted ? "destructive" : "secondary"}
+                    className="rounded-full h-12 w-12"
+                  >
+                    {isAudioMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                  </Button>
+                  <Button
+                    onClick={toggleVideo}
+                    size="icon"
+                    variant={isVideoOff ? "destructive" : "secondary"}
+                    className="rounded-full h-12 w-12"
+                  >
+                    {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                  </Button>
+                  
+                  <div className="w-px h-8 bg-border mx-1" />
+                  
+                  <Button
+                    onClick={() => setIsBlurred(!isBlurred)}
+                    size="icon"
+                    variant={isBlurred ? "default" : "secondary"}
+                    className="rounded-full h-12 w-12"
+                    disabled={isVideoOff}
+                  >
+                    <Sparkles className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    onClick={() => setIsMirrored(!isMirrored)}
+                    size="icon"
+                    variant="secondary"
+                    className="rounded-full h-12 w-12"
+                    disabled={isVideoOff}
+                  >
+                    <FlipHorizontal className="h-5 w-5" />
+                  </Button>
 
-                {/* Participants count */}
-                <div className="absolute top-5 right-5 pt-16">
-                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
-                    <Users className="w-3 h-3 mr-1" />
-                    {participantCount} waiting
-                  </Badge>
-                </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
+                        <Settings className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64">
+                      <DropdownMenuLabel>Audio Input</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup value={selectedAudioDevice} onValueChange={setSelectedAudioDevice}>
+                        {audioDevices.map((device) => (
+                          <DropdownMenuRadioItem key={device.deviceId} value={device.deviceId}>
+                            {device.label || 'Microphone'}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
 
-                {/* Controls overlay */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
-                  <div className="bg-background/80 backdrop-blur-xl rounded-full p-2 flex items-center gap-2">
-                    <Button
-                      onClick={toggleAudio}
-                      size="icon"
-                      variant={isAudioMuted ? "destructive" : "secondary"}
-                      className="rounded-full h-12 w-12"
-                    >
-                      {isAudioMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                    </Button>
-                    <Button
-                      onClick={toggleVideo}
-                      size="icon"
-                      variant={isVideoOff ? "destructive" : "secondary"}
-                      className="rounded-full h-12 w-12"
-                    >
-                      {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-                    </Button>
-                    
-                    <div className="w-px h-8 bg-border mx-1" />
-                    
-                    <Button
-                      onClick={() => setIsBlurred(!isBlurred)}
-                      size="icon"
-                      variant={isBlurred ? "default" : "secondary"}
-                      className="rounded-full h-12 w-12"
-                      disabled={isVideoOff}
-                    >
-                      <Sparkles className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      onClick={() => setIsMirrored(!isMirrored)}
-                      size="icon"
-                      variant="secondary"
-                      className="rounded-full h-12 w-12"
-                      disabled={isVideoOff}
-                    >
-                      <FlipHorizontal className="h-5 w-5" />
-                    </Button>
+                      <DropdownMenuSeparator />
 
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="secondary" className="rounded-full h-12 w-12">
-                          <Settings className="h-5 w-5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-64">
-                        <DropdownMenuLabel>Audio Input</DropdownMenuLabel>
-                        <DropdownMenuRadioGroup value={selectedAudioDevice} onValueChange={setSelectedAudioDevice}>
-                          {audioDevices.map((device) => (
-                            <DropdownMenuRadioItem key={device.deviceId} value={device.deviceId}>
-                              {device.label || 'Microphone'}
-                            </DropdownMenuRadioItem>
-                          ))}
-                        </DropdownMenuRadioGroup>
-
-                        <DropdownMenuSeparator />
-
-                        <DropdownMenuLabel>Video Input</DropdownMenuLabel>
-                        <DropdownMenuRadioGroup value={selectedVideoDevice} onValueChange={setSelectedVideoDevice}>
-                          {videoDevices.map((device) => (
-                            <DropdownMenuRadioItem key={device.deviceId} value={device.deviceId}>
-                              {device.label || 'Camera'}
-                            </DropdownMenuRadioItem>
-                          ))}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                      <DropdownMenuLabel>Video Input</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup value={selectedVideoDevice} onValueChange={setSelectedVideoDevice}>
+                        {videoDevices.map((device) => (
+                          <DropdownMenuRadioItem key={device.deviceId} value={device.deviceId}>
+                            {device.label || 'Camera'}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            {/* Audio Level Indicator */}
-            {!isAudioMuted && (
-              <Card className="p-4 bg-card/50 backdrop-blur-xl border-border/50">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Volume2 className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Audio Level</span>
-                  </div>
-                  <AudioVisualizer audioLevel={audioLevel} />
-                </div>
-              </Card>
-            )}
-          </div>
-
-          {/* Right side - Controls & Info */}
-          <div className="space-y-4">
-            {/* User Info */}
-            <Card className="p-6 bg-card/50 backdrop-blur-xl border-border/50">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name" className="text-sm font-medium">
-                    Your Name
-                  </Label>
-                  <Input
-                    id="name"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="mt-2 bg-background/50 border-border/50"
-                  />
-                </div>
-
-                <Button 
-                  onClick={() => {
-                    if (!userName.trim()) {
-                      toast({
-                        variant: 'destructive',
-                        title: 'Name Required',
-                        description: 'Please enter your name before joining.',
-                      });
-                      return;
-                    }
-                    toast({
-                      title: 'Joining Meeting',
-                      description: 'You would be redirected to the meeting room.',
-                    });
-                    router.push(`/meetings/${meetingId}`);
-                  }}
-                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 transition-opacity"
-                  disabled={!userName.trim()}
-                >
-                  Join Meeting
-                </Button>
-              </div>
-            </Card>
-
-            {/* Connection Status */}
+          {/* Audio Level Indicator */}
+          {!isAudioMuted && (
             <Card className="p-4 bg-card/50 backdrop-blur-xl border-border/50">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Connection Quality</span>
-                <div className="flex items-center gap-2">
-                  {connectionQuality === 'good' && (
-                    <>
-                      <Wifi className="h-4 w-4 text-green-500" />
-                      <span className="text-sm text-green-500">Excellent</span>
-                    </>
-                  )}
-                  {connectionQuality === 'fair' && (
-                    <>
-                      <Wifi className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm text-yellow-500">Fair</span>
-                    </>
-                  )}
-                  {connectionQuality === 'poor' && (
-                    <>
-                      <WifiOff className="h-4 w-4 text-destructive" />
-                      <span className="text-sm text-destructive">Poor</span>
-                    </>
-                  )}
+                <div className="flex items-center gap-3">
+                  <Volume2 className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Audio Level</span>
                 </div>
+                <AudioVisualizer audioLevel={audioLevel} />
               </div>
             </Card>
-
-            {/* Pre-meeting Checklist */}
-            <Card className="p-6 bg-card/50 backdrop-blur-xl border-border/50">
-              <h3 className="font-semibold mb-4">Pre-meeting Checklist</h3>
-              <div className="space-y-3">
-                {checklist.map((item, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{item.label}</span>
-                    {item.isChecked ? (
-                      <Check className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <X className="h-4 w-4 text-destructive" />
-                    )}
-                  </div>
-                ))}
-              </div>
-              <Progress 
-                value={(checklist.filter(item => item.isChecked).length / checklist.length) * 100} 
-                className="mt-4 h-2"
-              />
-            </Card>
-
-            {/* Quick Settings */}
-            <Card className="p-6 bg-card/50 backdrop-blur-xl border-border/50">
-              <h3 className="font-semibold mb-4">Quick Settings</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="blur" className="text-sm">
-                    Background Blur
-                  </Label>
-                  <Switch
-                    id="blur"
-                    checked={isBlurred}
-                    onCheckedChange={setIsBlurred}
-                    disabled={isVideoOff}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="mirror" className="text-sm">
-                    Mirror Video
-                  </Label>
-                  <Switch
-                    id="mirror"
-                    checked={isMirrored}
-                    onCheckedChange={setIsMirrored}
-                    disabled={isVideoOff}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="noise" className="text-sm">
-                    Noise Cancellation
-                  </Label>
-                  <Switch
-                    id="noise"
-                    checked={true}
-                    disabled
-                  />
-                </div>
-              </div>
-            </Card>
-          </div>
+          )}
         </div>
+
+        {/* Right side - Controls & Info */}
+        <div className="space-y-4">
+          {/* User Info */}
+          <Card className="p-6 bg-card/50 backdrop-blur-xl border-border/50">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Your Name
+                </Label>
+                <Input
+                  id="name"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your name"
+                  className="mt-2 bg-background/50 border-border/50"
+                />
+              </div>
+
+              <Button 
+                onClick={() => {
+                  if (!userName.trim()) {
+                    toast({
+                      variant: 'destructive',
+                      title: 'Name Required',
+                      description: 'Please enter your name before joining.',
+                    });
+                    return;
+                  }
+                  toast({
+                    title: 'Joining Meeting',
+                    description: 'You would be redirected to the meeting room.',
+                  });
+                  router.push(`/meetings/${meetingId}`);
+                }}
+                className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90 transition-opacity"
+                disabled={!userName.trim()}
+              >
+                Join Meeting
+              </Button>
+            </div>
+          </Card>
+
+          {/* Connection Status */}
+          <Card className="p-4 bg-card/50 backdrop-blur-xl border-border/50">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Connection Quality</span>
+              <div className="flex items-center gap-2">
+                {connectionQuality === 'good' && (
+                  <>
+                    <Wifi className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-green-500">Excellent</span>
+                  </>
+                )}
+                {connectionQuality === 'fair' && (
+                  <>
+                    <Wifi className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm text-yellow-500">Fair</span>
+                  </>
+                )}
+                {connectionQuality === 'poor' && (
+                  <>
+                    <WifiOff className="h-4 w-4 text-destructive" />
+                    <span className="text-sm text-destructive">Poor</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Pre-meeting Checklist */}
+          <Card className="p-6 bg-card/50 backdrop-blur-xl border-border/50">
+            <h3 className="font-semibold mb-4">Pre-meeting Checklist</h3>
+            <div className="space-y-3">
+              {checklist.map((item, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">{item.label}</span>
+                  {item.isChecked ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <X className="h-4 w-4 text-destructive" />
+                  )}
+                </div>
+              ))}
+            </div>
+            <Progress 
+              value={(checklist.filter(item => item.isChecked).length / checklist.length) * 100} 
+              className="mt-4 h-2"
+            />
+          </Card>
+
+          {/* Quick Settings */}
+          <Card className="p-6 bg-card/50 backdrop-blur-xl border-border/50">
+            <h3 className="font-semibold mb-4">Quick Settings</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="blur" className="text-sm">
+                  Background Blur
+                </Label>
+                <Switch
+                  id="blur"
+                  checked={isBlurred}
+                  onCheckedChange={setIsBlurred}
+                  disabled={isVideoOff}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="mirror" className="text-sm">
+                  Mirror Video
+                </Label>
+                <Switch
+                  id="mirror"
+                  checked={isMirrored}
+                  onCheckedChange={setIsMirrored}
+                  disabled={isVideoOff}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="noise" className="text-sm">
+                  Noise Cancellation
+                </Label>
+                <Switch
+                  id="noise"
+                  checked={true}
+                  disabled
+                />
+              </div>
+            </div>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
