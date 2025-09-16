@@ -34,7 +34,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
         )}>
           <Header />
           <div className="flex flex-1 flex-col">
-            <main className="flex-1 pb-16 md:pb-0">{children}</main>
+            <main className="flex-1 flex flex-col">{children}</main>
             {!isChatPage && !isMeetingPage && <Footer />}
           </div>
           {isMobile && isActive && <TimeTracker isMobileFooter={true} />}
@@ -54,3 +54,5 @@ export function AppLayout({ children }: { children: ReactNode }) {
     </ThemeProvider>
   );
 }
+
+    
