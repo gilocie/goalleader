@@ -30,6 +30,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 
 const initialParticipants = [
   {
@@ -38,6 +39,7 @@ const initialParticipants = [
     role: 'Organizer',
     isSpeaking: true,
     isMuted: false,
+    isVideoOn: true,
   },
   {
     id: 'mia-jones-p2',
@@ -45,6 +47,7 @@ const initialParticipants = [
     role: 'You',
     isSpeaking: false,
     isMuted: true,
+    isVideoOn: true,
   },
   {
     id: 'janice-wallberg-p3',
@@ -52,6 +55,7 @@ const initialParticipants = [
     role: 'Participant',
     isSpeaking: false,
     isMuted: false,
+    isVideoOn: false,
   },
   {
     id: 'camille-valdez-p4',
@@ -59,6 +63,7 @@ const initialParticipants = [
     role: 'Participant',
     isSpeaking: true,
     isMuted: false,
+    isVideoOn: true,
   },
 ];
 
@@ -111,6 +116,7 @@ interface VideoCallUIProps {
 export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff = false, aiAllowed = false }: VideoCallUIProps) {
   const [isMuted, setIsMuted] = useState(initialIsMuted);
   const [isVideoOff, setIsVideoOff] = useState(initialIsVideoOff);
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isTyping, setIsTyping] = useState(true);
   const [activeTab, setActiveTab] = useState('participants');
@@ -127,6 +133,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             role: 'Assistant',
             isSpeaking: false,
             isMuted: true,
+            isVideoOn: false,
         }])
     }
   }, [aiAllowed]);
@@ -144,7 +151,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         return;
       }
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         setHasCameraPermission(true);
 
         if (videoRef.current) {
@@ -174,6 +181,10 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   }, [initialIsVideoOff, toast]);
 
   const handleEndCall = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+    }
     router.push('/meetings');
   };
   
@@ -184,15 +195,17 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
   const VolumeControl = () => (
     <div className="flex flex-col items-center gap-2 bg-black/40 backdrop-blur-sm p-3 rounded-full">
-        <Volume2 className="text-white" />
+        <button onClick={() => setIsSpeakerMuted(prev => !prev)}>
+            {isSpeakerMuted ? <VolumeX className="text-white" /> : <Volume2 className="text-white" />}
+        </button>
         <Slider
-            defaultValue={[60]}
+            defaultValue={[isSpeakerMuted ? 0 : 60]}
             max={100}
             step={1}
             orientation="vertical"
             className="h-20"
+            disabled={isSpeakerMuted}
         />
-        <VolumeX className="text-white" />
     </div>
   );
 
@@ -302,23 +315,50 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             </div>
 
             {/* Video Controls */}
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-20">
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
-                    <ScreenShare />
-                </Button>
-                <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
-                    {isMuted ? <MicOff /> : <Mic />}
-                </Button>
-                <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
-                    <Phone />
-                </Button>
-                <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
-                    {isVideoOff ? <VideoOff /> : <Video />}
-                </Button>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
-                    <Settings />
-                </Button>
-            </div>
+            <TooltipProvider>
+                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-20">
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                                <ScreenShare />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Share Screen</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                                {isMuted ? <MicOff /> : <Mic />}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{isMuted ? 'Unmute' : 'Mute'}</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
+                                <Phone />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>End Call</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                                {isVideoOff ? <VideoOff /> : <Video />}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{isVideoOff ? 'Turn Camera On' : 'Turn Camera Off'}</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                                <Settings />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Settings</TooltipContent>
+                    </Tooltip>
+                </div>
+            </TooltipProvider>
 
              {/* Footer / Transcription */}
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10">
@@ -434,7 +474,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                                     </div>
                                     <div className="flex items-center gap-2 text-muted-foreground">
                                         <Mic className={cn("h-4 w-4", p.isSpeaking ? 'text-primary' : (p.isMuted && 'text-destructive') )} />
-                                        <Video className="h-4 w-4" />
+                                        <Video className={cn("h-4 w-4", !p.isVideoOn && "text-destructive")} />
                                     </div>
                                 </div>
                             )
