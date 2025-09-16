@@ -77,29 +77,13 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     setAudioLevel(0);
   }, []);
 
-  const processAudio = useCallback(() => {
-    if (analyserRef.current) {
-      const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-      analyserRef.current.getByteTimeDomainData(dataArray);
-      let sumSquares = 0.0;
-      for (const amplitude of dataArray) {
-        const val = (amplitude - 128) / 128;
-        sumSquares += val * val;
-      }
-      const rms = Math.sqrt(sumSquares / dataArray.length);
-      const level = Math.min(1, rms * 5);
-      setAudioLevel(level);
-      animationFrameRef.current = requestAnimationFrame(processAudio);
-    }
-  }, []);
-
   const startMediaStream = useCallback(async (audioId?: string, videoId?: string) => {
     try {
       stopCurrentStream();
 
       const constraints: MediaStreamConstraints = {
         audio: audioId ? { deviceId: { exact: audioId } } : { noiseSuppression: true, echoCancellation: true },
-        video: videoId ? { deviceId: { exact: videoId } } : true,
+        video: videoId ? { deviceId: { exact: videoId }, width: 1280, height: 720 } : { width: 1280, height: 720 },
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -118,6 +102,22 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
       if (videoTrack) {
         videoTrack.enabled = !isVideoOff;
       }
+
+      const processAudio = () => {
+        if (analyserRef.current) {
+          const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+          analyserRef.current.getByteTimeDomainData(dataArray);
+          let sumSquares = 0.0;
+          for (const amplitude of dataArray) {
+            const val = (amplitude - 128) / 128;
+            sumSquares += val * val;
+          }
+          const rms = Math.sqrt(sumSquares / dataArray.length);
+          const level = Math.min(1, rms * 5);
+          setAudioLevel(level);
+          animationFrameRef.current = requestAnimationFrame(processAudio);
+        }
+      };
 
       if (audioTrack && !isAudioMuted) {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -138,14 +138,15 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         description: 'Please enable camera and microphone permissions.',
       });
     }
-  }, [isAudioMuted, isVideoOff, toast, processAudio, stopCurrentStream]);
+  }, [isAudioMuted, isVideoOff, toast, stopCurrentStream]);
 
 
   useEffect(() => {
     const initializeMedia = async () => {
       try {
+        // First, just get permission. This avoids devices changing IDs.
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
-        // Got permission, we can stop the tracks
+        // Stop these tracks immediately, we only needed them for permission
         stream.getTracks().forEach(track => track.stop());
         setHasCameraPermission(true);
 
@@ -162,6 +163,7 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
         if (defaultAudioId) setSelectedAudioDevice(defaultAudioId);
         if (defaultVideoId) setSelectedVideoDevice(defaultVideoId);
 
+        // Now, start the stream with the default devices
         await startMediaStream(defaultAudioId, defaultVideoId);
 
       } catch (err) {
@@ -184,11 +186,12 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
   }, []);
 
   useEffect(() => {
-    if (selectedAudioDevice || selectedVideoDevice) {
+    // Re-stream only when selected devices change and we have permission
+    if (hasCameraPermission && (selectedAudioDevice || selectedVideoDevice)) {
         startMediaStream(selectedAudioDevice, selectedVideoDevice);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAudioDevice, selectedVideoDevice]);
+  }, [selectedAudioDevice, selectedVideoDevice, hasCameraPermission]);
   
   const toggleAudio = () => {
     const newMutedState = !isAudioMuted;
@@ -197,11 +200,11 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
       const audioTrack = streamRef.current.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !newMutedState;
-        if (newMutedState) {
-          if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-          setAudioLevel(0);
-        } else {
-          processAudio();
+        if(newMutedState && animationFrameRef.current){
+           cancelAnimationFrame(animationFrameRef.current);
+           setAudioLevel(0);
+        } else if(!newMutedState) {
+           startMediaStream(selectedAudioDevice, selectedVideoDevice);
         }
       }
     }
@@ -360,5 +363,3 @@ export function MeetingLobby({ meetingId }: MeetingLobbyProps) {
     </div>
   );
 }
-
-    
