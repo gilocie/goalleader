@@ -438,7 +438,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 );
 
   return (
-    <div id="video-call-container" className="h-full bg-background flex flex-col p-4 space-y-4">
+    <div id="video-call-container" className="h-screen max-h-screen bg-background flex flex-col p-4 space-y-4 overflow-hidden">
         {!isFullscreen && (
         <div className="flex items-center justify-between border-b pb-4">
             <div className="flex items-center gap-2">
@@ -454,7 +454,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         )}
 
       <div className={cn(
-          "flex-1 grid grid-cols-1 overflow-hidden h-[65vh]",
+          "flex-1 grid grid-cols-1 overflow-hidden min-h-0",
           !isFullscreen && "lg:grid-cols-10"
       )}>
         {/* Main Content: Video */}
@@ -561,7 +561,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
             {/* Video Controls */}
             <TooltipProvider>
-                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-20">
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-30">
                      <Tooltip>
                         <TooltipTrigger asChild>
                             <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
