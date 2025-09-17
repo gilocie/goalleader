@@ -220,7 +220,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
           audioTrack.enabled = !initialIsMuted;
         }
 
-        const videoTrack = stream.getVideoTracks()[0];
+        const videoTrack = stream.getAudioTracks()[0];
         if (videoTrack) {
           videoTrack.enabled = !initialIsVideoOff;
         }
@@ -475,15 +475,15 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         )}
 
       <div className={cn(
-          "flex-1 grid overflow-hidden min-h-0",
-          !isFullscreen ? "grid-cols-1 lg:grid-cols-10" : "grid-cols-1"
+          "flex-1 grid grid-cols-1 overflow-hidden min-h-0",
+          !isFullscreen ? "lg:grid-cols-10" : "grid-cols-1"
       )}>
         {/* Main Content: Video */}
         <div className={cn(
-          "flex flex-col relative bg-muted",
+          "flex flex-col relative bg-muted pb-24", // Added pb-24 for controls space
           !isFullscreen ? "lg:col-span-7 col-span-1" : "col-span-1"
         )}>
-            <div className="flex-1 relative overflow-hidden pb-24">
+            <div className="flex-1 relative overflow-hidden">
                  {isScreenSharing ? (
                     <div className="relative w-full h-full bg-black">
                       <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
@@ -525,7 +525,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
               )}
 
               <TooltipProvider>
-                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
+                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
                        <Tooltip>
                           <TooltipTrigger asChild>
                               <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
@@ -691,7 +691,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                     </button>
                 </div>
             </div>
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 min-h-0">
                 {activeTab === 'messages' ? (
                      <div className="p-4 space-y-4">
                         {messages.map((msg) => {
