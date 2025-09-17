@@ -479,7 +479,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
       <div className={cn('flex-1 grid overflow-hidden min-h-0', !isFullscreen ? 'grid-cols-1 lg:grid-cols-10' : 'grid-cols-1')}>
         {/* Video Area */}
         <div className={cn('flex flex-col relative bg-muted', !isFullscreen ? 'lg:col-span-7' : 'col-span-1')}>
-          <div className="flex-1 relative overflow-hidden h-full min-h-[500px] max-h-[500px]">
+          <div className="flex-1 relative overflow-hidden h-full min-h-[490px] max-h-[490px]">
             {isScreenSharing ? (
               <div className="relative w-full h-full bg-black">
                 <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
@@ -583,11 +583,11 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
               </>
             )}
 
-            <div className="absolute bottom-36 left-5 hidden lg:block z-10">
+            <div className="absolute bottom-8 left-5 hidden lg:block z-10">
               <VolumeControl />
             </div>
 
-            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
               <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -658,7 +658,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
         {/* Chat Panel */}
         {!isFullscreen && (
-          <div className={cn('bg-muted/50 border-l flex flex-col max-h-[500px] min-h-[500px]', 'lg:col-span-3', isChatPanelOpen ? 'col-span-1' : 'hidden lg:flex')}>
+          <div className={cn('bg-muted/50 border-l flex flex-col max-h-[490px] min-h-[490px]', 'lg:col-span-3', isChatPanelOpen ? 'col-span-1' : 'hidden lg:flex')}>
             <div className="flex-shrink-0 border-b">
               <div className="grid grid-cols-2 text-center">
                 <button
@@ -795,3 +795,5 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     </div>
   );
 }
+
+    
