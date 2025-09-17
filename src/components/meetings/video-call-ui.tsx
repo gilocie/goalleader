@@ -461,29 +461,29 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   return (
     <div id="video-call-container" className="h-screen max-h-screen bg-background flex flex-col overflow-hidden">
         {!isFullscreen && (
-          <div className="flex items-center justify-between border-b p-4">
-              <div className="flex items-center gap-2">
-                  <Users size={20} />
-                  <span className="font-medium">People attending the call</span>
-                  <Badge>{participants.length}</Badge>
-              </div>
-              <Button variant="outline" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+        <div className="flex items-center justify-between border-b p-4">
+            <div className="flex items-center gap-2">
+                <Users size={20} />
+                <span className="font-medium">People attending the call</span>
+                <Badge>{participants.length}</Badge>
+            </div>
+            <Button variant="outline" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                 <Plus className="mr-2 h-4 w-4" />
                 Add person to the call
-              </Button>
-          </div>
+            </Button>
+        </div>
         )}
 
       <div className={cn(
-          "flex-1 grid grid-cols-1 overflow-hidden min-h-0",
+          "flex-1 grid grid-cols-1 overflow-hidden min-h-0 max-h-[500px]",
           !isFullscreen ? "lg:grid-cols-10" : "grid-cols-1"
       )}>
         {/* Main Content: Video */}
         <div className={cn(
-          "flex flex-col relative bg-muted flex-1 min-h-0 max-h-[400px]",
+          "flex flex-col relative bg-muted flex-1 min-h-0",
           !isFullscreen ? "lg:col-span-7 col-span-1" : "col-span-1"
         )}>
-            <div className="flex-1 relative overflow-hidden">
+            <div className="flex-1 relative overflow-hidden pb-24">
                  {isScreenSharing ? (
                     <div className="relative w-full h-full bg-black">
                       <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
@@ -663,7 +663,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
         {!isFullscreen && (
         <div className={cn(
-          "bg-muted/50 border-l flex flex-col max-h-[400px]",
+          "bg-muted/50 border-l flex flex-col max-h-[500px]",
           "lg:flex lg:col-span-3",
           "fixed inset-y-0 right-0 w-full max-w-sm z-40 transition-transform duration-300 ease-in-out",
           isChatPanelOpen ? "translate-x-0" : "translate-x-full",
@@ -854,7 +854,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         </TooltipProvider>
       </div>
 
-       <footer className="bg-muted/30 border-t px-4 py-2 text-center text-xs text-muted-foreground lg:hidden">
+      <footer className="bg-muted/30 border-t px-4 py-2 text-center text-xs text-muted-foreground lg:hidden">
         <p>GoalLeader • {meeting.title}</p>
       </footer>
     </div>
