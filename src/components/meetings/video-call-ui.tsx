@@ -454,7 +454,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         )}
 
       <div className={cn(
-          "flex-1 grid grid-cols-1 overflow-hidden h-[75vh]",
+          "flex-1 grid grid-cols-1 overflow-hidden h-[65vh]",
           !isFullscreen && "lg:grid-cols-10"
       )}>
         {/* Main Content: Video */}
@@ -462,7 +462,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
           "flex flex-col relative bg-muted",
           !isFullscreen ? "col-span-1 lg:col-span-7" : "col-span-1"
         )}>
-            <div className="flex-1 relative overflow-hidden">
+            <div className="flex-1 relative overflow-hidden pb-24">
                  {isScreenSharing ? (
                     <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
                  ) : layout === 'grid' ? (
@@ -561,7 +561,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
             {/* Video Controls */}
             <TooltipProvider>
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-20">
+                <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-20">
                      <Tooltip>
                         <TooltipTrigger asChild>
                             <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
