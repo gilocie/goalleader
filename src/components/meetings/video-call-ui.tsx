@@ -593,12 +593,16 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
               </>
             )}
 
-            <div className="absolute bottom-8 left-5 hidden lg:block z-10">
-              <VolumeControl />
-            </div>
-
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
               <TooltipProvider>
+                 <Tooltip>
+                    <TooltipTrigger asChild>
+                       <div className="hidden lg:block">
+                          <VolumeControl />
+                       </div>
+                    </TooltipTrigger>
+                    <TooltipContent>Volume</TooltipContent>
+                 </Tooltip>
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant={layout === 'grid' ? 'default' : 'ghost'} size="icon" className={cn("rounded-full h-11 w-11", layout === 'grid' ? 'bg-primary text-primary-foreground' : 'text-white hover:bg-white/20')}>
@@ -814,4 +818,3 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   );
 }
 
-    
