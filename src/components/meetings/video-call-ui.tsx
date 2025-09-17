@@ -220,7 +220,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
           audioTrack.enabled = !initialIsMuted;
         }
 
-        const videoTrack = stream.getAudioTracks()[0];
+        const videoTrack = stream.getVideoTracks()[0];
         if (videoTrack) {
           videoTrack.enabled = !initialIsVideoOff;
         }
@@ -475,15 +475,15 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         )}
 
       <div className={cn(
-          "flex-1 grid grid-cols-1 overflow-hidden min-h-0 max-h-[480px]",
-          !isFullscreen ? "lg:grid-cols-10" : "grid-cols-1"
+          "flex-1 grid grid-cols-1 overflow-hidden min-h-0",
+          !isFullscreen && "lg:grid-cols-10"
       )}>
         {/* Main Content: Video */}
         <div className={cn(
-          "flex flex-col relative bg-muted flex-1 min-h-0",
+          "flex flex-col relative bg-muted max-h-[480px]",
           !isFullscreen ? "lg:col-span-7 col-span-1" : "col-span-1"
         )}>
-            <div className="flex-1 relative overflow-hidden pb-24">
+            <div className="flex-1 relative overflow-hidden pb-24 h-full">
                  {isScreenSharing ? (
                     <div className="relative w-full h-full bg-black">
                       <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
@@ -661,6 +661,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             </div>
         </div>
 
+        {/* Chat Panel */}
         {!isFullscreen && (
         <div className={cn(
           "bg-muted/50 border-l flex flex-col max-h-[480px]",
