@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -14,9 +15,12 @@ import {
   Volume2,
   MessageSquare,
   Send,
-  ScreenShare,
+  ScreenShare as Monitor,
   VolumeX,
   Bot,
+  StopCircle,
+  Maximize,
+  Minimize,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -121,9 +125,32 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   const [isTyping, setIsTyping] = useState(true);
   const [activeTab, setActiveTab] = useState('participants');
   const [participants, setParticipants] = useState(initialParticipants);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
+  const screenShareRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
+  
   const { toast } = useToast();
   const router = useRouter();
+
+  // Timer for elapsed time
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsedTime(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
 
   useEffect(() => {
     if (aiAllowed) {
@@ -151,12 +178,24 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         return;
       }
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: !initialIsVideoOff, audio: true });
+        streamRef.current = stream;
         setHasCameraPermission(true);
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
+
+        const audioTrack = stream.getAudioTracks()[0];
+        if (audioTrack) {
+          audioTrack.enabled = !initialIsMuted;
+        }
+
+        const videoTrack = stream.getVideoTracks()[0];
+        if (videoTrack) {
+          videoTrack.enabled = !initialIsVideoOff;
+        }
+
       } catch (error) {
         console.error('Error accessing camera:', error);
         setHasCameraPermission(false);
@@ -173,21 +212,153 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     }
     
     return () => {
-        if (videoRef.current && videoRef.current.srcObject) {
-            const stream = videoRef.current.srcObject as MediaStream;
-            stream.getTracks().forEach(track => track.stop());
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+        }
+        if (screenStreamRef.current) {
+          screenStreamRef.current.getTracks().forEach(track => track.stop());
         }
     }
-  }, [initialIsVideoOff, toast]);
+  }, [initialIsVideoOff, initialIsMuted, toast]);
+
+    const toggleAudio = () => {
+    if (streamRef.current) {
+      const audioTrack = streamRef.current.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !isMuted;
+        setIsMuted(!isMuted);
+      }
+    }
+  };
+
+  const toggleVideo = async () => {
+    if (!streamRef.current) return;
+
+    const videoTrack = streamRef.current.getVideoTracks()[0];
+    
+    if (videoTrack) {
+      videoTrack.enabled = !isVideoOff;
+      setIsVideoOff(!isVideoOff);
+      
+      if (!isVideoOff && videoRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        videoRef.current.play().catch(() => {});
+      }
+    } else if (isVideoOff) {
+      try {
+        const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const newVideoTrack = newStream.getVideoTracks()[0];
+        
+        if (streamRef.current && newVideoTrack) {
+          streamRef.current.addTrack(newVideoTrack);
+          
+          if (videoRef.current) {
+            videoRef.current.srcObject = streamRef.current;
+            videoRef.current.play().catch(() => {});
+          }
+          setIsVideoOff(false);
+        }
+      } catch (error) {
+        console.error('Error starting video:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Video Error',
+          description: 'Could not start video. Please check your camera.',
+        });
+      }
+    }
+  };
+
+  const toggleScreenShare = async () => {
+    if (!isScreenSharing) {
+      try {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false
+        });
+        
+        screenStreamRef.current = screenStream;
+        
+        if (screenShareRef.current) {
+            screenShareRef.current.srcObject = screenStream;
+        }
+
+        setIsScreenSharing(true);
+        
+        screenStream.getVideoTracks()[0].onended = () => {
+          stopScreenShare();
+        };
+        
+        toast({
+          title: 'Screen Sharing',
+          description: 'You are now sharing your screen.',
+        });
+      } catch (error) {
+        console.error('Error sharing screen:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Screen Share Failed',
+          description: 'Could not share screen. Please try again.',
+        });
+      }
+    } else {
+      stopScreenShare();
+    }
+  };
+
+  const stopScreenShare = () => {
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach(track => track.stop());
+      screenStreamRef.current = null;
+    }
+    setIsScreenSharing(false);
+  };
 
   const handleEndCall = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+    if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (screenStreamRef.current) {
+      screenStreamRef.current.getTracks().forEach(track => track.stop());
+      screenStreamRef.current = null;
+    }
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
     }
     router.push('/meetings');
   };
   
+    const toggleFullscreen = async () => {
+    const container = document.getElementById('video-call-container');
+    if (!container) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        await container.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (error) {
+      console.error('Error toggling fullscreen:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Fullscreen Error',
+        description: 'Could not toggle fullscreen mode.',
+      });
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   const mainSpeaker = participants.find(p => p.role === 'Organizer');
   const otherParticipants = participants.filter(p => p.role !== 'Organizer' && p.role !== 'You' && p.role !== 'Assistant').slice(0, 2);
   const selfParticipant = participants.find(p => p.role === 'You');
@@ -210,8 +381,8 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   );
 
   return (
-    <div className="flex-1 bg-background flex flex-col">
-        {/* Top Bar */}
+    <div id="video-call-container" className="flex-1 bg-background flex flex-col">
+        {!isFullscreen && (
         <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
                 <Users size={20} />
@@ -223,12 +394,23 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
               Add person to the call
             </Button>
         </div>
+        )}
 
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-10">
+      <div className={cn(
+          "flex-1 grid grid-cols-1 overflow-hidden",
+          !isFullscreen && "lg:grid-cols-10"
+      )}>
         {/* Main Content: Video */}
-        <div className="col-span-10 md:col-span-7 flex flex-col relative bg-muted h-[400px] md:h-auto">
+        <div className={cn(
+          "flex flex-col relative bg-muted",
+          !isFullscreen ? "col-span-1 lg:col-span-7 h-[400px] md:h-auto" : "col-span-1"
+        )}>
             <div className="flex-1 relative overflow-hidden">
-                 <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                 {isScreenSharing ? (
+                    <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
+                 ) : (
+                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                 )}
                 {!hasCameraPermission && !isVideoOff && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
                         <Alert variant="destructive">
@@ -251,6 +433,8 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             </div>
 
             {/* Overlays */}
+            {!isFullscreen && (
+            <>
             <div className="absolute top-5 left-5 flex items-center gap-3">
                 {mainSpeaker && (
                     <Card className="overflow-hidden relative min-w-[150px] bg-black/30 text-white border-none shadow-lg">
@@ -272,7 +456,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                     </span>
-                    <span>02:15</span>
+                    <span>{formatTime(elapsedTime)}</span>
                 </div>
             </div>
 
@@ -309,6 +493,8 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                     </Button>
                 )}
             </div>
+            </>
+            )}
 
             <div className="absolute bottom-5 left-5">
                 <VolumeControl />
@@ -319,15 +505,15 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                 <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-20">
                      <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
-                                <ScreenShare />
+                            <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
+                                {isScreenSharing ? <StopCircle /> : <Monitor />}
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Share Screen</TooltipContent>
+                        <TooltipContent>{isScreenSharing ? 'Stop Sharing' : 'Share Screen'}</TooltipContent>
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button onClick={() => setIsMuted(!isMuted)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                            <Button onClick={toggleAudio} variant={isMuted ? "destructive" : "ghost"} size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
                                 {isMuted ? <MicOff /> : <Mic />}
                             </Button>
                         </TooltipTrigger>
@@ -343,15 +529,23 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                     </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button onClick={() => setIsVideoOff(!isVideoOff)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                            <Button onClick={toggleVideo} variant={isVideoOff ? "destructive" : "ghost"} size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
                                 {isVideoOff ? <VideoOff /> : <Video />}
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>{isVideoOff ? 'Turn Camera On' : 'Turn Camera Off'}</TooltipContent>
                     </Tooltip>
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button onClick={toggleFullscreen} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
+                                {isFullscreen ? <Minimize /> : <Maximize />}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
+                    </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
+                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
                                 <Settings />
                             </Button>
                         </TooltipTrigger>
@@ -370,6 +564,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         </div>
 
         {/* Chat Panel */}
+        {!isFullscreen && (
         <div className="col-span-10 md:col-span-3 bg-muted/50 border-l flex flex-col">
             <div className="p-4 border-b">
                 <h2 className="font-semibold text-lg">Group Chat</h2>
@@ -491,6 +686,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                 </div>
             </div>
         </div>
+        )}
       </div>
     </div>
   );
