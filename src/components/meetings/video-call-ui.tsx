@@ -475,7 +475,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         )}
 
       <div className={cn(
-          "flex-1 grid grid-cols-1 overflow-hidden min-h-0 max-h-[500px]",
+          "flex-1 grid grid-cols-1 overflow-hidden min-h-0 max-h-[480px]",
           !isFullscreen ? "lg:grid-cols-10" : "grid-cols-1"
       )}>
         {/* Main Content: Video */}
@@ -663,7 +663,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
         {!isFullscreen && (
         <div className={cn(
-          "bg-muted/50 border-l flex flex-col max-h-[500px]",
+          "bg-muted/50 border-l flex flex-col max-h-[480px]",
           "lg:flex lg:col-span-3",
           "fixed inset-y-0 right-0 w-full max-w-sm z-40 transition-transform duration-300 ease-in-out",
           isChatPanelOpen ? "translate-x-0" : "translate-x-full",
