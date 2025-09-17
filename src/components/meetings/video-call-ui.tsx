@@ -35,8 +35,8 @@ import { useToast } from '@/hooks/use-toast';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import Image from 'next/image';
 
 const initialParticipants = [
   {
@@ -480,7 +480,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
       )}>
         {/* Main Content: Video */}
         <div className={cn(
-          "flex flex-col relative bg-muted pb-24", // Added pb-24 for controls space
+          "flex flex-col relative bg-muted flex-1 min-h-0 max-h-[400px]",
           !isFullscreen ? "lg:col-span-7 col-span-1" : "col-span-1"
         )}>
             <div className="flex-1 relative overflow-hidden">
@@ -525,7 +525,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
               )}
 
               <TooltipProvider>
-                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
+                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
                        <Tooltip>
                           <TooltipTrigger asChild>
                               <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
@@ -663,13 +663,13 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
         {!isFullscreen && (
         <div className={cn(
-          "bg-muted/50 border-l flex flex-col transition-transform duration-300 ease-in-out",
-          "lg:relative lg:col-span-3",
-          "fixed inset-y-0 right-0 w-full max-w-sm z-40",
+          "bg-muted/50 border-l flex flex-col max-h-[400px]",
+          "lg:flex lg:col-span-3",
+          "fixed inset-y-0 right-0 w-full max-w-sm z-40 transition-transform duration-300 ease-in-out",
           isChatPanelOpen ? "translate-x-0" : "translate-x-full",
-          "lg:translate-x-0"
+          "lg:translate-x-0 lg:relative lg:max-w-none"
         )}>
-            <div className="p-4 border-b flex items-center justify-between">
+            <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
                 <h2 className="font-semibold text-lg">Group Chat</h2>
                 <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsChatPanelOpen(false)}>
                   <X className="h-4 w-4" />
@@ -784,7 +784,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                 )}
             </ScrollArea>
             {activeTab === 'messages' && (
-              <div className="p-4 border-t bg-background">
+              <div className="p-4 border-t bg-background flex-shrink-0">
                   <div className="relative">
                       <Input placeholder="Type a message..." className="pr-12 bg-white" />
                       <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-primary/10">
