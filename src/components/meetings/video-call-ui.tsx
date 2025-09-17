@@ -483,7 +483,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
           "flex flex-col relative bg-muted",
           !isFullscreen ? "lg:col-span-7 col-span-1" : "col-span-1"
         )}>
-            <div className="flex-1 relative overflow-hidden">
+            <div className="flex-1 relative overflow-hidden pb-24">
                  {isScreenSharing ? (
                     <div className="relative w-full h-full bg-black">
                       <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
