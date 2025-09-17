@@ -478,8 +478,8 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
       {/* Main Content Area */}
       <div className={cn('flex-1 grid overflow-hidden min-h-0', !isFullscreen ? 'grid-cols-1 lg:grid-cols-10' : 'grid-cols-1')}>
         {/* Video Area */}
-        <div className={cn('flex flex-col relative bg-muted max-h-[480px] min-h-[480px]', !isFullscreen ? 'lg:col-span-7' : 'col-span-1')}>
-          <div className="flex-1 relative overflow-hidden h-full">
+        <div className={cn('flex flex-col relative bg-muted', !isFullscreen ? 'lg:col-span-7' : 'col-span-1')}>
+          <div className="flex-1 relative overflow-hidden h-full min-h-[500px] max-h-[500px]">
             {isScreenSharing ? (
               <div className="relative w-full h-full bg-black">
                 <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
@@ -658,7 +658,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
         {/* Chat Panel */}
         {!isFullscreen && (
-          <div className={cn('bg-muted/50 border-l flex flex-col max-h-[480px] min-h-[480px]', 'lg:col-span-3', isChatPanelOpen ? 'col-span-1' : 'hidden lg:flex')}>
+          <div className={cn('bg-muted/50 border-l flex flex-col max-h-[500px] min-h-[500px]', 'lg:col-span-3', isChatPanelOpen ? 'col-span-1' : 'hidden lg:flex')}>
             <div className="flex-shrink-0 border-b">
               <div className="grid grid-cols-2 text-center">
                 <button
@@ -795,5 +795,3 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     </div>
   );
 }
-
-    
