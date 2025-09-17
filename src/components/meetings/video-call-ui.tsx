@@ -150,7 +150,12 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   const [hasCameraPermission, setHasCameraPermission] = useState(true);
   const [isTyping, setIsTyping] = useState(true);
   const [activeTab, setActiveTab] = useState('participants');
-  const [participants, setParticipants] = useState(initialParticipants);
+  const [participants, setParticipants] = useState(initialParticipants.map(p => {
+    if (p.role === 'You') {
+      return { ...p, isMuted: initialIsMuted, isVideoOn: !initialIsVideoOff };
+    }
+    return p;
+  }));
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -251,49 +256,45 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   }, [initialIsVideoOff, initialIsMuted, toast]);
 
     const toggleAudio = () => {
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+
     if (streamRef.current) {
       const audioTrack = streamRef.current.getAudioTracks()[0];
       if (audioTrack) {
-        audioTrack.enabled = !isMuted;
-        setIsMuted(!isMuted);
+        audioTrack.enabled = !newMutedState;
       }
     }
+    setParticipants(prev => prev.map(p => p.role === 'You' ? { ...p, isMuted: newMutedState } : p));
   };
 
   const toggleVideo = async () => {
-    if (!streamRef.current) return;
-
-    const videoTrack = streamRef.current.getVideoTracks()[0];
+    const newVideoOffState = !isVideoOff;
+    setIsVideoOff(newVideoOffState);
+    setParticipants(prev => prev.map(p => p.role === 'You' ? { ...p, isVideoOn: !newVideoOffState } : p));
     
+    if (!streamRef.current) return;
+    const videoTrack = streamRef.current.getVideoTracks()[0];
+
     if (videoTrack) {
-      videoTrack.enabled = !isVideoOff;
-      setIsVideoOff(!isVideoOff);
-      
-      if (!isVideoOff && videoRef.current) {
-        videoRef.current.srcObject = streamRef.current;
-        if(videoRef.current.paused) videoRef.current.play().catch(() => {});
-      }
-    } else if (isVideoOff) {
+        videoTrack.enabled = !newVideoOffState;
+    }
+
+    if (!newVideoOffState && !videoTrack) { // Turning video on when there's no track
       try {
         const newStream = await navigator.mediaDevices.getUserMedia({ video: true });
         const newVideoTrack = newStream.getVideoTracks()[0];
-        
-        if (streamRef.current && newVideoTrack) {
-          streamRef.current.addTrack(newVideoTrack);
-          
-          if (videoRef.current) {
-            videoRef.current.srcObject = streamRef.current;
-            if(videoRef.current.paused) videoRef.current.play().catch(() => {});
-          }
-          setIsVideoOff(false);
+        if (streamRef.current) {
+            streamRef.current.addTrack(newVideoTrack);
+             if (videoRef.current) {
+                videoRef.current.srcObject = streamRef.current;
+             }
         }
       } catch (error) {
-        console.error('Error starting video:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Video Error',
-          description: 'Could not start video. Please check your camera.',
-        });
+         console.error('Error starting video:', error);
+         toast({ variant: 'destructive', title: 'Video Error', description: 'Could not start video.' });
+         setIsVideoOff(true);
+         setParticipants(prev => prev.map(p => p.role === 'You' ? { ...p, isVideoOn: false } : p));
       }
     }
   };
@@ -437,12 +438,20 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 h-full auto-rows-fr">
         {participants.map(p => {
             const avatar = PlaceHolderImages.find(img => img.id === p.id);
+            const isSelf = p.role === 'You';
+            const showVideo = isSelf ? !isVideoOff : p.isVideoOn;
+
             return (
                 <Card key={p.id} className="relative aspect-video overflow-hidden bg-black flex items-center justify-center">
-                    {p.isVideoOn ? (
-                        <Image src={avatar?.imageUrl || ''} alt={p.name} layout="fill" className="object-cover" data-ai-hint={avatar?.imageHint}/>
+                    {showVideo ? (
+                         isSelf ? (
+                            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                         ) : (
+                            <Image src={avatar?.imageUrl || ''} alt={p.name} layout="fill" className="object-cover" data-ai-hint={avatar?.imageHint}/>
+                         )
                     ) : (
                          <Avatar className="h-16 w-16">
+                            {avatar && <AvatarImage src={avatar?.imageUrl} />}
                             <AvatarFallback className="text-xl bg-muted">{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
                         </Avatar>
                     )}
@@ -498,7 +507,17 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             ) : layout === 'grid' ? (
               <ParticipantGrid participants={participants} />
             ) : (
-              <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+              <>
+                <video ref={videoRef} className={cn("w-full h-full object-cover", isVideoOff && "hidden")} autoPlay muted playsInline />
+                {isVideoOff && (
+                  <div className="absolute inset-0 bg-black flex items-center justify-center">
+                    <Avatar className="h-40 w-40">
+                      <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant?.id)?.imageUrl} />
+                      <AvatarFallback>{selfParticipant?.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </div>
+                )}
+              </>
             )}
             
             {!hasCameraPermission && !isVideoOff && layout === 'speaker' && !isScreenSharing && (
@@ -508,15 +527,6 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                   <AlertTitle>Camera Access Required</AlertTitle>
                   <AlertDescription>Please allow camera access in your browser to use this feature.</AlertDescription>
                 </Alert>
-              </div>
-            )}
-            
-            {isVideoOff && selfParticipant && layout === 'speaker' && !isScreenSharing && (
-              <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                <Avatar className="h-40 w-40">
-                  <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
-                  <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
-                </Avatar>
               </div>
             )}
 
@@ -785,7 +795,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             className="bg-black/40 hover:bg-black/60 text-white rounded-full"
             size="icon"
           >
-            <MessageSquare className="h-5 w-5" />
+            {isChatPanelOpen ? <X className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
           </Button>
       </div>
 
@@ -795,5 +805,3 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     </div>
   );
 }
-
-    
