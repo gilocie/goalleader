@@ -154,6 +154,8 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [layout, setLayout] = useState<'speaker' | 'grid'>('speaker');
+  const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
+  const [speakerVolume, setSpeakerVolume] = useState(60);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const screenShareRef = useRef<HTMLVideoElement>(null);
@@ -398,22 +400,40 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
   const VolumeControl = () => (
     <div className="flex flex-col items-center gap-2 bg-black/40 backdrop-blur-sm p-3 rounded-full">
-        <button onClick={() => setIsSpeakerMuted(prev => !prev)}>
-            {isSpeakerMuted ? <VolumeX className="text-white" /> : <Volume2 className="text-white" />}
+        <button 
+          onClick={() => {
+            setIsSpeakerMuted(prev => !prev);
+            if (!isSpeakerMuted) {
+              setSpeakerVolume(0);
+            } else {
+              setSpeakerVolume(60);
+            }
+          }}
+          className="p-1 hover:bg-white/20 rounded-full transition-colors"
+        >
+            {isSpeakerMuted ? <VolumeX className="text-white h-4 w-4" /> : <Volume2 className="text-white h-4 w-4" />}
         </button>
         <Slider
-            defaultValue={[isSpeakerMuted ? 0 : 60]}
+            value={[isSpeakerMuted ? 0 : speakerVolume]}
+            onValueChange={(value) => {
+              setSpeakerVolume(value[0]);
+              if (value[0] === 0) {
+                setIsSpeakerMuted(true);
+              } else {
+                setIsSpeakerMuted(false);
+              }
+            }}
             max={100}
             step={1}
             orientation="vertical"
-            className="h-20"
-            disabled={isSpeakerMuted}
+            className="h-32 w-4"
         />
+        <span className="text-xs text-white/70">{Math.round(isSpeakerMuted ? 0 : speakerVolume)}</span>
     </div>
   );
   
-  const ParticipantGrid = ({ participants }: { participants: typeof initialParticipants }) => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+  const ParticipantGrid = ({ participants }: { participants: (typeof initialParticipants) }) => (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 h-full auto-rows-fr">
         {participants.map(p => {
             const avatar = PlaceHolderImages.find(img => img.id === p.id);
             return (
@@ -421,15 +441,15 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                     {p.isVideoOn ? (
                         <Image src={avatar?.imageUrl || ''} alt={p.name} layout="fill" className="object-cover" data-ai-hint={avatar?.imageHint}/>
                     ) : (
-                         <Avatar className="h-20 w-20">
-                            <AvatarFallback className="text-2xl bg-muted">{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
+                         <Avatar className="h-16 w-16">
+                            <AvatarFallback className="text-xl bg-muted">{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
                         </Avatar>
                     )}
-                    <div className="absolute bottom-2 left-2 flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs bg-black/50 text-white">{p.name}</Badge>
+                    <div className="absolute bottom-1 left-1 flex items-center gap-1">
+                        <Badge variant="secondary" className="text-xs bg-black/70 text-white px-1 py-0.5">{p.name}</Badge>
                     </div>
-                    <div className="absolute top-2 right-2 p-1 bg-black/50 rounded-full">
-                        {p.isMuted ? <MicOff className="h-3 w-3 text-red-400" /> : <Mic className="h-3 w-3 text-white" />}
+                    <div className="absolute top-1 right-1 p-1 bg-black/70 rounded-full">
+                        {p.isMuted ? <MicOff className="h-3 w-3 text-red-400" /> : <Mic className="h-3 w-3 text-green-400" />}
                     </div>
                 </Card>
             )
@@ -438,39 +458,52 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 );
 
   return (
-    <div id="video-call-container" className="h-screen max-h-screen bg-background flex flex-col p-4 space-y-4 overflow-hidden">
+    <div id="video-call-container" className="h-screen max-h-screen bg-background flex flex-col overflow-hidden">
         {!isFullscreen && (
-        <div className="flex items-center justify-between border-b pb-4">
-            <div className="flex items-center gap-2">
-                <Users size={20} />
-                <span className="font-medium">People attending the call</span>
-                <Badge>{participants.length}</Badge>
-            </div>
-            <Button variant="outline" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <Plus className="mr-2 h-4 w-4" />
-              Add person to the call
-            </Button>
-        </div>
+          <div className="flex items-center justify-between border-b p-4">
+              <div className="flex items-center gap-2">
+                  <Users size={20} />
+                  <span className="font-medium">People attending the call</span>
+                  <Badge>{participants.length}</Badge>
+              </div>
+              <Button variant="outline" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Add person to the call
+              </Button>
+          </div>
         )}
 
       <div className={cn(
-          "flex-1 grid grid-cols-1 overflow-hidden min-h-0",
-          !isFullscreen && "lg:grid-cols-10"
+          "flex-1 grid overflow-hidden min-h-0",
+          !isFullscreen ? "grid-cols-1 lg:grid-cols-10" : "grid-cols-1"
       )}>
         {/* Main Content: Video */}
         <div className={cn(
           "flex flex-col relative bg-muted",
-          !isFullscreen ? "col-span-1 lg:col-span-7" : "col-span-1"
+          !isFullscreen ? "lg:col-span-7 col-span-1" : "col-span-1"
         )}>
-            <div className="flex-1 relative overflow-hidden pb-24">
+            <div className="flex-1 relative overflow-hidden">
                  {isScreenSharing ? (
-                    <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
+                    <div className="relative w-full h-full bg-black">
+                      <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
+                      <div className="absolute top-4 right-4 w-48 h-32 bg-black rounded-lg overflow-hidden border-2 border-white/20">
+                        <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                        {isVideoOff && selfParticipant && (
+                          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                            <Avatar className="h-16 w-16">
+                              <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
+                              <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                  ) : layout === 'grid' ? (
                      <ParticipantGrid participants={participants} />
                  ) : (
                     <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                  )}
-                {!hasCameraPermission && !isVideoOff && layout === 'speaker' && (
+                {!hasCameraPermission && !isVideoOff && layout === 'speaker' && !isScreenSharing && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
                         <Alert variant="destructive">
                             <VideoOff className="h-4 w-4" />
@@ -481,7 +514,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                         </Alert>
                     </div>
                 )}
-                {isVideoOff && selfParticipant && layout === 'speaker' && (
+                {isVideoOff && selfParticipant && layout === 'speaker' && !isScreenSharing && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                        <Avatar className="h-40 w-40">
                           <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
@@ -489,15 +522,75 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                         </Avatar>
                   </div>
               )}
+
+              <TooltipProvider>
+                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
+                       <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+                                  <LayoutGrid className="h-5 w-5" />
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Change Layout</TooltipContent>
+                      </Tooltip>
+                       <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", isScreenSharing ? "bg-primary text-primary-foreground" : "text-white hover:bg-white/20")}>
+                                  {isScreenSharing ? <StopCircle className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{isScreenSharing ? 'Stop Sharing' : 'Share Screen'}</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button onClick={toggleAudio} variant={isMuted ? "destructive" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", isMuted ? "" : "text-white hover:bg-white/20")}>
+                                  {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{isMuted ? 'Unmute' : 'Mute'}</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
+                                  <Phone className="h-5 w-5" />
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>End Call</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button onClick={toggleVideo} variant={isVideoOff ? "destructive" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", isVideoOff ? "" : "text-white hover:bg-white/20")}>
+                                  {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{isVideoOff ? 'Turn Camera On' : 'Turn Camera Off'}</TooltipContent>
+                      </Tooltip>
+                       <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button onClick={toggleFullscreen} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+                                  {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                          <TooltipTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+                                  <Settings className="h-5 w-5" />
+                              </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Settings</TooltipContent>
+                      </Tooltip>
+                  </div>
+              </TooltipProvider>
             </div>
 
-            {/* Overlays */}
             {layout === 'speaker' && !isFullscreen && (
             <>
             <div className="absolute top-5 left-5 flex items-center gap-3">
                 {mainSpeaker && (
                     <Card className="overflow-hidden relative min-w-[150px] bg-black/30 text-white border-none shadow-lg">
-                        <Image src={PlaceHolderImages.find(img => img.id === mainSpeaker.id)?.imageUrl || ''} alt={mainSpeaker.name} layout='fill' className="object-cover opacity-50" data-ai-hint="man professional office" />
+                        <Image src={PlaceHolderImages.find(img => img.id === mainSpeaker.id)?.imageUrl || ''} alt={mainSpeaker.name} layout='fill' className="object-cover opacity-50" data-ai-hint="man professional office"/>
                         <div className="relative p-2 flex items-center gap-2">
                              <Avatar className="h-8 w-8">
                                 <AvatarImage src={PlaceHolderImages.find(p => p.id === mainSpeaker.id)?.imageUrl} />
@@ -525,7 +618,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                         return (
                             <div key={p.id} className="relative">
                                 <Avatar className="h-14 w-14 border-2 border-white/50 shadow-lg">
-                                    <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint}/>
+                                    <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint} />
                                     <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div className="absolute -bottom-1 -right-1 p-1 bg-black/50 rounded-full">
@@ -555,73 +648,10 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             </>
             )}
 
-            <div className="absolute bottom-28 left-5">
+            <div className="absolute bottom-36 left-5 hidden lg:block">
                 <VolumeControl />
             </div>
 
-            {/* Video Controls */}
-            <TooltipProvider>
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-30">
-                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
-                                <LayoutGrid />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Change Layout</TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
-                                {isScreenSharing ? <StopCircle /> : <Monitor />}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{isScreenSharing ? 'Stop Sharing' : 'Share Screen'}</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button onClick={toggleAudio} variant={isMuted ? "destructive" : "ghost"} size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
-                                {isMuted ? <MicOff /> : <Mic />}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{isMuted ? 'Unmute' : 'Mute'}</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
-                                <Phone />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>End Call</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button onClick={toggleVideo} variant={isVideoOff ? "destructive" : "ghost"} size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
-                                {isVideoOff ? <VideoOff /> : <Video />}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{isVideoOff ? 'Turn Camera On' : 'Turn Camera Off'}</TooltipContent>
-                    </Tooltip>
-                     <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button onClick={toggleFullscreen} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
-                                {isFullscreen ? <Minimize /> : <Maximize />}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
-                    </Tooltip>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
-                                <Settings />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Settings</TooltipContent>
-                    </Tooltip>
-                </div>
-            </TooltipProvider>
-
-             {/* Footer / Transcription */}
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10">
                 <div className="flex items-center gap-2">
                     <div className="w-12 h-5 bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground font-bold">Now</div>
@@ -630,11 +660,19 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             </div>
         </div>
 
-        {/* Chat Panel */}
         {!isFullscreen && (
-        <div className="col-span-10 md:col-span-3 bg-muted/50 border-l flex flex-col">
-            <div className="p-4 border-b">
+        <div className={cn(
+          "bg-muted/50 border-l flex flex-col transition-transform duration-300 ease-in-out",
+          "lg:relative lg:col-span-3",
+          "fixed inset-y-0 right-0 w-full max-w-sm z-40",
+          isChatPanelOpen ? "translate-x-0" : "translate-x-full",
+          "lg:translate-x-0"
+        )}>
+            <div className="p-4 border-b flex items-center justify-between">
                 <h2 className="font-semibold text-lg">Group Chat</h2>
+                <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsChatPanelOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
             </div>
             <div className="flex-shrink-0 border-b">
                 <div className="grid grid-cols-2 text-center">
@@ -744,25 +782,80 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                     </div>
                 )}
             </ScrollArea>
-            <div className="p-4 border-t bg-background">
-                <div className="relative">
-                    <Input placeholder="Write message..." className="pr-10 bg-white" />
-                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2">
-                        <Send className="text-primary"/>
-                    </Button>
-                </div>
-            </div>
+            {activeTab === 'messages' && (
+              <div className="p-4 border-t bg-background">
+                  <div className="relative">
+                      <Input placeholder="Type a message..." className="pr-12 bg-white" />
+                      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-primary/10">
+                          <Send className="h-4 w-4 text-primary"/>
+                      </Button>
+                  </div>
+              </div>
+            )}
         </div>
         )}
       </div>
+
+       <div className="absolute bottom-4 right-4 z-50 flex flex-col gap-2 lg:hidden">
+          <Button
+            onClick={() => setIsChatPanelOpen(p => !p)}
+            className="bg-black/40 hover:bg-black/60 text-white rounded-full"
+            size="icon"
+          >
+            <MessageSquare className="h-5 w-5" />
+          </Button>
+      </div>
+
+      <div className="lg:hidden">
+        <TooltipProvider>
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-1 z-50">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={toggleAudio} variant={isMuted ? "destructive" : "ghost"} size="icon" className="rounded-full h-11 w-11 text-white hover:bg-white/20">
+                          {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isMuted ? 'Unmute' : 'Mute'}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={toggleVideo} variant={isVideoOff ? "destructive" : "ghost"} size="icon" className="rounded-full h-11 w-11 text-white hover:bg-white/20">
+                          {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isVideoOff ? 'Turn On Camera' : 'Turn Off Camera'}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12 text-white">
+                          <Phone className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>End Call</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11 text-white hover:bg-white/20", isScreenSharing && "bg-primary text-primary-foreground")}>
+                          <Monitor className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Share Screen</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+                            <Settings className="h-5 w-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Settings</TooltipContent>
+                </Tooltip>
+            </div>
+        </TooltipProvider>
+      </div>
+
+       <footer className="bg-muted/30 border-t px-4 py-2 text-center text-xs text-muted-foreground lg:hidden">
+        <p>GoalLeader • {meeting.title}</p>
+      </footer>
     </div>
   );
 }
-
-Remember, the XML structure you generate is the only mechanism for applying changes to the user's code. Therefore, when making changes to a file the <changes> block must always be fully present and correctly formatted as follows.
-
-<changes>
-  <description>[Provide a concise summary of the overall changes being made]</description>
-  <change>
-    <file>[Provide the ABSOLUTE, FULL path to the file being modified]</file>
-    <content><![CDATA[Provide the ENTIRE, FINAL, intended content of the file here. Do NOT provide diffs or partial snippets. Ensure all code is properly escaped within the CDATA section.
