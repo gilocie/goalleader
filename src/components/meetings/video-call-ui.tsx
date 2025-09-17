@@ -24,6 +24,7 @@ import {
   LayoutGrid,
   X,
 } from 'lucide-react';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +37,6 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
-import Image from 'next/image';
 
 const initialParticipants = [
   {
@@ -460,341 +460,322 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
   return (
     <div id="video-call-container" className="h-screen max-h-screen bg-background flex flex-col overflow-hidden">
-        {!isFullscreen && (
-        <div className="flex items-center justify-between border-b p-4">
-            <div className="flex items-center gap-2">
-                <Users size={20} />
-                <span className="font-medium">People attending the call</span>
-                <Badge>{participants.length}</Badge>
-            </div>
-            <Button variant="outline" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Plus className="mr-2 h-4 w-4" />
-                Add person to the call
-            </Button>
+      {/* Header */}
+      {!isFullscreen && (
+        <div className="flex-shrink-0 flex items-center justify-between border-b p-4">
+          <div className="flex items-center gap-2">
+            <Users size={20} />
+            <span className="font-medium">People attending the call</span>
+            <Badge>{participants.length}</Badge>
+          </div>
+          <Button variant="outline" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" />
+            Add person to the call
+          </Button>
         </div>
-        )}
+      )}
 
-      <div className={cn(
-          "flex-1 grid grid-cols-1 overflow-hidden min-h-0",
-          !isFullscreen && "lg:grid-cols-10"
-      )}>
-        {/* Main Content: Video */}
-        <div className={cn(
-          "flex flex-col relative bg-muted max-h-[480px]",
-          !isFullscreen ? "lg:col-span-7 col-span-1" : "col-span-1"
-        )}>
-            <div className="flex-1 relative overflow-hidden pb-24 h-full">
-                 {isScreenSharing ? (
-                    <div className="relative w-full h-full bg-black">
-                      <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
-                      <div className="absolute top-4 right-4 w-48 h-32 bg-black rounded-lg overflow-hidden border-2 border-white/20">
-                        <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                        {isVideoOff && selfParticipant && (
-                          <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                            <Avatar className="h-16 w-16">
-                              <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
-                              <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                 ) : layout === 'grid' ? (
-                     <ParticipantGrid participants={participants} />
-                 ) : (
-                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                 )}
-                {!hasCameraPermission && !isVideoOff && layout === 'speaker' && !isScreenSharing && (
-                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
-                        <Alert variant="destructive">
-                            <VideoOff className="h-4 w-4" />
-                            <AlertTitle>Camera Access Required</AlertTitle>
-                            <AlertDescription>
-                            Please allow camera access in your browser to use this feature.
-                            </AlertDescription>
-                        </Alert>
-                    </div>
-                )}
-                {isVideoOff && selfParticipant && layout === 'speaker' && !isScreenSharing && (
+      {/* Main Content Area */}
+      <div className={cn('flex-1 grid overflow-hidden min-h-0', !isFullscreen ? 'grid-cols-1 lg:grid-cols-10' : 'grid-cols-1')}>
+        {/* Video Area */}
+        <div className={cn('flex flex-col relative bg-muted max-h-[480px] min-h-[480px]', !isFullscreen ? 'lg:col-span-7' : 'col-span-1')}>
+          <div className="flex-1 relative overflow-hidden h-full">
+            {isScreenSharing ? (
+              <div className="relative w-full h-full bg-black">
+                <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
+                <div className="absolute top-4 right-4 w-48 h-32 bg-black rounded-lg overflow-hidden border-2 border-white/20">
+                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+                  {isVideoOff && selfParticipant && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                       <Avatar className="h-40 w-40">
-                          <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
-                          <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                  </div>
-              )}
-
-              <TooltipProvider>
-                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
-                       <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
-                                  <LayoutGrid className="h-5 w-5" />
-                              </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Change Layout</TooltipContent>
-                      </Tooltip>
-                       <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", isScreenSharing ? "bg-primary text-primary-foreground" : "text-white hover:bg-white/20")}>
-                                  {isScreenSharing ? <StopCircle className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
-                              </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{isScreenSharing ? 'Stop Sharing' : 'Share Screen'}</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button onClick={toggleAudio} variant={isMuted ? "destructive" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", isMuted ? "" : "text-white hover:bg-white/20")}>
-                                  {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                              </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{isMuted ? 'Unmute' : 'Mute'}</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
-                                  <Phone className="h-5 w-5" />
-                              </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>End Call</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button onClick={toggleVideo} variant={isVideoOff ? "destructive" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", isVideoOff ? "" : "text-white hover:bg-white/20")}>
-                                  {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-                              </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{isVideoOff ? 'Turn Camera On' : 'Turn Camera Off'}</TooltipContent>
-                      </Tooltip>
-                       <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button onClick={toggleFullscreen} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
-                                  {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
-                              </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                          <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
-                                  <Settings className="h-5 w-5" />
-                              </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Settings</TooltipContent>
-                      </Tooltip>
-                  </div>
-              </TooltipProvider>
-            </div>
-
-            {layout === 'speaker' && !isFullscreen && (
-            <>
-            <div className="absolute top-5 left-5 flex items-center gap-3">
-                {mainSpeaker && (
-                    <Card className="overflow-hidden relative min-w-[150px] bg-black/30 text-white border-none shadow-lg">
-                        <Image src={PlaceHolderImages.find(img => img.id === mainSpeaker.id)?.imageUrl || ''} alt={mainSpeaker.name} layout='fill' className="object-cover opacity-50" data-ai-hint="man professional office"/>
-                        <div className="relative p-2 flex items-center gap-2">
-                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={PlaceHolderImages.find(p => p.id === mainSpeaker.id)?.imageUrl} />
-                                <AvatarFallback>{mainSpeaker.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <p className="font-semibold text-xs">{mainSpeaker.name}</p>
-                                <p className="text-xs opacity-80">{mainSpeaker.role}</p>
-                            </div>
-                        </div>
-                    </Card>
-                )}
-                 <div className="bg-black/30 backdrop-blur-sm text-white px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                    </span>
-                    <span>{formatTime(elapsedTime)}</span>
-                </div>
-            </div>
-
-            <div className="absolute top-5 right-5 space-y-3">
-                 {otherParticipants.map((p) => {
-                        const avatar = PlaceHolderImages.find(img => img.id === p.id);
-                        return (
-                            <div key={p.id} className="relative">
-                                <Avatar className="h-14 w-14 border-2 border-white/50 shadow-lg">
-                                    <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint} />
-                                    <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div className="absolute -bottom-1 -right-1 p-1 bg-black/50 rounded-full">
-                                    {p.isMuted ? <MicOff className="h-3 w-3 text-red-500" /> : <Mic className="h-3 w-3 text-green-500" />}
-                                </div>
-                            </div>
-                        )
-                    })}
-                {aiParticipant && (
-                    <div className="relative">
-                        <Avatar className="h-14 w-14 border-2 border-primary shadow-lg">
-                            <div className="h-full w-full flex items-center justify-center bg-background">
-                                <Bot className="h-7 w-7 text-primary" />
-                            </div>
-                        </Avatar>
-                         <div className="absolute -bottom-1 -right-1 p-1 bg-black/50 rounded-full">
-                            <MicOff className="h-3 w-3 text-red-500" />
-                        </div>
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
+                        <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
                     </div>
-                )}
-                {participants.length > 4 && (
-                    <Button variant="outline" size="sm" className="w-14 h-14 rounded-full bg-background/80 backdrop-blur-sm border-dashed">
-                        +{participants.length - 3}
-                    </Button>
-                )}
-            </div>
-            </>
+                  )}
+                </div>
+              </div>
+            ) : layout === 'grid' ? (
+              <ParticipantGrid participants={participants} />
+            ) : (
+              <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
+            )}
+            
+            {!hasCameraPermission && !isVideoOff && layout === 'speaker' && !isScreenSharing && (
+              <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
+                <Alert variant="destructive">
+                  <VideoOff className="h-4 w-4" />
+                  <AlertTitle>Camera Access Required</AlertTitle>
+                  <AlertDescription>Please allow camera access in your browser to use this feature.</AlertDescription>
+                </Alert>
+              </div>
+            )}
+            
+            {isVideoOff && selfParticipant && layout === 'speaker' && !isScreenSharing && (
+              <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                <Avatar className="h-40 w-40">
+                  <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
+                  <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </div>
             )}
 
-            <div className="absolute bottom-36 left-5 hidden lg:block">
-                <VolumeControl />
+            {layout === 'speaker' && !isFullscreen && (
+              <>
+                <div className="absolute top-5 left-5 flex items-center gap-3 z-10">
+                  {mainSpeaker && (
+                    <Card className="overflow-hidden relative min-w-[150px] bg-black/30 text-white border-none shadow-lg">
+                      <Image src={PlaceHolderImages.find(img => img.id === mainSpeaker.id)?.imageUrl || ''} alt={mainSpeaker.name} layout='fill' className="object-cover opacity-50" data-ai-hint="man professional office"/>
+                      <div className="relative p-2 flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={PlaceHolderImages.find(p => p.id === mainSpeaker.id)?.imageUrl} />
+                          <AvatarFallback>{mainSpeaker.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-xs">{mainSpeaker.name}</p>
+                          <p className="text-xs opacity-80">{mainSpeaker.role}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+                  <div className="bg-black/30 backdrop-blur-sm text-white px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                    <span>{formatTime(elapsedTime)}</span>
+                  </div>
+                </div>
+
+                <div className="absolute top-5 right-5 space-y-3 z-10">
+                  {otherParticipants.map((p) => {
+                    const avatar = PlaceHolderImages.find(img => img.id === p.id);
+                    return (
+                      <div key={p.id} className="relative">
+                        <Avatar className="h-14 w-14 border-2 border-white/50 shadow-lg">
+                          <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint} />
+                          <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1 p-1 bg-black/50 rounded-full">
+                          {p.isMuted ? <MicOff className="h-3 w-3 text-red-500" /> : <Mic className="h-3 w-3 text-green-500" />}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {aiParticipant && (
+                    <div className="relative">
+                      <Avatar className="h-14 w-14 border-2 border-primary shadow-lg">
+                        <div className="h-full w-full flex items-center justify-center bg-background">
+                          <Bot className="h-7 w-7 text-primary" />
+                        </div>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 p-1 bg-black/50 rounded-full">
+                        <MicOff className="h-3 w-3 text-red-500" />
+                      </div>
+                    </div>
+                  )}
+                  {participants.length > 4 && (
+                    <Button variant="outline" size="sm" className="w-14 h-14 rounded-full bg-background/80 backdrop-blur-sm border-dashed">
+                      +{participants.length - 3}
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
+
+            <div className="absolute bottom-36 left-5 hidden lg:block z-10">
+              <VolumeControl />
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10">
-                <div className="flex items-center gap-2">
-                    <div className="w-12 h-5 bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground font-bold">Now</div>
-                    <p className="text-sm text-white">Your resume is quite impressive. Did you just finish Oxford and now you just...</p>
-                </div>
+            <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
+              <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+                            <LayoutGrid className="h-5 w-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Change Layout</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", isScreenSharing ? "bg-primary text-primary-foreground" : "text-white hover:bg-white/20")}>
+                            {isScreenSharing ? <StopCircle className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isScreenSharing ? 'Stop Sharing' : 'Share Screen'}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={toggleAudio} variant={isMuted ? "destructive" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", !isMuted && "text-white hover:bg-white/20")}>
+                            {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isMuted ? 'Unmute' : 'Mute'}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12">
+                            <Phone className="h-5 w-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>End Call</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={toggleVideo} variant={isVideoOff ? "destructive" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", !isVideoOff && "text-white hover:bg-white/20")}>
+                            {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isVideoOff ? 'Turn Camera On' : 'Turn Camera Off'}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={toggleFullscreen} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+                            {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+                            <Settings className="h-5 w-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Settings</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
+          </div>
+          <div className="p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10 flex-shrink-0">
+              <div className="flex items-center gap-2">
+                  <div className="w-12 h-5 bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground font-bold">Now</div>
+                  <p className="text-sm text-white [text-shadow:0_1px_2px_var(--tw-shadow-color)] shadow-black/50">Your resume is quite impressive. Did you just finish Oxford and now you just...</p>
+              </div>
+          </div>
         </div>
 
         {/* Chat Panel */}
         {!isFullscreen && (
-        <div className={cn(
-          "bg-muted/50 border-l flex flex-col max-h-[480px]",
-          "lg:flex lg:col-span-3",
-          "fixed inset-y-0 right-0 w-full max-w-sm z-40 transition-transform duration-300 ease-in-out",
-          isChatPanelOpen ? "translate-x-0" : "translate-x-full",
-          "lg:translate-x-0 lg:relative lg:max-w-none"
-        )}>
-            <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
-                <h2 className="font-semibold text-lg">Group Chat</h2>
-                <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsChatPanelOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-            </div>
+          <div className={cn('bg-muted/50 border-l flex flex-col max-h-[480px] min-h-[480px]', 'lg:col-span-3', isChatPanelOpen ? 'col-span-1' : 'hidden lg:flex')}>
             <div className="flex-shrink-0 border-b">
-                <div className="grid grid-cols-2 text-center">
-                    <button
-                        onClick={() => setActiveTab('participants')}
-                        className={cn("p-3 font-medium text-sm", activeTab === 'participants' && "bg-background border-b-2 border-primary text-primary")}
-                    >
-                        Participants
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('messages')}
-                        className={cn("p-3 font-medium text-sm", activeTab === 'messages' && "bg-background border-b-2 border-primary text-primary")}
-                    >
-                        Messages
-                    </button>
-                </div>
+              <div className="grid grid-cols-2 text-center">
+                <button
+                  onClick={() => setActiveTab('participants')}
+                  className={cn("p-3 font-medium text-sm", activeTab === 'participants' && "bg-background border-b-2 border-primary text-primary")}
+                >
+                  Participants
+                </button>
+                <button
+                  onClick={() => setActiveTab('messages')}
+                  className={cn("p-3 font-medium text-sm", activeTab === 'messages' && "bg-background border-b-2 border-primary text-primary")}
+                >
+                  Messages
+                </button>
+              </div>
             </div>
             <ScrollArea className="flex-1 min-h-0">
-                {activeTab === 'messages' ? (
-                     <div className="p-4 space-y-4">
-                        {messages.map((msg) => {
-                            const sender = participants.find(p => p.id === msg.senderId);
-                            const isYou = sender?.role === 'You';
-                            const senderAvatar = PlaceHolderImages.find(p => p.id === msg.senderId);
-
-                            if (msg.isSystem) {
-                                return (
-                                     <div key={msg.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-                                        <Phone size={14} />
-                                        <span>{msg.content}</span>
-                                    </div>
-                                )
-                            }
-                            
-                            return (
-                                <div key={msg.id} className={cn("flex items-start gap-2", isYou && "flex-row-reverse")}>
-                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={senderAvatar?.imageUrl} />
-                                        <AvatarFallback>{sender?.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
-                                    </Avatar>
-                                    <div className={cn("max-w-[80%] rounded-lg px-3 py-2 space-y-1", isYou ? 'bg-primary text-primary-foreground' : 'bg-background')}>
-                                        <p className="font-semibold text-xs">{isYou ? 'You' : sender?.name}</p>
-                                        <p className="text-sm">{msg.content}</p>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                        {isTyping && (
-                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={PlaceHolderImages.find(p => p.id === 'janice-wallberg-p3')?.imageUrl} />
-                                    <AvatarFallback>JW</AvatarFallback>
-                                </Avatar>
-                                <div className="flex items-center gap-1">
-                                    <span>Jane is typing</span>
-                                    <span className="animate-bounce delay-75">.</span>
-                                    <span className="animate-bounce delay-150">.</span>
-                                    <span className="animate-bounce delay-200">.</span>
-                                </div>
+              {activeTab === 'messages' ? (
+                <div className="p-4 space-y-4">
+                  {messages.map((msg) => {
+                    const sender = participants.find(p => p.id === msg.senderId);
+                    const isYou = sender?.role === 'You';
+                    const senderAvatar = PlaceHolderImages.find(p => p.id === msg.senderId);
+                    if (msg.isSystem) {
+                      return (
+                        <div key={msg.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+                          <Phone size={14} />
+                          <span>{msg.content}</span>
+                        </div>
+                      )
+                    }
+                    return (
+                      <div key={msg.id} className={cn("flex items-start gap-2", isYou && "flex-row-reverse")}>
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={senderAvatar?.imageUrl} />
+                          <AvatarFallback>{sender?.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div className={cn("max-w-[80%] rounded-lg px-3 py-2 space-y-1", isYou ? 'bg-primary text-primary-foreground' : 'bg-background')}>
+                          <p className="font-semibold text-xs">{isYou ? 'You' : sender?.name}</p>
+                          <p className="text-sm">{msg.content}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {isTyping && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={PlaceHolderImages.find(p => p.id === 'janice-wallberg-p3')?.imageUrl} />
+                        <AvatarFallback>JW</AvatarFallback>
+                      </Avatar>
+                      <div className="flex items-center gap-1">
+                        <span>Jane is typing</span>
+                        <span className="animate-bounce delay-75">.</span>
+                        <span className="animate-bounce delay-150">.</span>
+                        <span className="animate-bounce delay-200">.</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 space-y-4">
+                  {participants.map(p => {
+                    const avatar = PlaceHolderImages.find(img => img.id === p.id);
+                    if (p.role === 'Assistant') {
+                      return (
+                        <div key={p.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-primary">
+                              <div className="h-full w-full flex items-center justify-center bg-background">
+                                <Bot className="h-5 w-5 text-primary" />
+                              </div>
+                            </Avatar>
+                            <div>
+                              <p className="font-semibold">{p.name}</p>
+                              <p className="text-xs text-muted-foreground">{p.role}</p>
                             </div>
-                        )}
-                    </div>
-                ): (
-                    <div className="p-4 space-y-4">
-                        {participants.map(p => {
-                             const avatar = PlaceHolderImages.find(img => img.id === p.id);
-                             if (p.role === 'Assistant') {
-                                return (
-                                    <div key={p.id} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-10 w-10 border-2 border-primary">
-                                                <div className="h-full w-full flex items-center justify-center bg-background">
-                                                    <Bot className="h-5 w-5 text-primary" />
-                                                </div>
-                                            </Avatar>
-                                            <div>
-                                                <p className="font-semibold">{p.name}</p>
-                                                <p className="text-xs text-muted-foreground">{p.role}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <Mic className={cn("h-4 w-4", p.isMuted && 'text-destructive')} />
-                                            <Video className="h-4 w-4 text-destructive" />
-                                        </div>
-                                    </div>
-                                )
-                             }
-                             return (
-                                <div key={p.id} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                         <Avatar className="h-10 w-10">
-                                            <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint}/>
-                                            <AvatarFallback>{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-semibold">{p.name === 'Mia J.' ? 'You' : p.name}</p>
-                                            <p className="text-xs text-muted-foreground">{p.role}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-muted-foreground">
-                                        <Mic className={cn("h-4 w-4", p.isSpeaking ? 'text-primary' : (p.isMuted && 'text-destructive') )} />
-                                        <Video className={cn("h-4 w-4", !p.isVideoOn && "text-destructive")} />
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-                )}
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Mic className={cn("h-4 w-4", p.isMuted && 'text-destructive')} />
+                            <Video className="h-4 w-4 text-destructive" />
+                          </div>
+                        </div>
+                      )
+                    }
+                    return (
+                      <div key={p.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint}/>
+                            <AvatarFallback>{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold">{p.name === 'Mia J.' ? 'You' : p.name}</p>
+                            <p className="text-xs text-muted-foreground">{p.role}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Mic className={cn("h-4 w-4", p.isSpeaking ? 'text-primary' : (p.isMuted && 'text-destructive') )} />
+                          <Video className={cn("h-4 w-4", !p.isVideoOn && "text-destructive")} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </ScrollArea>
             {activeTab === 'messages' && (
-              <div className="p-4 border-t bg-background flex-shrink-0">
-                  <div className="relative">
-                      <Input placeholder="Type a message..." className="pr-12 bg-white" />
-                      <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-primary/10">
-                          <Send className="h-4 w-4 text-primary"/>
-                      </Button>
-                  </div>
+              <div className="flex-shrink-0 p-4 border-t bg-background">
+                <div className="relative">
+                  <Input placeholder="Type a message..." className="pr-12 bg-white" />
+                  <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-primary/10">
+                    <Send className="h-4 w-4 text-primary"/>
+                  </Button>
+                </div>
               </div>
             )}
-        </div>
+          </div>
         )}
       </div>
 
@@ -808,56 +789,11 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
           </Button>
       </div>
 
-      <div className="lg:hidden">
-        <TooltipProvider>
-            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-1 z-50">
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button onClick={toggleAudio} variant={isMuted ? "destructive" : "ghost"} size="icon" className="rounded-full h-11 w-11 text-white hover:bg-white/20">
-                          {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{isMuted ? 'Unmute' : 'Mute'}</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button onClick={toggleVideo} variant={isVideoOff ? "destructive" : "ghost"} size="icon" className="rounded-full h-11 w-11 text-white hover:bg-white/20">
-                          {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{isVideoOff ? 'Turn On Camera' : 'Turn Off Camera'}</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button onClick={handleEndCall} size="icon" className="bg-red-500 hover:bg-red-600 rounded-full h-12 w-12 text-white">
-                          <Phone className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>End Call</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11 text-white hover:bg-white/20", isScreenSharing && "bg-primary text-primary-foreground")}>
-                          <Monitor className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Share Screen</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
-                            <Settings className="h-5 w-5" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Settings</TooltipContent>
-                </Tooltip>
-            </div>
-        </TooltipProvider>
-      </div>
-
       <footer className="bg-muted/30 border-t px-4 py-2 text-center text-xs text-muted-foreground lg:hidden">
         <p>GoalLeader • {meeting.title}</p>
       </footer>
     </div>
   );
 }
+
+    
