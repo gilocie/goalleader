@@ -268,7 +268,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
       
       if (!isVideoOff && videoRef.current) {
         videoRef.current.srcObject = streamRef.current;
-        videoRef.current.play().catch(() => {});
+        if(videoRef.current.paused) videoRef.current.play().catch(() => {});
       }
     } else if (isVideoOff) {
       try {
@@ -280,7 +280,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
           
           if (videoRef.current) {
             videoRef.current.srcObject = streamRef.current;
-            videoRef.current.play().catch(() => {});
+            if(videoRef.current.paused) videoRef.current.play().catch(() => {});
           }
           setIsVideoOff(false);
         }
@@ -438,9 +438,9 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 );
 
   return (
-    <div id="video-call-container" className="h-screen bg-background flex flex-col">
+    <div id="video-call-container" className="h-full bg-background flex flex-col p-4 space-y-4">
         {!isFullscreen && (
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between border-b pb-4">
             <div className="flex items-center gap-2">
                 <Users size={20} />
                 <span className="font-medium">People attending the call</span>
@@ -454,12 +454,12 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         )}
 
       <div className={cn(
-          "flex-1 grid grid-cols-1 overflow-hidden",
+          "flex-1 grid grid-cols-1 overflow-hidden h-[75vh]",
           !isFullscreen && "lg:grid-cols-10"
       )}>
         {/* Main Content: Video */}
         <div className={cn(
-          "flex flex-col relative bg-muted pb-24",
+          "flex flex-col relative bg-muted",
           !isFullscreen ? "col-span-1 lg:col-span-7" : "col-span-1"
         )}>
             <div className="flex-1 relative overflow-hidden">
@@ -758,4 +758,3 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     </div>
   );
 }
-
