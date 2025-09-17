@@ -23,6 +23,7 @@ import {
   Minimize,
   LayoutGrid,
   X,
+  Circle,
 } from 'lucide-react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -163,6 +164,8 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   const [layout, setLayout] = useState<'speaker' | 'grid'>('speaker');
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
   const [speakerVolume, setSpeakerVolume] = useState(60);
+  const [isRecording, setIsRecording] = useState(false);
+
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const screenShareRef = useRef<HTMLVideoElement>(null);
@@ -606,6 +609,14 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                 </Tooltip>
                 <Tooltip>
                     <TooltipTrigger asChild>
+                         <Button onClick={() => setIsRecording(!isRecording)} variant={isRecording ? 'destructive' : 'ghost'} size="icon" className={cn("rounded-full h-11 w-11", !isRecording && "text-white hover:bg-white/20")}>
+                            <Circle className={cn("h-5 w-5", isRecording && "fill-current animate-pulse")} />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isRecording ? 'Stop Recording' : 'Start Recording'}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
                         <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className={cn("rounded-full h-11 w-11", isScreenSharing ? "bg-primary text-primary-foreground" : "text-white hover:bg-white/20")}>
                             {isScreenSharing ? <StopCircle className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
                         </Button>
@@ -665,7 +676,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
         {/* Chat Panel */}
         {!isFullscreen && (
-          <div className={cn('bg-muted/50 border-l flex flex-col max-h-[490px] min-h-[490px]', 'lg:col-span-3', isChatPanelOpen ? 'col-span-1' : 'hidden lg:flex')}>
+          <div className={cn('bg-muted/50 border-l flex flex-col min-h-[490px] max-h-[490px]', 'lg:col-span-3', isChatPanelOpen ? 'col-span-1' : 'hidden lg:flex')}>
             <div className="flex-shrink-0 border-b">
               <div className="grid grid-cols-2 text-center">
                 <button
@@ -802,3 +813,5 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     </div>
   );
 }
+
+    
