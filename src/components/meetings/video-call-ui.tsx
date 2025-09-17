@@ -459,7 +459,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
       )}>
         {/* Main Content: Video */}
         <div className={cn(
-          "flex flex-col relative bg-muted",
+          "flex flex-col relative bg-muted pb-24",
           !isFullscreen ? "col-span-1 lg:col-span-7" : "col-span-1"
         )}>
             <div className="flex-1 relative overflow-hidden">
@@ -555,7 +555,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             </>
             )}
 
-            <div className="absolute bottom-5 left-5">
+            <div className="absolute bottom-28 left-5">
                 <VolumeControl />
             </div>
 
