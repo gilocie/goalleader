@@ -37,6 +37,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 const initialParticipants = [
   {
@@ -401,37 +402,33 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   const aiParticipant = participants.find(p => p.role === 'Assistant');
 
   const VolumeControl = () => (
-    <div className="flex flex-col items-center gap-2 bg-black/40 backdrop-blur-sm p-3 rounded-full">
-        <button 
-          onClick={() => {
-            setIsSpeakerMuted(prev => !prev);
-            if (!isSpeakerMuted) {
-              setSpeakerVolume(0);
-            } else {
-              setSpeakerVolume(60);
-            }
-          }}
-          className="p-1 hover:bg-white/20 rounded-full transition-colors"
-        >
-            {isSpeakerMuted ? <VolumeX className="text-white h-4 w-4" /> : <Volume2 className="text-white h-4 w-4" />}
-        </button>
-        <Slider
-            value={[isSpeakerMuted ? 0 : speakerVolume]}
-            onValueChange={(value) => {
-              setSpeakerVolume(value[0]);
-              if (value[0] === 0) {
-                setIsSpeakerMuted(true);
-              } else {
-                setIsSpeakerMuted(false);
-              }
-            }}
-            max={100}
-            step={1}
-            orientation="vertical"
-            className="h-32 w-4"
-        />
-        <span className="text-xs text-white/70">{Math.round(isSpeakerMuted ? 0 : speakerVolume)}</span>
-    </div>
+     <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+            {isSpeakerMuted || speakerVolume === 0 ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-2 bg-black/60 backdrop-blur-sm border-none">
+        <div className="flex flex-col items-center gap-2">
+            <Slider
+                value={[isSpeakerMuted ? 0 : speakerVolume]}
+                onValueChange={(value) => {
+                setSpeakerVolume(value[0]);
+                if (value[0] === 0) {
+                    setIsSpeakerMuted(true);
+                } else {
+                    setIsSpeakerMuted(false);
+                }
+                }}
+                max={100}
+                step={1}
+                orientation="vertical"
+                className="h-24 w-4"
+            />
+            <span className="text-xs text-white/70">{Math.round(isSpeakerMuted ? 0 : speakerVolume)}</span>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
   
   const ParticipantGrid = ({ participants }: { participants: (typeof initialParticipants) }) => (
@@ -509,11 +506,11 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             ) : (
               <>
                 <video ref={videoRef} className={cn("w-full h-full object-cover", isVideoOff && "hidden")} autoPlay muted playsInline />
-                {isVideoOff && (
+                {isVideoOff && selfParticipant && (
                   <div className="absolute inset-0 bg-black flex items-center justify-center">
                     <Avatar className="h-40 w-40">
-                      <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant?.id)?.imageUrl} />
-                      <AvatarFallback>{selfParticipant?.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
+                      <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                   </div>
                 )}
@@ -601,7 +598,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
               <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
+                        <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant={layout === 'grid' ? 'default' : 'ghost'} size="icon" className={cn("rounded-full h-11 w-11", layout === 'grid' ? 'bg-primary text-primary-foreground' : 'text-white hover:bg-white/20')}>
                             <LayoutGrid className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>
