@@ -21,7 +21,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const isMeetingPage = pathname.startsWith('/meetings/');
     const isLobbyPage = pathname.includes('/lobby');
 
-    if (isLobbyPage) {
+    if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings'))) {
       return <>{children}</>;
     }
   

@@ -94,26 +94,44 @@
     {
       "id": "john-isner-p1",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/301/200/150",
+      "imageUrl": "https://picsum.photos/seed/301/400/300",
       "imageHint": "man professional office"
     },
     {
       "id": "mia-jones-p2",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/302/200/150",
+      "imageUrl": "https://picsum.photos/seed/302/400/300",
       "imageHint": "woman professional smiling"
     },
     {
       "id": "janice-wallberg-p3",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/303/200/150",
+      "imageUrl": "https://picsum.photos/seed/303/400/300",
       "imageHint": "woman face glasses"
     },
     {
       "id": "camille-valdez-p4",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/304/200/150",
+      "imageUrl": "https://picsum.photos/seed/304/400/300",
       "imageHint": "woman face friendly"
+    },
+    {
+      "id": "oliver-p5",
+      "description": "Video call participant",
+      "imageUrl": "https://picsum.photos/seed/305/400/300",
+      "imageHint": "man face modern"
+    },
+    {
+      "id": "simona-p6",
+      "description": "Video call participant",
+      "imageUrl": "https://picsum.photos/seed/306/400/300",
+      "imageHint": "woman face smiling"
+    },
+    {
+      "id": "nina-p7",
+      "description": "Video call participant",
+      "imageUrl": "https://picsum.photos/seed/307/400/300",
+      "imageHint": "woman professional headset"
     }
   ]
 }

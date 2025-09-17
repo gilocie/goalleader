@@ -21,6 +21,7 @@ import {
   StopCircle,
   Maximize,
   Minimize,
+  LayoutGrid,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -66,6 +67,30 @@ const initialParticipants = [
     name: 'Camille Valdez',
     role: 'Participant',
     isSpeaking: true,
+    isMuted: false,
+    isVideoOn: true,
+  },
+    {
+    id: 'oliver-p5',
+    name: 'Oliver I',
+    role: 'Participant',
+    isSpeaking: false,
+    isMuted: true,
+    isVideoOn: false,
+  },
+  {
+    id: 'simona-p6',
+    name: 'Simona V',
+    role: 'Participant',
+    isSpeaking: false,
+    isMuted: false,
+    isVideoOn: false,
+  },
+  {
+    id: 'nina-p7',
+    name: 'Nina Williams',
+    role: 'Participant',
+    isSpeaking: false,
     isMuted: false,
     isVideoOn: true,
   },
@@ -128,6 +153,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [layout, setLayout] = useState<'speaker' | 'grid'>('speaker');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const screenShareRef = useRef<HTMLVideoElement>(null);
@@ -352,7 +378,13 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
 
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      const isCurrentlyFullscreen = !!document.fullscreenElement;
+      setIsFullscreen(isCurrentlyFullscreen);
+      if (isCurrentlyFullscreen) {
+        setLayout('grid');
+      } else {
+        setLayout('speaker');
+      }
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -379,9 +411,34 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         />
     </div>
   );
+  
+  const ParticipantGrid = ({ participants }: { participants: typeof initialParticipants }) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+        {participants.map(p => {
+            const avatar = PlaceHolderImages.find(img => img.id === p.id);
+            return (
+                <Card key={p.id} className="relative aspect-video overflow-hidden bg-black flex items-center justify-center">
+                    {p.isVideoOn ? (
+                        <Image src={avatar?.imageUrl || ''} alt={p.name} layout="fill" className="object-cover" data-ai-hint={avatar?.imageHint}/>
+                    ) : (
+                         <Avatar className="h-20 w-20">
+                            <AvatarFallback className="text-2xl bg-muted">{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                    )}
+                    <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                        <Badge variant="secondary" className="text-xs bg-black/50 text-white">{p.name}</Badge>
+                    </div>
+                    <div className="absolute top-2 right-2 p-1 bg-black/50 rounded-full">
+                        {p.isMuted ? <MicOff className="h-3 w-3 text-red-400" /> : <Mic className="h-3 w-3 text-white" />}
+                    </div>
+                </Card>
+            )
+        })}
+    </div>
+);
 
   return (
-    <div id="video-call-container" className="flex-1 bg-background flex flex-col">
+    <div id="video-call-container" className="h-screen bg-background flex flex-col">
         {!isFullscreen && (
         <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
@@ -403,15 +460,17 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
         {/* Main Content: Video */}
         <div className={cn(
           "flex flex-col relative bg-muted",
-          !isFullscreen ? "col-span-1 lg:col-span-7 h-[400px] md:h-auto" : "col-span-1"
+          !isFullscreen ? "col-span-1 lg:col-span-7" : "col-span-1"
         )}>
             <div className="flex-1 relative overflow-hidden">
                  {isScreenSharing ? (
                     <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
+                 ) : layout === 'grid' ? (
+                     <ParticipantGrid participants={participants} />
                  ) : (
                     <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
                  )}
-                {!hasCameraPermission && !isVideoOff && (
+                {!hasCameraPermission && !isVideoOff && layout === 'speaker' && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-4">
                         <Alert variant="destructive">
                             <VideoOff className="h-4 w-4" />
@@ -422,7 +481,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                         </Alert>
                     </div>
                 )}
-                {isVideoOff && selfParticipant && (
+                {isVideoOff && selfParticipant && layout === 'speaker' && (
                     <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
                        <Avatar className="h-40 w-40">
                           <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
@@ -433,7 +492,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             </div>
 
             {/* Overlays */}
-            {!isFullscreen && (
+            {layout === 'speaker' && !isFullscreen && (
             <>
             <div className="absolute top-5 left-5 flex items-center gap-3">
                 {mainSpeaker && (
@@ -503,6 +562,14 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             {/* Video Controls */}
             <TooltipProvider>
                 <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/40 backdrop-blur-sm rounded-full gap-3 z-20">
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button onClick={() => setLayout(prev => prev === 'grid' ? 'speaker' : 'grid')} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
+                                <LayoutGrid />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Change Layout</TooltipContent>
+                    </Tooltip>
                      <Tooltip>
                         <TooltipTrigger asChild>
                             <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "ghost"} size="icon" className="text-white hover:bg-white/20 rounded-full h-12 w-12">
@@ -606,7 +673,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                                 <div key={msg.id} className={cn("flex items-start gap-2", isYou && "flex-row-reverse")}>
                                      <Avatar className="h-8 w-8">
                                         <AvatarImage src={senderAvatar?.imageUrl} />
-                                        <AvatarFallback>{sender?.name.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback>{sender?.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
                                     </Avatar>
                                     <div className={cn("max-w-[80%] rounded-lg px-3 py-2 space-y-1", isYou ? 'bg-primary text-primary-foreground' : 'bg-background')}>
                                         <p className="font-semibold text-xs">{isYou ? 'You' : sender?.name}</p>
@@ -660,7 +727,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                                     <div className="flex items-center gap-3">
                                          <Avatar className="h-10 w-10">
                                             <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint}/>
-                                            <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
+                                            <AvatarFallback>{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
                                         </Avatar>
                                         <div>
                                             <p className="font-semibold">{p.name === 'Mia J.' ? 'You' : p.name}</p>
