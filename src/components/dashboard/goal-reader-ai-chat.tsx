@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -55,9 +54,9 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
   return (
     <Card className={cn("h-full flex flex-col min-h-[480px]", className)}>
       <CardHeader>
-        <CardTitle>AI Content Generation Test</CardTitle>
+        <CardTitle>GoalLeader Chat</CardTitle>
         <CardDescription>
-          Enter a topic to test the AI flow. This is using the working marketing logic.
+            Your AI assistant for productivity and project management.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
