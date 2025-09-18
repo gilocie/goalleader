@@ -15,6 +15,7 @@ const MessageSchema = z.object({
   role: z.enum(['user', 'model', 'system']),
   content: z.string(),
 });
+type Message = z.infer<typeof MessageSchema>;
 
 const ChatInputSchema = z.object({
   history: z.array(MessageSchema),
@@ -27,26 +28,21 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
 // --- Main chat function ---
 export async function chat(input: ChatInput): Promise<ChatOutput> {
-  const systemMessage = { role: 'system', content: 'Conversation start' };
-  
-  // Start with a system message.
-  const history: Message[] = [systemMessage];
+  // Ensure history starts clean
+  const history: Message[] = [{ role: 'system', content: 'Conversation start' }];
 
-  // Add existing history if it's valid.
+  // Merge old history if valid
   if (Array.isArray(input.history)) {
-    history.push(...input.history);
+    history.push(...input.history.filter(m => m && m.role && m.content));
   }
 
-  // Add the new user message.
+  // Add the new user message
   if (input.message) {
-      history.push({ role: 'user', content: input.message });
+    history.push({ role: 'user', content: input.message });
   }
 
-  const safeInput = {
-    history,
-    message: input.message || '',
-  };
-  return chatFlow(safeInput);
+  // Run the flow
+  return chatFlow({ history, message: input.message });
 }
 
 // --- Prompt Definition ---
