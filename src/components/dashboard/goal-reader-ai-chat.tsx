@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import {
   Card,
   CardContent,
@@ -10,164 +10,83 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Send, User, Loader, Paperclip } from 'lucide-react';
-import { chat, ChatInput } from '@/ai/flows/chat-flow';
-import { ScrollArea } from '../ui/scroll-area';
-import Textarea from 'react-textarea-autosize';
-import { Logo } from '../icons';
+import { Loader2, Wand2 } from 'lucide-react';
+import { generateMarketingContent, GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content-flow';
+import { Textarea } from '../ui/textarea';
 import { cn } from '@/lib/utils';
 
-type Message = {
-  role: 'user' | 'model' | 'system';
-  content: string;
-};
-
 export function GoalReaderAIChat({ className }: { className?: string }) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [topic, setTopic] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [result, setResult] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
-  const handleSendMessage = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!topic.trim()) return;
 
-    const userMessage: Message = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMessage]);
-    const currentInput = input;
-    setInput('');
     setIsLoading(true);
+    setResult('');
+    setError('');
 
     try {
-      // The input is now just the string from the input box.
-      const chatInput: ChatInput = currentInput;
-      const response = await chat(chatInput);
-
-      const modelMessage: Message = {
-        role: 'model',
-        content:
-          typeof response === 'string' && response.trim()
-            ? response
-            : "I'm sorry, I couldn't generate a response. Please try again.",
-      };
-      setMessages((prev) => [...prev, modelMessage]);
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorMessage: Message = {
-        role: 'model',
-        content: "I'm sorry, I couldn't generate a response. Please try again.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      const response = await generateMarketingContent({ topic });
+      if (response.suggestions && response.suggestions.length > 0) {
+        setResult(response.suggestions[0].blogTitle);
+      } else {
+        setError("The AI didn't return any suggestions.");
+      }
+    } catch (err) {
+      console.error('Error generating content:', err);
+      setError('An error occurred while generating content. Please check the console.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    }
-  }, [messages]);
-
   return (
     <Card className={cn("h-full flex flex-col min-h-[480px]", className)}>
       <CardHeader>
         <CardTitle className="text-xl font-semibold">
-          Goal Leader Chat
+          AI Content Generation Test
         </CardTitle>
         <CardDescription className="text-xs">
-          Chat with your assistant to manage your goals.
+          Using the marketing flow to test AI functionality on the dashboard.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-        <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
-          <div className="space-y-4">
-            {messages.length === 0 && !isLoading && (
-              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-                <Logo className="h-10 w-10 mb-2" />
-                <p>Hello! I'm Goal Leader.</p>
-                <p className="text-xs">How can I help you today?</p>
-              </div>
-            )}
-            {messages.map((message, index) => (
-              (message.role !== 'system' && 
-              <div
-                key={index}
-                className={`flex gap-3 ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                {message.role === 'model' && (
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                    <Logo className="h-5 w-5" />
-                  </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label htmlFor="topic-input" className="font-medium text-sm">Topic</label>
+                <Textarea
+                    id="topic-input"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder="Enter a topic to generate content..."
+                    className="mt-2"
+                />
+            </div>
+            <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                <Wand2 className="mr-2 h-4 w-4" />
                 )}
-                <div
-                  className={`max-w-[75%] rounded-lg p-3 ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                </div>
-                {message.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                    <User size={20} />
-                  </div>
-                )}
-              </div>
-              )
-            ))}
-            {isLoading && (
-              <div className="flex justify-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                  <Logo className="h-5 w-5" />
-                </div>
-                <div className="bg-muted rounded-lg p-3 flex items-center">
-                  <Loader className="animate-spin" size={20} />
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-        <form
-          onSubmit={handleSendMessage}
-          className="relative border-t pt-4"
-        >
-          <div className="relative flex items-center rounded-lg border bg-background">
-            <Button variant="ghost" size="icon" className="shrink-0">
-              <Paperclip className="w-5 h-5 text-muted-foreground" />
-              <span className="sr-only">Attach file</span>
+                Generate Content
             </Button>
-            <Textarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Goal Leader..."
-              className="flex-1 resize-none border-0 bg-transparent p-2 focus-visible:outline-none"
-              minRows={1}
-              maxRows={4}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage(e);
-                }
-              }}
-            />
-             <Button
-              type="submit"
-              size="icon"
-              disabled={isLoading || !input.trim()}
-              className="m-1 rounded-md bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
-            >
-              <Send />
-              <span className="sr-only">Send</span>
-            </Button>
-          </div>
         </form>
+        
+        <div className="flex-1 mt-4">
+            <h3 className="font-semibold">Result:</h3>
+            {isLoading && (
+                 <div className="flex items-center justify-center p-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                 </div>
+            )}
+            {error && <p className="text-destructive mt-2">{error}</p>}
+            {result && <p className="text-muted-foreground mt-2 p-4 bg-muted rounded-md">{result}</p>}
+        </div>
+
       </CardContent>
     </Card>
   );
