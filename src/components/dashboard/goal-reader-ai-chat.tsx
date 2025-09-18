@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useRef, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -10,35 +10,51 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Wand2 } from 'lucide-react';
-import { generateMarketingContent, GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content-flow';
+import { Loader2, Send } from 'lucide-react';
+import { chat } from '@/ai/flows/chat-flow';
 import { Textarea } from '../ui/textarea';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '../ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
+interface Message {
+  role: 'user' | 'model';
+  content: string;
+}
 
 export function GoalReaderAIChat({ className }: { className?: string }) {
-  const [topic, setTopic] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!topic.trim()) return;
+    if (!input.trim() || isLoading) return;
 
+    const userMessage: Message = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
     setIsLoading(true);
-    setResult('');
     setError('');
 
     try {
-      const response = await generateMarketingContent({ topic });
-      if (response.suggestions && response.suggestions.length > 0) {
-        setResult(response.suggestions[0].blogTitle);
-      } else {
-        setError("The AI didn't return any suggestions.");
-      }
+      const response = await chat(input);
+      const modelMessage: Message = { role: 'model', content: response };
+      setMessages(prev => [...prev, modelMessage]);
     } catch (err) {
-      console.error('Error generating content:', err);
-      setError('An error occurred while generating content. Please check the console.');
+      console.error('Error in chat flow:', err);
+      setError('An error occurred. Please try again.');
+      setMessages(prev => prev.slice(0, -1)); // Remove the user's message on error
     } finally {
       setIsLoading(false);
     }
@@ -48,45 +64,80 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
     <Card className={cn("h-full flex flex-col min-h-[480px]", className)}>
       <CardHeader>
         <CardTitle className="text-xl font-semibold">
-          AI Content Generation Test
+          GoalLeader AI Chat
         </CardTitle>
         <CardDescription className="text-xs">
-          Using the marketing flow to test AI functionality on the dashboard.
+          Your personal assistant for productivity.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-                <label htmlFor="topic-input" className="font-medium text-sm">Topic</label>
-                <Textarea
-                    id="topic-input"
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                    placeholder="Enter a topic to generate content..."
-                    className="mt-2"
-                />
-            </div>
-            <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                <Wand2 className="mr-2 h-4 w-4" />
+        <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
+          <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center text-muted-foreground pt-8">
+                Ask me anything to get started!
+              </div>
+            )}
+            {messages.map((message, index) => (
+              <div key={index} className={cn("flex items-start gap-3", message.role === 'user' && 'justify-end')}>
+                {message.role === 'model' && (
+                  <Avatar className="h-8 w-8 border-2 border-primary">
+                    <div className="bg-primary-foreground h-full w-full flex items-center justify-center font-bold text-primary">
+                      AI
+                    </div>
+                  </Avatar>
                 )}
-                Generate Content
+                <div className={cn("max-w-[75%] rounded-lg p-3 text-sm", 
+                    message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none'
+                )}>
+                  {message.content}
+                </div>
+                 {message.role === 'user' && (
+                   <Avatar className="h-8 w-8">
+                      <AvatarImage src={userAvatar?.imageUrl} alt="You" data-ai-hint={userAvatar?.imageHint} />
+                      <AvatarFallback>U</AvatarFallback>
+                    </Avatar>
+                )}
+              </div>
+            ))}
+            {isLoading && (
+              <div className="flex items-start gap-3">
+                 <Avatar className="h-8 w-8 border-2 border-primary">
+                    <div className="bg-primary-foreground h-full w-full flex items-center justify-center font-bold text-primary">
+                      AI
+                    </div>
+                  </Avatar>
+                <div className="bg-muted rounded-lg p-3 flex items-center">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+        
+        <form onSubmit={handleSubmit} className="relative mt-4">
+            <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask about your tasks, performance, or get suggestions..."
+                className="pr-20"
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                    }
+                }}
+            />
+            <Button 
+                type="submit" 
+                disabled={isLoading || !input.trim()} 
+                size="icon"
+                className="absolute right-2 bottom-2 h-8 w-16"
+            >
+                <Send className="h-4 w-4" />
             </Button>
         </form>
-        
-        <div className="flex-1 mt-4">
-            <h3 className="font-semibold">Result:</h3>
-            {isLoading && (
-                 <div className="flex items-center justify-center p-4">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                 </div>
-            )}
-            {error && <p className="text-destructive mt-2">{error}</p>}
-            {result && <p className="text-muted-foreground mt-2 p-4 bg-muted rounded-md">{result}</p>}
-        </div>
-
+         {error && <p className="text-destructive text-xs mt-2">{error}</p>}
       </CardContent>
     </Card>
   );
