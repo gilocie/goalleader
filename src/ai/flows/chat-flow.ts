@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A safe chat flow for GoalReader AI.
@@ -28,21 +29,25 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
 // --- Main chat function ---
 export async function chat(input: ChatInput): Promise<ChatOutput> {
-  // Ensure history starts clean
-  const history: Message[] = [{ role: 'system', content: 'Conversation start' }];
+  try {
+    // Ensure history is always a valid array of Message
+    const history: Message[] = [
+      { role: 'system', content: 'Conversation start' }
+    ];
 
-  // Merge old history if valid
-  if (Array.isArray(input.history)) {
-    history.push(...input.history.filter(m => m && m.role && m.content));
+    if (Array.isArray(input.history)) {
+      history.push(...input.history.filter(m => m && m.role && m.content));
+    }
+
+    if (input.message) {
+      history.push({ role: 'user', content: String(input.message) });
+    }
+
+    return await chatFlow({ history, message: input.message || '' });
+  } catch (err) {
+    console.error("chat function error:", err);
+    return "Something went wrong in the chat function.";
   }
-
-  // Add the new user message
-  if (input.message) {
-    history.push({ role: 'user', content: input.message });
-  }
-
-  // Run the flow
-  return chatFlow({ history, message: input.message });
 }
 
 // --- Prompt Definition ---
