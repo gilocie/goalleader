@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, Sparkles, Send, Bot, User, Paperclip } from 'lucide-react';
-import { chat } from '@/ai/flows/chat-flow';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -54,27 +53,39 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
     }
   }, [messages])
 
+  const callChatAPI = async (message: string) => {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error || 'API error');
+    }
+    return data.output;
+  };
+
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     setMessages(prev => [...prev, { sender: 'user', content: data.message }]);
     setMessages(prev => [...prev, { sender: 'typing', content: '' }]);
-    
+
     const userMessage = data.message;
     form.reset();
 
     try {
-      const result = await chat(userMessage);
-      
-      setMessages(prev => [
-          ...prev.filter(m => m.sender !== 'typing'),
-          { sender: 'ai', content: result }
-      ]);
+      const result = await callChatAPI(userMessage);
 
+      setMessages(prev => [
+        ...prev.filter(m => m.sender !== 'typing'),
+        { sender: 'ai', content: result },
+      ]);
     } catch (error) {
-      console.error("Failed to generate content:", error);
-       setMessages(prev => [
-          ...prev.filter(m => m.sender !== 'typing'),
-          { sender: 'ai', content: "I'm sorry, an error occurred. Please try again." }
+      console.error('Failed to generate content:', error);
+      setMessages(prev => [
+        ...prev.filter(m => m.sender !== 'typing'),
+        { sender: 'ai', content: "I'm sorry, an error occurred. Please try again." }
       ]);
     } finally {
       setIsLoading(false);

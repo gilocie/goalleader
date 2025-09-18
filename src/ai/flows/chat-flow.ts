@@ -1,53 +1,64 @@
-
 'use server';
+
 /**
- * @fileOverview A conversational flow for the GoalLeader AI assistant.
- *
- * - chat - A function that provides a conversational response.
- * - ChatInput - The input type for the function.
- * - ChatOutput - The return type for the function.
+ * Conversational chat flow for GoalLeader AI with defensive validation.
  */
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
-// Input is a simple string from the user
-const ChatInputSchema = z.string();
+const ChatInputSchema = z.string().min(0); // allow empty string, but enforce string type
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
-// Output is a simple string response from the AI
 const ChatOutputSchema = z.string();
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
-
-export async function chat(input: ChatInput): Promise<ChatOutput> {
-  return chatFlow(input);
-}
-
+// Prompt definition
 const prompt = ai.definePrompt({
   name: 'conversationalChatPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('gemini-1.5-flash'), // keep as-is, ensure credentials are present in env
   input: { schema: ChatInputSchema },
   output: { schema: ChatOutputSchema },
-  prompt: `You are GoalLeader, an expert productivity coach and AI assistant. Your tone is helpful, encouraging, and friendly. 
+  prompt: `You are GoalLeader, an expert productivity coach and AI assistant. Your tone is helpful, encouraging, and friendly.
 You are in a conversation. Respond to the user's message in a natural, human-like way.
 
 User's message: {{this}}
 `,
 });
 
-const chatFlow = ai.defineFlow(
-  {
-    name: 'conversationalChatFlow',
-    inputSchema: ChatInputSchema,
-    outputSchema: ChatOutputSchema,
-  },
-  async (message) => {
-    const { output } = await prompt(message);
-    if (!output) {
-      return "I'm sorry, I couldn't come up with a response. Could you try rephrasing?";
+// Exported helper that safely runs the prompt and always returns a string.
+export async function runChat(rawMessage: unknown): Promise<string> {
+  try {
+    // coerce and validate input to a string using zod
+    const parsed = ChatInputSchema.safeParse(
+      typeof rawMessage === 'string' ? rawMessage : String(rawMessage ?? '')
+    );
+
+    if (!parsed.success) {
+      console.error('runChat: input failed validation', parsed.error);
+      // use fallback empty string to avoid Genkit schema errors
+      return "I'm sorry — I couldn't read that message. Please try sending plain text.";
     }
-    return output;
+
+    const message = parsed.data; // guaranteed string (maybe empty)
+
+    // Call the prompt
+    const { output } = await prompt(message);
+
+    if (typeof output === 'string' && output.trim()) {
+      return output;
+    } else {
+      // fallback response
+      return "I'm sorry, I couldn't generate a response. Please try again or rephrase.";
+    }
+  } catch (err) {
+    console.error('runChat error:', err, 'rawMessage:', rawMessage);
+    return "I'm sorry, an internal error occurred while processing your request.";
   }
-);
+}
+
+// Previous chat function for direct import - deprecated in favor of API route
+export async function chat(input: ChatInput): Promise<ChatOutput> {
+  return runChat(input);
+}
