@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const TaskSchema = z.object({
   name: z.string(),
