@@ -9,6 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'genkit';
 
 const TaskSchema = z.object({
@@ -38,6 +39,7 @@ export async function getInitialMessage(input: InitialMessageInput): Promise<Ini
 
 const prompt = ai.definePrompt({
   name: 'initialMessagePrompt',
+  model: googleAI.model('gemini-1.5-flash'),
   input: { schema: InitialMessageInputSchema },
   output: { schema: z.string() },
   prompt: `You are a helpful and encouraging AI assistant for GoalLeader. Your name is Goal Reader.
