@@ -43,14 +43,14 @@ const tasks = [
 ];
 
 const meetings = [
-  {
-    title: 'Meeting with Arc Company',
-    time: '02:00 pm - 04:00 pm',
-  },
-  {
-    title: 'Project Alpha Deadline',
-    time: 'Due: 25th July',
-  },
+    {
+        title: 'Q3 Strategy Review',
+        time: '10:00 AM',
+    },
+    {
+        title: 'Project Phoenix Sync-up',
+        time: '2:30 PM',
+    },
 ];
 
 const performance = 75;
@@ -73,14 +73,13 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
             meetings,
           };
           const response = await getInitialMessage(initialInput);
-          const safeResponse = typeof response === 'string' && response.trim() ? response : 'Hello! How can I help you achieve your goals today?';
-          const modelMessage: Message = { role: 'model', content: safeResponse };
+          const modelMessage: Message = { role: 'model', content: response };
           setMessages([modelMessage]);
         } catch (error) {
           console.error('Error getting initial message:', error);
           const errorMessage: Message = {
             role: 'model',
-            content: 'Hello! How can I help you achieve your goals today?',
+            content: 'Error generating initial message. Please check the logs.',
           };
           setMessages([errorMessage]);
         } finally {
