@@ -1,60 +1,52 @@
 
 'use client';
 
-import { useState, FormEvent, useRef, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
-import { Loader2, Send } from 'lucide-react';
-import { chat } from '@/ai/flows/chat-flow';
-import { Textarea } from '../ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { generateMarketingContent, GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content-flow';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '../ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-interface Message {
-  role: 'user' | 'model';
-  content: string;
-}
+const formSchema = z.object({
+  topic: z.string().min(3, 'Topic must be at least 3 characters long.'),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export function GoalReaderAIChat({ className }: { className?: string }) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>('');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const [generatedContent, setGeneratedContent] = useState<GenerateMarketingContentOutput | null>(null);
 
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  }, [messages]);
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      topic: '',
+    },
+  });
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = { role: 'user', content: input };
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
+  const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    setError('');
-
+    setGeneratedContent(null);
     try {
-      const response = await chat(input);
-      const modelMessage: Message = { role: 'model', content: response };
-      setMessages(prev => [...prev, modelMessage]);
-    } catch (err) {
-      console.error('Error in chat flow:', err);
-      setError('An error occurred. Please try again.');
-      setMessages(prev => prev.slice(0, -1)); // Remove the user's message on error
+      const result = await generateMarketingContent({ topic: data.topic });
+      setGeneratedContent(result);
+    } catch (error) {
+      console.error("Failed to generate content:", error);
     } finally {
       setIsLoading(false);
     }
@@ -63,81 +55,77 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
   return (
     <Card className={cn("h-full flex flex-col min-h-[480px]", className)}>
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">
-          GoalLeader AI Chat
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Your personal assistant for productivity.
+        <CardTitle>AI Content Generation Test</CardTitle>
+        <CardDescription>
+          Enter a topic to test the AI flow. This is using the working marketing logic.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-        <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
-          <div className="space-y-4">
-            {messages.length === 0 && (
-              <div className="text-center text-muted-foreground pt-8">
-                Ask me anything to get started!
-              </div>
-            )}
-            {messages.map((message, index) => (
-              <div key={index} className={cn("flex items-start gap-3", message.role === 'user' && 'justify-end')}>
-                {message.role === 'model' && (
-                  <Avatar className="h-8 w-8 border-2 border-primary">
-                    <div className="bg-primary-foreground h-full w-full flex items-center justify-center font-bold text-primary">
-                      AI
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+            {/* Left side: Form */}
+            <div className="flex flex-col gap-4">
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                    control={form.control}
+                    name="topic"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Topic / Product</FormLabel>
+                        <FormControl>
+                            <Textarea
+                            placeholder="e.g., 'A new AI-powered project management tool'"
+                            className="h-24"
+                            {...field}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <Button type="submit" disabled={isLoading} className="w-full">
+                    {isLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Wand2 className="mr-2 h-4 w-4" />
+                    )}
+                    Generate Content
+                    </Button>
+                </form>
+                </Form>
+            </div>
+
+            {/* Right side: Results */}
+            <div className="flex flex-col overflow-hidden border rounded-lg">
+                <ScrollArea className="h-full">
+                    <div className="p-4">
+                    {isLoading && (
+                        <div className="flex items-center justify-center h-full">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    )}
+
+                    {!isLoading && !generatedContent && (
+                        <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50 h-full">
+                            <Sparkles className="h-12 w-12 text-primary" />
+                            <h3 className="font-semibold">AI results will appear here</h3>
+                        </div>
+                    )}
+                    
+                    {generatedContent && (
+                        <div className="prose prose-sm max-w-none">
+                            <h4>Blog Title Suggestion:</h4>
+                            <p>{generatedContent.suggestions[0].blogTitle}</p>
+                            <h4>Social Media Post:</h4>
+                            <p>{generatedContent.suggestions[0].socialMediaPost}</p>
+                            <h4>Email Subject:</h4>
+                            <p>{generatedContent.suggestions[0].emailSubject}</p>
+                        </div>
+                    )}
                     </div>
-                  </Avatar>
-                )}
-                <div className={cn("max-w-[75%] rounded-lg p-3 text-sm", 
-                    message.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-muted rounded-bl-none'
-                )}>
-                  {message.content}
-                </div>
-                 {message.role === 'user' && (
-                   <Avatar className="h-8 w-8">
-                      <AvatarImage src={userAvatar?.imageUrl} alt="You" data-ai-hint={userAvatar?.imageHint} />
-                      <AvatarFallback>U</AvatarFallback>
-                    </Avatar>
-                )}
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex items-start gap-3">
-                 <Avatar className="h-8 w-8 border-2 border-primary">
-                    <div className="bg-primary-foreground h-full w-full flex items-center justify-center font-bold text-primary">
-                      AI
-                    </div>
-                  </Avatar>
-                <div className="bg-muted rounded-lg p-3 flex items-center">
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-        
-        <form onSubmit={handleSubmit} className="relative mt-4">
-            <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about your tasks, performance, or get suggestions..."
-                className="pr-20"
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSubmit(e);
-                    }
-                }}
-            />
-            <Button 
-                type="submit" 
-                disabled={isLoading || !input.trim()} 
-                size="icon"
-                className="absolute right-2 bottom-2 h-8 w-16"
-            >
-                <Send className="h-4 w-4" />
-            </Button>
-        </form>
-         {error && <p className="text-destructive text-xs mt-2">{error}</p>}
+                </ScrollArea>
+            </div>
+        </div>
       </CardContent>
     </Card>
   );
