@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Form,
@@ -16,9 +16,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Sparkles, Send } from 'lucide-react';
-import { generateMarketingContent, GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content-flow';
+import { Loader2, Sparkles, Send, Bot, User, Paperclip } from 'lucide-react';
+import { generateMarketingContent } from '@/ai/flows/generate-marketing-content-flow';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import TextareaAutosize from 'react-textarea-autosize';
 
 const formSchema = z.object({
   topic: z.string().min(1, 'Message cannot be empty.'),
@@ -26,9 +29,16 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+interface Message {
+    sender: 'user' | 'ai' | 'typing';
+    content: string;
+}
+
 export function GoalReaderAIChat({ className }: { className?: string }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState<GenerateMarketingContentOutput | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -39,17 +49,52 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    setGeneratedContent(null);
+    // Add user message to the chat
+    setMessages(prev => [...prev, { sender: 'user', content: data.topic }]);
+    
+    // Show typing indicator
+    setMessages(prev => [...prev, { sender: 'typing', content: '' }]);
+
+    form.reset();
+
     try {
       const result = await generateMarketingContent({ topic: data.topic });
-      setGeneratedContent(result);
+      
+      // For this test, we'll just display the blog title.
+      // In a real chat, this would be the AI's direct response.
+      const aiResponse = `**Blog Title Suggestion:**\n${result.suggestions[0].blogTitle}`;
+      
+      // Remove typing indicator and add AI response
+      setMessages(prev => [
+          ...prev.filter(m => m.sender !== 'typing'),
+          { sender: 'ai', content: aiResponse }
+      ]);
+
     } catch (error) {
       console.error("Failed to generate content:", error);
+       setMessages(prev => [
+          ...prev.filter(m => m.sender !== 'typing'),
+          { sender: 'ai', content: "Sorry, I couldn't generate a response. Please try again." }
+      ]);
     } finally {
       setIsLoading(false);
-      form.reset();
     }
   };
+  
+  const TypingIndicator = () => (
+    <div className="flex items-center gap-2">
+        <Avatar className="h-8 w-8">
+            <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-green-700">
+                <Bot className="h-5 w-5 text-white" />
+            </div>
+        </Avatar>
+        <div className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-0"></span>
+            <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-200"></span>
+            <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-400"></span>
+        </div>
+    </div>
+  )
 
   return (
     <Card className={cn("h-full flex flex-col min-h-[480px]", className)}>
@@ -60,33 +105,46 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-        {/* Top area: Results */}
+        {/* Top area: Message History */}
         <div className="flex-1 flex flex-col overflow-hidden border rounded-lg">
             <ScrollArea className="h-full">
-                <div className="p-4">
-                {isLoading && (
-                    <div className="flex items-center justify-center h-full">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                )}
-
-                {!isLoading && !generatedContent && (
+                <div className="p-4 space-y-6">
+                {messages.length === 0 && !isLoading && (
                     <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50 h-full">
                         <Sparkles className="h-12 w-12 text-primary" />
-                        <h3 className="font-semibold">AI results will appear here</h3>
+                        <h3 className="font-semibold">Start the conversation</h3>
+                        <p className="text-muted-foreground max-w-xs">Ask me anything about your projects, tasks, or performance.</p>
                     </div>
                 )}
                 
-                {generatedContent && (
-                    <div className="prose prose-sm max-w-none">
-                        <h4>Blog Title Suggestion:</h4>
-                        <p>{generatedContent.suggestions[0].blogTitle}</p>
-                        <h4>Social Media Post:</h4>
-                        <p>{generatedContent.suggestions[0].socialMediaPost}</p>
-                        <h4>Email Subject:</h4>
-                        <p>{generatedContent.suggestions[0].emailSubject}</p>
+                {messages.map((message, index) => (
+                    <div key={index} className={cn("flex items-start gap-3", message.sender === 'user' && 'flex-row-reverse')}>
+                       {message.sender === 'ai' && (
+                            <Avatar className="h-8 w-8">
+                                <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-green-700">
+                                    <Bot className="h-5 w-5 text-white" />
+                                </div>
+                            </Avatar>
+                        )}
+                         {message.sender === 'user' && (
+                             <Avatar className="h-8 w-8">
+                                <AvatarImage src={userAvatar?.imageUrl} alt="User" data-ai-hint={userAvatar?.imageHint} />
+                                <AvatarFallback>U</AvatarFallback>
+                            </Avatar>
+                         )}
+
+                       {message.sender === 'typing' ? (
+                            <TypingIndicator />
+                       ) : (
+                         <div className={cn("p-3 rounded-lg max-w-[80%]", message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                            <div className="prose prose-sm prose-p:m-0 max-w-none text-current">
+                                <ReactMarkdown>{message.content}</ReactMarkdown>
+                            </div>
+                        </div>
+                       )}
                     </div>
-                )}
+                ))}
+
                 </div>
             </ScrollArea>
         </div>
@@ -94,20 +152,27 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
         {/* Bottom area: Form */}
         <div className="flex flex-col gap-4">
             <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="relative">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-2 border rounded-lg p-2">
+                <Button variant="ghost" size="icon">
+                    <Paperclip />
+                    <span className="sr-only">Attach file</span>
+                </Button>
                 <FormField
                 control={form.control}
                 name="topic"
                 render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="flex-1">
                     <FormControl>
-                        <Textarea
+                        <TextareaAutosize
                         placeholder="Type your message here..."
-                        className="pr-14"
+                        className="w-full resize-none bg-transparent border-none focus:ring-0 focus-visible:ring-0 p-0 text-base"
+                        maxRows={5}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                form.handleSubmit(onSubmit)();
+                                if (form.getValues('topic').trim()) {
+                                    form.handleSubmit(onSubmit)();
+                                }
                             }
                         }}
                         {...field}
@@ -117,7 +182,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
                     </FormItem>
                 )}
                 />
-                <Button type="submit" disabled={isLoading} size="icon" className="absolute right-2.5 top-1/2 -translate-y-1/2 h-8 w-8">
+                <Button type="submit" disabled={isLoading} size="icon" className="flex-shrink-0">
                 {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
