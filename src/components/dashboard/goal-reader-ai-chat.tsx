@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, Sparkles, Send, Bot, User, Paperclip } from 'lucide-react';
-import { generateMarketingContent } from '@/ai/flows/generate-marketing-content-flow';
+import { chat } from '@/ai/flows/chat-flow';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -58,11 +58,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
     form.reset();
 
     try {
-      const result = await generateMarketingContent({ topic: data.topic });
-      
-      // For this test, we'll just display the blog title.
-      // In a real chat, this would be the AI's direct response.
-      const aiResponse = `**Blog Title Suggestion:**\n${result.suggestions[0].blogTitle}`;
+      const aiResponse = await chat(data.topic);
       
       // Remove typing indicator and add AI response
       setMessages(prev => [
@@ -82,13 +78,13 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
   };
   
   const TypingIndicator = () => (
-    <div className="flex items-center gap-2">
+    <div className="flex items-start gap-3">
         <Avatar className="h-8 w-8">
             <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-green-700">
                 <Bot className="h-5 w-5 text-white" />
             </div>
         </Avatar>
-        <div className="flex items-center gap-1.5">
+        <div className="bg-muted p-3 rounded-lg flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-0"></span>
             <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-200"></span>
             <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-400"></span>
@@ -118,29 +114,30 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
                 )}
                 
                 {messages.map((message, index) => (
-                    <div key={index} className={cn("flex items-start gap-3", message.sender === 'user' && 'flex-row-reverse')}>
-                       {message.sender === 'ai' && (
-                            <Avatar className="h-8 w-8">
-                                <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-green-700">
-                                    <Bot className="h-5 w-5 text-white" />
+                    <div key={index}>
+                      {message.sender === 'typing' ? (
+                          <TypingIndicator />
+                      ) : (
+                        <div className={cn("flex items-start gap-3", message.sender === 'user' && 'flex-row-reverse')}>
+                          {message.sender === 'ai' && (
+                                <Avatar className="h-8 w-8">
+                                    <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-green-700">
+                                        <Bot className="h-5 w-5 text-white" />
+                                    </div>
+                                </Avatar>
+                            )}
+                            {message.sender === 'user' && (
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={userAvatar?.imageUrl} alt="User" data-ai-hint={userAvatar?.imageHint} />
+                                    <AvatarFallback>U</AvatarFallback>
+                                </Avatar>
+                            )}
+                            <div className={cn("p-3 rounded-lg max-w-[80%]", message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                <div className="prose prose-sm prose-p:m-0 max-w-none text-current">
+                                    <ReactMarkdown>{message.content}</ReactMarkdown>
                                 </div>
-                            </Avatar>
-                        )}
-                         {message.sender === 'user' && (
-                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={userAvatar?.imageUrl} alt="User" data-ai-hint={userAvatar?.imageHint} />
-                                <AvatarFallback>U</AvatarFallback>
-                            </Avatar>
-                         )}
-
-                       {message.sender === 'typing' ? (
-                            <TypingIndicator />
-                       ) : (
-                         <div className={cn("p-3 rounded-lg max-w-[80%]", message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                            <div className="prose prose-sm prose-p:m-0 max-w-none text-current">
-                                <ReactMarkdown>{message.content}</ReactMarkdown>
                             </div>
-                        </div>
+                          </div>
                        )}
                     </div>
                 ))}
