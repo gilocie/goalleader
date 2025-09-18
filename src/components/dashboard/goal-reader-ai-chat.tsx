@@ -12,7 +12,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Send, User, Loader, Paperclip } from 'lucide-react';
 import { chat, ChatInput } from '@/ai/flows/chat-flow';
-import { getInitialMessage, InitialMessageInput } from '@/ai/flows/initial-message-flow';
 import { ScrollArea } from '../ui/scroll-area';
 import Textarea from 'react-textarea-autosize';
 import { Logo } from '../icons';
@@ -23,73 +22,11 @@ type Message = {
   content: string;
 };
 
-// Hardcoded data for demonstration purposes
-const tasks = [
-  {
-    name: 'Design landing page',
-    status: 'In Progress',
-    dueDate: '2024-07-25',
-  },
-  {
-    name: 'Develop API for user authentication',
-    status: 'Completed',
-    dueDate: '2024-07-15',
-  },
-  {
-    name: 'Setup database schema',
-    status: 'Pending',
-    dueDate: '2024-08-01',
-  },
-];
-
-const meetings = [
-    {
-        title: 'Q3 Strategy Review',
-        time: '10:00 AM',
-    },
-    {
-        title: 'Project Phoenix Sync-up',
-        time: '2:30 PM',
-    },
-];
-
-const performance = 75;
-
-
 export function GoalReaderAIChat({ className }: { className?: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const fetchInitialMessage = async () => {
-      if (messages.length === 0) {
-        setIsLoading(true);
-        try {
-          const initialInput: InitialMessageInput = {
-            performance,
-            tasks,
-            meetings,
-          };
-          const response = await getInitialMessage(initialInput);
-          const modelMessage: Message = { role: 'model', content: response };
-          setMessages([modelMessage]);
-        } catch (error) {
-          console.error('Error getting initial message:', error);
-          const errorMessage: Message = {
-            role: 'model',
-            content: 'Error generating initial message. Please check the logs.',
-          };
-          setMessages([errorMessage]);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    fetchInitialMessage();
-  }, []);
 
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
@@ -105,7 +42,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
 
     try {
       const chatInput: ChatInput = {
-        history: updatedHistory.map(({ role, content }) => ({ role: role as 'user' | 'model', content })),
+        history: updatedHistory.filter(m => m.role === 'user' || m.role === 'model').map(({ role, content }) => ({ role: role as 'user' | 'model', content })),
         message: input,
       };
       const response = await chat(chatInput);
@@ -152,6 +89,13 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
         <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
           <div className="space-y-4">
+            {messages.length === 0 && !isLoading && (
+              <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                <Logo className="h-10 w-10 mb-2" />
+                <p>Hello! I'm Goal Leader.</p>
+                <p className="text-xs">How can I help you today?</p>
+              </div>
+            )}
             {messages.map((message, index) => (
               (message.role !== 'system' && 
               <div
@@ -182,7 +126,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
               </div>
               )
             ))}
-            {isLoading && messages.length > 0 && (
+            {isLoading && (
               <div className="flex justify-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                   <Logo className="h-5 w-5" />
@@ -190,11 +134,6 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
                 <div className="bg-muted rounded-lg p-3 flex items-center">
                   <Loader className="animate-spin" size={20} />
                 </div>
-              </div>
-            )}
-             {isLoading && messages.length === 0 && (
-              <div className="flex items-center justify-center h-full">
-                <Loader className="animate-spin" size={30} />
               </div>
             )}
           </div>
