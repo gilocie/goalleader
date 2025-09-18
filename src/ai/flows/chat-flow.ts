@@ -28,10 +28,19 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 // --- Main chat function ---
 export async function chat(input: ChatInput): Promise<ChatOutput> {
   const systemMessage = { role: 'system', content: 'Conversation start' };
-  const history =
-    Array.isArray(input.history) && input.history.length > 0
-      ? [systemMessage, ...input.history]
-      : [systemMessage];
+  
+  // Start with a system message.
+  const history: Message[] = [systemMessage];
+
+  // Add existing history if it's valid.
+  if (Array.isArray(input.history)) {
+    history.push(...input.history);
+  }
+
+  // Add the new user message.
+  if (input.message) {
+      history.push({ role: 'user', content: input.message });
+  }
 
   const safeInput = {
     history,
