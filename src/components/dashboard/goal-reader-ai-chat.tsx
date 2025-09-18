@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, Sparkles, Send, Bot, User, Paperclip } from 'lucide-react';
-import { chat } from '@/ai/flows/chat-flow';
+import { generateMarketingContent } from '@/ai/flows/generate-marketing-content-flow';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -38,6 +37,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
 
   const form = useForm<FormValues>({
@@ -46,6 +46,12 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
       topic: '',
     },
   });
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+        scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  }, [messages])
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
@@ -58,7 +64,8 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
     form.reset();
 
     try {
-      const aiResponse = await chat(data.topic);
+      const result = await generateMarketingContent({ topic: data.topic });
+      const aiResponse = result.suggestions[0]?.blogTitle || "I couldn't think of a blog title.";
       
       // Remove typing indicator and add AI response
       setMessages(prev => [
@@ -103,7 +110,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
         {/* Top area: Message History */}
         <div className="flex-1 flex flex-col overflow-hidden border rounded-lg">
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full" ref={scrollAreaRef}>
                 <div className="p-4 space-y-6">
                 {messages.length === 0 && !isLoading && (
                     <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50 h-full">
