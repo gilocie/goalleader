@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, Sparkles, Send, Bot, User, Paperclip } from 'lucide-react';
-import { generateMarketingContent } from '@/ai/flows/generate-marketing-content-flow';
+import { chat } from '@/ai/flows/chat-flow';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -55,22 +55,16 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    // Add user message to the chat
     setMessages(prev => [...prev, { sender: 'user', content: data.topic }]);
-    
-    // Show typing indicator
     setMessages(prev => [...prev, { sender: 'typing', content: '' }]);
-
     form.reset();
 
     try {
-      const result = await generateMarketingContent({ topic: data.topic });
-      const aiResponse = result.suggestions[0]?.blogTitle || "I couldn't think of a blog title.";
+      const result = await chat(data.topic);
       
-      // Remove typing indicator and add AI response
       setMessages(prev => [
           ...prev.filter(m => m.sender !== 'typing'),
-          { sender: 'ai', content: aiResponse }
+          { sender: 'ai', content: result }
       ]);
 
     } catch (error) {
@@ -108,7 +102,6 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-        {/* Top area: Message History */}
         <div className="flex-1 flex flex-col overflow-hidden border rounded-lg">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
                 <div className="p-4 space-y-6">
@@ -153,7 +146,6 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
             </ScrollArea>
         </div>
 
-        {/* Bottom area: Form */}
         <div className="flex flex-col gap-4">
             <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-2 border rounded-lg p-2">
