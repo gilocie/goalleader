@@ -57,10 +57,12 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
     setIsLoading(true);
     setMessages(prev => [...prev, { sender: 'user', content: data.topic }]);
     setMessages(prev => [...prev, { sender: 'typing', content: '' }]);
+    
+    const userMessage = data.topic;
     form.reset();
 
     try {
-      const result = await chat(data.topic);
+      const result = await chat(userMessage);
       
       setMessages(prev => [
           ...prev.filter(m => m.sender !== 'typing'),
