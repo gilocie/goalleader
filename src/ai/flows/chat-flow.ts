@@ -14,7 +14,7 @@ import { z } from 'zod';
 
 // --- Schema Definitions ---
 const MessageSchema = z.object({
-  role: z.enum(['user', 'model', 'system']),
+  role: z.enum(['user', 'model']),
   content: z.string(),
 });
 type Message = z.infer<typeof MessageSchema>;
@@ -28,7 +28,7 @@ export type ChatInput = z.infer<typeof ChatInputSchema>;
 const ChatOutputSchema = z.string();
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
-// --- Prompt Definition (moved before usage) ---
+// --- Prompt Definition ---
 const chatPrompt = ai.definePrompt({
   name: 'chatPrompt',
   model: googleAI.model('gemini-1.5-flash'),
@@ -46,6 +46,18 @@ New message from user:
 - user: {{message}}
 
 Please provide a helpful response:`,
+  // New conversation history mapping
+  history: (input) => {
+    // Add a system message to set the AI's persona
+    const history: Message[] = [
+        { role: 'model', content: 'You are Goal Reader, an AI assistant helping users manage their goals and tasks.' }
+    ];
+    // Add the user's provided history
+    if (input.history) {
+        history.push(...input.history);
+    }
+    return history;
+  }
 });
 
 // --- Flow Definition ---
@@ -60,40 +72,17 @@ const chatFlow = ai.defineFlow(
       // Validate input
       const validatedInput = ChatInputSchema.parse(input);
       
-      // Prepare conversation history
-      const history: Message[] = [
-        { role: 'system', content: 'You are Goal Reader, an AI assistant helping users manage their goals and tasks.' }
-      ];
-
-      // Add validated history
-      if (validatedInput.history && Array.isArray(validatedInput.history)) {
-        history.push(...validatedInput.history.filter(m => 
-          m && 
-          typeof m === 'object' && 
-          m.role && 
-          m.content &&
-          typeof m.content === 'string' &&
-          m.content.trim().length > 0
-        ));
-      }
-
-      // Add current message
-      if (validatedInput.message && validatedInput.message.trim()) {
-        history.push({ role: 'user', content: validatedInput.message.trim() });
-      }
-
       // Generate response
       const result = await chatPrompt({
-        history,
+        ...validatedInput,
+        // Pass the new message to the prompt, which will append it after the history
         message: validatedInput.message
       });
 
       // Validate and return output
-      if (result && result.output && typeof result.output === 'string') {
-        const trimmedOutput = result.output.trim();
-        if (trimmedOutput) {
-          return trimmedOutput;
-        }
+      const output = result.output;
+      if (output && typeof output === 'string' && output.trim()) {
+        return output.trim();
       }
       
       // If we are here, something went wrong with the AI generation.
@@ -117,11 +106,7 @@ const chatFlow = ai.defineFlow(
 export async function chat(input: ChatInput): Promise<ChatOutput> {
   try {
     // Validate input first
-    if (!input) {
-      throw new Error('Input is required');
-    }
-
-    if (!input.message || typeof input.message !== 'string' || !input.message.trim()) {
+    if (!input || !input.message || typeof input.message !== 'string' || !input.message.trim()) {
       return "Please provide a message to get started!";
     }
 
