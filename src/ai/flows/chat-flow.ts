@@ -9,6 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
 // --- Schema Definitions ---
@@ -30,6 +31,7 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 // --- Prompt Definition (moved before usage) ---
 const chatPrompt = ai.definePrompt({
   name: 'chatPrompt',
+  model: googleAI.model('gemini-1.5-flash'),
   input: { schema: ChatInputSchema },
   output: { schema: ChatOutputSchema },
   prompt: `You are a helpful and encouraging AI assistant for GoalLeader. Your name is Goal Reader.

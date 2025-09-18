@@ -9,6 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
 const TaskSchema = z.object({
@@ -36,6 +37,7 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
 
 const prompt = ai.definePrompt({
   name: 'generateReportPrompt',
+  model: googleAI.model('gemini-1.5-flash'),
   input: { schema: GenerateReportInputSchema },
   output: { schema: GenerateReportOutputSchema },
   prompt: `You are an AI assistant for GoalLeader. Your task is to generate a performance report for a staff member to their manager.
