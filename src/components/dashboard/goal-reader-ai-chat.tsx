@@ -1,207 +1,109 @@
-
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import ReactMarkdown from 'react-markdown';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Sparkles, Send, Bot, User, Paperclip } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import TextareaAutosize from 'react-textarea-autosize';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
-const formSchema = z.object({
-  message: z.string().min(1, 'Message cannot be empty.'),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
-interface Message {
-    sender: 'user' | 'ai' | 'typing';
-    content: string;
-}
-
-export function GoalReaderAIChat({ className }: { className?: string }) {
+export function GoalReaderAIChat() {
+  const [results, setResults] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      message: '',
-    },
-  });
-
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-        scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
-    }
-  }, [messages])
-
-  const callChatAPI = async (message: string) => {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data?.error || 'API error');
-    }
-    return data.output;
-  };
-
-  const onSubmit = async (data: FormValues) => {
+  const runDebugTests = async () => {
     setIsLoading(true);
-    setMessages(prev => [...prev, { sender: 'user', content: data.message }]);
-    setMessages(prev => [...prev, { sender: 'typing', content: '' }]);
-
-    const userMessage = data.message;
-    form.reset();
+    setResults(null);
 
     try {
-      const result = await callChatAPI(userMessage);
+      // Test the debug endpoint
+      console.log('Testing GET /api/chat (debug endpoint)...');
+      const debugResponse = await fetch('/api/chat', { method: 'GET' });
+      const debugData = await debugResponse.json();
+      
+      // Test a simple chat message
+      console.log('Testing POST /api/chat with simple message...');
+      const chatResponse = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Hello, this is a test' })
+      });
+      const chatData = await chatResponse.json();
+      
+      setResults({
+        debug: {
+          status: debugResponse.status,
+          data: debugData
+        },
+        chat: {
+          status: chatResponse.status,
+          data: chatData
+        }
+      });
 
-      setMessages(prev => [
-        ...prev.filter(m => m.sender !== 'typing'),
-        { sender: 'ai', content: result },
-      ]);
     } catch (error) {
-      console.error('Failed to generate content:', error);
-      setMessages(prev => [
-        ...prev.filter(m => m.sender !== 'typing'),
-        { sender: 'ai', content: "I'm sorry, an error occurred. Please try again." }
-      ]);
+      console.error('Test error:', error);
+      setResults({
+        error: error instanceof Error ? error.message : String(error)
+      });
     } finally {
       setIsLoading(false);
     }
   };
-  
-  const TypingIndicator = () => (
-    <div className="flex items-start gap-3">
-        <Avatar className="h-8 w-8">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-green-700">
-                <Bot className="h-5 w-5 text-white" />
-            </div>
-        </Avatar>
-        <div className="bg-muted p-3 rounded-lg flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-0"></span>
-            <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-200"></span>
-            <span className="h-2 w-2 rounded-full bg-muted-foreground animate-pulse delay-400"></span>
-        </div>
-    </div>
-  )
+
+  const getStatusBadge = (status: number) => {
+    if (status >= 200 && status < 300) {
+      return <Badge variant="default" className="bg-green-500">Success ({status})</Badge>;
+    } else if (status >= 400 && status < 500) {
+      return <Badge variant="destructive">Client Error ({status})</Badge>;
+    } else if (status >= 500) {
+      return <Badge variant="destructive">Server Error ({status})</Badge>;
+    }
+    return <Badge variant="outline">Status: {status}</Badge>;
+  };
 
   return (
-    <Card className={cn("h-full flex flex-col min-h-[480px]", className)}>
+    <Card className="max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle>GoalLeader Chat</CardTitle>
-        <CardDescription>
-            Your AI assistant for productivity and project management.
-        </CardDescription>
+        <CardTitle>Chat Debug Test</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
-        <div className="flex-1 flex flex-col overflow-hidden border rounded-lg">
-            <ScrollArea className="h-full" ref={scrollAreaRef}>
-                <div className="p-4 space-y-6">
-                {messages.length === 0 && !isLoading && (
-                    <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50 h-full">
-                        <Sparkles className="h-12 w-12 text-primary" />
-                        <h3 className="font-semibold">Start the conversation</h3>
-                        <p className="text-muted-foreground max-w-xs">Ask me anything about your projects, tasks, or performance.</p>
-                    </div>
-                )}
-                
-                {messages.map((message, index) => (
-                    <div key={index}>
-                      {message.sender === 'typing' ? (
-                          <TypingIndicator />
-                      ) : (
-                        <div className={cn("flex items-start gap-3", message.sender === 'user' && 'flex-row-reverse')}>
-                          {message.sender === 'ai' && (
-                                <Avatar className="h-8 w-8">
-                                    <div className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-primary to-green-700">
-                                        <Bot className="h-5 w-5 text-white" />
-                                    </div>
-                                </Avatar>
-                            )}
-                            {message.sender === 'user' && (
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={userAvatar?.imageUrl} alt="User" data-ai-hint={userAvatar?.imageHint} />
-                                    <AvatarFallback>U</AvatarFallback>
-                                </Avatar>
-                            )}
-                            <div className={cn("p-3 rounded-lg max-w-[80%]", message.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                                <div className="prose prose-sm prose-p:m-0 max-w-none text-current">
-                                    <ReactMarkdown>{message.content}</ReactMarkdown>
-                                </div>
-                            </div>
-                          </div>
-                       )}
-                    </div>
-                ))}
+      <CardContent className="space-y-4">
+        <Button onClick={runDebugTests} disabled={isLoading}>
+          {isLoading ? 'Running Tests...' : 'Run Debug Tests'}
+        </Button>
 
+        {results && (
+          <div className="space-y-4">
+            {results.error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <h3 className="font-semibold text-red-800">Error</h3>
+                <pre className="text-sm text-red-700 mt-2">{results.error}</pre>
+              </div>
+            )}
+
+            {results.debug && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold">Debug Endpoint</h3>
+                  {getStatusBadge(results.debug.status)}
                 </div>
-            </ScrollArea>
-        </div>
+                <pre className="text-sm overflow-auto max-h-60">
+                  {JSON.stringify(results.debug.data, null, 2)}
+                </pre>
+              </div>
+            )}
 
-        <div className="flex flex-col gap-4">
-            <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center gap-2 border rounded-lg p-2">
-                <Button variant="ghost" size="icon">
-                    <Paperclip />
-                    <span className="sr-only">Attach file</span>
-                </Button>
-                <FormField
-                control={form.control}
-                name="message"
-                render={({ field }) => (
-                    <FormItem className="flex-1">
-                    <FormControl>
-                        <TextareaAutosize
-                        placeholder="Type your message here..."
-                        className="w-full resize-none bg-transparent border-none focus:ring-0 focus-visible:ring-0 p-0 text-base"
-                        maxRows={5}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                if (form.getValues('message').trim()) {
-                                    form.handleSubmit(onSubmit)();
-                                }
-                            }
-                        }}
-                        {...field}
-                        />
-                    </FormControl>
-                    <FormMessage className="absolute -bottom-5 left-2 text-xs" />
-                    </FormItem>
-                )}
-                />
-                <Button type="submit" disabled={isLoading} size="icon" className="flex-shrink-0">
-                {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                    <Send className="h-4 w-4" />
-                )}
-                </Button>
-            </form>
-            </Form>
-        </div>
+            {results.chat && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold">Chat Endpoint</h3>
+                  {getStatusBadge(results.chat.status)}
+                </div>
+                <pre className="text-sm overflow-auto max-h-60">
+                  {JSON.stringify(results.chat.data, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
