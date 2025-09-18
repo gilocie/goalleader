@@ -78,11 +78,11 @@ const initialMessageFlow = ai.defineFlow(
         const safeOutput =
             output && typeof output === 'string' && output.trim()
             ? output
-            : 'Hello! How can I help you achieve your goals today?';
+            : 'AI failed to generate an initial message.';
         return safeOutput;
     } catch (err) {
         console.error('InitialMessageFlow error:', err);
-        return 'Hello! How can I help you achieve your goals today?';
+        return 'Error generating initial message. Please check the logs.';
     }
   }
 );

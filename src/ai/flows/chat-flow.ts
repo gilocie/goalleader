@@ -89,10 +89,13 @@ const chatFlow = ai.defineFlow(
       // Validate and return output
       if (result && result.output && typeof result.output === 'string') {
         const trimmedOutput = result.output.trim();
-        return trimmedOutput || "Hello! I'm Goal Reader. How can I help you achieve your goals today?";
+        if (trimmedOutput) {
+          return trimmedOutput;
+        }
       }
-
-      return "Hello! I'm Goal Reader. How can I help you achieve your goals today?";
+      
+      // If we are here, something went wrong with the AI generation.
+      throw new Error('AI failed to generate a valid response.');
 
     } catch (err) {
       console.error('ChatFlow error:', err);
