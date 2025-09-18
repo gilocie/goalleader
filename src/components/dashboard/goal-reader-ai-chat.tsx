@@ -4,6 +4,38 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Copy, Check } from 'lucide-react';
+
+const CopyButton = ({ text }: { text: string }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={handleCopy}
+      className="absolute top-2 right-2 h-7 w-7"
+    >
+      {isCopied ? (
+        <Check className="h-4 w-4 text-green-500" />
+      ) : (
+        <Copy className="h-4 w-4" />
+      )}
+      <span className="sr-only">Copy</span>
+    </Button>
+  );
+};
+
 
 export function GoalReaderAIChat() {
   const [results, setResults] = useState<any>(null);
@@ -73,18 +105,20 @@ export function GoalReaderAIChat() {
         {results && (
           <div className="space-y-4">
             {results.error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg relative">
                 <h3 className="font-semibold text-red-800">Error</h3>
+                 <CopyButton text={results.error} />
                 <pre className="text-sm text-red-700 mt-2">{results.error}</pre>
               </div>
             )}
 
             {results.debug && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg relative">
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-semibold">Debug Endpoint</h3>
                   {getStatusBadge(results.debug.status)}
                 </div>
+                 <CopyButton text={JSON.stringify(results.debug.data, null, 2)} />
                 <pre className="text-sm overflow-auto max-h-60">
                   {JSON.stringify(results.debug.data, null, 2)}
                 </pre>
@@ -92,11 +126,12 @@ export function GoalReaderAIChat() {
             )}
 
             {results.chat && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg relative">
                 <div className="flex items-center gap-2 mb-2">
                   <h3 className="font-semibold">Chat Endpoint</h3>
                   {getStatusBadge(results.chat.status)}
                 </div>
+                <CopyButton text={JSON.stringify(results.chat.data, null, 2)} />
                 <pre className="text-sm overflow-auto max-h-60">
                   {JSON.stringify(results.chat.data, null, 2)}
                 </pre>
