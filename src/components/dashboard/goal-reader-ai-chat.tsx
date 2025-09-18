@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -23,7 +24,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import TextareaAutosize from 'react-textarea-autosize';
 
 const formSchema = z.object({
-  topic: z.string().min(1, 'Message cannot be empty.'),
+  message: z.string().min(1, 'Message cannot be empty.'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -43,7 +44,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      topic: '',
+      message: '',
     },
   });
 
@@ -55,10 +56,10 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    setMessages(prev => [...prev, { sender: 'user', content: data.topic }]);
+    setMessages(prev => [...prev, { sender: 'user', content: data.message }]);
     setMessages(prev => [...prev, { sender: 'typing', content: '' }]);
     
-    const userMessage = data.topic;
+    const userMessage = data.message;
     form.reset();
 
     try {
@@ -157,7 +158,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
                 </Button>
                 <FormField
                 control={form.control}
-                name="topic"
+                name="message"
                 render={({ field }) => (
                     <FormItem className="flex-1">
                     <FormControl>
@@ -168,7 +169,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                if (form.getValues('topic').trim()) {
+                                if (form.getValues('message').trim()) {
                                     form.handleSubmit(onSubmit)();
                                 }
                             }
