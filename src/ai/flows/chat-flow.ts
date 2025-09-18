@@ -2,10 +2,11 @@
 'use server';
 /**
  * @fileOverview A simplified chat flow for GoalReader AI for debugging.
+ * This flow now takes a single message and returns a response, ignoring history.
  *
  * - chat - The function to call from the frontend.
- * - ChatInput - Input type.
- * - ChatOutput - Output type.
+ * - ChatInput - Input type (now just a single string).
+ * - ChatOutput - Output type (a single string).
  */
 
 import { ai } from '@/ai/genkit';
@@ -13,42 +14,42 @@ import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
 // --- Schema Definitions ---
-const MessageSchema = z.object({
-  role: z.enum(['user', 'model']),
-  content: z.string(),
-});
-type Message = z.infer<typeof MessageSchema>;
-
-const ChatInputSchema = z.object({
-  history: z.array(MessageSchema).optional().default([]),
-  message: z.string().min(1),
-});
+// The input is now just a single string message.
+const ChatInputSchema = z.string();
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 const ChatOutputSchema = z.string();
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
-// --- Main chat function ---
 export async function chat(input: ChatInput): Promise<ChatOutput> {
-  // Use a simple prompt for basic conversation
-  const simpleChat = ai.prompt(
-    `You are a helpful assistant. Continue the conversation.
-
-{{#each history}}
-- {{role}}: {{content}}
-{{/each}}
-- user: {{message}}
-`
-  );
-
-  try {
-    const result = await simpleChat({
-      ...input,
-      model: googleAI.model('gemini-1.5-flash'),
-    });
-    return result.text;
-  } catch (err) {
-    console.error('Simplified Chat error:', err);
-    return "I'm sorry, an error occurred while processing your request. Please try again later.";
-  }
+  return singlePromptFlow(input);
 }
+
+const prompt = ai.definePrompt({
+  name: 'singlePrompt',
+  model: googleAI.model('gemini-1.5-flash'),
+  input: { schema: ChatInputSchema },
+  output: { schema: ChatOutputSchema },
+  prompt: `You are a helpful AI assistant. Respond to the following message:
+
+{{input}}
+`,
+});
+
+const singlePromptFlow = ai.defineFlow(
+  {
+    name: 'singlePromptFlow',
+    inputSchema: ChatInputSchema,
+    outputSchema: ChatOutputSchema,
+  },
+  async (message) => {
+    try {
+      const { output } = await prompt(message);
+      return output || "I'm sorry, I couldn't generate a response.";
+    } catch (err) {
+      console.error('Chat error:', err);
+      // Return a specific error message to the user.
+      return "I'm sorry, an error occurred while processing your request. Please try again later.";
+    }
+  }
+);

@@ -33,18 +33,14 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
     if (!input.trim()) return;
 
     const userMessage: Message = { role: 'user', content: input };
-
-    // Add the user message to history first
-    const updatedHistory = [...messages, userMessage];
-    setMessages(updatedHistory);
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsLoading(true);
 
     try {
-      const chatInput: ChatInput = {
-        history: updatedHistory.filter(m => m.role === 'user' || m.role === 'model').map(({ role, content }) => ({ role: role as 'user' | 'model', content })),
-        message: input,
-      };
+      // The input is now just the string from the input box.
+      const chatInput: ChatInput = currentInput;
       const response = await chat(chatInput);
 
       const modelMessage: Message = {
