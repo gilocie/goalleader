@@ -27,13 +27,15 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
 // --- Main chat function ---
 export async function chat(input: ChatInput): Promise<ChatOutput> {
-  // Ensure history is never empty
+  const systemMessage = { role: 'system', content: 'Conversation start' };
+  const history =
+    Array.isArray(input.history) && input.history.length > 0
+      ? [systemMessage, ...input.history]
+      : [systemMessage];
+
   const safeInput = {
-    history:
-      Array.isArray(input.history) && input.history.length > 0
-        ? input.history
-        : [{ role: 'system', content: 'Conversation start' }],
-    message: typeof input.message === 'string' ? input.message : '',
+    history,
+    message: input.message || '',
   };
   return chatFlow(safeInput);
 }
@@ -43,20 +45,19 @@ const chatPrompt = ai.definePrompt({
   name: 'chatPrompt',
   input: { schema: ChatInputSchema },
   output: { schema: ChatOutputSchema },
-  prompt: `You are a helpful AI assistant for GoalLeader. Your name is Goal Reader.
-You help users with their projects, tasks, and goals.
+  prompt: `You are a helpful and encouraging AI assistant for GoalLeader. Your name is Goal Reader.
+Your primary role is to help users manage their projects, tasks, and goals with a positive and supportive tone.
 
-Here is the chat history:
-{{#if history.length}}
+Here is the conversation history:
 {{#each history}}
 - {{role}}: {{content}}
 {{/each}}
-{{else}}
-- system: Conversation start
-{{/if}}
 
 New message from user:
-{{message}}`,
+- user: {{message}}
+
+Your response:
+- model:`,
 });
 
 // --- Flow Definition ---
@@ -79,7 +80,7 @@ const chatFlow = ai.defineFlow(
       return safeOutput;
     } catch (err) {
       console.error('ChatFlow error:', err);
-      return "I'm sorry, I couldn't generate a response. Please try again.";
+      return "I'm sorry, an error occurred while processing your request. Please try again later.";
     }
   }
 );
