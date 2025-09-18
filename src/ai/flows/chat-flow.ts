@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -138,11 +139,6 @@ export async function runChat(rawMessage: unknown): Promise<string> {
 
     return "I'm sorry, an internal error occurred while processing your request. Please try again.";
   }
-}
-
-// Backward compatibility
-export async function chat(input: ChatInput): Promise<ChatOutput> {
-  return runChat(input);
 }
 
 // Test function to verify setup

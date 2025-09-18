@@ -6,10 +6,10 @@ import { z } from 'zod';
 
 // Validate environment variables
 const getApiKey = () => {
-  const apiKey = process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
   
   if (!apiKey) {
-    console.warn('Skipping Genkit initialization: Missing Google AI API key. Please set GOOGLE_AI_API_KEY or GOOGLE_GENAI_API_KEY in your .env file.');
+    console.warn('Skipping Genkit initialization: Missing Google AI API key. Please set GOOGLE_AI_API_KEY or GEMINI_API_KEY in your .env file.');
     return null;
   }
   
@@ -26,11 +26,7 @@ if (apiKey) {
     try {
       ai = genkit({
         plugins: [
-          googleAI({
-            // The API key is picked up automatically from the environment,
-            // but you could specify it explicitly if needed.
-            // apiKey: apiKey
-          })
+          googleAI()
         ],
         logLevel: 'debug',
         enableTracingAndMetrics: true,
