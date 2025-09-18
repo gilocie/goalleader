@@ -34,10 +34,10 @@ const refineTextPrompt = ai.definePrompt({
   model: googleAI.model('gemini-1.5-flash'),
   input: { schema: RefineTextInputSchema },
   output: { schema: RefineTextOutputSchema },
-  prompt: `You are a writing assistant. Your task is to take the user\'s performance report and refine it.
+  prompt: `You are a writing assistant. Your task is to take the user\\'s performance report and refine it.
 Correct any grammatical errors or typos.
 Ensure the tone is professional and clear.
-Check the user\'s report against the list of completed tasks provided below. If the user missed mentioning any significant tasks, add them to the report in a natural way.
+Check the user\\'s report against the list of completed tasks provided below. If the user missed mentioning any significant tasks, add them to the report in a natural way.
 Do not add any information that is not present in the original text or the provided task list.
 
 Original report:
