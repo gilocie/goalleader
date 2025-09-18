@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview A flow to generate marketing content, adapted for chat testing.
+ * @fileOverview A conversational flow for the GoalLeader AI assistant.
  *
- * - chat - A function that generates marketing materials.
+ * - chat - A function that provides a conversational response.
  * - ChatInput - The input type for the function.
  * - ChatOutput - The return type for the function.
  */
@@ -16,48 +16,38 @@ import { z } from 'zod';
 const ChatInputSchema = z.string();
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
-// We'll define a simple string output for the chat response
+// Output is a simple string response from the AI
 const ChatOutputSchema = z.string();
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
 
-// The schema for the AI model's full output
-const MarketingContentOutputSchema = z.object({
-    suggestions: z.array(z.object({
-        blogTitle: z.string(),
-    })).length(3),
-});
-
-
 export async function chat(input: ChatInput): Promise<ChatOutput> {
-  return generateMarketingContentFlow(input);
+  return chatFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'generateMarketingContentForChatPrompt',
+  name: 'conversationalChatPrompt',
   model: googleAI.model('gemini-1.5-flash'),
-  input: { schema: z.object({ topic: z.string() }) },
-  output: { schema: MarketingContentOutputSchema },
-  prompt: `You are a creative and effective marketing assistant. 
-Your task is to generate 3 distinct blog post titles for the following topic.
-Return only the blog titles.
+  input: { schema: ChatInputSchema },
+  output: { schema: ChatOutputSchema },
+  prompt: `You are GoalLeader, an expert productivity coach and AI assistant. Your tone is helpful, encouraging, and friendly. 
+You are in a conversation. Respond to the user's message in a natural, human-like way.
 
-Topic: {{topic}}
+User's message: {{this}}
 `,
 });
 
-const generateMarketingContentFlow = ai.defineFlow(
+const chatFlow = ai.defineFlow(
   {
-    name: 'generateMarketingContentForChatFlow',
+    name: 'conversationalChatFlow',
     inputSchema: ChatInputSchema,
     outputSchema: ChatOutputSchema,
   },
-  async (topic) => {
-    const { output } = await prompt({ topic });
-    if (!output?.suggestions || output.suggestions.length === 0) {
-        throw new Error('Failed to generate marketing content. The model did not return a valid output.');
+  async (message) => {
+    const { output } = await prompt(message);
+    if (!output) {
+      return "I'm sorry, I couldn't come up with a response. Could you try rephrasing?";
     }
-    // Return just the first blog title as a string to match our ChatOutputSchema
-    return output.suggestions[0].blogTitle;
+    return output;
   }
 );

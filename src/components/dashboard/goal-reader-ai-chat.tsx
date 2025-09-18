@@ -71,7 +71,7 @@ export function GoalReaderAIChat({ className }: { className?: string }) {
       console.error("Failed to generate content:", error);
        setMessages(prev => [
           ...prev.filter(m => m.sender !== 'typing'),
-          { sender: 'ai', content: "Sorry, I couldn't generate a response. Please try again." }
+          { sender: 'ai', content: "I'm sorry, an error occurred. Please try again." }
       ]);
     } finally {
       setIsLoading(false);
