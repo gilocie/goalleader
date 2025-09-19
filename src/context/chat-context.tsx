@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode, useMemo } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction } from 'react';
 import type { Contact, Message } from '@/types/chat';
 
 const USER_ID = 'patrick-achitabwino-m1';
@@ -31,15 +30,19 @@ interface ChatContextType {
   contacts: Contact[];
   messages: Message[];
   unreadMessagesCount: number;
+  selectedContact: Contact | null;
+  setSelectedContact: Dispatch<SetStateAction<Contact | null>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [allContacts] = useState<Contact[]>(teamMembers);
-  const [messages, setMessages] = useState<Message[]>(messagesData);
-
+  const [messages] = useState<Message[]>(messagesData);
+  
   const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
+  
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[1]);
 
   const unreadMessagesCount = contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0);
 
@@ -47,6 +50,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     contacts,
     messages,
     unreadMessagesCount,
+    selectedContact,
+    setSelectedContact,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
