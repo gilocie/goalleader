@@ -20,19 +20,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { useChat } from '@/context/chat-context';
 
 interface ChatMessagesProps {
   messages: Message[];
   selectedContact: Contact;
+  self: Contact;
   onExitChat?: () => void;
   onSendMessage: (message: string) => void;
 }
 
-export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage }: ChatMessagesProps) {
-  const { self } = useChat();
+export function ChatMessages({ messages, selectedContact, self, onExitChat, onSendMessage }: ChatMessagesProps) {
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
-  const selfAvatar = PlaceHolderImages.find((img) => img.id === self?.id);
+  const selfAvatar = PlaceHolderImages.find((img) => img.id === self.id);
   const { toast } = useToast();
 
   const handleCallClick = () => {
@@ -118,10 +117,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
               key={message.id}
               className={cn(
                 'flex items-end gap-2',
-                message.senderId === self?.id ? 'justify-end' : 'justify-start'
+                message.senderId === self.id ? 'justify-end' : 'justify-start'
               )}
             >
-              {message.senderId !== self?.id && (
+              {message.senderId !== self.id && (
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
                   <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
@@ -130,18 +129,18 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
               <div
                 className={cn(
                   'max-w-[70%] rounded-lg p-3 text-sm whitespace-pre-wrap',
-                  message.senderId === self?.id
+                  message.senderId === self.id
                     ? 'bg-primary text-primary-foreground rounded-br-none'
                     : 'bg-muted rounded-bl-none'
                 )}
               >
                 <p>{message.content}</p>
-                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1", message.senderId === self?.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                     <span>{message.timestamp}</span>
-                    {message.senderId === self?.id && <ReadIndicator status={message.readStatus} />}
+                    {message.senderId === self.id && <ReadIndicator status={message.readStatus} />}
                 </div>
               </div>
-              {message.senderId === self?.id && (
+              {message.senderId === self.id && (
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
                   <AvatarFallback>U</AvatarFallback>

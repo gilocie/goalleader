@@ -5,13 +5,13 @@ import type { Contact } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
 
 export function ChatPageContent() {
-  const { contacts, messages, selectedContact, setSelectedContact, addMessage } = useChat();
+  const { contacts, messages, selectedContact, setSelectedContact, addMessage, self } = useChat();
 
-  const contactMessages = selectedContact 
+  const contactMessages = selectedContact && self
     ? messages.filter(
         (msg) => 
-            (msg.senderId === selectedContact?.id && msg.recipientId === 'user') || 
-            (msg.senderId === 'user' && msg.recipientId === selectedContact?.id)
+            (msg.senderId === selectedContact?.id && msg.recipientId === self.id) || 
+            (msg.senderId === self.id && msg.recipientId === selectedContact?.id)
       )
     : [];
   
