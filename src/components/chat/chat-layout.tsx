@@ -19,14 +19,14 @@ export function ChatLayout({
   messages,
   selectedContact,
   onSelectContact,
-  onSendMessage
+  onSendMessage,
 }: ChatLayoutProps) {
   return (
-    <div className="grid grid-cols-10 h-full w-full">
+    <div className="grid grid-cols-1 md:grid-cols-10 h-full w-full">
       {/* LEFT SIDE: Contact list */}
       <div
         className={cn(
-          "col-span-10 md:col-span-3 border-r",
+          'col-span-1 md:col-span-3 border-r',
           selectedContact ? 'hidden md:block' : 'block'
         )}
       >
@@ -37,18 +37,25 @@ export function ChatLayout({
         />
       </div>
 
-      {/* RIGHT SIDE: Chat area */}
-      {selectedContact && (
-        <div className="col-span-10 md:col-span-7 h-full w-full">
-          <ChatMessages
-            messages={messages}
-            selectedContact={selectedContact}
-            onExitChat={() => onSelectContact(null)}
-            isFullScreen={!!selectedContact}
-            onSendMessage={onSendMessage}
-          />
-        </div>
-      )}
+      {/* RIGHT SIDE: Chat messages */}
+      <div
+        className={cn(
+          'col-span-1 md:col-span-7',
+          !selectedContact && 'hidden md:flex'
+        )}
+      >
+        {selectedContact ? (
+          <div className="h-full w-full">
+            <ChatMessages
+              messages={messages}
+              selectedContact={selectedContact}
+              onExitChat={() => onSelectContact(null)}
+              isFullScreen={!!selectedContact}
+              onSendMessage={onSendMessage}
+            />
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
