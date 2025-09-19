@@ -4,7 +4,6 @@ import { ChatContactList } from './chat-contact-list';
 import { ChatMessages } from './chat-messages';
 import { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
-import { Bot } from 'lucide-react';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -26,8 +25,8 @@ export function ChatLayout({
       {/* LEFT SIDE: Contact list */}
       <div
         className={cn(
-          'col-span-1 md:col-span-3 border-r',
-          selectedContact ? 'hidden md:block' : 'block'
+          'border-r',
+          selectedContact ? 'hidden md:block md:col-span-3' : 'col-span-10 md:col-span-3'
         )}
       >
         <ChatContactList
@@ -37,25 +36,18 @@ export function ChatLayout({
         />
       </div>
 
-      {/* RIGHT SIDE: Chat messages */}
-      <div
-        className={cn(
-          'col-span-1 md:col-span-7',
-          !selectedContact ? 'hidden' : 'block'
-        )}
-      >
-        {selectedContact ? (
-          <div className="h-full w-full">
-            <ChatMessages
-              messages={messages}
-              selectedContact={selectedContact}
-              onExitChat={() => onSelectContact(null)}
-              isFullScreen={!!selectedContact}
-              onSendMessage={onSendMessage}
-            />
-          </div>
-        ) : null}
-      </div>
+      {/* RIGHT SIDE: Chat messages (only renders if a contact is selected) */}
+      {selectedContact && (
+        <div className="col-span-10 md:col-span-7">
+          <ChatMessages
+            messages={messages}
+            selectedContact={selectedContact}
+            onExitChat={() => onSelectContact(null)}
+            isFullScreen={!!selectedContact}
+            onSendMessage={onSendMessage}
+          />
+        </div>
+      )}
     </div>
   );
 }
