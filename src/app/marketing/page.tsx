@@ -85,7 +85,7 @@ export default function MarketingPage() {
                                 Design and launch effective ad campaigns. GoalLeader can help you with targeting, copy, and visuals to maximize your reach and impact.
                             </p>
                             <Button>
-                                <Bot className="mr-2 h-4 w-4" />
+                                <Logo className="mr-2 h-4 w-4" />
                                 Create with GoalLeader
                             </Button>
                         </div>
