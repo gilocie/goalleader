@@ -32,7 +32,7 @@ const meetings: { [key: string]: { title: string; category: string } } = {
 
 
 export function Header() {
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
