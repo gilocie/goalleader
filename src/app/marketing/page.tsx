@@ -11,6 +11,7 @@ import { GenerateContentDialog } from '@/components/marketing/generate-content-d
 import { ApprovedContentTable } from '@/components/marketing/approved-content-table';
 import { Separator } from '@/components/ui/separator';
 import type { Suggestion } from '@/types/marketing';
+import { Logo } from '@/components/icons';
 
 export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
@@ -56,7 +57,7 @@ export default function MarketingPage() {
                   </CardHeader>
                   <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50 border">
-                        <Bot className="h-12 w-12 text-primary" />
+                        <Logo className="h-12 w-12 text-primary" />
                         <h3 className="font-semibold">Generate Marketing Content</h3>
                         <p className="text-muted-foreground max-w-md">
                             Create engaging blog posts, social media updates, and email newsletters effortlessly. Our AI will help you craft the perfect message.
@@ -78,7 +79,7 @@ export default function MarketingPage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50">
-                            <Bot className="h-12 w-12 text-primary" />
+                            <Logo className="h-12 w-12 text-primary" />
                             <h3 className="font-semibold">Create Ad Campaigns</h3>
                             <p className="text-muted-foreground max-w-md">
                                 Design and launch effective ad campaigns. The AI can help you with targeting, copy, and visuals to maximize your reach and impact.
