@@ -37,7 +37,12 @@ export function TaskDetailsDialog({
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
-    return format(new Date(dateString), 'PPpp');
+    // Check if it's a full ISO string or just time
+    if (dateString.includes('T')) {
+      return format(new Date(dateString), 'PPpp');
+    }
+    // If it's just a time string like "10:00", display it directly
+    return dateString;
   };
 
   return (
