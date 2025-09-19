@@ -17,7 +17,8 @@ import Link from "next/link";
 
 export function NotificationDropdown({ children }: { children: React.ReactNode }) {
     const { notifications, markAllAsRead } = useNotifications();
-    const unreadCount = notifications.filter(n => !n.read).length;
+    const unreadNotifications = notifications.filter(n => !n.read);
+    const unreadCount = unreadNotifications.length;
 
     return (
         <DropdownMenu>
@@ -36,13 +37,13 @@ export function NotificationDropdown({ children }: { children: React.ReactNode }
                 <DropdownMenuSeparator />
                 <ScrollArea className="h-80">
                     <div className="p-1">
-                        {notifications.length > 0 ? (
-                            notifications.map(notification => (
+                        {unreadCount > 0 ? (
+                            unreadNotifications.map(notification => (
                                 <NotificationItem key={notification.id} notification={notification} />
                             ))
                         ) : (
                             <div className="text-center text-muted-foreground p-4">
-                                No notifications yet.
+                                No new notifications.
                             </div>
                         )}
                     </div>
