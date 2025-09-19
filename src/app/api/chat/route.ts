@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import { runChat, testChatSetup } from '@/ai/flows/chat-flow';
 import { testConnection } from '@/ai/genkit';
@@ -81,7 +82,7 @@ export async function GET() {
     console.log('Chat test result:', chatTest);
     
     // Environment check
-    const hasApiKey = !!(process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_GENAI_API_KEY);
+    const hasApiKey = !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_GENAI_API_KEY);
     
     const debugInfo = {
       status: 'debug endpoint',

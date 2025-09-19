@@ -1,15 +1,26 @@
 
+// This file is NOT a server action module. It's for configuration.
+// 'use server' was removed to allow exporting the 'ai' object.
 import 'dotenv/config';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+
+// === Environment Debug ===
+console.log('=== Environment Debug in genkit.ts ===');
+console.log('All environment variables starting with GOOGLE or GEMINI:');
+Object.keys(process.env)
+  .filter(key => key.startsWith('GOOGLE') || key.startsWith('GEMINI'))
+  .forEach(key => console.log(`${key}: ${process.env[key] ? `SET (starts with ${process.env[key]?.substring(0,4)}...)` : 'NOT SET'}`));
+console.log('=======================================');
+
 
 // Validate environment variables
 const getApiKey = () => {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || process.env.GOOGLE_GENAI_API_KEY;
   
   if (!apiKey) {
-    console.warn('Skipping Genkit initialization: Missing Google AI API key. Please set GOOGLE_AI_API_KEY or GEMINI_API_KEY in your .env file.');
+    console.warn('Skipping Genkit initialization: Missing Google AI API key. Please set GOOGLE_AI_API_KEY or GEMINI_API_KEY in your .env or .env.local file.');
     return null;
   }
   
