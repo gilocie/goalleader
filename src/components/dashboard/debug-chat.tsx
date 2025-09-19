@@ -110,9 +110,8 @@ export function DashboardChat() {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          
-          GoalLeader AI
+        <CardTitle>
+          Goal Leader
         </CardTitle>
         <CardDescription>
           Your personal productivity assistant. Ask me anything!
