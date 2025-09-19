@@ -5,10 +5,10 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 
-const USER_ID = 'user';
+const USER_ID = 'patrick-achitabwino-m1';
 
 const teamMembers: Contact[] = [
-    { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const, lastMessage: 'On it!', lastMessageTime: '5m', unreadCount: 2, lastMessageReadStatus: 'read' },
+    { id: 'patrick-achitabwino-m1', name: 'Jane Doe (You)', role: 'Consultant', status: 'online' as const, lastMessage: 'On it!', lastMessageTime: '5m', unreadCount: 2, lastMessageReadStatus: 'read' },
     { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'last seen today at 1:30 PM', lastMessage: 'See you tomorrow.', lastMessageTime: '1h', lastMessageReadStatus: 'delivered' },
     { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const, lastMessage: 'I pushed the latest changes.', lastMessageTime: '20m', lastMessageReadStatus: 'sent' },
     { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const, lastMessage: 'The mockups are ready for review.', lastMessageTime: '1h', lastMessageReadStatus: 'read' },
