@@ -8,12 +8,12 @@ import { format } from 'date-fns';
 const USER_ID = 'patrick-achitabwino-m1';
 
 const teamMembers: Contact[] = [
-    { id: 'patrick-achitabwino-m1', name: 'Jane Doe (You)', role: 'Consultant', status: 'online' as const, lastMessage: 'On it!', lastMessageTime: '5m', unreadCount: 2, lastMessageReadStatus: 'read' },
+    { id: 'patrick-achitabwino-m1', name: 'Jane Doe (You)', role: 'Consultant', status: 'online' as const, lastMessage: 'On it!', lastMessageTime: '5m', unreadCount: 0, lastMessageReadStatus: 'read' },
     { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'last seen today at 1:30 PM', lastMessage: 'See you tomorrow.', lastMessageTime: '1h', lastMessageReadStatus: 'delivered' },
-    { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const, lastMessage: 'I pushed the latest changes.', lastMessageTime: '20m', lastMessageReadStatus: 'sent' },
+    { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const, lastMessage: 'I pushed the latest changes.', lastMessageTime: '20m', unreadCount: 1, lastMessageReadStatus: 'sent' },
     { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const, lastMessage: 'The mockups are ready for review.', lastMessageTime: '1h', lastMessageReadStatus: 'read' },
     { id: 'chiyanjano-mkandawire-m5', name: 'Chiyanjano Mkandawire', role: 'Consultant', status: 'last seen yesterday at 11:15 PM', lastMessage: 'I have a question about the new feature.', lastMessageTime: '3h', lastMessageReadStatus: 'delivered' },
-    { id: 'wezi-chisale-m6', name: 'Wezi Chisale', role: 'Consultant', status: 'online' as const, lastMessage: 'The staging server is updated.', lastMessageTime: '10m', unreadCount: 1, lastMessageReadStatus: 'read' },
+    { id: 'wezi-chisale-m6', name: 'Wezi Chisale', role: 'Consultant', status: 'online' as const, lastMessage: 'The staging server is updated.', lastMessageTime: '10m', unreadCount: 0, lastMessageReadStatus: 'read' },
     { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'last seen 2 days ago', lastMessage: 'Meeting at 3 PM.', lastMessageTime: '4h', lastMessageReadStatus: 'sent' },
     { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const, lastMessage: 'The data analysis is complete.', lastMessageTime: '30m', lastMessageReadStatus: 'read' },
     { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const, lastMessage: 'All set for the demo.', lastMessageTime: '15m', lastMessageReadStatus: 'read' },
@@ -47,14 +47,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
   
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[1]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const unreadMessagesCount = contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0);
 
   const addMessage = useCallback((content: string, recipientId: string) => {
     const newMessage: Message = {
       id: `msg${Date.now()}`,
-      senderId: USER_ID,
+      senderId: 'user',
       recipientId,
       content,
       timestamp: format(new Date(), 'p'),

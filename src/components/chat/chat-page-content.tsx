@@ -21,13 +21,17 @@ export function ChatPageContent() {
     }
   };
 
+  const handleSelectContact = (contact: Contact | null) => {
+    setSelectedContact(contact);
+  };
+
   return (
     <main className="flex-grow h-full">
       <ChatLayout
         contacts={contacts}
         messages={contactMessages}
         selectedContact={selectedContact}
-        onSelectContact={setSelectedContact}
+        onSelectContact={handleSelectContact}
         onSendMessage={handleSendMessage}
       />
     </main>
