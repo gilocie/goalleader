@@ -3,9 +3,7 @@
 import { ChatContactList } from './chat-contact-list';
 import { ChatMessages } from './chat-messages';
 import { Contact, Message } from '@/types/chat';
-import { ChatUserProfile } from './chat-user-profile';
 import { cn } from '@/lib/utils';
-import { Bot } from 'lucide-react';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -18,33 +16,32 @@ interface ChatLayoutProps {
 export function ChatLayout({ contacts, messages, selectedContact, onSelectContact, onSendMessage }: ChatLayoutProps) {
   return (
     <div className="grid grid-cols-10 h-full w-full">
-      <div className={cn(
-          "col-span-10 md:col-span-3 border-r", 
-          selectedContact && 'hidden md:block'
-      )}>
-        <ChatContactList 
-          contacts={contacts} 
+      {/* LEFT SIDE: Contact list */}
+      <div
+        className={cn(
+          'col-span-10 md:col-span-3 border-r',
+          selectedContact ? 'hidden md:block' : 'block'
+        )}
+      >
+        <ChatContactList
+          contacts={contacts}
           onSelectContact={onSelectContact}
           selectedContactId={selectedContact?.id}
         />
       </div>
 
-      <div className={cn(
-          "col-span-10 md:col-span-7", 
-          !selectedContact && 'hidden md:flex'
-      )}>
-        {selectedContact ? (
-          <div className="h-full w-full">
-            <ChatMessages 
-              messages={messages} 
-              selectedContact={selectedContact} 
-              onExitChat={() => onSelectContact(null)}
-              isFullScreen={!!selectedContact} 
-              onSendMessage={onSendMessage}
-            />
-          </div>
-        ) : null}
-      </div>
+      {/* RIGHT SIDE: Chat messages */}
+      {selectedContact && (
+        <div className="col-span-10 md:col-span-7 h-full w-full">
+          <ChatMessages
+            messages={messages}
+            selectedContact={selectedContact}
+            onExitChat={() => onSelectContact(null)}
+            isFullScreen={!!selectedContact}
+            onSendMessage={onSendMessage}
+          />
+        </div>
+      )}
     </div>
   );
 }
