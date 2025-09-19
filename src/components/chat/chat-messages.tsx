@@ -25,9 +25,10 @@ interface ChatMessagesProps {
   selectedContact: Contact;
   onExitChat?: () => void;
   isFullScreen?: boolean;
+  onSendMessage: (message: string) => void;
 }
 
-export function ChatMessages({ messages, selectedContact, onExitChat, isFullScreen = false }: ChatMessagesProps) {
+export function ChatMessages({ messages, selectedContact, onExitChat, isFullScreen = false, onSendMessage }: ChatMessagesProps) {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
 
@@ -113,7 +114,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, isFullScre
               )}
               <div
                 className={cn(
-                  'max-w-[70%] rounded-lg p-3 text-sm',
+                  'max-w-[70%] rounded-lg p-3 text-sm whitespace-pre-wrap',
                   message.senderId === 'user'
                     ? 'bg-primary text-primary-foreground rounded-br-none'
                     : 'bg-muted rounded-bl-none'
@@ -136,7 +137,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, isFullScre
         </div>
       </ScrollArea>
       <div className="p-4 border-t">
-        <ChatInput />
+        <ChatInput onSendMessage={onSendMessage} />
       </div>
     </Card>
   );
