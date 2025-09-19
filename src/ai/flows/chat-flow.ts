@@ -29,27 +29,27 @@ const chatFlow = ai.defineFlow({
     return "Hi there! How can I help you today?";
   }
 
-  const prompt = ai.definePrompt({
-    name: 'conversationalChatPrompt',
-    model: googleAI.model('gemini-1.5-flash'),
-    input: { schema: z.string() },
-    output: { schema: z.string() },
-    config: {
-      temperature: 0.7,
-      maxOutputTokens: 1000,
-    },
-    prompt: `You are GoalLeader, an expert productivity coach and AI assistant. Your tone is helpful, encouraging, and friendly.
+  try {
+    const prompt = ai.definePrompt({
+      name: 'conversationalChatPrompt',
+      model: googleAI.model('gemini-1.5-flash'),
+      input: { schema: z.string() },
+      output: { schema: z.string() },
+      config: {
+        temperature: 0.7,
+        maxOutputTokens: 1000,
+      },
+      prompt: `You are GoalLeader, an expert productivity coach and AI assistant. Your tone is helpful, encouraging, and friendly.
 You are in a conversation. Respond to the user's message in a natural, human-like way.
 
 User's message: {{this}}`,
-  });
+    });
 
-  try {
     console.log('Calling prompt with validated message:', message);
     const result = await prompt(message);
     console.log('Prompt result:', result);
     
-    if (result && typeof result.output === 'string' && result.output.trim()) {
+    if (result && result.output && typeof result.output === 'string' && result.output.trim()) {
       return result.output.trim();
     } else {
       console.warn('Invalid prompt result:', result);
@@ -57,7 +57,8 @@ User's message: {{this}}`,
     }
   } catch (error) {
     console.error('Prompt error:', error);
-    throw error; // Let the flow handle it
+    // Return a user-friendly error message instead of throwing
+    return "I'm having trouble connecting to the AI service. Please try again later.";
   }
 });
 
