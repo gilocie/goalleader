@@ -32,9 +32,9 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
 
       <div className={cn(
           "col-span-10 md:col-span-7", 
-          !selectedContact && 'hidden'
+          !selectedContact && 'hidden md:flex'
       )}>
-        {selectedContact && (
+        {selectedContact ? (
           <div className="h-full w-full">
             <ChatMessages 
               messages={messages} 
@@ -43,6 +43,14 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
               isFullScreen={!!selectedContact} 
               onSendMessage={onSendMessage}
             />
+          </div>
+        ) : (
+          <div className="flex-col items-center justify-center h-full text-center p-8 space-y-4 hidden md:flex">
+              <Bot className="h-16 w-16 text-primary" />
+              <h3 className="font-semibold text-lg">Welcome to Chat</h3>
+              <p className="text-muted-foreground max-w-sm">
+                Select a contact from the left panel to start a conversation. You can send messages, files, and start calls.
+              </p>
           </div>
         )}
       </div>
