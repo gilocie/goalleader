@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Task, useTimeTracker } from '@/context/time-tracker-context';
-import { refineText } from '@/ai/flows/refine-text-flow';
+import { refineText, RefineTextInput } from '@/ai/flows/refine-text-flow';
 import { Bot, Loader2 } from 'lucide-react';
 
 interface CompleteTaskDialogProps {
@@ -32,7 +32,7 @@ export function CompleteTaskDialog({
 }: CompleteTaskDialogProps) {
   const [description, setDescription] = useState('');
   const [isRefining, setIsRefining] = useState(false);
-  const { time } = useTimeTracker();
+  const { time, tasks } = useTimeTracker();
 
   const handleConfirm = () => {
     onConfirm(task.name, description);
@@ -44,7 +44,16 @@ export function CompleteTaskDialog({
     if (!description.trim()) return;
     setIsRefining(true);
     try {
-      const refined = await refineText(description);
+      const completedTasks = tasks
+        .filter(t => t.status === 'Completed')
+        .map(t => ({ name: t.name, endTime: t.endTime }));
+
+      const input: RefineTextInput = {
+        report: description,
+        tasks: completedTasks,
+      };
+
+      const refined = await refineText(input);
       setDescription(refined);
     } catch (error) {
       console.error('Failed to refine text:', error);
