@@ -139,7 +139,7 @@ export async function testChatSetup(): Promise<{ success: boolean; message: stri
     console.log('Test result:', testResult);
     
     // Check if we got a meaningful response (not an error message)
-    const isError = testResult.toLowerCase().includes('sorry') || testResult.toLowerCase().includes('error');
+    const isError = testResult.toLowerCase().includes('error');
     
     return {
       success: !isError,

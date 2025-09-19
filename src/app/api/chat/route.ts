@@ -5,7 +5,7 @@ import { testConnection } from '@/ai/genkit';
 
 export async function POST(req: Request) {
   console.log('=== API /api/chat POST called ===');
-  
+
   try {
     // Parse request body
     let body;
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       return NextResponse.json(
-        { error: 'Invalid JSON in request body' }, 
+        { error: 'Invalid JSON in request body' },
         { status: 400 }
       );
     }
@@ -23,11 +23,11 @@ export async function POST(req: Request) {
     // Extract and validate message
     const message = body?.message;
     console.log('Extracted message:', message, 'Type:', typeof message);
-    
+
     if (typeof message !== 'string') {
       console.warn('Invalid message type:', { message, type: typeof message });
       return NextResponse.json(
-        { error: 'Message must be a string' }, 
+        { error: 'Message must be a string' },
         { status: 400 }
       );
     }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     const startTime = Date.now();
     const result = await runChat(message);
     const endTime = Date.now();
-    
+
     console.log('runChat completed in', endTime - startTime, 'ms');
     console.log('runChat result:', result);
     console.log('Result type:', typeof result);
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     if (typeof result !== 'string') {
       console.error('runChat returned non-string:', { result, type: typeof result });
       return NextResponse.json(
-        { error: 'Internal error: invalid response type' }, 
+        { error: 'Internal error: invalid response type' },
         { status: 500 }
       );
     }
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
     console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
 
     return NextResponse.json(
-      { error: 'Internal server error', details: err instanceof Error ? err.message : String(err) }, 
+      { error: 'Internal server error', details: err instanceof Error ? err.message : String(err) },
       { status: 500 }
     );
   }
