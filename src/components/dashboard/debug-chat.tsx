@@ -80,6 +80,7 @@ export function DashboardChat() {
           totalTasks: tasks.length,
           performancePercentage,
         },
+        lastInteractionMinutesAgo: 0,
       };
 
       const response = await fetch('/api/chat', {
@@ -152,8 +153,8 @@ export function DashboardChat() {
                         className={cn(
                             'max-w-[80%] rounded-lg p-3 text-sm shadow-md',
                             message.role === 'user'
-                            ? 'bg-primary text-primary-foreground rounded-br-none'
-                            : 'bg-muted rounded-bl-none'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
                         )}
                         >
                         <div className="prose prose-sm max-w-none prose-p:my-0 prose-headings:my-2 prose-blockquote:my-2">
@@ -187,10 +188,10 @@ export function DashboardChat() {
         <div className="p-4 border-t">
           <form onSubmit={handleSubmit} className="relative">
              <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <Button variant="ghost" size="icon" type="button" disabled>
+                <Button variant="ghost" size="icon" type="button">
                     <Paperclip className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="icon" type="button" disabled>
+                <Button variant="ghost" size="icon" type="button">
                     <Mic className="h-4 w-4" />
                 </Button>
             </div>
