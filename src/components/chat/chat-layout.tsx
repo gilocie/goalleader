@@ -2,8 +2,8 @@
 
 import { ChatContactList } from './chat-contact-list';
 import { ChatMessages } from './chat-messages';
-import { useChat } from '@/context/chat-context';
 import type { Contact, Message } from '@/types/chat';
+import { useChat } from '@/context/chat-context';
 import { cn } from '@/lib/utils';
 
 interface ChatLayoutProps {
