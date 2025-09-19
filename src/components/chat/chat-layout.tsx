@@ -21,12 +21,14 @@ export function ChatLayout({
   onSendMessage,
 }: ChatLayoutProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-10 h-full w-full">
+    <div className="flex h-full w-full">
       {/* LEFT SIDE: Contact list */}
       <div
         className={cn(
-          'border-r',
-          selectedContact ? 'hidden md:block md:col-span-3' : 'col-span-10 md:col-span-3'
+          'h-full border-r',
+          selectedContact 
+            ? 'hidden' // Hide contact list completely when chat is selected
+            : 'w-full' // Takes full width when no contact is selected
         )}
       >
         <ChatContactList
@@ -36,9 +38,9 @@ export function ChatLayout({
         />
       </div>
 
-      {/* RIGHT SIDE: Chat messages (only renders if a contact is selected) */}
+      {/* RIGHT SIDE: only render if a contact is selected */}
       {selectedContact && (
-        <div className="col-span-10 md:col-span-7">
+        <div className="flex-1 h-full">
           <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
