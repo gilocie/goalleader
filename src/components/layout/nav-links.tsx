@@ -49,7 +49,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
                 : 'bg-secondary shadow-sm hover:bg-secondary/80 hover:shadow-lg',
               isActive && (isMobile 
                 ? 'bg-gradient-to-r from-primary to-green-700 text-white'
-                : 'bg-green-800 text-white shadow-md')
+                : 'bg-green-800 text-white shadow-md hover:bg-green-700')
             )}
           >
             <Icon className="h-4 w-4" />
