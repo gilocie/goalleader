@@ -8,9 +8,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Bot } from 'lucide-react';
 import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
+import { ApprovedContentTable } from '@/components/marketing/approved-content-table';
+import { Separator } from '@/components/ui/separator';
+import type { Suggestion } from '@/types/marketing';
 
 export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
+  const [approvedContent, setApprovedContent] = useState<Suggestion[]>([]);
+
+  const handleApproveContent = (content: Suggestion) => {
+    setApprovedContent(prev => [content, ...prev]);
+  };
 
   return (
     <AppLayout>
@@ -58,6 +66,8 @@ export default function MarketingPage() {
                             Start Generating
                         </Button>
                     </div>
+                    <Separator className="my-6" />
+                    <ApprovedContentTable content={approvedContent} />
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -89,6 +99,7 @@ export default function MarketingPage() {
       <GenerateContentDialog 
         isOpen={isGenerateDialogOpen}
         onOpenChange={setGenerateDialogOpen}
+        onApprove={handleApproveContent}
       />
     </AppLayout>
   );
