@@ -49,8 +49,6 @@ if (apiKey) {
       plugins: [
         googleAI() // 🚨 Do not pass apiKey directly, environment handles this
       ],
-      logLevel: 'debug',               // Adjust to 'info' in production
-      enableTracingAndMetrics: true,
     });
     console.log('✅ Genkit initialized successfully.');
   } catch (error) {
