@@ -76,7 +76,7 @@ export default function MarketingPage() {
                   <CardHeader>
                     <CardTitle>AI-Generated Campaign Ads</CardTitle>
                     <CardDescription>Create and manage campaign ads to share with clients.</CardDescription>
-                  </Header>
+                  </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50">
                             <Bot className="h-12 w-12 text-primary" />
