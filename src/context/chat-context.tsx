@@ -20,17 +20,16 @@ const teamMembers: Contact[] = [
 ];
 
 const messagesData: Message[] = [
-    { id: 'msg1', senderId: 'patrick-achitabwino-m1', recipientId: 'user', content: "Hey! Just wanted to check in on the progress for the new auth flow.", timestamp: "10:00 AM" },
-    { id: 'msg2', senderId: 'user', recipientId: 'patrick-achitabwino-m1', content: "Hey Patrick, things are going well. I've finished the main logic and am now working on the UI.", timestamp: "10:01 AM", readStatus: 'read' },
-    { id: 'msg3', senderId: 'frank-mhango-m2', recipientId: 'user', content: "Hey! Just wanted to check in on the progress for the new auth flow.", timestamp: "10:00 AM" },
-    { id: 'msg4', senderId: 'user', recipientId: 'frank-mhango-m2', content: "Hey Frank, things are going well. I've finished the main logic and am now working on the UI.", timestamp: "10:01 AM", readStatus: 'read' },
-    { id: 'msg5', senderId: 'frank-mhango-m2', recipientId: 'user', content: "Great to hear! Let me know if you run into any blockers.", timestamp: "10:02 AM" },
-    { id: 'msg6', senderId: 'user', recipientId: 'frank-mhango-m2', content: "Will do. I might have a question about the token handling later today.", timestamp: "10:03 AM", readStatus: 'delivered' },
-    { id: 'msg7', senderId: 'frank-mhango-m2', recipientId: 'user', content: "Sure, feel free to ping me anytime.", timestamp: "10:04 AM" },
-    { id: 'msg8', senderId: 'user', recipientId: 'frank-mhango-m2', content: "Thanks!", timestamp: "10:05 AM", readStatus: 'sent' },
+    { id: 'msg1', senderId: 'frank-mhango-m2', recipientId: USER_ID, content: "Hey! Just wanted to check in on the progress for the new auth flow.", timestamp: "10:00 AM" },
+    { id: 'msg2', senderId: USER_ID, recipientId: 'frank-mhango-m2', content: "Hey Frank, things are going well. I've finished the main logic and am now working on the UI.", timestamp: "10:01 AM", readStatus: 'read' },
+    { id: 'msg3', senderId: 'frank-mhango-m2', recipientId: USER_ID, content: "Great to hear! Let me know if you run into any blockers.", timestamp: "10:02 AM" },
+    { id: 'msg4', senderId: USER_ID, recipientId: 'frank-mhango-m2', content: "Will do. I might have a question about the token handling later today.", timestamp: "10:03 AM", readStatus: 'delivered' },
+    { id: 'msg5', senderId: 'frank-mhango-m2', recipientId: USER_ID, content: "Sure, feel free to ping me anytime.", timestamp: "10:04 AM" },
+    { id: 'msg6', senderId: USER_ID, recipientId: 'frank-mhango-m2', content: "Thanks!", timestamp: "10:05 AM", readStatus: 'sent' },
 ];
 
 interface ChatContextType {
+  self: Contact | undefined;
   contacts: Contact[];
   messages: Message[];
   unreadMessagesCount: number;
@@ -45,6 +44,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [allContacts] = useState<Contact[]>(teamMembers);
   const [messages, setMessages] = useState<Message[]>(messagesData);
   
+  const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
   const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -54,7 +54,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const addMessage = useCallback((content: string, recipientId: string) => {
     const newMessage: Message = {
       id: `msg${Date.now()}`,
-      senderId: 'user',
+      senderId: USER_ID,
       recipientId,
       content,
       timestamp: format(new Date(), 'p'),
@@ -64,6 +64,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const value = {
+    self,
     contacts,
     messages,
     unreadMessagesCount,

@@ -19,35 +19,50 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { useChat } from '@/context/chat-context';
 
 interface ChatMessagesProps {
   messages: Message[];
   selectedContact: Contact;
   onExitChat?: () => void;
-  isFullScreen?: boolean;
   onSendMessage: (message: string) => void;
 }
 
-export function ChatMessages({ messages, selectedContact, onExitChat, isFullScreen = false, onSendMessage }: ChatMessagesProps) {
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage }: ChatMessagesProps) {
+  const { self } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
+  const selfAvatar = PlaceHolderImages.find((img) => img.id === self?.id);
+  const { toast } = useToast();
+
+  const handleCallClick = () => {
+    toast({
+      title: "Calling...",
+      description: `Starting a call with ${selectedContact.name}.`,
+    });
+  };
+
+  const handleVideoClick = () => {
+    toast({
+      title: "Starting video call...",
+      description: `Starting a video call with ${selectedContact.name}.`,
+    });
+  };
 
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
-          {isFullScreen && (
-             <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={onExitChat}>
-                            <ArrowLeft className="h-5 w-5" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Exit Chat</TooltipContent>
-                </Tooltip>
-             </TooltipProvider>
-          )}
+            <TooltipProvider>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button variant="ghost" size="icon" onClick={onExitChat} className="md:hidden">
+                          <ArrowLeft className="h-5 w-5" />
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Back to contacts</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           <div className="relative">
             <Avatar className="h-10 w-10">
               <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
@@ -66,10 +81,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, isFullScre
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" onClick={handleCallClick}>
             <Phone className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" onClick={handleVideoClick}>
             <Video className="h-4 w-4" />
           </Button>
            <DropdownMenu>
@@ -103,10 +118,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, isFullScre
               key={message.id}
               className={cn(
                 'flex items-end gap-2',
-                message.senderId === 'user' ? 'justify-end' : 'justify-start'
+                message.senderId === self?.id ? 'justify-end' : 'justify-start'
               )}
             >
-              {message.senderId !== 'user' && (
+              {message.senderId !== self?.id && (
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
                   <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
@@ -115,20 +130,20 @@ export function ChatMessages({ messages, selectedContact, onExitChat, isFullScre
               <div
                 className={cn(
                   'max-w-[70%] rounded-lg p-3 text-sm whitespace-pre-wrap',
-                  message.senderId === 'user'
+                  message.senderId === self?.id
                     ? 'bg-primary text-primary-foreground rounded-br-none'
                     : 'bg-muted rounded-bl-none'
                 )}
               >
                 <p>{message.content}</p>
-                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1", message.senderId === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1", message.senderId === self?.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                     <span>{message.timestamp}</span>
-                    {message.senderId === 'user' && <ReadIndicator status={message.readStatus} />}
+                    {message.senderId === self?.id && <ReadIndicator status={message.readStatus} />}
                 </div>
               </div>
-              {message.senderId === 'user' && (
+              {message.senderId === self?.id && (
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={userAvatar?.imageUrl} alt="You" data-ai-hint={userAvatar?.imageHint} />
+                  <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
                   <AvatarFallback>U</AvatarFallback>
                 </Avatar>
               )}

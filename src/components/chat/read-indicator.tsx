@@ -19,7 +19,7 @@ export function ReadIndicator({ status, className }: ReadIndicatorProps) {
     case 'delivered':
       return <CheckCheck className={cn('h-4 w-4 text-muted-foreground', className)} />;
     case 'read':
-      return <CheckCheck className={cn('h-4 w-4 text-primary', className)} />;
+      return <CheckCheck className={cn('h-4 w-4 text-blue-500', className)} />;
     default:
       return null;
   }

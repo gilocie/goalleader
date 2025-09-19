@@ -25,10 +25,10 @@ export function ChatLayout({
       {/* LEFT SIDE: Contact list */}
       <div
         className={cn(
-          'h-full border-r',
+          'h-full border-r md:w-[280px] lg:w-[320px] flex-shrink-0',
           selectedContact 
-            ? 'hidden' // Hide contact list completely when chat is selected
-            : 'w-full' // Takes full width when no contact is selected
+            ? 'hidden md:flex md:flex-col'
+            : 'w-full flex flex-col'
         )}
       >
         <ChatContactList
@@ -45,7 +45,6 @@ export function ChatLayout({
             messages={messages}
             selectedContact={selectedContact}
             onExitChat={() => onSelectContact(null)}
-            isFullScreen={!!selectedContact}
             onSendMessage={onSendMessage}
           />
         </div>

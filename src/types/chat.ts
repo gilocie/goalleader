@@ -17,4 +17,5 @@ export interface Message {
     content: string;
     timestamp: string;
     readStatus?: 'sent' | 'delivered' | 'read';
+    isSystem?: boolean;
 }
