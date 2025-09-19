@@ -21,53 +21,7 @@ export type Task = {
   duration?: number;
 };
 
-const initialTasks: Task[] = [
-  {
-    name: 'Design landing page',
-    status: 'In Progress',
-    dueDate: '2024-07-25',
-  },
-  {
-    name: 'Develop API for user authentication',
-    status: 'Completed',
-    dueDate: '2024-07-15',
-    description:
-      'Developed and tested the user authentication API, including JWT-based session management and password hashing. The endpoints for user registration, login, and logout are now fully functional and integrated with the main application.',
-    startTime: '2024-07-14T09:00:00Z',
-    endTime: '2024-07-15T17:00:00Z',
-    duration: 28800,
-  },
-  {
-    name: 'Setup database schema',
-    status: 'Pending',
-    dueDate: '2024-08-01',
-  },
-  {
-    name: 'Deploy to production',
-    status: 'Pending',
-    dueDate: '2024-08-15',
-  },
-  {
-    name: 'Write documentation',
-    status: 'In Progress',
-    dueDate: '2024-08-10',
-  },
-  {
-    name: 'Fix login bug',
-    status: 'Pending',
-    dueDate: '2024-08-05',
-  },
-  {
-    name: 'Refactor chart component',
-    status: 'In Progress',
-    dueDate: '2024-08-12',
-  },
-  {
-    name: 'Add new payment gateway',
-    status: 'Pending',
-    dueDate: '2024-09-01',
-  },
-];
+const initialTasks: Task[] = [];
 
 interface TimeTrackerContextType {
   time: number;
@@ -144,17 +98,24 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const startTask = (taskName: string) => {
-    if (!activeTask) {
-      const startTime = new Date().toISOString();
-      setActiveTask(taskName);
-      setTime(0);
-      setIsActive(true);
-      setTasks((currentTasks) =>
-        currentTasks.map((t) =>
-          t.name === taskName ? { ...t, status: 'In Progress', startTime } : t
+    if (activeTask && activeTask !== taskName) {
+      // If another task is running, stop it first (without completing it)
+      setTasks(currentTasks => 
+        currentTasks.map(t => 
+          t.name === activeTask ? {...t, status: 'Pending'} : t
         )
       );
     }
+
+    const startTime = new Date().toISOString();
+    setActiveTask(taskName);
+    setTime(0);
+    setIsActive(true);
+    setTasks((currentTasks) =>
+      currentTasks.map((t) =>
+        t.name === taskName ? { ...t, status: 'In Progress', startTime } : t
+      )
+    );
   };
 
   const handleStop = (taskName: string, description: string) => {
