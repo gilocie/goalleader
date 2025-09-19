@@ -109,6 +109,7 @@ export async function runChat(rawMessage: unknown): Promise<string> {
     console.error('=== runChat error ===');
     console.error('Error object:', err);
     console.error('Error message:', err instanceof Error ? err.message : 'Unknown error');
+    console.error('Error stack:', err instanceof Error ? err.stack : 'No stack trace');
     
     // Check for specific error types
     if (err instanceof Error) {
