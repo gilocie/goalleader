@@ -1,145 +1,167 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Copy, Check } from 'lucide-react';
+import { Bot, Send, User, Loader2 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-const CopyButton = ({ text }: { text: string }) => {
-  const [isCopied, setIsCopied] = useState(false);
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
+export function DashboardChat() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+        if (scrollAreaRef.current) {
+            const viewport = scrollAreaRef.current.querySelector('div');
+            if (viewport) {
+                viewport.scrollTop = viewport.scrollHeight;
+            }
+        }
+    }, 0);
   };
 
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={handleCopy}
-      className="absolute top-2 right-2 h-7 w-7"
-    >
-      {isCopied ? (
-        <Check className="h-4 w-4 text-green-500" />
-      ) : (
-        <Copy className="h-4 w-4" />
-      )}
-      <span className="sr-only">Copy</span>
-    </Button>
-  );
-};
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
 
-export function GoalReaderAIChat() {
-  const [results, setResults] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const runDebugTests = async () => {
+    const userMessage: Message = { role: 'user', content: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput('');
     setIsLoading(true);
-    setResults(null);
 
     try {
-      // Test the debug endpoint
-      console.log('Testing GET /api/chat (debug endpoint)...');
-      const debugResponse = await fetch('/api/chat', { method: 'GET' });
-      const debugData = await debugResponse.json();
-      
-      // Test a simple chat message
-      console.log('Testing POST /api/chat with simple message...');
-      const chatResponse = await fetch('/api/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: 'Hello, this is a test' })
+        body: JSON.stringify({ message: input }),
       });
-      const chatData = await chatResponse.json();
+      const data = await response.json();
       
-      setResults({
-        debug: {
-          status: debugResponse.status,
-          data: debugData
-        },
-        chat: {
-          status: chatResponse.status,
-          data: chatData
-        }
-      });
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.output || 'Sorry, I had trouble thinking of a response.',
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
 
     } catch (error) {
-      console.error('Test error:', error);
-      setResults({
-        error: error instanceof Error ? error.message : String(error)
-      });
+      console.error('Chat API error:', error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'Sorry, I couldn\'t connect to the AI. Please try again.',
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusBadge = (status: number) => {
-    if (status >= 200 && status < 300) {
-      return <Badge variant="default" className="bg-green-500">Success ({status})</Badge>;
-    } else if (status >= 400 && status < 500) {
-      return <Badge variant="destructive">Client Error ({status})</Badge>;
-    } else if (status >= 500) {
-      return <Badge variant="destructive">Server Error ({status})</Badge>;
-    }
-    return <Badge variant="outline">Status: {status}</Badge>;
-  };
-
   return (
-    <Card className="max-w-4xl mx-auto">
+    <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle>Chat Debug Test</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Bot className="text-primary" />
+          GoalLeader AI
+        </CardTitle>
+        <CardDescription>
+          Your personal productivity assistant. Ask me anything!
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <Button onClick={runDebugTests} disabled={isLoading}>
-          {isLoading ? 'Running Tests...' : 'Run Debug Tests'}
-        </Button>
-
-        {results && (
+      <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden p-0">
+        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
           <div className="space-y-4">
-            {results.error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg relative">
-                <h3 className="font-semibold text-red-800">Error</h3>
-                 <CopyButton text={results.error} />
-                <pre className="text-sm text-red-700 mt-2">{results.error}</pre>
-              </div>
-            )}
-
-            {results.debug && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg relative">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold">Debug Endpoint</h3>
-                  {getStatusBadge(results.debug.status)}
+            {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center p-8 h-full text-muted-foreground">
+                    <Bot className="h-10 w-10 mb-2"/>
+                    <p>Start a conversation to get insights.</p>
                 </div>
-                 <CopyButton text={JSON.stringify(results.debug.data, null, 2)} />
-                <pre className="text-sm overflow-auto max-h-60">
-                  {JSON.stringify(results.debug.data, null, 2)}
-                </pre>
-              </div>
+            ) : (
+                 messages.map((message, index) => (
+                    <div
+                        key={index}
+                        className={cn(
+                        'flex items-start gap-3',
+                        message.role === 'user' ? 'justify-end' : 'justify-start'
+                        )}
+                    >
+                        {message.role === 'assistant' && (
+                        <Avatar className="h-8 w-8 border-2 border-primary/50">
+                             <div className="h-full w-full flex items-center justify-center bg-background">
+                                <Bot className="h-5 w-5 text-primary" />
+                            </div>
+                        </Avatar>
+                        )}
+                        <div
+                        className={cn(
+                            'max-w-[80%] rounded-lg p-3 text-sm shadow-md',
+                            message.role === 'user'
+                            ? 'bg-primary text-primary-foreground rounded-br-none'
+                            : 'bg-muted rounded-bl-none'
+                        )}
+                        >
+                        {message.content}
+                        </div>
+                        {message.role === 'user' && (
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={userAvatar?.imageUrl} data-ai-hint={userAvatar?.imageHint} />
+                            <AvatarFallback>U</AvatarFallback>
+                        </Avatar>
+                        )}
+                    </div>
+                ))
             )}
-
-            {results.chat && (
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg relative">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold">Chat Endpoint</h3>
-                  {getStatusBadge(results.chat.status)}
+             {isLoading && (
+              <div className="flex items-start gap-3 justify-start">
+                <Avatar className="h-8 w-8 border-2 border-primary/50">
+                    <div className="h-full w-full flex items-center justify-center bg-background">
+                        <Bot className="h-5 w-5 text-primary" />
+                    </div>
+                </Avatar>
+                <div className="bg-muted rounded-lg p-3 text-sm shadow-md flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <span>Thinking...</span>
                 </div>
-                <CopyButton text={JSON.stringify(results.chat.data, null, 2)} />
-                <pre className="text-sm overflow-auto max-h-60">
-                  {JSON.stringify(results.chat.data, null, 2)}
-                </pre>
               </div>
             )}
           </div>
-        )}
+        </ScrollArea>
+        <div className="p-4 border-t">
+          <form onSubmit={handleSubmit} className="relative">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask for advice, summarize tasks, etc..."
+              className="pr-12"
+              disabled={isLoading}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+              disabled={isLoading || !input.trim()}
+            >
+              <Send className="h-4 w-4" />
+              <span className="sr-only">Send</span>
+            </Button>
+          </form>
+        </div>
       </CardContent>
     </Card>
   );

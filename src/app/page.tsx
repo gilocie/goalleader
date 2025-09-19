@@ -3,7 +3,7 @@
 
 import { DashboardStats } from '@/components/dashboard/dashboard-stats';
 import { ProjectAnalyticsChart } from '@/components/dashboard/project-analytics-chart';
-import { GoalReaderAIChat } from '@/components/dashboard/debug-chat';
+import { DashboardChat } from '@/components/dashboard/debug-chat';
 import { ProjectProgress } from '@/components/dashboard/project-progress';
 import { Reminders } from '@/components/dashboard/reminders';
 import { ProjectList } from '@/components/dashboard/project-list';
@@ -28,7 +28,7 @@ export default function Home() {
         </div>
         <div className="grid grid-cols-10 gap-4 items-stretch">
           <div className="col-span-10 lg:col-span-7">
-              <GoalReaderAIChat />
+              <DashboardChat />
           </div>
           <div className="col-span-10 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4 auto-rows-min">
             <Reminders />
