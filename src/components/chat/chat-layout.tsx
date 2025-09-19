@@ -21,7 +21,7 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
     <div className="grid grid-cols-10 h-full w-full">
       <div className={cn(
           "col-span-10 md:col-span-3 border-r", 
-          selectedContact ? 'hidden md:block' : 'block'
+          selectedContact && 'hidden md:block'
       )}>
         <ChatContactList 
           contacts={contacts} 
