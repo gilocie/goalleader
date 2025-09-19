@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +7,7 @@ import { useChat } from '@/context/chat-context';
 
 export function ChatPageContent() {
   const { contacts, messages } = useChat();
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[0]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[1]);
 
   const contactMessages = selectedContact 
     ? messages.filter(
