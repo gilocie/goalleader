@@ -13,9 +13,11 @@ import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
 import { useTimeTracker } from '@/context/time-tracker-context';
-import { getMonth } from 'date-fns';
+import { getMonth, getDayOfYear, getYear } from 'date-fns';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WORKING_DAYS_PER_MONTH = 26;
+const DAILY_TASK_GOAL = 5;
 
 const getBarColor = (value: number | null) => {
   if (value === null || value < 50) return 'hsl(var(--muted))';
@@ -71,33 +73,43 @@ export function ProjectAnalyticsChart() {
   const chartData = useMemo(() => {
     const monthlyPerformance: (number | null)[] = Array(12).fill(null);
     const completedTasks = tasks.filter(t => t.status === 'Completed' && t.endTime);
+    const currentTaskYear = new Date().getFullYear();
 
     if (completedTasks.length > 0) {
-        const monthlyTotals: { [key: number]: { count: number, totalDuration: number } } = {};
-
+        // Group completed tasks by day of the year
+        const tasksByDay: { [key: string]: number } = {};
         completedTasks.forEach(task => {
-            const month = getMonth(new Date(task.endTime!));
-            if (!monthlyTotals[month]) {
-                monthlyTotals[month] = { count: 0, totalDuration: 0 };
+            const taskDate = new Date(task.endTime!);
+            if (getYear(taskDate) === currentTaskYear) {
+                const dayOfYear = getDayOfYear(taskDate);
+                const month = getMonth(taskDate);
+                const dayKey = `${month}-${dayOfYear}`;
+
+                if (!tasksByDay[dayKey]) {
+                    tasksByDay[dayKey] = 0;
+                }
+                tasksByDay[dayKey]++;
             }
-            monthlyTotals[month].count++;
-            monthlyTotals[month].totalDuration += task.duration || 0;
         });
 
-        // For demonstration, let's create a "performance" score.
-        // A real app would have a more complex metric. Here, we'll simulate one.
-        // Shorter average duration = better performance.
-        const allDurations = completedTasks.map(t => t.duration || 0).filter(d => d > 0);
-        const maxDuration = allDurations.length > 0 ? Math.max(...allDurations) : 3600; // default 1hr
+        // Count successful days per month
+        const successfulDaysByMonth: { [key: number]: number } = {};
+        Object.keys(tasksByDay).forEach(dayKey => {
+            if (tasksByDay[dayKey] >= DAILY_TASK_GOAL) {
+                const month = parseInt(dayKey.split('-')[0]);
+                if (!successfulDaysByMonth[month]) {
+                    successfulDaysByMonth[month] = 0;
+                }
+                successfulDaysByMonth[month]++;
+            }
+        });
 
-        Object.keys(monthlyTotals).forEach(monthKeyStr => {
+        // Calculate monthly performance percentage
+        Object.keys(successfulDaysByMonth).forEach(monthKeyStr => {
             const monthKey = parseInt(monthKeyStr);
-            const monthData = monthlyTotals[monthKey];
-            const avgDuration = monthData.totalDuration / monthData.count;
-            
-            // Score is inverted: 100% for 0 duration, 0% for max duration.
-            const score = Math.max(0, 100 - (avgDuration / maxDuration) * 100);
-            monthlyPerformance[monthKey] = Math.round(score);
+            const successfulDays = successfulDaysByMonth[monthKey];
+            const performance = (successfulDays / WORKING_DAYS_PER_MONTH) * 100;
+            monthlyPerformance[monthKey] = Math.round(Math.min(performance, 100));
         });
     }
 
@@ -129,7 +141,7 @@ export function ProjectAnalyticsChart() {
     });
   };
 
-  if (!data.length) {
+  if (!data.length && tasks.length > 0) { // Still show loading if tasks exist but data processing
     return (
       <Card className="h-[310px]">
         <CardHeader>
@@ -138,7 +150,7 @@ export function ProjectAnalyticsChart() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-[200px]">
-            <p>Loading chart data...</p>
+            <p>Calculating performance...</p>
           </div>
         </CardContent>
       </Card>
