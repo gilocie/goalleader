@@ -9,11 +9,14 @@ import {
 } from '@/components/ui/card';
 import { useTimeTracker } from '@/context/time-tracker-context';
 import { useEffect, useState } from 'react';
+import { isToday, parseISO } from 'date-fns';
 
 type CircularProgressBarProps = {
   progress: number;
   rating: string;
 };
+
+const DAILY_GOAL = 5;
 
 const CircularProgressBar = ({
   progress,
@@ -76,30 +79,33 @@ export function ProjectProgress() {
   const [progress, setProgress] = useState(0);
   const [rating, setRating] = useState('Poor');
   
-  const totalTasks = tasks.length;
-  const completedTasksCount = tasks.filter(t => t.status === 'Completed').length;
+  const todaysTasks = tasks.filter(t => t.dueDate && isToday(parseISO(t.dueDate)));
+  const completedToday = todaysTasks.filter(t => t.status === 'Completed').length;
+  const remainingToGoals = Math.max(0, DAILY_GOAL - todaysTasks.length);
 
   useEffect(() => {
+    const totalTasksToday = todaysTasks.length > 0 ? todaysTasks.length : 1; // Avoid division by zero
+    const performance = (completedToday / totalTasksToday) * 100;
+    
     let newRating = 'Poor';
-    if (completedTasksCount / totalTasks >= 0.8) {
+    if (performance >= 80) {
       newRating = 'Excellent';
-    } else if (completedTasksCount / totalTasks >= 0.5) {
+    } else if (performance >= 50) {
       newRating = 'Good';
     }
     setRating(newRating);
 
-    const newProgress = totalTasks > 0 ? (completedTasksCount / totalTasks) * 100 : 0;
+    const newProgress = totalTasksToday > 0 ? (completedToday / Math.max(todaysTasks.length, DAILY_GOAL)) * 100 : 0;
     const timer = setTimeout(() => setProgress(Math.min(newProgress, 100)), 200);
     return () => clearTimeout(timer);
-  }, [completedTasksCount, totalTasks]);
+  }, [completedToday, todaysTasks.length]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Daily Task Progress</CardTitle>
         <CardDescription>
-          {completedTasksCount} task
-          {completedTasksCount === 1 ? '' : 's'} completed today
+          {completedToday} of {Math.max(todaysTasks.length, DAILY_GOAL)} tasks completed today. {remainingToGoals > 0 ? `${remainingToGoals} more to meet goal.` : 'Daily goal met!'}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center p-6">
