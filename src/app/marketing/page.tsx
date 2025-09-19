@@ -52,7 +52,7 @@ export default function MarketingPage() {
               <TabsContent value="content">
                 <Card>
                   <CardHeader>
-                    <CardTitle>AI-Powered Content & Strategy</CardTitle>
+                    <CardTitle>GoalLeader Content</CardTitle>
                     <CardDescription>Let AI help your sales team create compelling marketing content.</CardDescription>
                   </CardHeader>
                   <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
