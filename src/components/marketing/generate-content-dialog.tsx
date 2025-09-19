@@ -95,7 +95,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
         <DialogHeader>
           <DialogTitle>Generate Marketing Content</DialogTitle>
           <DialogDescription>
-            Enter a topic or product, and GoalLeader AI will create a set of marketing materials for you.
+            Enter a topic or product, and GoalLeader will create a set of marketing materials for you.
           </DialogDescription>
         </DialogHeader>
 

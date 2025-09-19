@@ -28,14 +28,14 @@ export default function MarketingPage() {
           <CardHeader>
             <CardTitle>Marketing Hub</CardTitle>
             <CardDescription>
-              Your central place for managing client leads, generating marketing content with AI, and creating campaigns.
+              Your central place for managing client leads, generating marketing content with GoalLeader, and creating campaigns.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="content">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="leads">Client Leads</TabsTrigger>
-                <TabsTrigger value="content">AI Content Generation</TabsTrigger>
+                <TabsTrigger value="content">Use GoalLeader</TabsTrigger>
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
               <TabsContent value="leads">
@@ -53,7 +53,7 @@ export default function MarketingPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>GoalLeader Content</CardTitle>
-                    <CardDescription>Let AI help your sales team create compelling marketing content.</CardDescription>
+                    <CardDescription>Let GoalLeader help your sales team create compelling marketing content.</CardDescription>
                   </CardHeader>
                   <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50 border">
@@ -64,7 +64,7 @@ export default function MarketingPage() {
                         </p>
                         <Button onClick={() => setGenerateDialogOpen(true)}>
                             <Bot className="mr-2 h-4 w-4" />
-                            Start Generating
+                            Use GoalLeader
                         </Button>
                     </div>
                     <ApprovedContentTable content={approvedContent} />
@@ -74,7 +74,7 @@ export default function MarketingPage() {
               <TabsContent value="campaigns">
                 <Card>
                   <CardHeader>
-                    <CardTitle>AI-Generated Campaign Ads</CardTitle>
+                    <CardTitle>GoalLeader-Generated Campaign Ads</CardTitle>
                     <CardDescription>Create and manage campaign ads to share with clients.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -82,11 +82,11 @@ export default function MarketingPage() {
                             <Logo className="h-12 w-12 text-primary" />
                             <h3 className="font-semibold">Create Ad Campaigns</h3>
                             <p className="text-muted-foreground max-w-md">
-                                Design and launch effective ad campaigns. The AI can help you with targeting, copy, and visuals to maximize your reach and impact.
+                                Design and launch effective ad campaigns. GoalLeader can help you with targeting, copy, and visuals to maximize your reach and impact.
                             </p>
                             <Button>
                                 <Bot className="mr-2 h-4 w-4" />
-                                Create a Campaign
+                                Create with GoalLeader
                             </Button>
                         </div>
                   </CardContent>
