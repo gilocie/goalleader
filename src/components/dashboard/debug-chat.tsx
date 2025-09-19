@@ -5,7 +5,7 @@ import { useState, useRef, useEffect, FormEvent } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, User, Loader2 } from 'lucide-react';
+import { Send, User, Loader2, Paperclip, Mic } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -160,11 +160,19 @@ export function DashboardChat() {
         </ScrollArea>
         <div className="p-4 border-t">
           <form onSubmit={handleSubmit} className="relative">
+             <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <Button variant="ghost" size="icon" type="button" disabled>
+                    <Paperclip className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" type="button" disabled>
+                    <Mic className="h-4 w-4" />
+                </Button>
+            </div>
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask for advice, summarize tasks, etc..."
-              className="pr-12"
+              className="pr-12 pl-20"
               disabled={isLoading}
             />
             <Button
