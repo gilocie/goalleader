@@ -24,6 +24,7 @@ import { Badge } from '../ui/badge';
 import { NotificationDropdown } from '../notifications/notification-dropdown';
 import { useNotifications } from '@/context/notification-context';
 import { useChat } from '@/context/chat-context';
+import { ChatDropdown } from '../notifications/chat-dropdown';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -96,17 +97,17 @@ export function Header() {
         )}
       </div>
       
-       <Button variant="outline" size="icon" className="relative h-8 w-8" asChild>
-            <Link href="/chat">
+       <ChatDropdown>
+            <Button variant="default" size="icon" className="relative h-8 w-8 bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
                 <MessageSquare className="h-4 w-4" />
                 {unreadMessagesCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
                     {unreadMessagesCount}
                 </span>
                 )}
-                <span className="sr-only">Toggle chat</span>
-            </Link>
-        </Button>
+                <span className="sr-only">Toggle chat notifications</span>
+            </Button>
+        </ChatDropdown>
 
        <NotificationDropdown>
             <Button variant="outline" size="icon" className="relative h-8 w-8">
