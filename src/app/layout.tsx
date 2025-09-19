@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Donezo Dashboard',
+  title: 'GoalLeader Dashboard',
   description: 'Productivity and project management dashboard.',
 };
 
