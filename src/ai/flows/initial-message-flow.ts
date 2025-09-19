@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate a personalized initial greeting.
@@ -32,7 +33,7 @@ const prompt = ai.definePrompt({
 Your tone is helpful, encouraging, and friendly.
 
 Generate a short, welcoming initial message for a user named {{name}}. 
-The message should be encouraging and ask how you can help them today.
+The message should be encouraging and ask how you can help them today. Avoid being repetitive.
 
 Example: "Hi {{name}}! Ready to make some progress today? Let me know what you'd like to work on."
 `,
