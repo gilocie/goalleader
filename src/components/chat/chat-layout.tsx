@@ -32,7 +32,7 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
 
       <div className={cn(
           "col-span-10 md:col-span-7", 
-          !selectedContact && 'hidden md:flex'
+          !selectedContact && 'hidden'
       )}>
         {selectedContact && (
           <div className="h-full w-full">
