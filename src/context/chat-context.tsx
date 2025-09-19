@@ -1,11 +1,13 @@
 
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useMemo } from 'react';
 import type { Contact, Message } from '@/types/chat';
 
+const USER_ID = 'patrick-achitabwino-m1';
+
 const teamMembers: Contact[] = [
-    { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const, lastMessage: 'On it!', lastMessageTime: '5m', unreadCount: 2, lastMessageReadStatus: 'read' },
+    { id: USER_ID, name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const, lastMessage: 'On it!', lastMessageTime: '5m', unreadCount: 2, lastMessageReadStatus: 'read' },
     { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'last seen today at 1:30 PM', lastMessage: 'See you tomorrow.', lastMessageTime: '1h', lastMessageReadStatus: 'delivered' },
     { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const, lastMessage: 'I pushed the latest changes.', lastMessageTime: '20m', lastMessageReadStatus: 'sent' },
     { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const, lastMessage: 'The mockups are ready for review.', lastMessageTime: '1h', lastMessageReadStatus: 'read' },
@@ -34,8 +36,10 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const [contacts, setContacts] = useState<Contact[]>(teamMembers);
+  const [allContacts] = useState<Contact[]>(teamMembers);
   const [messages, setMessages] = useState<Message[]>(messagesData);
+
+  const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
 
   const unreadMessagesCount = contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0);
 
