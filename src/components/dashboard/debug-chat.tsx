@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
@@ -110,7 +111,7 @@ export function DashboardChat() {
     <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Logo className="h-6 w-6 text-primary" />
+          
           GoalLeader AI
         </CardTitle>
         <CardDescription>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Menu, ChevronLeft } from 'lucide-react';
@@ -60,7 +61,7 @@ export function Header() {
                 href="#"
                 className="flex items-center gap-2 text-lg font-semibold"
               >
-                <Logo className="h-6 w-6 text-primary" />
+                
                 <span className="">GoalLeader</span>
               </Link>
             </div>
