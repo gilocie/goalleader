@@ -17,7 +17,7 @@ import { Separator } from '@/components/ui/separator';
 const teamMembers = [
   {
     id: 'patrick-achitabwino-m1',
-    name: 'Patrick Achitabwino',
+    name: 'Jane Doe (You)',
     role: 'Consultant',
     status: 'online',
   },
@@ -196,5 +196,3 @@ export default function TeamsPage() {
     </AppLayout>
   );
 }
-
-    
