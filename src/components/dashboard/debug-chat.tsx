@@ -1,7 +1,7 @@
-
 'use client';
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -156,7 +156,9 @@ export function DashboardChat() {
                             : 'bg-muted rounded-bl-none'
                         )}
                         >
-                        {message.content}
+                        <div className="prose prose-sm max-w-none prose-p:my-0 prose-headings:my-2 prose-blockquote:my-2">
+                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                        </div>
                         </div>
                         {message.role === 'user' && (
                         <Avatar className="h-8 w-8">
@@ -167,7 +169,7 @@ export function DashboardChat() {
                     </div>
                 ))
             )}
-             {isLoading && (
+             {isLoading && !isFirstMessageLoading && (
               <div className="flex items-start gap-3 justify-start">
                 <Avatar className="h-8 w-8 border-2 border-primary/50">
                     <div className="h-full w-full flex items-center justify-center bg-background">
