@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -9,52 +9,46 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUp, ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
-
-const stats = [
-  {
-    title: 'Total Projects',
-    value: 24,
-    trend: {
-      value: 5,
-      direction: 'increase',
-      label: 'Increased from last month',
-    },
-  },
-  {
-    title: 'Ended Projects',
-    value: 18,
-    trend: {
-      value: 3,
-      direction: 'increase',
-      label: 'Increased from last month',
-    },
-  },
-  {
-    title: 'Running Projects',
-    value: 5,
-    trend: {
-      value: 2,
-      direction: 'decrease',
-      label: 'Decreased from last month',
-    },
-  },
-  {
-    title: 'Pending Projects',
-    value: 1,
-    trend: {
-      value: 1,
-      direction: 'increase',
-      label: 'Increased from last month',
-    },
-  },
-];
+import { useTimeTracker } from '@/context/time-tracker-context';
 
 export function DashboardStats() {
   const [openCard, setOpenCard] = useState<string | null>(null);
   const isMobileOrTablet = useIsMobileOrTablet();
+  const { tasks } = useTimeTracker();
+
+  const stats = useMemo(() => {
+    const totalProjects = tasks.length;
+    const endedProjects = tasks.filter(t => t.status === 'Completed').length;
+    const runningProjects = tasks.filter(t => t.status === 'In Progress').length;
+    const pendingProjects = tasks.filter(t => t.status === 'Pending').length;
+
+    return [
+      {
+        title: 'Total Projects',
+        value: totalProjects,
+        description: 'All tasks created.',
+      },
+      {
+        title: 'Ended Projects',
+        value: endedProjects,
+        description: 'Tasks marked as "Completed".',
+      },
+      {
+        title: 'Running Projects',
+        value: runningProjects,
+        description: 'Tasks currently "In Progress".',
+      },
+      {
+        title: 'Pending Projects',
+        value: pendingProjects,
+        description: 'Tasks waiting to be started.',
+      },
+    ];
+  }, [tasks]);
+
 
   const toggleCard = (title: string) => {
     setOpenCard(prev => prev === title ? null : title);
@@ -88,13 +82,9 @@ export function DashboardStats() {
             <CardContent>
                 <div className="flex items-center gap-2">
                     <div className="text-4xl font-bold">{stat.value}</div>
-                    <div className="flex items-center gap-1 rounded-full bg-white/20 px-2 py-1 text-xs">
-                        <ArrowUp className="h-3 w-3" />
-                        <span>{stat.trend.value}</span>
-                    </div>
                 </div>
                  <CollapsibleContent>
-                    <p className="text-xs text-green-100 mt-2">{stat.trend.label}</p>
+                    <p className="text-xs text-green-100 mt-2">{stat.description}</p>
                 </CollapsibleContent>
             </CardContent>
             {isMobileOrTablet && (
