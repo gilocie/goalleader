@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useTimeTracker } from '@/context/time-tracker-context';
 import { Logo } from '../icons';
+import { getInitialMessage } from '@/ai/flows/initial-message-flow';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -22,6 +23,7 @@ export function DashboardChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isFirstMessageLoading, setIsFirstMessageLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
 
@@ -39,6 +41,21 @@ export function DashboardChat() {
         }
     }, 0);
   };
+  
+  useEffect(() => {
+    const fetchInitialMessage = async () => {
+        try {
+            const initialMessageContent = await getInitialMessage({ name: 'Jane' });
+            setMessages([{ role: 'assistant', content: initialMessageContent }]);
+        } catch (error) {
+            console.error("Failed to fetch initial message:", error);
+            setMessages([{ role: 'assistant', content: "Hi Jane! I had a little trouble starting up, but I'm ready to help now." }]);
+        } finally {
+            setIsFirstMessageLoading(false);
+        }
+    };
+    fetchInitialMessage();
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -103,10 +120,17 @@ export function DashboardChat() {
       <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden p-0">
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
           <div className="space-y-4">
-            {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center text-center p-8 h-full text-muted-foreground">
-                    <Logo className="h-10 w-10 mb-2 text-primary"/>
-                    <p>Start a conversation to get insights.</p>
+            {isFirstMessageLoading ? (
+                <div className="flex items-start gap-3 justify-start">
+                    <Avatar className="h-8 w-8 border-2 border-primary/50">
+                        <div className="h-full w-full flex items-center justify-center bg-background">
+                            <Logo className="h-5 w-5 text-primary" />
+                        </div>
+                    </Avatar>
+                    <div className="bg-muted rounded-lg p-3 text-sm shadow-md flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span>Thinking...</span>
+                    </div>
                 </div>
             ) : (
                  messages.map((message, index) => (
@@ -173,7 +197,7 @@ export function DashboardChat() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask for advice, summarize tasks, etc..."
               className="pr-12 pl-20"
-              disabled={isLoading}
+              disabled={isLoading || isFirstMessageLoading}
             />
             <Button
               type="submit"
