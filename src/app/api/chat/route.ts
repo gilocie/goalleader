@@ -1,49 +1,34 @@
 
 import { NextResponse } from 'next/server';
-import { runChat, testChatSetup } from '@/ai/flows/chat-flow';
+import { runChat, testChatSetup, ChatInput } from '@/ai/flows/chat-flow';
 import { testConnection } from '@/ai/genkit';
 
 export async function POST(req: Request) {
   console.log('=== API /api/chat POST called ===');
 
   try {
-    // Parse request body
-    let body;
-    try {
-      body = await req.json();
-      console.log('Request body parsed:', body);
-    } catch (parseError) {
-      console.error('JSON parse error:', parseError);
-      return NextResponse.json(
-        { error: 'Invalid JSON in request body' },
-        { status: 400 }
-      );
-    }
+    const body = await req.json();
+    console.log('Request body parsed:', body);
+    
+    // The body is now the full ChatInput object
+    const input: ChatInput = body;
 
-    // Extract and validate message
-    const message = body?.message;
-    console.log('Extracted message:', message, 'Type:', typeof message);
-
-    if (typeof message !== 'string') {
-      console.warn('Invalid message type:', { message, type: typeof message });
+    if (typeof input.message !== 'string') {
       return NextResponse.json(
         { error: 'Message must be a string' },
         { status: 400 }
       );
     }
+    
+    console.log('Calling runChat with input:', input);
 
-    console.log('Calling runChat with message:', message);
-
-    // Call the chat function with timing
     const startTime = Date.now();
-    const result = await runChat(message);
+    const result = await runChat(input);
     const endTime = Date.now();
 
     console.log('runChat completed in', endTime - startTime, 'ms');
     console.log('runChat result:', result);
-    console.log('Result type:', typeof result);
 
-    // Validate result
     if (typeof result !== 'string') {
       console.error('runChat returned non-string:', { result, type: typeof result });
       return NextResponse.json(
@@ -67,6 +52,7 @@ export async function POST(req: Request) {
     );
   }
 }
+
 
 // GET endpoint for debugging and testing
 export async function GET() {

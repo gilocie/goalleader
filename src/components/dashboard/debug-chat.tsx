@@ -5,11 +5,13 @@ import { useState, useRef, useEffect, FormEvent } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Bot, Send, User, Loader2 } from 'lucide-react';
+import { Send, User, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useTimeTracker } from '@/context/time-tracker-context';
+import { Logo } from '../icons';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -22,6 +24,10 @@ export function DashboardChat() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+
+  const { tasks } = useTimeTracker();
+  const completedTasks = tasks.filter((t) => t.status === 'Completed');
+  const performancePercentage = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
 
   const scrollToBottom = () => {
     setTimeout(() => {
@@ -48,10 +54,20 @@ export function DashboardChat() {
     setIsLoading(true);
 
     try {
+      const chatInput = {
+        message: input,
+        tasks: tasks.map(t => ({ name: t.name, status: t.status })),
+        performance: {
+          completedTasks: completedTasks.length,
+          totalTasks: tasks.length,
+          performancePercentage,
+        },
+      };
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify(chatInput),
       });
       const data = await response.json();
       
@@ -77,7 +93,7 @@ export function DashboardChat() {
     <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Bot className="text-primary" />
+          <Logo className="h-6 w-6 text-primary" />
           GoalLeader AI
         </CardTitle>
         <CardDescription>
@@ -89,7 +105,7 @@ export function DashboardChat() {
           <div className="space-y-4">
             {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-center p-8 h-full text-muted-foreground">
-                    <Bot className="h-10 w-10 mb-2"/>
+                    <Logo className="h-10 w-10 mb-2 text-primary"/>
                     <p>Start a conversation to get insights.</p>
                 </div>
             ) : (
@@ -104,7 +120,7 @@ export function DashboardChat() {
                         {message.role === 'assistant' && (
                         <Avatar className="h-8 w-8 border-2 border-primary/50">
                              <div className="h-full w-full flex items-center justify-center bg-background">
-                                <Bot className="h-5 w-5 text-primary" />
+                                <Logo className="h-5 w-5 text-primary" />
                             </div>
                         </Avatar>
                         )}
@@ -131,7 +147,7 @@ export function DashboardChat() {
               <div className="flex items-start gap-3 justify-start">
                 <Avatar className="h-8 w-8 border-2 border-primary/50">
                     <div className="h-full w-full flex items-center justify-center bg-background">
-                        <Bot className="h-5 w-5 text-primary" />
+                        <Logo className="h-5 w-5 text-primary" />
                     </div>
                 </Avatar>
                 <div className="bg-muted rounded-lg p-3 text-sm shadow-md flex items-center gap-2">

@@ -7,12 +7,28 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { useTimeTracker } from '@/context/time-tracker-context';
 
 // --------------------------
 // Schemas
 // --------------------------
+
+const TaskSchema = z.object({
+  name: z.string(),
+  status: z.string(),
+});
+
+const PerformanceSchema = z.object({
+  completedTasks: z.number(),
+  totalTasks: z.number(),
+  performancePercentage: z.number(),
+});
+
+
 const ChatInputSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty'),
+  tasks: z.array(TaskSchema).optional(),
+  performance: PerformanceSchema.optional(),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
@@ -26,16 +42,35 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 // --------------------------
 const conversationalPrompt = ai.definePrompt({
   name: 'conversationalChatPrompt',
-  model: googleAI.model('models/gemini-1.5-flash'), // ✅ consistent model path
+  model: googleAI.model('models/gemini-1.5-flash'),
   input: { schema: ChatInputSchema },
   output: { schema: ChatOutputSchema },
   config: {
-    temperature: 0.7,
+    temperature: 0.8,
     maxOutputTokens: 1000,
   },
   prompt: `You are GoalLeader, an expert productivity coach and AI assistant. 
 Your tone is helpful, encouraging, and friendly.
-You are in a conversation. Respond naturally like a human coach.
+
+You are in a conversation with a user. Use the context provided below to make your responses more personal and proactive.
+
+CONTEXT:
+{{#if performance}}
+- User's Performance: Completed {{performance.completedTasks}} of {{performance.totalTasks}} tasks ({{performance.performancePercentage}}%).
+- The user has the following tasks:
+  {{#each tasks}}
+  - {{name}} (Status: {{status}})
+  {{/each}}
+{{else}}
+- No performance data available.
+{{/if}}
+
+INSTRUCTIONS:
+1.  Respond naturally to the user's message like a human coach.
+2.  If the user's performance is excellent (over 80%), congratulate them and ask if they need help with their remaining tasks.
+3.  If the user's performance is low (under 40%), be encouraging. Ask if they are feeling stuck and offer to help break down a task.
+4.  If the conversation feels right, occasionally include a short, relevant motivational quote.
+5.  Keep your replies concise and helpful.
 
 User's message: {{message}}
 Reply:`,
@@ -64,11 +99,11 @@ const chatFlow = ai.defineFlow(
 // --------------------------
 // Public helper
 // --------------------------
-export async function runChat(rawMessage: unknown): Promise<string> {
+export async function runChat(input: ChatInput): Promise<string> {
   console.log('=== runChat called ===');
 
   try {
-    const parsed = ChatInputSchema.safeParse({ message: rawMessage });
+    const parsed = ChatInputSchema.safeParse(input);
 
     if (!parsed.success) {
       console.error('Input validation failed:', parsed.error);
@@ -99,7 +134,7 @@ export async function runChat(rawMessage: unknown): Promise<string> {
 // --------------------------
 export async function testChatSetup(): Promise<{ success: boolean; message: string; details?: any }> {
   try {
-    const testResult = await runChat('Hello, this is a test message');
+    const testResult = await runChat({ message: 'Hello, this is a test message' });
 
     const isError = testResult.toLowerCase().includes('error');
     return {
