@@ -81,11 +81,10 @@ export function ProjectProgress() {
   
   const todaysTasks = tasks.filter(t => t.dueDate && isToday(parseISO(t.dueDate)));
   const completedToday = todaysTasks.filter(t => t.status === 'Completed').length;
-  const remainingToGoals = Math.max(0, DAILY_GOAL - todaysTasks.length);
-
+  
   useEffect(() => {
-    const totalTasksToday = todaysTasks.length > 0 ? todaysTasks.length : 1; // Avoid division by zero
-    const performance = (completedToday / totalTasksToday) * 100;
+    const totalTasksForGoal = Math.max(todaysTasks.length, DAILY_GOAL);
+    const performance = totalTasksForGoal > 0 ? (completedToday / totalTasksForGoal) * 100 : 0;
     
     let newRating = 'Poor';
     if (performance >= 80) {
@@ -95,7 +94,7 @@ export function ProjectProgress() {
     }
     setRating(newRating);
 
-    const newProgress = totalTasksToday > 0 ? (completedToday / Math.max(todaysTasks.length, DAILY_GOAL)) * 100 : 0;
+    const newProgress = totalTasksForGoal > 0 ? (completedToday / totalTasksForGoal) * 100 : 0;
     const timer = setTimeout(() => setProgress(Math.min(newProgress, 100)), 200);
     return () => clearTimeout(timer);
   }, [completedToday, todaysTasks.length]);
@@ -105,7 +104,8 @@ export function ProjectProgress() {
       <CardHeader>
         <CardTitle>Daily Task Progress</CardTitle>
         <CardDescription>
-          {completedToday} of {Math.max(todaysTasks.length, DAILY_GOAL)} tasks completed today. {remainingToGoals > 0 ? `${remainingToGoals} more to meet goal.` : 'Daily goal met!'}
+          Your challenge today is to create and finish at least {DAILY_GOAL} tasks.
+          You've completed {completedToday} so far.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center p-6">
