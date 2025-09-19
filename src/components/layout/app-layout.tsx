@@ -12,6 +12,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { TimeTracker } from '../dashboard/time-tracker';
 import { ReportsProvider } from '@/context/reports-context';
 import { cn } from '@/lib/utils';
+import { NotificationProvider } from '@/context/notification-context';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
@@ -48,11 +49,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <TimeTrackerProvider>
         <ReportsProvider>
-          <LayoutWithTracker>{children}</LayoutWithTracker>
+            <NotificationProvider>
+                <LayoutWithTracker>{children}</LayoutWithTracker>
+            </NotificationProvider>
         </ReportsProvider>
       </TimeTrackerProvider>
     </ThemeProvider>
   );
 }
-
-    

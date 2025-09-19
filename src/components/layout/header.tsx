@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, ChevronLeft } from 'lucide-react';
+import { Menu, ChevronLeft, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useParams } from 'next/navigation';
 
@@ -22,6 +22,8 @@ import { NavLinks } from './nav-links';
 import { TimeTracker } from '../dashboard/time-tracker';
 import { ScrollArea } from '../ui/scroll-area';
 import { Badge } from '../ui/badge';
+import { NotificationDropdown } from '../notifications/notification-dropdown';
+import { useNotifications } from '@/context/notification-context';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -36,13 +38,16 @@ export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
+  const { notifications } = useNotifications();
 
   const isMeetingPage = pathname.startsWith('/meetings/');
   const meetingId = isMeetingPage && typeof params.meetingId === 'string' ? params.meetingId : null;
   const meetingDetails = meetingId ? meetings[meetingId] : null;
 
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   return (
-    <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
       <Sheet>
         <SheetTrigger asChild>
           <Button
@@ -89,6 +94,19 @@ export function Header() {
             </div>
         )}
       </div>
+
+       <NotificationDropdown>
+            <Button variant="outline" size="icon" className="relative h-8 w-8">
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                    {unreadCount}
+                </span>
+                )}
+                <span className="sr-only">Toggle notifications</span>
+            </Button>
+        </NotificationDropdown>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">

@@ -2,9 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell } from 'lucide-react';
 import { Logo } from '@/components/icons';
-import { Button } from '@/components/ui/button';
 import { TimeTracker } from '@/components/dashboard/time-tracker';
 import { NavLinks } from './nav-links';
 import { ScrollArea } from '../ui/scroll-area';
@@ -18,10 +16,6 @@ export function Sidebar() {
             
             <span className="">GoalLeader</span>
           </Link>
-          <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Toggle notifications</span>
-          </Button>
         </div>
         <ScrollArea className="flex-1">
           <nav className="flex flex-col gap-2 text-sm font-medium px-2 lg:px-4 py-4">
