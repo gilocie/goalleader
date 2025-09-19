@@ -2,8 +2,8 @@
 
 import { ChatContactList } from './chat-contact-list';
 import { ChatMessages } from './chat-messages';
-import type { Contact, Message } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
+import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
 
 interface ChatLayoutProps {
@@ -23,14 +23,11 @@ export function ChatLayout({
 }: ChatLayoutProps) {
   const { self } = useChat();
   return (
-    <div className="flex h-full w-full">
-      {/* LEFT SIDE: Contact list */}
+    <div className="grid grid-cols-10 h-full w-full">
       <div
         className={cn(
-          'h-full border-r md:w-[280px] lg:w-[320px] flex-shrink-0',
-          selectedContact 
-            ? 'hidden md:flex md:flex-col'
-            : 'w-full flex flex-col'
+          'col-span-10 md:col-span-3 border-r',
+          selectedContact ? 'hidden md:block' : 'block'
         )}
       >
         <ChatContactList
@@ -40,9 +37,8 @@ export function ChatLayout({
         />
       </div>
 
-      {/* RIGHT SIDE: only render if a contact is selected */}
       {selectedContact && self && (
-        <div className="flex-1 h-full">
+        <div className="col-span-10 md:col-span-7">
           <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
