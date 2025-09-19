@@ -2,17 +2,18 @@
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
-import { Bot, Check, FileText, MessageSquare } from 'lucide-react';
+import { Bot, Check, FileText, MessageSquare, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface Notification {
   id: string;
-  type: 'ai' | 'chat' | 'task' | 'report';
+  type: 'ai' | 'chat' | 'task' | 'report' | 'staff';
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
   link?: string;
+  author?: string;
 }
 
 const initialNotifications: Notification[] = [
@@ -23,6 +24,8 @@ const initialNotifications: Notification[] = [
         message: 'Your task completion rate is up 15% this week! Keep up the great work.',
         timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
         read: false,
+        author: 'GoalLeader AI',
+        link: '/performance'
     },
     {
         id: '2',
@@ -31,14 +34,18 @@ const initialNotifications: Notification[] = [
         message: '"Design new landing page" has been marked as complete.',
         timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
         read: false,
+        author: 'You',
+        link: '/tasks'
     },
     {
         id: '3',
-        type: 'chat',
-        title: 'New Message',
-        message: 'From Frank Mhango: "Can you review the latest designs?"',
+        type: 'staff',
+        title: 'New Company Policy',
+        message: 'All employees are required to complete the new security training by the end of the month.',
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
         read: true,
+        author: 'HR Department',
+        link: '/notices'
     },
 ];
 
@@ -48,6 +55,7 @@ interface NotificationContextType {
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  deleteNotifications: (ids: string[]) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -82,11 +90,16 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  const deleteNotifications = (ids: string[]) => {
+    setNotifications(prev => prev.filter(n => !ids.includes(n.id)));
+  };
+
   const value = {
     notifications,
     addNotification,
     markAsRead,
     markAllAsRead,
+    deleteNotifications,
   };
 
   return (
@@ -108,6 +121,7 @@ export const getNotificationIcon = (type: Notification['type']) => {
         case 'task': return <Check className="h-5 w-5 text-green-500" />;
         case 'report': return <FileText className="h-5 w-5 text-blue-500" />;
         case 'chat': return <MessageSquare className="h-5 w-5 text-purple-500" />;
+        case 'staff': return <User className="h-5 w-5 text-orange-500" />;
         default: return <Bot className="h-5 w-5 text-primary" />;
     }
 };

@@ -11,67 +11,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { NoticeDetailsDialog } from '@/components/notices/notice-details-dialog';
 import { CreateNoticeDialog } from '@/components/notices/create-notice-dialog';
+import { useNotifications, Notification } from '@/context/notification-context';
 
-const initialStaffNotices = [
-    {
-      id: 1,
-      title: 'System Maintenance',
-      content: 'The system will be down for maintenance on Sunday at 2 AM. This is a scheduled maintenance to upgrade our servers and improve performance. We expect the downtime to last approximately 2 hours. We apologize for any inconvenience.',
-      author: 'Admin',
-      date: '2024-07-28',
-      read: false,
-    },
-    {
-      id: 3,
-      title: 'Holiday Schedule',
-      content: 'The office will be closed on Monday for the public holiday. Please plan your work accordingly. We will resume normal operations on Tuesday.',
-      author: 'HR Department',
-      date: '2024-07-26',
-      read: false,
-    },
-    {
-      id: 4,
-      title: 'Team Meeting',
-      content: 'A mandatory team meeting is scheduled for Friday at 10 AM in the main conference room. Please come prepared to discuss Q3 goals.',
-      author: 'Management',
-      date: '2024-07-25',
-      read: false,
-    },
-];
 
-const initialReadNotices = [
-    {
-        id: 2,
-        title: 'New Feature: Dark Mode',
-        content: 'We have launched a new dark mode. You can enable it in your account settings under the "Appearance" tab. Let us know what you think!',
-        author: 'Product Team',
-        date: '2024-07-27',
-        read: true,
-    }
-];
+export type Notice = Notification;
 
-const initialAiNotices = [
-    {
-        id: 101,
-        title: 'Performance Anomaly Detected',
-        content: 'Liam Martinez\'s task completion rate has dropped by 15% this week compared to his average. This could be a normal fluctuation, but it may be worth scheduling a brief check-in to see if he needs any support.',
-        author: 'GoalLeader AI',
-        date: '2024-07-29',
-        read: false,
-    },
-    {
-        id: 102,
-        title: 'Upcoming Project Milestone',
-        content: 'Project "Phoenix" is 90% complete and the deadline is approaching in 3 days. Ensure all dependencies are resolved and final checks are in place for a smooth launch.',
-        author: 'GoalLeader AI',
-        date: '2024-07-28',
-        read: false,
-    }
-];
-
-export type Notice = (typeof initialStaffNotices)[0];
-
-const NoticeCard = ({ notice, icon, onSelect, isSelected, onCardClick }: { notice: Notice, icon?: React.ReactNode, onSelect?: (id: number, checked: boolean) => void, isSelected?: boolean, onCardClick: (notice: Notice) => void }) => (
+const NoticeCard = ({ notice, icon, onSelect, isSelected, onCardClick }: { notice: Notice, icon?: React.ReactNode, onSelect?: (id: string, checked: boolean) => void, isSelected?: boolean, onCardClick: (notice: Notice) => void }) => (
     <div 
         className={cn("relative transition-all rounded-lg cursor-pointer", isSelected && 'ring-2 ring-primary ring-offset-2')}
         onClick={() => onCardClick(notice)}
@@ -94,13 +39,13 @@ const NoticeCard = ({ notice, icon, onSelect, isSelected, onCardClick }: { notic
                     <div className={cn('flex-1', !onSelect && 'pl-8')}>
                         <CardTitle className='text-lg'>{notice.title}</CardTitle>
                         <CardDescription>
-                            Posted by {notice.author} on {new Date(notice.date).toLocaleDateString()}
+                            Posted by {notice.author} on {new Date(notice.timestamp).toLocaleDateString()}
                         </CardDescription>
                     </div>
                 </div>
             </CardHeader>
             <CardContent className={cn('pl-16', !onSelect && 'pl-24')}>
-                <p className="text-sm text-muted-foreground line-clamp-2">{notice.content}</p>
+                <p className="text-sm text-muted-foreground line-clamp-2">{notice.message}</p>
             </CardContent>
         </Card>
     </div>
@@ -130,22 +75,25 @@ const ActionToolbar = ({ selectedCount, onSelectAll, allSelected, onMarkAsRead, 
 
 
 export default function NoticesPage() {
-  const [staffNotices, setStaffNotices] = useState(initialStaffNotices);
-  const [aiNotices, setAiNotices] = useState(initialAiNotices);
-  const [readNotices, setReadNotices] = useState(initialReadNotices);
+  const { notifications, markAsRead, addNotification, deleteNotifications } = useNotifications();
+  
   const [myNotices, setMyNotices] = useState<Notice[]>([]);
 
-  const [selectedStaff, setSelectedStaff] = useState<number[]>([]);
-  const [selectedAi, setSelectedAi] = useState<number[]>([]);
+  const [selectedStaff, setSelectedStaff] = useState<string[]>([]);
+  const [selectedAi, setSelectedAi] = useState<string[]>([]);
 
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
 
+  const staffNotices = notifications.filter(n => !n.read && n.author !== 'GoalLeader AI');
+  const aiNotices = notifications.filter(n => !n.read && n.author === 'GoalLeader AI');
+  const readNotices = notifications.filter(n => n.read).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
   const unreadCount = staffNotices.length + aiNotices.length;
   const readCount = readNotices.length;
 
-  const handleSelect = (id: number, checked: boolean, type: 'staff' | 'ai') => {
+  const handleSelect = (id: string, checked: boolean, type: 'staff' | 'ai') => {
     const setSelected = type === 'staff' ? setSelectedStaff : setSelectedAi;
     setSelected(prev => checked ? [...prev, id] : prev.filter(item => item !== id));
   };
@@ -158,15 +106,14 @@ export default function NoticesPage() {
 
   const handleAction = (action: 'read' | 'delete', type: 'staff' | 'ai') => {
     const selectedIds = type === 'staff' ? selectedStaff : selectedAi;
-    const setNotices = type === 'staff' ? setStaffNotices : setAiNotices;
-    const notices = type === 'staff' ? staffNotices : aiNotices;
     
     if (action === 'read') {
-      const toMarkRead = notices.filter(n => selectedIds.includes(n.id));
-      setReadNotices(prev => [...toMarkRead.map(n => ({...n, read: true})), ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        selectedIds.forEach(id => markAsRead(id));
     }
 
-    setNotices(prev => prev.filter(n => !selectedIds.includes(n.id)));
+    if (action === 'delete') {
+        deleteNotifications(selectedIds);
+    }
     
     if (type === 'staff') setSelectedStaff([]);
     else setSelectedAi([]);
@@ -177,37 +124,32 @@ export default function NoticesPage() {
     setIsDetailsDialogOpen(true);
   }
 
-  const handleMarkAsReadFromDialog = (noticeId: number) => {
-    let noticeToMove: Notice | undefined;
-    
-    noticeToMove = staffNotices.find(n => n.id === noticeId);
-    if (noticeToMove) {
-        setStaffNotices(prev => prev.filter(n => n.id !== noticeId));
-    } else {
-        noticeToMove = aiNotices.find(n => n.id === noticeId);
-        if (noticeToMove) {
-            setAiNotices(prev => prev.filter(n => n.id !== noticeId));
-        }
-    }
-
-    if (noticeToMove) {
-        setReadNotices(prev => [{...noticeToMove, read: true}, ...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    }
-    
+  const handleMarkAsReadFromDialog = (noticeId: string) => {
+    markAsRead(noticeId);
     setIsDetailsDialogOpen(false);
     setSelectedNotice(null);
   };
   
   const handleNoticeCreate = (newNoticeData: { title: string, description: string, recipients: string[] }) => {
-    const newNotice: Notice = {
-        id: Date.now(),
+    const newNotice = {
         title: newNoticeData.title,
-        content: newNoticeData.description,
+        message: newNoticeData.description,
         author: 'You',
-        date: new Date().toISOString().split('T')[0],
+        type: 'staff' as const,
+        link: '/notices'
+    };
+    // This will both add it to the notification system and make it appear here
+    addNotification(newNotice);
+    
+    // Also track "My Notices" separately
+    const myCreatedNotice: Notice = {
+        ...newNotice,
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
         read: false,
     };
-    setMyNotices(prev => [newNotice, ...prev]);
+    setMyNotices(prev => [myCreatedNotice, ...prev]);
+
     setIsCreateDialogOpen(false);
   };
 

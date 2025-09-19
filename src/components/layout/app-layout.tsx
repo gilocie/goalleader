@@ -13,6 +13,7 @@ import { TimeTracker } from '../dashboard/time-tracker';
 import { ReportsProvider } from '@/context/reports-context';
 import { cn } from '@/lib/utils';
 import { NotificationProvider } from '@/context/notification-context';
+import { ChatProvider } from '@/context/chat-context';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
@@ -49,9 +50,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <TimeTrackerProvider>
         <ReportsProvider>
-            <NotificationProvider>
-                <LayoutWithTracker>{children}</LayoutWithTracker>
-            </NotificationProvider>
+            <ChatProvider>
+                <NotificationProvider>
+                    <LayoutWithTracker>{children}</LayoutWithTracker>
+                </NotificationProvider>
+            </ChatProvider>
         </ReportsProvider>
       </TimeTrackerProvider>
     </ThemeProvider>

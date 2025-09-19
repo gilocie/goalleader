@@ -17,7 +17,7 @@ interface NoticeDetailsDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   notice: Notice;
-  onMarkAsRead: (id: number) => void;
+  onMarkAsRead: (id: string) => void;
 }
 
 export function NoticeDetailsDialog({
@@ -33,11 +33,11 @@ export function NoticeDetailsDialog({
         <DialogHeader>
           <DialogTitle>{notice.title}</DialogTitle>
           <DialogDescription>
-            Posted by {notice.author} on {new Date(notice.date).toLocaleDateString()}
+            Posted by {notice.author} on {new Date(notice.timestamp).toLocaleDateString()}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
-            <p className="text-sm text-foreground whitespace-pre-wrap">{notice.content}</p>
+            <p className="text-sm text-foreground whitespace-pre-wrap">{notice.message}</p>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
@@ -53,4 +53,3 @@ export function NoticeDetailsDialog({
     </Dialog>
   );
 }
-

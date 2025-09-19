@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, ChevronLeft, Bell } from 'lucide-react';
+import { Menu, ChevronLeft, Bell, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useParams } from 'next/navigation';
 
@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Logo } from '@/components/icons';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { NavLinks } from './nav-links';
 import { TimeTracker } from '../dashboard/time-tracker';
@@ -24,6 +23,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Badge } from '../ui/badge';
 import { NotificationDropdown } from '../notifications/notification-dropdown';
 import { useNotifications } from '@/context/notification-context';
+import { useChat } from '@/context/chat-context';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -39,6 +39,7 @@ export function Header() {
   const router = useRouter();
   const params = useParams();
   const { notifications } = useNotifications();
+  const { unreadMessagesCount } = useChat();
 
   const isMeetingPage = pathname.startsWith('/meetings/');
   const meetingId = isMeetingPage && typeof params.meetingId === 'string' ? params.meetingId : null;
@@ -94,6 +95,18 @@ export function Header() {
             </div>
         )}
       </div>
+      
+       <Button variant="outline" size="icon" className="relative h-8 w-8" asChild>
+            <Link href="/chat">
+                <MessageSquare className="h-4 w-4" />
+                {unreadMessagesCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                    {unreadMessagesCount}
+                </span>
+                )}
+                <span className="sr-only">Toggle chat</span>
+            </Link>
+        </Button>
 
        <NotificationDropdown>
             <Button variant="outline" size="icon" className="relative h-8 w-8">
