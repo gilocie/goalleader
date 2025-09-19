@@ -13,14 +13,20 @@ import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
 
-const generateData = () => {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const currentMonth = new Date().getMonth();
-  return months.map((month, index) => ({
-    name: month,
-    total: index <= currentMonth ? Math.floor(Math.random() * 101) : null,
-  }));
-};
+const staticData = [
+  { name: 'Jan', total: null },
+  { name: 'Feb', total: 74 },
+  { name: 'Mar', total: 32 },
+  { name: 'Apr', total: 37 },
+  { name: 'May', total: 58 },
+  { name: 'Jun', total: 92 },
+  { name: 'Jul', total: 34 },
+  { name: 'Aug', total: 18 },
+  { name: 'Sep', total: 5 },
+  { name: 'Oct', total: null },
+  { name: 'Nov', total: null },
+  { name: 'Dec', total: null },
+];
 
 const getBarColor = (value: number | null) => {
   if (value === null || value < 50) return 'hsl(var(--muted))';
@@ -34,42 +40,28 @@ const CustomizedLabel = (props: any) => {
   const { x, y, width, height, value } = props;
   if (value === null || typeof value === 'undefined') return null;
 
-  const insideThreshold = 18; // min bar height to render label inside
   const text = `${value}%`;
   const cx = x + width / 2;
+  const isHighBar = value >= 50;
 
-  if (height >= insideThreshold) {
-    // inside the bar, choose white or dark depending on fill contrast
-    const fill = (value ?? 0) < 50 ? 'hsl(var(--foreground))' : 'white';
-    return (
-      <text
-        x={cx}
-        y={y + height / 2}
-        fill={fill}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        className="text-[10px] font-bold"
-      >
-        {text}
-      </text>
-    );
-  }
+  // Render label inside the bar
+  const fill = isHighBar ? 'white' : 'hsl(var(--foreground))';
+  const labelY = isHighBar ? y + 15 : y - 6;
 
-  // small bar -> render label just above the bar
-  const aboveY = Math.max(4, y - 6); // ensure we don't go negative
   return (
     <text
       x={cx}
-      y={aboveY}
-      fill="hsl(var(--muted-foreground))"
+      y={labelY}
+      fill={fill}
       textAnchor="middle"
-      dominantBaseline="baseline"
-      className="text-[10px] font-medium"
+      dominantBaseline={isHighBar ? "middle" : "baseline"}
+      className="text-[10px] font-bold"
     >
       {text}
     </text>
   );
 };
+
 
 export function ProjectAnalyticsChart() {
   const [data, setData] = useState<any[]>([]);
@@ -82,14 +74,13 @@ export function ProjectAnalyticsChart() {
   const chartMargin = { top: 20, right: 0, left: 0, bottom: 5 };
   const barWidth = 40;
   const visibleMonths = isMobileOrTablet ? 6 : 4;
-  const currentYear = new Date().getFullYear();
+  const currentYear = 2025;
 
-  // ticks every 10% (0,10,20,...100)
-  const yTicks = Array.from({ length: 11 }, (_, i) => i * 10);
+  // ticks every 20% (0, 20, 40, ...100)
+  const yTicks = Array.from({ length: 6 }, (_, i) => i * 20);
 
   useEffect(() => {
-    const generatedData = generateData();
-    setData(generatedData);
+    setData(staticData);
     setCurrentMonthIndex(new Date().getMonth());
   }, []);
 
@@ -190,7 +181,7 @@ export function ProjectAnalyticsChart() {
                   <Cell
                     key={`cell-${index}`}
                     fill={getBarColor(entry.total)}
-                    stroke={index === currentMonthIndex ? 'hsl(var(--primary))' : 'transparent'}
+                    stroke={index === 8 ? 'hsl(var(--primary))' : 'transparent'} // Highlight September
                     strokeWidth={2}
                   />
                 ))}
