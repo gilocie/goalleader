@@ -11,10 +11,10 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Suggestion } from "./generate-content-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
+import type { Suggestion } from "@/types/marketing";
 
 interface ApprovedContentTableProps {
   content: Suggestion[];

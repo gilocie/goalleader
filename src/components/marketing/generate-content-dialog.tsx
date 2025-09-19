@@ -30,22 +30,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { generateMarketingContent, GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content-flow';
+import type { Suggestion } from '@/types/marketing';
+
 
 const formSchema = z.object({
   topic: z.string().min(3, 'Topic must be at least 3 characters long.'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
-type Suggestion = GenerateMarketingContentOutput['suggestions'][0];
 
 interface GenerateContentDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onApprove: (content: Suggestion) => void;
 }
 
-export function GenerateContentDialog({ isOpen, onOpenChange }: GenerateContentDialogProps) {
+export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: GenerateContentDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<GenerateMarketingContentOutput | null>(null);
+  const [activeTab, setActiveTab] = useState("suggestion-0");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -60,6 +63,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange }: GenerateContentD
     try {
       const result = await generateMarketingContent({ topic: data.topic });
       setGeneratedContent(result);
+      setActiveTab("suggestion-0");
     } catch (error) {
       console.error("Failed to generate content:", error);
     } finally {
@@ -76,8 +80,12 @@ export function GenerateContentDialog({ isOpen, onOpenChange }: GenerateContentD
   }
 
   const handleApprove = () => {
-    // In a real app, you'd save the selected content here.
-    console.log('Approved content:', generatedContent);
+    if (!generatedContent) return;
+    const selectedSuggestionIndex = parseInt(activeTab.split('-')[1]);
+    const selectedSuggestion = generatedContent.suggestions[selectedSuggestionIndex];
+    if (selectedSuggestion) {
+      onApprove(selectedSuggestion);
+    }
     handleOpenChange(false);
   }
 
@@ -142,7 +150,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange }: GenerateContentD
             )}
 
             {generatedContent && (
-              <Tabs defaultValue="suggestion-0" className="flex flex-col h-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="suggestion-0">Suggestion 1</TabsTrigger>
                   <TabsTrigger value="suggestion-1">Suggestion 2</TabsTrigger>

@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Bot } from 'lucide-react';
-import { GenerateContentDialog, Suggestion } from '@/components/marketing/generate-content-dialog';
+import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
 import { ApprovedContentTable } from '@/components/marketing/approved-content-table';
 import { Separator } from '@/components/ui/separator';
+import type { Suggestion } from '@/types/marketing';
 
 export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);

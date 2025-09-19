@@ -30,13 +30,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import { generateMarketingContent, GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content-flow';
+import type { Suggestion } from '@/types/marketing';
+
 
 const formSchema = z.object({
   topic: z.string().min(3, 'Topic must be at least 3 characters long.'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
-export type Suggestion = GenerateMarketingContentOutput['suggestions'][0];
 
 interface GenerateContentDialogProps {
   isOpen: boolean;
