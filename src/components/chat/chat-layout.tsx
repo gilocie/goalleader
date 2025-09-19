@@ -4,6 +4,7 @@ import { ChatContactList } from './chat-contact-list';
 import { ChatMessages } from './chat-messages';
 import { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
+import { Bot } from 'lucide-react';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -13,13 +14,19 @@ interface ChatLayoutProps {
   onSendMessage: (message: string) => void;
 }
 
-export function ChatLayout({ contacts, messages, selectedContact, onSelectContact, onSendMessage }: ChatLayoutProps) {
+export function ChatLayout({
+  contacts,
+  messages,
+  selectedContact,
+  onSelectContact,
+  onSendMessage
+}: ChatLayoutProps) {
   return (
     <div className="grid grid-cols-10 h-full w-full">
       {/* LEFT SIDE: Contact list */}
       <div
         className={cn(
-          'col-span-10 md:col-span-3 border-r',
+          "col-span-10 md:col-span-3 border-r",
           selectedContact ? 'hidden md:block' : 'block'
         )}
       >
@@ -30,7 +37,7 @@ export function ChatLayout({ contacts, messages, selectedContact, onSelectContac
         />
       </div>
 
-      {/* RIGHT SIDE: Chat messages */}
+      {/* RIGHT SIDE: Chat area */}
       {selectedContact && (
         <div className="col-span-10 md:col-span-7 h-full w-full">
           <ChatMessages
