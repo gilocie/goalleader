@@ -31,7 +31,7 @@ export default function MarketingPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="leads">
+            <Tabs defaultValue="content">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="leads">Client Leads</TabsTrigger>
                 <TabsTrigger value="content">AI Content Generation</TabsTrigger>
@@ -54,19 +54,18 @@ export default function MarketingPage() {
                     <CardTitle>AI-Powered Content & Strategy</CardTitle>
                     <CardDescription>Let AI help your sales team create compelling marketing content.</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                     <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50">
+                  <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50 border">
                         <Bot className="h-12 w-12 text-primary" />
                         <h3 className="font-semibold">Generate Marketing Content</h3>
                         <p className="text-muted-foreground max-w-md">
-                            Create engaging blog posts, social media updates, and email newsletters effortlessly. Our AI will help you craft the perfect message to connect with your audience.
+                            Create engaging blog posts, social media updates, and email newsletters effortlessly. Our AI will help you craft the perfect message.
                         </p>
                         <Button onClick={() => setGenerateDialogOpen(true)}>
                             <Bot className="mr-2 h-4 w-4" />
                             Start Generating
                         </Button>
                     </div>
-                    <Separator className="my-6" />
                     <ApprovedContentTable content={approvedContent} />
                   </CardContent>
                 </Card>
