@@ -11,18 +11,12 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { SuggestionSchema } from '@/types/marketing';
 
 const GenerateMarketingContentInputSchema = z.object({
   topic: z.string().describe('The topic or product to generate marketing content for.'),
 });
 export type GenerateMarketingContentInput = z.infer<typeof GenerateMarketingContentInputSchema>;
-
-const SuggestionSchema = z.object({
-    blogTitle: z.string().describe('A catchy title for a blog post about the topic.'),
-    blogOutline: z.string().describe('A markdown-formatted outline for the blog post, including an introduction, 3 key points, and a conclusion.'),
-    socialMediaPost: z.string().describe('An engaging social media post (e.g., for Twitter or LinkedIn) to promote the topic. Include relevant hashtags.'),
-    emailSubject: z.string().describe('A compelling email subject line for a newsletter about the topic.'),
-});
 
 const GenerateMarketingContentOutputSchema = z.object({
     suggestions: z.array(SuggestionSchema).length(3).describe('An array of 3 distinct marketing content suggestions.')
