@@ -8,25 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
+import { useTimeTracker } from '@/context/time-tracker-context';
+import { getMonth } from 'date-fns';
 
-const staticData = [
-  { name: 'Jan', total: null },
-  { name: 'Feb', total: 74 },
-  { name: 'Mar', total: 32 },
-  { name: 'Apr', total: 37 },
-  { name: 'May', total: 58 },
-  { name: 'Jun', total: 92 },
-  { name: 'Jul', total: 34 },
-  { name: 'Aug', total: 18 },
-  { name: 'Sep', total: 5 },
-  { name: 'Oct', total: null },
-  { name: 'Nov', total: null },
-  { name: 'Dec', total: null },
-];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const getBarColor = (value: number | null) => {
   if (value === null || value < 50) return 'hsl(var(--muted))';
@@ -64,25 +53,65 @@ const CustomizedLabel = (props: any) => {
 
 
 export function ProjectAnalyticsChart() {
+  const { tasks } = useTimeTracker();
   const [data, setData] = useState<any[]>([]);
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isMobileOrTablet = useIsMobileOrTablet();
 
   // CHART CONFIG
-  const chartHeight = 200;             // inner drawing height for both charts
+  const chartHeight = 200;
   const chartMargin = { top: 20, right: 0, left: 0, bottom: 5 };
   const barWidth = 40;
   const visibleMonths = isMobileOrTablet ? 6 : 4;
-  const currentYear = 2025;
+  const currentYear = new Date().getFullYear();
 
-  // ticks every 20% (0, 20, 40, ...100)
   const yTicks = Array.from({ length: 6 }, (_, i) => i * 20);
 
+  const chartData = useMemo(() => {
+    const monthlyPerformance: (number | null)[] = Array(12).fill(null);
+    const completedTasks = tasks.filter(t => t.status === 'Completed' && t.endTime);
+
+    if (completedTasks.length > 0) {
+        const monthlyTotals: { [key: number]: { count: number, totalDuration: number } } = {};
+
+        completedTasks.forEach(task => {
+            const month = getMonth(new Date(task.endTime!));
+            if (!monthlyTotals[month]) {
+                monthlyTotals[month] = { count: 0, totalDuration: 0 };
+            }
+            monthlyTotals[month].count++;
+            monthlyTotals[month].totalDuration += task.duration || 0;
+        });
+
+        // For demonstration, let's create a "performance" score.
+        // A real app would have a more complex metric. Here, we'll simulate one.
+        // Shorter average duration = better performance.
+        const allDurations = completedTasks.map(t => t.duration || 0).filter(d => d > 0);
+        const maxDuration = allDurations.length > 0 ? Math.max(...allDurations) : 3600; // default 1hr
+
+        Object.keys(monthlyTotals).forEach(monthKeyStr => {
+            const monthKey = parseInt(monthKeyStr);
+            const monthData = monthlyTotals[monthKey];
+            const avgDuration = monthData.totalDuration / monthData.count;
+            
+            // Score is inverted: 100% for 0 duration, 0% for max duration.
+            const score = Math.max(0, 100 - (avgDuration / maxDuration) * 100);
+            monthlyPerformance[monthKey] = Math.round(score);
+        });
+    }
+
+    return MONTHS.map((monthName, index) => ({
+      name: monthName,
+      total: monthlyPerformance[index],
+    }));
+  }, [tasks]);
+
   useEffect(() => {
-    setData(staticData);
+    setData(chartData);
     setCurrentMonthIndex(new Date().getMonth());
-  }, []);
+  }, [chartData]);
+
 
   useEffect(() => {
     if (scrollContainerRef.current && currentMonthIndex !== null) {
@@ -181,7 +210,7 @@ export function ProjectAnalyticsChart() {
                   <Cell
                     key={`cell-${index}`}
                     fill={getBarColor(entry.total)}
-                    stroke={index === 8 ? 'hsl(var(--primary))' : 'transparent'} // Highlight September
+                    stroke={index === currentMonthIndex ? 'hsl(var(--primary))' : 'transparent'}
                     strokeWidth={2}
                   />
                 ))}
