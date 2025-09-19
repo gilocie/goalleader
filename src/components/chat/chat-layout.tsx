@@ -41,7 +41,7 @@ export function ChatLayout({
       <div
         className={cn(
           'col-span-1 md:col-span-7',
-          !selectedContact && 'hidden md:flex'
+          !selectedContact ? 'hidden' : 'block'
         )}
       >
         {selectedContact ? (
