@@ -2,9 +2,9 @@
 
 import { ChatContactList } from './chat-contact-list';
 import { ChatMessages } from './chat-messages';
-import { useChat } from '@/context/chat-context';
 import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
+import { useChat } from '@/context/chat-context';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -26,8 +26,10 @@ export function ChatLayout({
     <div className="grid grid-cols-10 h-full w-full">
       <div
         className={cn(
-          'col-span-10 md:col-span-3 border-r',
-          selectedContact ? 'hidden md:block' : 'block'
+          'border-r',
+          selectedContact
+            ? 'hidden md:block md:col-span-3'
+            : 'col-span-10'
         )}
       >
         <ChatContactList
@@ -38,7 +40,7 @@ export function ChatLayout({
       </div>
 
       {selectedContact && self && (
-        <div className={cn("col-span-10 md:col-span-7", !selectedContact && "hidden")}>
+        <div className={cn("col-span-10 md:col-span-7")}>
           <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
