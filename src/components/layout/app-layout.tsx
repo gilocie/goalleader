@@ -35,7 +35,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
             "flex flex-1 flex-col relative", 
             !isChatPage && "md:pl-[220px] lg:pl-[280px]"
         )}>
-          <Header />
+          {!isChatPage && <Header />}
           <div className="flex flex-1 flex-col overflow-hidden">
             <main className="flex-1 flex flex-col">{children}</main>
             {!isChatPage && !isMeetingPage && <Footer />}
@@ -47,13 +47,22 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
   }
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isChatPage = pathname === '/chat';
+  
   return (
     <ThemeProvider>
       <TimeTrackerProvider>
         <ReportsProvider>
             <ChatProvider>
                 <NotificationProvider>
+                  {isChatPage ? (
+                    <div className="flex min-h-screen w-full bg-muted/40">
+                      {children}
+                    </div>
+                  ) : (
                     <LayoutWithTracker>{children}</LayoutWithTracker>
+                  )}
                 </NotificationProvider>
             </ChatProvider>
         </ReportsProvider>

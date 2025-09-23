@@ -24,24 +24,14 @@ export function ChatLayout({
   const { self } = useChat();
   return (
     <div className="grid grid-cols-10 h-full w-full">
-      <div
-        className={cn(
-          'border-r col-span-10 md:col-span-3 lg:col-span-2',
-          selectedContact && 'hidden md:block'
-        )}
-      >
+      <div className="col-span-10 md:col-span-3 lg:col-span-2 border-r">
         <ChatContactList
           contacts={contacts}
           onSelectContact={onSelectContact}
           selectedContactId={selectedContact?.id}
         />
       </div>
-      <div
-        className={cn(
-          'col-span-10 md:col-span-7 lg:col-span-8',
-          !selectedContact && 'hidden md:flex'
-        )}
-      >
+      <div className="col-span-10 md:col-span-7 lg:col-span-8">
           {selectedContact ? (
             <ChatMessages
                 messages={messages}
@@ -50,7 +40,7 @@ export function ChatLayout({
                 onSendMessage={onSendMessage}
             />
           ) : (
-             <div className="h-full flex-col items-center justify-center hidden md:flex">
+             <div className="h-full items-center justify-center hidden md:flex">
                 <p className="text-muted-foreground">Select a contact to start chatting</p>
             </div>
           )}
