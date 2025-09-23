@@ -7,7 +7,7 @@ import { ChatPageContent } from '@/components/chat/chat-page-content';
 export default function ChatPage() {
   return (
     <AppLayout>
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden h-full">
         <ChatPageContent />
       </div>
     </AppLayout>

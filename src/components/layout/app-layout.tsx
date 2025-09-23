@@ -29,17 +29,15 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
   
     return (
       <div className={cn(
-          "flex min-h-screen w-full bg-muted/40", 
-          isMeetingPage && 'flex-col',
-          isChatPage && 'flex-col' // Ensure flex-col for chat page
+          "flex min-h-screen w-full bg-muted/40"
       )}>
-        {!isMeetingPage && !isChatPage && <Sidebar />}
+        {!isChatPage && <Sidebar />}
         <div className={cn(
             "flex flex-1 flex-col relative", 
-            !isMeetingPage && !isChatPage && "md:pl-[220px] lg:pl-[280px]"
+            !isChatPage && "md:pl-[220px] lg:pl-[280px]"
         )}>
           <Header />
-          <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 flex-col overflow-hidden">
             <main className="flex-1 flex flex-col">{children}</main>
             {!isChatPage && !isMeetingPage && <Footer />}
           </div>

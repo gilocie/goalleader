@@ -26,10 +26,8 @@ export function ChatLayout({
     <div className="grid grid-cols-10 h-full w-full">
       <div
         className={cn(
-          'border-r',
-          selectedContact
-            ? 'hidden'
-            : 'col-span-10'
+          'border-r col-span-10 md:col-span-3',
+          selectedContact && 'hidden md:block'
         )}
       >
         <ChatContactList
@@ -38,17 +36,25 @@ export function ChatLayout({
           selectedContactId={selectedContact?.id}
         />
       </div>
-
-      {selectedContact && (
-        <div className={cn("col-span-10")}>
-          <ChatMessages
-            messages={messages}
-            selectedContact={selectedContact}
-            onExitChat={() => onSelectContact(null)}
-            onSendMessage={onSendMessage}
-          />
-        </div>
-      )}
+      <div
+        className={cn(
+          'col-span-10 md:col-span-7',
+          !selectedContact && 'hidden md:flex'
+        )}
+      >
+          {selectedContact ? (
+            <ChatMessages
+                messages={messages}
+                selectedContact={selectedContact}
+                onExitChat={() => onSelectContact(null)}
+                onSendMessage={onSendMessage}
+            />
+          ) : (
+             <div className="h-full flex-col items-center justify-center hidden md:flex">
+                <p className="text-muted-foreground">Select a contact to start chatting</p>
+            </div>
+          )}
+      </div>
     </div>
   );
 }
