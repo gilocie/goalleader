@@ -81,6 +81,7 @@ export function ProjectProgress() {
   
   const todaysTasks = tasks.filter(t => t.dueDate && isToday(parseISO(t.dueDate)));
   const completedToday = todaysTasks.filter(t => t.status === 'Completed').length;
+  const remainingTasks = Math.max(0, DAILY_GOAL - completedToday);
   
   useEffect(() => {
     const totalTasksForGoal = Math.max(todaysTasks.length, DAILY_GOAL);
@@ -99,13 +100,22 @@ export function ProjectProgress() {
     return () => clearTimeout(timer);
   }, [completedToday, todaysTasks.length]);
 
+  const getDescription = () => {
+    if (completedToday >= DAILY_GOAL) {
+      return `Excellent work! You've completed ${completedToday} tasks today and met your goal.`;
+    }
+    if (remainingTasks === 1) {
+      return `You've completed ${completedToday} of ${DAILY_GOAL} tasks. Just 1 more to go!`;
+    }
+    return `You've completed ${completedToday} of ${DAILY_GOAL} tasks. Only ${remainingTasks} remaining to hit your goal!`;
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Daily Task Progress</CardTitle>
         <CardDescription>
-          Your challenge today is to create and finish at least {DAILY_GOAL} tasks.
-          You've completed {completedToday} so far.
+          {getDescription()}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex items-center justify-center p-6">
