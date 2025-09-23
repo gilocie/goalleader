@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardHeader } from '@/components/ui/card';
@@ -61,7 +60,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={onExitChat} className="md:hidden z-10">
+                        <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>
