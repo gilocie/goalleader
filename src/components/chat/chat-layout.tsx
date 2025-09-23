@@ -26,8 +26,8 @@ export function ChatLayout({
     <div className="grid grid-cols-10 h-full w-full">
       <div
         className={cn(
-          'col-span-10 md:col-span-3 border-r',
-          selectedContact ? 'hidden md:block' : 'block'
+          'border-r',
+          selectedContact ? 'hidden' : 'block col-span-10'
         )}
       >
         <ChatContactList
@@ -38,7 +38,7 @@ export function ChatLayout({
       </div>
 
       {selectedContact && self && (
-        <div className="col-span-10 md:col-span-7">
+        <div className="col-span-10">
           <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
