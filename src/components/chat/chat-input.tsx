@@ -1,23 +1,21 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Paperclip, Mic, Send, Pause, Play, Trash2, Check } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChatInputProps {
-    onSendMessage: (message: string) => void;
-    onSendVoiceMessage?: (audioUrl: string) => void;
+    onSendMessage: (message: string, type: 'text' | 'audio', audioUrl?: string, duration?: number) => void;
 }
 
-const AudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
+const AudioVisualizer = ({ stream, isRecording }: { stream: MediaStream | null, isRecording: boolean }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
   
     useEffect(() => {
-      if (!stream || !canvasRef.current) return;
+      if (!stream || !canvasRef.current || !isRecording) return;
   
       const audioContext = new AudioContext();
       const analyser = audioContext.createAnalyser();
@@ -72,17 +70,18 @@ const AudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
         cancelAnimationFrame(animationFrameId);
         source.disconnect();
         analyser.disconnect();
+        // Check if context is not already closed to avoid errors
         if (audioContext.state !== 'closed') {
           audioContext.close();
         }
       };
-    }, [stream]);
+    }, [stream, isRecording]);
   
     return <canvas ref={canvasRef} width="150" height="30" className="transition-all duration-300" />;
 };
 
 
-export function ChatInput({ onSendMessage, onSendVoiceMessage }: ChatInputProps) {
+export function ChatInput({ onSendMessage }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'paused'>('idle');
   const [recordingTime, setRecordingTime] = useState(0);
@@ -96,7 +95,7 @@ export function ChatInput({ onSendMessage, onSendVoiceMessage }: ChatInputProps)
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      onSendMessage(message);
+      onSendMessage(message, 'text');
       setMessage('');
     }
   };
@@ -134,6 +133,7 @@ export function ChatInput({ onSendMessage, onSendVoiceMessage }: ChatInputProps)
                 clearInterval(recordingIntervalRef.current);
             }
             stream.getTracks().forEach(track => track.stop());
+            audioStreamRef.current = null;
         };
 
         recorder.start();
@@ -150,20 +150,20 @@ export function ChatInput({ onSendMessage, onSendVoiceMessage }: ChatInputProps)
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && recordingState !== 'idle') {
-        mediaRecorderRef.current.stop();
-        
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        if (onSendVoiceMessage) {
-            onSendVoiceMessage(audioUrl);
-        } else {
-            // Fallback if no voice message handler
-            onSendMessage(`(Voice note: ${recordingTime}s)`);
+        mediaRecorderRef.current.onstop = () => {
+             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            onSendMessage(`Voice Note`, 'audio', audioUrl, recordingTime);
+            
+            if (recordingIntervalRef.current) {
+                clearInterval(recordingIntervalRef.current);
+            }
+            audioStreamRef.current?.getTracks().forEach(track => track.stop());
+            setRecordingState('idle');
+            setRecordingTime(0);
         }
-        
-        setRecordingState('idle');
-        setRecordingTime(0);
+        mediaRecorderRef.current.stop();
     }
   };
   
@@ -181,13 +181,27 @@ export function ChatInput({ onSendMessage, onSendVoiceMessage }: ChatInputProps)
     }
   };
 
-  const cancelRecording = () => {
+  const cancelRecording = useCallback(() => {
     if (mediaRecorderRef.current) {
+        // Remove onstop listener to prevent sending the message
+        mediaRecorderRef.current.onstop = null;
         mediaRecorderRef.current.stop();
     }
+    if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
+    audioStreamRef.current?.getTracks().forEach(track => track.stop());
+
     setRecordingState('idle');
     setRecordingTime(0);
-  };
+  }, []);
+
+  useEffect(() => {
+      return () => {
+          // Cleanup on unmount
+          if (recordingState !== 'idle') {
+            cancelRecording();
+          }
+      }
+  }, [recordingState, cancelRecording]);
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -208,7 +222,7 @@ export function ChatInput({ onSendMessage, onSendVoiceMessage }: ChatInputProps)
                 </Button>
             </div>
             <div className="flex items-center gap-2">
-                <AudioVisualizer stream={audioStreamRef.current} />
+                <AudioVisualizer stream={audioStreamRef.current} isRecording={recordingState === 'recording'} />
                 <span className="text-sm font-mono text-muted-foreground w-12">{formatTime(recordingTime)}</span>
             </div>
             <Button size="icon" className="h-8 w-8 bg-primary text-primary-foreground" onClick={stopRecording}>

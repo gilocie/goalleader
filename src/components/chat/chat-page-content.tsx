@@ -1,7 +1,8 @@
+
 'use client';
 
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { Contact } from '@/types/chat';
+import type { Contact, Message } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
 
 export function ChatPageContent() {
@@ -15,9 +16,13 @@ export function ChatPageContent() {
       )
     : [];
   
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = (content: string, type: 'text' | 'audio', audioUrl?: string, duration?: number) => {
     if (selectedContact) {
-      addMessage(message, selectedContact.id);
+      const messageData: Partial<Message> = {
+        audioUrl,
+        audioDuration: duration,
+      };
+      addMessage(content, selectedContact.id, type, messageData);
     }
   };
 

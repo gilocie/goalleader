@@ -1,9 +1,10 @@
+
 'use client';
 
 import { Card, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2 } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -20,12 +21,76 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
+import { useRef, useState } from 'react';
+
+interface AudioPlayerProps {
+    audioUrl: string;
+    duration: number;
+    isSelf: boolean;
+}
+
+const AudioPlayer = ({ audioUrl, duration, isSelf }: AudioPlayerProps) => {
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    const togglePlay = () => {
+        if (audioRef.current) {
+            if (isPlaying) {
+                audioRef.current.pause();
+            } else {
+                audioRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    };
+
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            const newProgress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
+            setProgress(newProgress);
+        }
+    };
+
+    const handleEnded = () => {
+        setIsPlaying(false);
+        setProgress(0);
+    };
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <audio
+                ref={audioRef}
+                src={audioUrl}
+                onTimeUpdate={handleTimeUpdate}
+                onEnded={handleEnded}
+                preload="metadata"
+            />
+            <Button variant="ghost" size="icon" onClick={togglePlay} className={cn("h-8 w-8 rounded-full", isSelf ? 'text-primary-foreground hover:bg-white/20' : 'text-primary')}>
+                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+            <div className="w-24 h-1 bg-muted-foreground/30 rounded-full relative">
+                <div 
+                    className={cn("h-1 rounded-full absolute", isSelf ? 'bg-primary-foreground' : 'bg-primary')}
+                    style={{ width: `${progress}%` }}
+                ></div>
+            </div>
+            <span className={cn("text-xs w-10", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground' )}>{formatTime(duration)}</span>
+        </div>
+    );
+};
 
 interface ChatMessagesProps {
   messages: Message[];
   selectedContact: Contact;
   onExitChat?: () => void;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, type: 'text' | 'audio', audioUrl?: string, duration?: number) => void;
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage }: ChatMessagesProps) {
@@ -134,13 +199,18 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
               )}
               <div
                 className={cn(
-                  'max-w-[70%] rounded-lg p-3 text-sm whitespace-pre-wrap',
+                  'max-w-[70%] rounded-lg p-3 text-sm',
                   message.senderId === self.id
                     ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted rounded-bl-none'
+                    : 'bg-muted rounded-bl-none',
+                  message.type !== 'audio' && 'whitespace-pre-wrap'
                 )}
               >
-                <p>{message.content}</p>
+                {message.type === 'audio' && message.audioUrl && message.audioDuration ? (
+                    <AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} />
+                ) : (
+                    <p>{message.content}</p>
+                )}
                  <div className={cn("text-xs mt-1 flex items-center justify-end gap-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                     <span>{message.timestamp}</span>
                     {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
