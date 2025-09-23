@@ -17,7 +17,7 @@ import { Separator } from '@/components/ui/separator';
 const teamMembers = [
   {
     id: 'patrick-achitabwino-m1',
-    name: 'Jane Doe (You)',
+    name: 'Patrick Achitabwino (You)',
     role: 'Consultant',
     status: 'online',
   },

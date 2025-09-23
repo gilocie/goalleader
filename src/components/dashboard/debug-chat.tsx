@@ -46,11 +46,11 @@ export function DashboardChat() {
   useEffect(() => {
     const fetchInitialMessage = async () => {
         try {
-            const initialMessageContent = await getInitialMessage({ name: 'Jane' });
+            const initialMessageContent = await getInitialMessage({ name: 'Patrick' });
             setMessages([{ role: 'assistant', content: initialMessageContent }]);
         } catch (error) {
             console.error("Failed to fetch initial message:", error);
-            setMessages([{ role: 'assistant', content: "Hi Jane! I had a little trouble starting up, but I'm ready to help now." }]);
+            setMessages([{ role: 'assistant', content: "Hi Patrick! I had a little trouble starting up, but I'm ready to help now." }]);
         } finally {
             setIsFirstMessageLoading(false);
         }
