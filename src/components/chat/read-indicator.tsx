@@ -8,10 +8,18 @@ import type { Message } from '@/types/chat';
 interface ReadIndicatorProps {
   status?: Message['readStatus'];
   className?: string;
+  isSelf?: boolean;
 }
 
-export function ReadIndicator({ status, className }: ReadIndicatorProps) {
+export function ReadIndicator({ status, className, isSelf = false }: ReadIndicatorProps) {
   if (!status) return null;
+
+  const getReadColor = () => {
+    if (status === 'read') {
+      return isSelf ? 'text-primary-foreground' : 'text-blue-500';
+    }
+    return 'text-muted-foreground';
+  }
 
   switch (status) {
     case 'sent':
@@ -19,7 +27,7 @@ export function ReadIndicator({ status, className }: ReadIndicatorProps) {
     case 'delivered':
       return <CheckCheck className={cn('h-4 w-4 text-muted-foreground', className)} />;
     case 'read':
-      return <CheckCheck className={cn('h-4 w-4 text-blue-500', className)} />;
+      return <CheckCheck className={cn('h-4 w-4', getReadColor(), className)} />;
     default:
       return null;
   }

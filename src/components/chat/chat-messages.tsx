@@ -137,7 +137,7 @@ export function ChatMessages({ messages, selectedContact, self, onExitChat, onSe
                 <p>{message.content}</p>
                  <div className={cn("text-xs mt-1 flex items-center justify-end gap-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                     <span>{message.timestamp}</span>
-                    {message.senderId === self.id && <ReadIndicator status={message.readStatus} />}
+                    {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
                 </div>
               </div>
               {message.senderId === self.id && (
