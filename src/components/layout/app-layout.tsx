@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ReactNode } from 'react';
@@ -27,16 +28,14 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     }
   
     return (
-      <div className={cn(
-          "flex min-h-screen w-full bg-muted/40",
-      )}>
-        {!isChatPage && <Sidebar />}
+      <div className={cn("flex min-h-screen w-full bg-muted/40", isMeetingPage && 'flex-col')}>
+        {!isMeetingPage && <Sidebar />}
         <div className={cn(
             "flex flex-1 flex-col relative", 
-            !isChatPage && "md:pl-[220px] lg:pl-[280px]"
+            !isMeetingPage && "md:pl-[220px] lg:pl-[280px]"
         )}>
-          {!isChatPage && <Header />}
-          <div className="flex flex-1 flex-col overflow-hidden">
+          <Header />
+          <div className="flex flex-1 flex-col">
             <main className="flex-1 flex flex-col">{children}</main>
             {!isChatPage && !isMeetingPage && <Footer />}
           </div>
@@ -47,22 +46,13 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
   }
 
 export function AppLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  const isChatPage = pathname === '/chat';
-  
   return (
     <ThemeProvider>
       <TimeTrackerProvider>
         <ReportsProvider>
             <ChatProvider>
                 <NotificationProvider>
-                  {isChatPage ? (
-                    <div className="flex min-h-screen w-full bg-muted/40">
-                      {children}
-                    </div>
-                  ) : (
                     <LayoutWithTracker>{children}</LayoutWithTracker>
-                  )}
                 </NotificationProvider>
             </ChatProvider>
         </ReportsProvider>
