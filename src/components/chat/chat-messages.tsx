@@ -61,7 +61,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" onClick={onExitChat} className="md:hidden">
+                        <Button variant="ghost" size="icon" onClick={onExitChat} className="md:hidden z-10">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>
@@ -137,7 +137,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 className={cn(
                   'max-w-[70%] rounded-lg p-3 text-sm whitespace-pre-wrap',
                   message.senderId === self.id
-                    ? 'bg-primary text-primary-foreground rounded-br-none'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-muted rounded-bl-none'
                 )}
               >
