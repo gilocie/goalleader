@@ -20,18 +20,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { useChat } from '@/context/chat-context';
 
 interface ChatMessagesProps {
   messages: Message[];
   selectedContact: Contact;
-  self: Contact;
   onExitChat?: () => void;
   onSendMessage: (message: string) => void;
 }
 
-export function ChatMessages({ messages, selectedContact, self, onExitChat, onSendMessage }: ChatMessagesProps) {
+export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage }: ChatMessagesProps) {
+  const { self } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
-  const selfAvatar = PlaceHolderImages.find((img) => img.id === self.id);
+  const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
 
   const handleCallClick = () => {
@@ -48,20 +49,26 @@ export function ChatMessages({ messages, selectedContact, self, onExitChat, onSe
     });
   };
 
+  if (!self) {
+    return null; // Or a loading state
+  }
+
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                  <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={onExitChat} className="md:hidden">
-                          <ArrowLeft className="h-5 w-5" />
-                      </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Back to contacts</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {onExitChat && (
+                <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={onExitChat} className="md:hidden">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Back to contacts</TooltipContent>
+                </Tooltip>
+                </TooltipProvider>
+            )}
           <div className="relative">
             <Avatar className="h-10 w-10">
               <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
