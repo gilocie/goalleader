@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ReactNode } from 'react';
@@ -29,7 +28,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
   
     return (
       <div className={cn(
-          "flex min-h-screen w-full bg-muted/40"
+          "flex min-h-screen w-full bg-muted/40",
       )}>
         {!isChatPage && <Sidebar />}
         <div className={cn(
