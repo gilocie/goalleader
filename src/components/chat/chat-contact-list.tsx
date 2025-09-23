@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Card, CardHeader } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -11,7 +11,6 @@ import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ReadIndicator } from './read-indicator';
 import { Badge } from '../ui/badge';
-import { useChat } from '@/context/chat-context';
 
 interface ChatContactListProps {
   contacts: Contact[];
@@ -19,31 +18,11 @@ interface ChatContactListProps {
   selectedContactId?: string | null;
 }
 
-const UserProfileHeader = () => {
-  const { self } = useChat();
-  const avatar = PlaceHolderImages.find((img) => img.id === self?.id);
-
-  if (!self) return null;
-
-  return (
-    <div className="flex items-center gap-3 p-4 border-b">
-      <Avatar className="h-10 w-10">
-        <AvatarImage src={avatar?.imageUrl} alt={self.name} data-ai-hint={avatar?.imageHint} />
-        <AvatarFallback>{self.name.slice(0, 2)}</AvatarFallback>
-      </Avatar>
-      <div className="flex-1">
-        <p className="font-semibold text-sm">{self.name}</p>
-        <p className="text-xs text-muted-foreground">{self.role}</p>
-      </div>
-    </div>
-  )
-}
-
 export function ChatContactList({ contacts, onSelectContact, selectedContactId }: ChatContactListProps) {
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
-      <UserProfileHeader />
       <CardHeader className="p-4 border-b">
+        <CardTitle className="text-xl mb-4">Chats</CardTitle>
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search..." className="w-full pl-8" />
