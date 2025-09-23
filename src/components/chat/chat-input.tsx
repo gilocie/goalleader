@@ -3,19 +3,36 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Mic, Send, Pause, Play, Trash2, Check } from 'lucide-react';
+import { Paperclip, Mic, Send, X } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface ChatInputProps {
     onSendMessage: (message: string, type: 'text' | 'audio', audioUrl?: string, duration?: number) => void;
 }
 
-const AudioVisualizer = ({ stream, isRecording }: { stream: MediaStream | null, isRecording: boolean }) => {
+const AudioWaveform = ({ stream, isRecording }: { stream: MediaStream | null, isRecording: boolean }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
   
     useEffect(() => {
-      if (!stream || !canvasRef.current || !isRecording) return;
+      if (!stream || !canvasRef.current || !isRecording) {
+        // Show static waveform when not recording
+        if (canvasRef.current && !isRecording) {
+          const canvas = canvasRef.current;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#e2e8f0';
+            // Draw static bars
+            for (let i = 0; i < 40; i++) {
+              const height = Math.random() * 30 + 5;
+              ctx.fillRect(i * 8, (canvas.height - height) / 2, 4, height);
+            }
+          }
+        }
+        return;
+      }
   
       const audioContext = new AudioContext();
       const analyser = audioContext.createAnalyser();
@@ -35,33 +52,17 @@ const AudioVisualizer = ({ stream, isRecording }: { stream: MediaStream | null, 
       const draw = () => {
         animationFrameId = requestAnimationFrame(draw);
   
-        analyser.getByteTimeDomainData(dataArray);
+        analyser.getByteFrequencyData(dataArray);
   
-        canvasCtx.fillStyle = 'hsl(var(--background))';
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
   
-        canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = 'hsl(var(--primary))';
-        canvasCtx.beginPath();
-  
-        const sliceWidth = (canvas.width * 1.0) / bufferLength;
-        let x = 0;
-  
-        for (let i = 0; i < bufferLength; i++) {
-          const v = dataArray[i] / 128.0;
-          const y = (v * canvas.height) / 2;
-  
-          if (i === 0) {
-            canvasCtx.moveTo(x, y);
-          } else {
-            canvasCtx.lineTo(x, y);
-          }
-  
-          x += sliceWidth;
+        // Draw waveform bars
+        const barWidth = canvas.width / 40;
+        for (let i = 0; i < 40; i++) {
+          const barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
+          canvasCtx.fillStyle = i < 20 ? '#6366f1' : '#e2e8f0'; // Blue for active, gray for inactive
+          canvasCtx.fillRect(i * barWidth, (canvas.height - barHeight) / 2, barWidth - 2, barHeight || 4);
         }
-  
-        canvasCtx.lineTo(canvas.width, canvas.height / 2);
-        canvasCtx.stroke();
       };
   
       draw();
@@ -70,21 +71,100 @@ const AudioVisualizer = ({ stream, isRecording }: { stream: MediaStream | null, 
         cancelAnimationFrame(animationFrameId);
         source.disconnect();
         analyser.disconnect();
-        // Check if context is not already closed to avoid errors
         if (audioContext.state !== 'closed') {
           audioContext.close();
         }
       };
     }, [stream, isRecording]);
   
-    return <canvas ref={canvasRef} width="150" height="30" className="transition-all duration-300" />;
+    return (
+      <canvas 
+        ref={canvasRef} 
+        width="320" 
+        height="60" 
+        className="transition-all duration-300" 
+      />
+    );
 };
 
+const VoiceRecordingDialog = ({ 
+  isOpen, 
+  onClose, 
+  onSend, 
+  stream, 
+  isRecording, 
+  recordingTime 
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSend: () => void;
+  stream: MediaStream | null;
+  isRecording: boolean;
+  recordingTime: number;
+}) => {
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}.${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md p-8 bg-gradient-to-br from-indigo-50 to-purple-50 border-0 shadow-2xl">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Record Voice Note</DialogTitle>
+          <DialogDescription>
+            A dialog for recording a voice note. You can stop, cancel, or send the recording.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col items-center space-y-6">
+          <h3 className="text-xl font-semibold text-gray-800">Voice Note</h3>
+          
+          <div className="w-full flex justify-center">
+            <AudioWaveform stream={stream} isRecording={isRecording} />
+          </div>
+          
+          <div className="text-2xl font-mono text-gray-700">
+            {formatTime(recordingTime)}
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-12 h-12 rounded-full border-gray-300 hover:bg-gray-100"
+              onClick={onClose}
+            >
+              <X className="h-5 w-5 text-gray-600" />
+            </Button>
+            
+            <Button
+              size="icon"
+              className="w-16 h-16 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg"
+            >
+              <Mic className="h-6 w-6" />
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-12 h-12 rounded-full border-gray-300 hover:bg-gray-100"
+              onClick={onSend}
+            >
+              <Send className="h-5 w-5 text-gray-600" />
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export function ChatInput({ onSendMessage }: ChatInputProps) {
   const [message, setMessage] = useState('');
-  const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'paused'>('idle');
+  const [recordingState, setRecordingState] = useState<'idle' | 'recording'>('idle');
   const [recordingTime, setRecordingTime] = useState(0);
+  const [showRecordingDialog, setShowRecordingDialog] = useState(false);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
@@ -122,6 +202,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
         
         recorder.onstart = () => {
             setRecordingState('recording');
+            setShowRecordingDialog(true);
             setRecordingTime(0);
             recordingIntervalRef.current = setInterval(() => {
                 setRecordingTime(prev => prev + 1);
@@ -149,9 +230,9 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && recordingState !== 'idle') {
+    if (mediaRecorderRef.current && recordingState === 'recording') {
         mediaRecorderRef.current.onstop = () => {
-             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
             const audioUrl = URL.createObjectURL(audioBlob);
             
             onSendMessage(`Voice Note`, 'audio', audioUrl, recordingTime);
@@ -162,28 +243,14 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
             audioStreamRef.current?.getTracks().forEach(track => track.stop());
             setRecordingState('idle');
             setRecordingTime(0);
+            setShowRecordingDialog(false);
         }
         mediaRecorderRef.current.stop();
-    }
-  };
-  
-  const pauseOrResumeRecording = () => {
-    if (recordingState === 'recording') {
-        mediaRecorderRef.current?.pause();
-        setRecordingState('paused');
-        if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
-    } else if (recordingState === 'paused') {
-        mediaRecorderRef.current?.resume();
-        setRecordingState('recording');
-        recordingIntervalRef.current = setInterval(() => {
-            setRecordingTime(prev => prev + 1);
-        }, 1000);
     }
   };
 
   const cancelRecording = useCallback(() => {
     if (mediaRecorderRef.current) {
-        // Remove onstop listener to prevent sending the message
         mediaRecorderRef.current.onstop = null;
         mediaRecorderRef.current.stop();
     }
@@ -192,68 +259,54 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
 
     setRecordingState('idle');
     setRecordingTime(0);
+    setShowRecordingDialog(false);
   }, []);
 
   useEffect(() => {
       return () => {
-          // Cleanup on unmount
-          if (recordingState !== 'idle') {
+          if (recordingState === 'recording') {
             cancelRecording();
           }
       }
   }, [recordingState, cancelRecording]);
-  
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-
-  if (recordingState !== 'idle') {
-    return (
-        <div className="flex items-center justify-between w-full h-10 px-3 py-2 rounded-md border border-input bg-background">
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={cancelRecording}>
-                    <Trash2 />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={pauseOrResumeRecording}>
-                    {recordingState === 'recording' ? <Pause className="text-primary" /> : <Play className="text-primary" />}
-                </Button>
-            </div>
-            <div className="flex items-center gap-2">
-                <AudioVisualizer stream={audioStreamRef.current} isRecording={recordingState === 'recording'} />
-                <span className="text-sm font-mono text-muted-foreground w-12">{formatTime(recordingTime)}</span>
-            </div>
-            <Button size="icon" className="h-8 w-8 bg-primary text-primary-foreground" onClick={stopRecording}>
-                <Check />
-            </Button>
-        </div>
-    );
-  }
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
-      <Textarea
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Type a message..."
-        className="pr-24 pl-20 min-h-[40px] h-10 max-h-40 resize-none"
-        rows={1}
+    <>
+      <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
+        <Textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Type a message..."
+          className="pr-24 pl-20 min-h-[40px] h-10 max-h-40 resize-none"
+          rows={1}
+        />
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <Button variant="ghost" size="icon" type="button">
+            <Paperclip className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="icon" type="button" onClick={startRecording}>
+            <Mic className="h-4 w-4" />
+          </Button>
+        </div>
+        <Button 
+          type="submit" 
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90" 
+          disabled={!message.trim()}
+        >
+          <Send className="h-4 w-4 mr-2" />
+          Send
+        </Button>
+      </form>
+
+      <VoiceRecordingDialog
+        isOpen={showRecordingDialog}
+        onClose={cancelRecording}
+        onSend={stopRecording}
+        stream={audioStreamRef.current}
+        isRecording={recordingState === 'recording'}
+        recordingTime={recordingTime}
       />
-      <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-        <Button variant="ghost" size="icon" type="button">
-          <Paperclip className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" type="button" onClick={startRecording}>
-          <Mic className="h-4 w-4" />
-        </Button>
-      </div>
-       <Button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90" disabled={!message.trim()}>
-            <Send className="h-4 w-4 mr-2" />
-            Send
-        </Button>
-    </form>
+    </>
   );
 }
