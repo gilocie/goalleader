@@ -22,7 +22,6 @@ export function ChatLayout({
   onSelectContact,
   onSendMessage,
 }: ChatLayoutProps) {
-  const { self } = useChat();
   
   return (
     <div className="grid grid-cols-10 h-full w-full">
@@ -43,7 +42,7 @@ export function ChatLayout({
         'col-span-10 md:col-span-7 lg:col-span-7',
         !selectedContact && 'hidden md:block'
       )}>
-        {selectedContact && self ? (
+        {selectedContact ? (
             <ChatMessages
                 messages={messages}
                 selectedContact={selectedContact}
