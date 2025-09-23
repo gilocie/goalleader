@@ -28,7 +28,7 @@ export function ChatLayout({
         className={cn(
           'border-r',
           selectedContact
-            ? 'hidden md:block md:col-span-3'
+            ? 'hidden'
             : 'col-span-10'
         )}
       >
@@ -39,8 +39,8 @@ export function ChatLayout({
         />
       </div>
 
-      {selectedContact && self && (
-        <div className={cn("col-span-10 md:col-span-7")}>
+      {selectedContact && (
+        <div className={cn("col-span-10")}>
           <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
