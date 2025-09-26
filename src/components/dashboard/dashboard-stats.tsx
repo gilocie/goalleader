@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUpRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
 import { useTimeTracker } from '@/context/time-tracker-context';
@@ -18,6 +18,11 @@ export function DashboardStats() {
   const [openCard, setOpenCard] = useState<string | null>(null);
   const isMobileOrTablet = useIsMobileOrTablet();
   const { tasks } = useTimeTracker();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const stats = useMemo(() => {
     const totalProjects = tasks.length;
@@ -68,7 +73,7 @@ export function DashboardStats() {
           onOpenChange={isMobileOrTablet ? () => toggleCard(stat.title) : undefined}
           asChild
         >
-            <Card className="relative bg-primary text-primary-foreground p-4 flex flex-col justify-between">
+            <Card className="relative bg-gradient-to-br from-primary to-primary-dark text-primary-foreground p-4 flex flex-col justify-between aspect-square">
              <div className="flex justify-between items-start">
                 <CardTitle className="text-base font-medium">{stat.title}</CardTitle>
                 <Button
@@ -80,8 +85,14 @@ export function DashboardStats() {
                 </Button>
              </div>
 
-             <div>
-                <div className="text-4xl font-bold">{stat.value}</div>
+             <div className="text-center">
+                {isClient ? (
+                    <div className="text-5xl font-bold">{stat.value}</div>
+                ) : (
+                    <div className="text-5xl font-bold flex items-center justify-center">
+                        <Loader2 className="h-12 w-12 animate-spin" />
+                    </div>
+                )}
                 <CollapsibleContent>
                     <p className="text-xs text-green-100 mt-1">{stat.description}</p>
                 </CollapsibleContent>
@@ -96,6 +107,8 @@ export function DashboardStats() {
                   </button>
               </CollapsibleTrigger>
             )}
+             {/* Empty div to balance flexbox */}
+             <div />
             </Card>
         </Collapsible>
       ))}
