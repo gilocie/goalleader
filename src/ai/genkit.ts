@@ -102,7 +102,7 @@ export async function testConnection() {
   try {
     const testPrompt = ai.definePrompt({
       name: 'testPrompt',
-      model: googleAI.model('gemini-pro'),
+      model: googleAI.model('gemini-1.5-flash-latest'),
       input: { schema: z.string() },
       output: { schema: z.string() },
       config: {
