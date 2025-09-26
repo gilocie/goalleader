@@ -159,7 +159,7 @@ function UserManagementTabContent() {
                                         <TableCell className="py-2">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className='h-8 w-8'>
-                                                    <AvatarImage src={avatar?.imageUrl} alt={user.label} className='object-top' />
+                                                    <AvatarImage src={avatar?.imageUrl} alt={user.label} className='object-cover object-top' />
                                                     <AvatarFallback>{user.label.slice(0, 2)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
