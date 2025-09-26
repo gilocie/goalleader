@@ -10,43 +10,44 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Camera, PlusCircle, Trash2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { useTheme } from '@/context/theme-provider';
 
 type Kpi = {
   id: number;
   value: string;
 };
 
-export function ProfilePageContent() {
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
-  const [kpis, setKpis] = useState<Kpi[]>([
-    { id: 1, value: '' },
-    { id: 2, value: '' },
-    { id: 3, value: '' },
-  ]);
+function ProfileTabContent() {
+    const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
+    const [kpis, setKpis] = useState<Kpi[]>([
+        { id: 1, value: '' },
+        { id: 2, value: '' },
+        { id: 3, value: '' },
+    ]);
 
-  const addKpi = () => {
-    setKpis([...kpis, { id: Date.now(), value: '' }]);
-  };
+    const addKpi = () => {
+        setKpis([...kpis, { id: Date.now(), value: '' }]);
+    };
 
-  const removeKpi = (id: number) => {
-    setKpis(kpis.filter((kpi) => kpi.id !== id));
-  };
+    const removeKpi = (id: number) => {
+        setKpis(kpis.filter((kpi) => kpi.id !== id));
+    };
 
-  const handleKpiChange = (id: number, value: string) => {
-    setKpis(kpis.map((kpi) => (kpi.id === id ? { ...kpi, value } : kpi)));
-  };
+    const handleKpiChange = (id: number, value: string) => {
+        setKpis(kpis.map((kpi) => (kpi.id === id ? { ...kpi, value } : kpi)));
+    };
 
-  const getKpiLabel = (index: number) => {
-    if (index === 0) return 'Primary KPI';
-    if (index === 1) return 'Secondary KPI';
-    if (index === 2) return 'Tertiary KPI';
-    return `KPI #${index + 1}`;
-  }
+    const getKpiLabel = (index: number) => {
+        if (index === 0) return 'Primary KPI';
+        if (index === 1) return 'Secondary KPI';
+        if (index === 2) return 'Tertiary KPI';
+        return `KPI #${index + 1}`;
+    }
 
-
-  return (
-    <main className="flex-grow p-4 md:p-8">
-      <div className="grid gap-8 lg:grid-cols-3">
+    return (
+        <div className="grid gap-8 lg:grid-cols-3">
         {/* Left Column: Profile Picture and Details */}
         <div className="lg:col-span-1 space-y-8">
           <Card>
@@ -169,6 +170,84 @@ export function ProfilePageContent() {
           </div>
         </div>
       </div>
+    );
+}
+
+
+function SettingsTabContent() {
+    const { theme, setTheme } = useTheme();
+
+    return (
+        <div className="space-y-8 max-w-4xl mx-auto">
+             <Card>
+                <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                    <CardDescription>Customize the look and feel of the application.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="theme-switch">
+                            <span className="font-semibold">Theme</span>
+                            <p className="text-sm text-muted-foreground">Switch between light and dark mode.</p>
+                        </Label>
+                        <div className="flex items-center gap-4">
+                            <span>Light</span>
+                            <Switch
+                                id="theme-switch"
+                                checked={theme === 'dark'}
+                                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+                            />
+                            <span>Dark</span>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Notifications</CardTitle>
+                    <CardDescription>Manage how you receive notifications.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="flex items-center justify-between">
+                        <Label htmlFor="email-notifications">
+                            <span className="font-semibold">Email Notifications</span>
+                            <p className="text-sm text-muted-foreground">Receive updates and alerts in your inbox.</p>
+                        </Label>
+                        <Switch id="email-notifications" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="push-notifications">
+                             <span className="font-semibold">Push Notifications</span>
+                            <p className="text-sm text-muted-foreground">Get notified directly on your device.</p>
+                        </Label>
+                        <Switch id="push-notifications" defaultChecked />
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="flex justify-end">
+                <Button>Save Settings</Button>
+            </div>
+        </div>
+    )
+}
+
+export function ProfilePageContent() {
+  return (
+    <main className="flex-grow p-4 md:p-8">
+        <Tabs defaultValue="profile">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList>
+            <TabsContent value="profile">
+                <ProfileTabContent />
+            </TabsContent>
+            <TabsContent value="settings">
+                <SettingsTabContent />
+            </TabsContent>
+        </Tabs>
     </main>
   );
 }

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, ChevronLeft, Bell, MessageSquare, User } from 'lucide-react';
+import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useParams } from 'next/navigation';
 
@@ -145,7 +145,12 @@ export function Header() {
               <span>Profile</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/profile?tab=settings">
+              <Settings className="mr-2 h-4 w-4" />
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Logout</DropdownMenuItem>
