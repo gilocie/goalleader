@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -43,14 +44,12 @@ export function MultiSelectCombobox({
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState('');
-  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const handleSelect = React.useCallback((value: string) => {
     const newSelected = selected.includes(value)
       ? selected.filter((item) => item !== value)
       : [...selected, value];
     onChange(newSelected);
-    setSearchValue('');
   }, [selected, onChange]);
 
   const handleRemove = React.useCallback((value: string) => {
@@ -63,105 +62,98 @@ export function MultiSelectCombobox({
     } else {
       onChange(options.map((option) => option.value));
     }
-    setSearchValue('');
   }, [selected.length, options, onChange]);
 
   return (
-    <div ref={containerRef}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className={cn('w-full justify-between h-auto min-h-10', className)}
-          >
-            <div className="flex gap-1 flex-wrap">
-              {selected.length > 0 ? (
-                options
-                  .filter((option) => selected.includes(option.value))
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className={cn('w-full justify-between h-auto min-h-10', className)}
+        >
+          <div className="flex gap-1 flex-wrap">
+            {selected.length > 0 ? (
+              options
+                .filter((option) => selected.includes(option.value))
+                .map((option) => (
+                  <Badge
+                    variant="secondary"
+                    key={option.value}
+                    className="mr-1 mb-1 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove(option.value);
+                    }}
+                  >
+                    {option.label}
+                    <X className="ml-1 h-3 w-3" />
+                  </Badge>
+                ))
+            ) : (
+              <span className="text-muted-foreground">{placeholder}</span>
+            )}
+          </div>
+          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverPortal>
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] p-0 max-h-[280px] overflow-hidden"
+          side="bottom"
+          align="start"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <Command shouldFilter={false}>
+            <CommandInput 
+              placeholder="Search..." 
+              className="h-9" 
+              value={searchValue}
+              onValueChange={setSearchValue}
+            />
+            <CommandList>
+              <CommandEmpty>No options found.</CommandEmpty>
+              <CommandGroup>
+                <CommandItem
+                  value="select-all"
+                  onSelect={handleSelectAll}
+                  className="cursor-pointer"
+                >
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      selected.length === options.length ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                  {selected.length === options.length ? 'Unselect all' : 'Select all'}
+                </CommandItem>
+                <CommandSeparator />
+                {options
+                  .filter(option => 
+                    option.label.toLowerCase().includes(searchValue.toLowerCase())
+                  )
                   .map((option) => (
-                    <Badge
-                      variant="secondary"
-                      key={option.value}
-                      className="mr-1 mb-1 cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemove(option.value);
-                      }}
-                    >
-                      {option.label}
-                      <X className="ml-1 h-3 w-3" />
-                    </Badge>
-                  ))
-              ) : (
-                <span className="text-muted-foreground">{placeholder}</span>
-              )}
-            </div>
-            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverPortal container={containerRef.current}>
-            <PopoverContent
-              className="w-[var(--radix-popover-trigger-width)] p-0 max-h-[280px] overflow-hidden border shadow-lg"
-              side="bottom"
-              align="start"
-              sideOffset={4}
-              avoidCollisions={true}
-              onOpenAutoFocus={(e) => e.preventDefault()}
-            >
-              <Command shouldFilter={false}>
-                <CommandInput 
-                  placeholder="Search..." 
-                  className="h-9" 
-                  value={searchValue}
-                  onValueChange={setSearchValue}
-                />
-                <CommandList className="max-h-[220px] overflow-y-auto">
-                  <CommandEmpty>No options found.</CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem
-                      value="select-all"
-                      onSelect={() => handleSelectAll()}
-                      className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          selected.length === options.length ? 'opacity-100' : 'opacity-0'
-                        )}
-                      />
-                      {selected.length === options.length ? 'Unselect all' : 'Select all'}
-                    </CommandItem>
-                    <CommandSeparator />
-                    {options
-                      .filter(option => 
-                        option.label.toLowerCase().includes(searchValue.toLowerCase())
-                      )
-                      .map((option) => (
-                      <CommandItem
-                        key={option.value}
-                        value={option.value}
-                        onSelect={(currentValue) => {
-                          handleSelect(currentValue);
-                        }}
-                        className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                      >
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4',
-                            selected.includes(option.value) ? 'opacity-100' : 'opacity-0'
-                          )}
-                        />
-                        {option.label}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-        </PopoverPortal>
-      </Popover>
-    </div>
+                  <CommandItem
+                    key={option.value}
+                    value={option.value}
+                    onSelect={handleSelect}
+                    className="cursor-pointer"
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        selected.includes(option.value) ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </PopoverPortal>
+    </Popover>
   );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -82,7 +83,7 @@ export function CreateNoticeDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogChange}>
-      <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0 flex-shrink-0">
           <DialogTitle>Create New Notice</DialogTitle>
           <DialogDescription>
@@ -159,7 +160,7 @@ export function CreateNoticeDialog({
           <Button
             type="submit"
             onClick={form.handleSubmit(onSubmit)}
-            disabled={!sendToAll && !form.watch('recipients').length}
+            disabled={!sendToAll && form.watch('recipients').length === 0}
             className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
           >
             Send Notice
