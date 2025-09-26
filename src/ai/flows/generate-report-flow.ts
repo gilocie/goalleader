@@ -54,7 +54,7 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
 // -----------------------
 const reportPrompt = ai.definePrompt({
   name: 'generateReportPrompt',
-  model: googleAI.model('models/gemini-1.5-flash'),
+  model: googleAI.model('gemini-1.5-flash-preview-0514'),
   input: { schema: GenerateReportInputSchema },
   output: { schema: GenerateReportOutputSchema },
   config: {

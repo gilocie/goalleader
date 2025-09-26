@@ -43,7 +43,7 @@ export async function getTaskSuggestions(input: TaskSuggestionInput): Promise<Ta
 
 const prompt = ai.definePrompt({
   name: 'taskSuggestionPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('gemini-1.5-flash-preview-0514'),
   input: { schema: TaskSuggestionInputSchema },
   output: { schema: TaskSuggestionOutputSchema },
   prompt: `You are an assistant for GoalLeader, a project management tool.

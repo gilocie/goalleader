@@ -30,7 +30,7 @@ export async function generateMarketingContent(input: GenerateMarketingContentIn
 
 const prompt = ai.definePrompt({
   name: 'generateMarketingContentPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('gemini-1.5-flash-preview-0514'),
   input: { schema: GenerateMarketingContentInputSchema },
   output: { schema: GenerateMarketingContentOutputSchema },
   prompt: `You are a creative and effective marketing assistant. Your task is to generate 3 distinct sets of marketing materials for the following topic.
