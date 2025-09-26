@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -49,7 +50,7 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 // --------------------------
 const conversationalPrompt = ai.definePrompt({
   name: 'conversationalChatPrompt',
-  model: googleAI.model('gemini-pro'),
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: { schema: ChatInputSchema },
   output: { schema: ChatOutputSchema },
   config: {

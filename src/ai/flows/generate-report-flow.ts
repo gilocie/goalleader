@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate a structured performance report based on completed tasks.
@@ -53,7 +54,7 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
 // -----------------------
 const reportPrompt = ai.definePrompt({
   name: 'generateReportPrompt',
-  model: googleAI.model('gemini-pro'),
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: { schema: GenerateReportInputSchema },
   output: { schema: GenerateReportOutputSchema },
   config: {

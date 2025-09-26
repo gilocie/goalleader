@@ -26,7 +26,7 @@ export async function getInitialMessage(input: InitialMessageInput): Promise<Ini
 
 const prompt = ai.definePrompt({
   name: 'initialMessagePrompt',
-  model: googleAI.model('gemini-pro'),
+  model: googleAI.model('gemini-1.5-flash-latest'),
   input: { schema: InitialMessageInputSchema },
   output: { schema: InitialMessageOutputSchema },
   prompt: `You are GoalLeader, an expert productivity coach and AI assistant. 
