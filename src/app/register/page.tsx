@@ -10,15 +10,15 @@ import Link from 'next/link';
 export default function RegisterPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="space-y-1 text-center">
-            <div className="flex justify-center pb-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+            <div className="flex justify-center pb-2">
                 <Logo className="h-10 w-10 text-primary" />
             </div>
           <CardTitle className="text-2xl">Create an account</CardTitle>
           <CardDescription>Enter your information to create an account</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
+        <CardContent className="grid gap-4 px-6 pb-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="full-name">Full name</Label>
@@ -43,7 +43,7 @@ export default function RegisterPage() {
             Create account
           </Button>
         </CardContent>
-        <CardFooter className="flex flex-col gap-4">
+        <CardFooter className="flex flex-col gap-2 pt-0 pb-4">
           <div className="text-center text-sm">
             Already have an account?{' '}
             <Link href="/login" className="underline">
