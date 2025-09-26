@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard } from 'lucide-react';
+import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard, ArrowUpRight } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -34,19 +34,28 @@ function OverviewTabContent() {
                 <CardDescription>A high-level view of your organization.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-gradient-to-br from-primary to-primary-dark text-primary-foreground aspect-square flex flex-col justify-between p-4">
+                             <Card key={stat.title} className="relative bg-primary text-primary-foreground p-6 flex flex-col justify-between aspect-square">
                                 <div className="flex justify-between items-start">
-                                    <CardTitle className="text-base font-semibold">{stat.title}</CardTitle>
-                                    <Icon className="h-5 w-5 text-primary-foreground/80" />
+                                    <CardTitle className="text-lg font-semibold">{stat.title}</CardTitle>
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-8 w-8 rounded-full bg-black/10 text-primary-foreground hover:bg-black/20"
+                                    >
+                                        <ArrowUpRight className="h-4 w-4" />
+                                    </Button>
                                 </div>
-                                <div className="text-center">
+                                <div className="space-y-1">
                                     <p className="text-5xl font-bold">{stat.value}</p>
                                 </div>
-                                <div />
+                                <div className="flex items-center gap-2 text-sm text-primary-foreground/80">
+                                    <Icon className="h-4 w-4" />
+                                    <span>{stat.title}</span>
+                                </div>
                             </Card>
                         )
                     })}
@@ -440,3 +449,6 @@ export function AdminPageContent() {
 
     
 
+
+
+    
