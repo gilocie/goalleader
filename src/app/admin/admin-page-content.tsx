@@ -38,13 +38,13 @@ function OverviewTabContent() {
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title}>
+                             <Card key={stat.title} className="bg-primary text-primary-foreground">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                                    <Icon className="h-4 w-4 text-muted-foreground" />
+                                    <Icon className="h-4 w-4 text-primary-foreground/80" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{stat.value}</div>
+                                    <div className="text-3xl font-bold text-center">{stat.value}</div>
                                 </CardContent>
                             </Card>
                         )
@@ -382,7 +382,7 @@ export function AdminPageContent() {
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-2 hover:no-underline w-full",
+                                                "justify-start p-2 rounded-md font-semibold hover:no-underline w-full",
                                                 activeTab === item.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground'
                                             )}
                                         >
@@ -414,7 +414,7 @@ export function AdminPageContent() {
                             <Button 
                                 key={item.id}
                                 variant={activeTab === item.id ? 'default' : 'ghost'}
-                                className="justify-start"
+                                className="justify-start font-semibold p-2"
                                 onClick={() => setActiveTab(item.id)}
                             >
                                 <Icon className="mr-2 h-4 w-4" />
