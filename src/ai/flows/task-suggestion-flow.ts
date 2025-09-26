@@ -9,8 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 const PendingTaskSchema = z.object({
   name: z.string(),
@@ -43,7 +43,7 @@ export async function getTaskSuggestions(input: TaskSuggestionInput): Promise<Ta
 
 const prompt = ai.definePrompt({
   name: 'taskSuggestionPrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: GEMINI_MODEL,
   input: { schema: TaskSuggestionInputSchema },
   output: { schema: TaskSuggestionOutputSchema },
   prompt: `You are an assistant for GoalLeader, a project management tool.

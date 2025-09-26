@@ -10,6 +10,7 @@ import 'dotenv/config';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 // -----------------------
 //  ENVIRONMENT VALIDATION
@@ -102,7 +103,7 @@ export async function testConnection() {
   try {
     const testPrompt = ai.definePrompt({
       name: 'testPrompt',
-      model: googleAI.model('gemini-1.5-flash-latest'),
+      model: GEMINI_MODEL,
       input: { schema: z.string() },
       output: { schema: z.string() },
       config: {

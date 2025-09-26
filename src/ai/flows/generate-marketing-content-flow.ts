@@ -9,9 +9,9 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 import { SuggestionSchema } from '@/types/marketing';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 const GenerateMarketingContentInputSchema = z.object({
   topic: z.string().describe('The topic or product to generate marketing content for.'),
@@ -30,7 +30,7 @@ export async function generateMarketingContent(input: GenerateMarketingContentIn
 
 const prompt = ai.definePrompt({
   name: 'generateMarketingContentPrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: GEMINI_MODEL,
   input: { schema: GenerateMarketingContentInputSchema },
   output: { schema: GenerateMarketingContentOutputSchema },
   prompt: `You are a creative and effective marketing assistant. Your task is to generate 3 distinct sets of marketing materials for the following topic.

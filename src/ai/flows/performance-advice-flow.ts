@@ -9,8 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 const TaskSchema = z.object({
   name: z.string(),
@@ -39,7 +39,7 @@ export async function getPerformanceAdvice(input: PerformanceAdviceInput): Promi
 
 const prompt = ai.definePrompt({
   name: 'performanceAdvicePrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: GEMINI_MODEL,
   input: { schema: PerformanceAdviceInputSchema },
   output: { schema: PerformanceAdviceOutputSchema },
   prompt: `You are an AI performance analyst for GoalLeader. Your goal is to provide a summary to a team leader about their staff member's performance.

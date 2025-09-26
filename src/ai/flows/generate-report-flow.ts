@@ -9,8 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 // -----------------------
 // Task and Input Schema
@@ -54,7 +54,7 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
 // -----------------------
 const reportPrompt = ai.definePrompt({
   name: 'generateReportPrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: GEMINI_MODEL,
   input: { schema: GenerateReportInputSchema },
   output: { schema: GenerateReportOutputSchema },
   config: {

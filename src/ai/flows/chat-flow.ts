@@ -13,8 +13,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 // --------------------------
 // Schemas
@@ -50,7 +50,7 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 // --------------------------
 const conversationalPrompt = ai.definePrompt({
   name: 'conversationalChatPrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: GEMINI_MODEL,
   input: { schema: ChatInputSchema },
   output: { schema: ChatOutputSchema },
   config: {

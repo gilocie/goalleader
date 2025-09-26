@@ -9,8 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 const InitialMessageInputSchema = z.object({
   name: z.string().describe("The user's name."),
@@ -26,7 +26,7 @@ export async function getInitialMessage(input: InitialMessageInput): Promise<Ini
 
 const prompt = ai.definePrompt({
   name: 'initialMessagePrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: GEMINI_MODEL,
   input: { schema: InitialMessageInputSchema },
   output: { schema: InitialMessageOutputSchema },
   prompt: `You are GoalLeader, an expert productivity coach and AI assistant. 

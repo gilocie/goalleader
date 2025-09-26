@@ -9,8 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 const TaskSchema = z.object({
   name: z.string(),
@@ -32,7 +32,7 @@ export async function refineText(input: RefineTextInput): Promise<RefineTextOutp
 
 const refineTextPrompt = ai.definePrompt({
   name: 'refineTextPrompt',
-  model: googleAI.model('gemini-1.5-flash-latest'),
+  model: GEMINI_MODEL,
   input: { schema: RefineTextInputSchema },
   output: { schema: RefineTextOutputSchema },
   prompt: `You are a writing assistant. Your task is to take the user\\'s performance report and refine it.
