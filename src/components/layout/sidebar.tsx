@@ -12,8 +12,11 @@ export function Sidebar() {
     <div className="hidden md:fixed md:inset-y-0 md:z-20 md:flex md:w-[220px] md:flex-col lg:w-[280px]">
       <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 font-semibold"
+          >
+            <Logo className="h-6 w-6" />
             <span className="">GoalLeader</span>
           </Link>
         </div>
