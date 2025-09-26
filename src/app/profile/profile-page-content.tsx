@@ -63,7 +63,6 @@ export function ProfilePageContent() {
             </CardHeader>
             <CardContent className="text-center">
               <CardTitle className="text-2xl">Patrick Achitabwino</CardTitle>
-              <CardDescription>Consultant</CardDescription>
             </CardContent>
           </Card>
 
@@ -106,6 +105,12 @@ export function ProfilePageContent() {
                         <Input id="department" defaultValue="Customer Service" />
                     </div>
                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Input id="role" defaultValue="Consultant" />
+                    </div>
+                </div>
                 <div className="space-y-2">
                     <Label htmlFor="job-description">Job Description</Label>
                     <Textarea
