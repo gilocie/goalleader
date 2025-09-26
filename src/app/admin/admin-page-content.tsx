@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { buttonVariants } from '@/components/ui/button';
 
 
 function OverviewTabContent() {
@@ -365,18 +366,14 @@ export function AdminPageContent() {
                                 <Accordion key={item.id} type="single" collapsible defaultValue='organization'>
                                     <AccordionItem value="organization" className="border-b-0">
                                         <AccordionTrigger
+                                            onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-0 hover:no-underline",
+                                                buttonVariants({ variant: activeTab === item.id ? 'default' : 'ghost' }),
+                                                "justify-start p-2 hover:no-underline w-full"
                                             )}
                                         >
-                                             <Button 
-                                                variant={activeTab === item.id ? 'default' : 'ghost'}
-                                                className="justify-start w-full"
-                                                onClick={() => setActiveTab(item.id)}
-                                            >
-                                                <Icon className="mr-2 h-4 w-4" />
-                                                {item.label}
-                                            </Button>
+                                            <Icon className="mr-2 h-4 w-4" />
+                                            {item.label}
                                         </AccordionTrigger>
                                         <AccordionContent className="pl-4">
                                             <div className="flex flex-col gap-1">
@@ -420,6 +417,8 @@ export function AdminPageContent() {
         </main>
     );
 }
+    
+
     
 
     
