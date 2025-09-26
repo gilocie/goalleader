@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -57,7 +58,7 @@ export function CreateReportDialog({
         performance,
       };
       const result = await generateReport(input);
-      setReportContent(result);
+      setReportContent(result.fullReport);
     } catch (error) {
       console.error('Failed to generate report:', error);
       setReportContent('Could not generate report. Please try again.');

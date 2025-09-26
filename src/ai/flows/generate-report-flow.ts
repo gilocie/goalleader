@@ -1,7 +1,7 @@
 
 'use server';
 /**
- * @fileOverview A flow to generate a performance report based on completed tasks.
+ * @fileOverview A flow to generate a structured performance report based on completed tasks.
  *
  * - generateReport - A function that generates a performance report.
  * - GenerateReportInput - The input type for the generateReport function.
@@ -12,6 +12,9 @@ import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { z } from 'zod';
 
+// -----------------------
+// Task and Input Schema
+// -----------------------
 const TaskSchema = z.object({
   name: z.string(),
   status: z.string(),
@@ -28,39 +31,68 @@ const GenerateReportInputSchema = z.object({
 });
 export type GenerateReportInput = z.infer<typeof GenerateReportInputSchema>;
 
-const GenerateReportOutputSchema = z.string();
+// -----------------------
+// Output Schema (structured instead of plain string)
+// -----------------------
+const GenerateReportOutputSchema = z.object({
+  summary: z.string().describe('Overall summary of performance.'),
+  tasksList: z.string().describe('Markdown-formatted bullet list of completed tasks.'),
+  analysis: z.string().describe('Performance analysis vs KPI.'),
+  fullReport: z.string().describe('The final report ready for managers (Markdown).'),
+});
 export type GenerateReportOutput = z.infer<typeof GenerateReportOutputSchema>;
 
+// -----------------------
+// Public Function
+// -----------------------
 export async function generateReport(input: GenerateReportInput): Promise<GenerateReportOutput> {
   return generateReportFlow(input);
 }
 
-const prompt = ai.definePrompt({
+// -----------------------
+// Prompt
+// -----------------------
+const reportPrompt = ai.definePrompt({
   name: 'generateReportPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('models/gemini-1.5-flash'),
   input: { schema: GenerateReportInputSchema },
   output: { schema: GenerateReportOutputSchema },
-  prompt: `You are an AI assistant for GoalLeader. Your task is to generate a performance report for a staff member to their manager.
+  config: {
+    temperature: 0.7,
+    maxOutputTokens: 1200,
+  },
+  prompt: `
+You are an AI assistant for GoalLeader. Your task is to generate a structured performance report for a staff member, to be read by their manager.
 
-The report is for the period: {{period}}.
-The company's target KPI is {{kpi}}%. The staff member's performance for this period is {{performance}}%.
+REPORT CONTEXT:
+- Period: {{period}}
+- Target KPI: {{kpi}}%
+- Staff Performance: {{performance}}%
 
-Based on the completed tasks provided, generate a summary of what the staff member has accomplished. The report should be structured, professional, and highlight key achievements.
-
-Include:
-- An overall summary of performance.
-- A bulleted list of key completed tasks with their completion dates.
-- An analysis of the performance rate against the KPI.
-
-Completed Tasks:
+TASKS:
 {{#each tasks}}
-- "{{name}}"{{#if endTime}} completed on {{endTime}}{{/if}}.
+- "{{name}}" (Status: {{status}}){{#if endTime}} — completed on {{endTime}}{{/if}}
 {{/each}}
 
-Generate the report content as a single string, ready to be sent to a manager.
+GUIDELINES:
+1. Create a **professional summary** of performance.
+2. Provide a **bulleted list in Markdown** of completed key tasks.
+3. Add a **short analysis** of performance vs KPI, including congratulations (if >KPI) or encouragement (if <KPI).
+4. Return both structured JSON fields and a **\`fullReport\` field containing the whole thing composed in Markdown**.
+
+FORMAT YOUR OUTPUT AS:
+- summary
+- tasksList
+- analysis
+- fullReport (Markdown string)
+
+Reply in the expected JSON schema.
 `,
 });
 
+// -----------------------
+// Flow
+// -----------------------
 const generateReportFlow = ai.defineFlow(
   {
     name: 'generateReportFlow',
@@ -69,11 +101,21 @@ const generateReportFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const { output } = await prompt(input);
-      return output || 'Could not generate a report at this time.';
+      const { output } = await reportPrompt(input);
+
+      if (!output || !output.fullReport) {
+        throw new Error('Invalid AI response: ' + JSON.stringify(output));
+      }
+
+      return output;
     } catch (error) {
       console.error('Error generating report:', error);
-      return 'An error occurred while generating the report. Please try again.';
+      return {
+        summary: 'N/A',
+        tasksList: '- No tasks available.',
+        analysis: 'Unable to compute KPI analysis.',
+        fullReport: '⚠️ An error occurred while generating the report. Please try again.',
+      };
     }
   }
 );
