@@ -34,18 +34,19 @@ function OverviewTabContent() {
                 <CardDescription>A high-level view of your organization.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-primary text-primary-foreground">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                                    <Icon className="h-4 w-4 text-primary-foreground/80" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-3xl font-bold text-center">{stat.value}</div>
-                                </CardContent>
+                             <Card key={stat.title} className="bg-gradient-to-br from-primary to-primary-dark text-primary-foreground aspect-square flex flex-col justify-between p-4">
+                                <div className="flex justify-between items-start">
+                                    <CardTitle className="text-base font-semibold">{stat.title}</CardTitle>
+                                    <Icon className="h-5 w-5 text-primary-foreground/80" />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-5xl font-bold">{stat.value}</p>
+                                </div>
+                                <div />
                             </Card>
                         )
                     })}
@@ -438,3 +439,4 @@ export function AdminPageContent() {
     
 
     
+
