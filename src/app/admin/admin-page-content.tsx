@@ -30,20 +30,38 @@ function BrandingTabContent() {
                     <Input type="file" />
                     <p className='text-xs text-muted-foreground'>Upload an image for the landing page hero. Recommended size: 1920x1080.</p>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div className='space-y-2'>
-                        <Label>Primary Color</Label>
-                        <Input type="color" defaultValue="#27AE60" className='p-1 h-10' />
-                    </div>
-                    <div className='space-y-2'>
-                        <Label>Background Color</Label>
-                        <Input type="color" defaultValue="#F7FAFC" className='p-1 h-10' />
-                    </div>
-                     <div className='space-y-2'>
-                        <Label>Accent Color</Label>
-                        <Input type="color" defaultValue="#90EE90" className='p-1 h-10' />
-                    </div>
-                </div>
+                
+                <Tabs defaultValue="solid">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="solid">Solid Colors</TabsTrigger>
+                        <TabsTrigger value="gradient">Gradient Colors</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="solid" className="pt-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className='space-y-2'>
+                                <Label>Primary Color</Label>
+                                <Input type="color" defaultValue="#27AE60" className='p-1 h-10' />
+                            </div>
+                            <div className='space-y-2'>
+                                <Label>Background Color</Label>
+                                <Input type="color" defaultValue="#F7FAFC" className='p-1 h-10' />
+                            </div>
+                             <div className='space-y-2'>
+                                <Label>Accent Color</Label>
+                                <Input type="color" defaultValue="#90EE90" className='p-1 h-10' />
+                            </div>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="gradient" className="pt-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className='space-y-2'>
+                                <Label>Gradient End Color</Label>
+                                <Input type="color" defaultValue="#1E8449" className='p-1 h-10' />
+                            </div>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+
                 <Button>Save Branding</Button>
             </CardContent>
         </Card>
