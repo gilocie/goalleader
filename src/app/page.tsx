@@ -32,7 +32,7 @@ export default function LandingPage() {
                                         GoalLeader
                                     </h1>
                                     <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
-                                        The AI-powered platform to track progress, manage tasks, and drive performance.
+                                        Track progress, manage tasks, and drive performance.
                                     </p>
                                 </div>
                                 <div className="flex justify-center flex-col gap-2 min-[400px]:flex-row">
