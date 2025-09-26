@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase } from 'lucide-react';
+import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -17,7 +17,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
+
+function OverviewTabContent() {
+    const stats = [
+        { title: 'Total Users', value: allUsers.length, icon: Users },
+        { title: 'Departments', value: 3, icon: Building },
+        { title: 'Roles', value: 2, icon: Briefcase },
+        { title: 'Branches', value: 1, icon: GitBranch },
+    ];
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Overview</CardTitle>
+                <CardDescription>A high-level view of your organization.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {stats.map(stat => {
+                        const Icon = stat.icon;
+                        return (
+                             <Card key={stat.title}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                                    <Icon className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{stat.value}</div>
+                                </CardContent>
+                            </Card>
+                        )
+                    })}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
 function BrandingTabContent() {
     return (
@@ -79,19 +115,31 @@ function BrandingTabContent() {
     )
 }
 
-function ApiConfigTabContent() {
+function SettingsTabContent() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>API Configuration</CardTitle>
-                <CardDescription>Manage third-party API keys and service integrations.</CardDescription>
+                <CardTitle>Settings</CardTitle>
+                <CardDescription>Manage system-wide settings and integrations.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 max-w-2xl">
                 <div className='space-y-2'>
                     <Label htmlFor='gemini-key'>Google Gemini API Key</Label>
                     <Input id="gemini-key" type="password" placeholder="Enter your Gemini API Key" />
                 </div>
-                 <Button>Save API Keys</Button>
+                <div className='space-y-2'>
+                    <Label htmlFor='admin-pin'>Admin PIN</Label>
+                    <Input id="admin-pin" type="password" placeholder="Set or change your admin PIN" />
+                </div>
+                 <div className='space-y-2'>
+                    <Label>Default Country</Label>
+                    <Input placeholder="e.g., Malawi" />
+                </div>
+                 <div className='space-y-2'>
+                    <Label>Default City</Label>
+                    <Input placeholder="e.g., Lilongwe" />
+                </div>
+                 <Button>Save Settings</Button>
             </CardContent>
         </Card>
     );
@@ -245,33 +293,57 @@ function RolesTabContent() {
     );
 }
 
+function BranchesTabContent() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Branches</CardTitle>
+                <CardDescription>Manage company branches and locations.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 max-w-2xl">
+                 <div className='space-y-2'>
+                    <Label>Add New Branch</Label>
+                    <div className='flex gap-2'>
+                        <Input placeholder="e.g., London Office" />
+                        <Button>Add Branch</Button>
+                    </div>
+                </div>
+                <p className='text-muted-foreground text-sm'>Existing: Main Office</p>
+            </CardContent>
+        </Card>
+    );
+}
+
+
 const navItems = [
-    { id: 'branding', label: 'Branding', icon: Palette },
-    { id: 'api', label: 'API Keys', icon: KeyRound },
-    { id: 'users', label: 'User Management', icon: Users },
-    { id: 'departments', label: 'Departments', icon: Building },
-    { id: 'roles', label: 'Roles', icon: Briefcase },
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard, content: <OverviewTabContent /> },
+    { id: 'branding', label: 'Branding', icon: Palette, content: <BrandingTabContent /> },
+    { 
+        id: 'organization', 
+        label: 'Organization', 
+        icon: Building,
+        subItems: [
+            { id: 'departments', label: 'Departments', content: <DepartmentsTabContent /> },
+            { id: 'roles', label: 'Roles', content: <RolesTabContent /> },
+            { id: 'branches', label: 'Branches', content: <BranchesTabContent /> },
+        ]
+    },
+    { id: 'users', label: 'User Management', icon: Users, content: <UserManagementTabContent /> },
+    { id: 'settings', label: 'Settings', icon: Settings, content: <SettingsTabContent /> },
 ];
 
 
 export function AdminPageContent() {
-    const [activeTab, setActiveTab] = useState('branding');
+    const [activeTab, setActiveTab] = useState('overview');
+    const [activeSubTab, setActiveSubTab] = useState('departments');
 
     const renderContent = () => {
-        switch (activeTab) {
-            case 'branding':
-                return <BrandingTabContent />;
-            case 'api':
-                return <ApiConfigTabContent />;
-            case 'users':
-                return <UserManagementTabContent />;
-            case 'departments':
-                return <DepartmentsTabContent />;
-            case 'roles':
-                return <RolesTabContent />;
-            default:
-                return null;
+        if (activeTab === 'organization') {
+            const subItem = navItems.find(i => i.id === 'organization')?.subItems?.find(s => s.id === activeSubTab);
+            return subItem?.content;
         }
+        const item = navItems.find(i => i.id === activeTab);
+        return item?.content;
     };
     
     return (
@@ -288,6 +360,45 @@ export function AdminPageContent() {
                 <nav className="flex flex-col gap-2">
                     {navItems.map(item => {
                         const Icon = item.icon;
+                        if (item.subItems) {
+                             return (
+                                <Accordion key={item.id} type="single" collapsible defaultValue='organization'>
+                                    <AccordionItem value="organization" className="border-b-0">
+                                        <AccordionTrigger
+                                            className={cn(
+                                                "justify-start p-0 hover:no-underline",
+                                            )}
+                                        >
+                                             <Button 
+                                                variant={activeTab === item.id ? 'default' : 'ghost'}
+                                                className="justify-start w-full"
+                                                onClick={() => setActiveTab(item.id)}
+                                            >
+                                                <Icon className="mr-2 h-4 w-4" />
+                                                {item.label}
+                                            </Button>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="pl-4">
+                                            <div className="flex flex-col gap-1">
+                                                {item.subItems.map(sub => (
+                                                    <Button
+                                                        key={sub.id}
+                                                        variant={activeSubTab === sub.id && activeTab === 'organization' ? 'secondary' : 'ghost'}
+                                                        className="justify-start"
+                                                        onClick={() => {
+                                                            setActiveTab('organization');
+                                                            setActiveSubTab(sub.id);
+                                                        }}
+                                                    >
+                                                        {sub.label}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                             )
+                        }
                         return (
                             <Button 
                                 key={item.id}
@@ -309,4 +420,6 @@ export function AdminPageContent() {
         </main>
     );
 }
+    
+
     
