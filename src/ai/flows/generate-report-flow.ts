@@ -1,11 +1,11 @@
 
 'use server';
 /**
- * @fileOverview A flow to generate a structured performance report.
+ * @fileOverview A flow to generate a structured performance report based on completed tasks.
  *
  * - generateReport - A function that generates a performance report.
- * - GenerateReportInput - The input type for the report.
- * - GenerateReportOutput - The return type for the report.
+ * - GenerateReportInput - The input type for the generateReport function.
+ * - GenerateReportOutput - The return type for the generateReport function.
  */
 
 import { ai } from '@/ai/genkit';
@@ -24,21 +24,21 @@ const TaskSchema = z.object({
 });
 
 const GenerateReportInputSchema = z.object({
-  tasks: z.array(TaskSchema).describe("The list of completed tasks for the reporting period."),
+  tasks: z.array(TaskSchema).describe("The user's list of completed tasks for the reporting period."),
   period: z.enum(['This Week', 'This Month']).describe('The reporting period.'),
-  kpi: z.number().describe('The KPI target percentage set by company.'),
-  performance: z.number().describe("The user's actual performance percentage."),
+  kpi: z.number().describe('The key performance indicator (KPI) for task completion, as a percentage.'),
+  performance: z.number().describe("The user's current performance percentage for the period."),
 });
 export type GenerateReportInput = z.infer<typeof GenerateReportInputSchema>;
 
 // -----------------------
-// Output Schema (structured like marketing flow)
+// Output Schema (structured instead of plain string)
 // -----------------------
 const GenerateReportOutputSchema = z.object({
   summary: z.string().describe('Overall summary of performance.'),
-  completedTasks: z.string().describe('Markdown-formatted bulleted list of completed tasks (or message if none).'),
-  analysis: z.string().describe('Comparison of performance vs KPI with encouragement.'),
-  fullReport: z.string().describe('The full report in Markdown, ready for managers.'),
+  tasksList: z.string().describe('Markdown-formatted bullet list of completed tasks.'),
+  analysis: z.string().describe('Performance analysis vs KPI.'),
+  fullReport: z.string().describe('The final report ready for managers (Markdown).'),
 });
 export type GenerateReportOutput = z.infer<typeof GenerateReportOutputSchema>;
 
@@ -54,7 +54,7 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
 // -----------------------
 const reportPrompt = ai.definePrompt({
   name: 'generateReportPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('models/gemini-1.5-flash'),
   input: { schema: GenerateReportInputSchema },
   output: { schema: GenerateReportOutputSchema },
   config: {
@@ -62,37 +62,40 @@ const reportPrompt = ai.definePrompt({
     maxOutputTokens: 1200,
   },
   prompt: `
-You are a professional AI productivity coach. Generate a **structured JSON report** for a staff member's performance.
+You are an AI assistant for GoalLeader. Your task is to generate a structured performance report for a staff member, to be read by their manager.
 
-### CONTEXT
+REPORT CONTEXT:
 - Period: {{period}}
-- KPI Target: {{kpi}}%
+- Target KPI: {{kpi}}%
 - Staff Performance: {{performance}}%
 
-### TASKS
-{{#if tasks.length}}
-{{#each tasks}}
-- {{name}} (Status: {{status}}){{#if endTime}} completed on {{endTime}}{{/if}}
-{{/each}}
+TASKS:
+{{#if tasks}}
+  {{#each tasks}}
+  - "{{name}}" (Status: {{status}}){{#if endTime}} — completed on {{endTime}}{{/if}}
+  {{/each}}
 {{else}}
-- No tasks completed during this period.
+- No tasks were completed during this period.
 {{/if}}
 
-### INSTRUCTIONS
-Respond ONLY with valid JSON matching this schema:
-{
-  "summary": "string (overall summary of performance)",
-  "completedTasks": "string (Markdown bullet list of completed tasks, or say 'No tasks completed')",
-  "analysis": "string (analysis comparing performance vs KPI)",
-  "fullReport": "string (professional Markdown report combining summary, tasks, analysis)"
-}
+GUIDELINES:
+1. Create a **professional summary** of performance.
+2. If tasks were completed, provide a **bulleted list in Markdown** of key completed tasks. If not, state that no tasks were completed.
+3. Add a **short analysis** of performance vs KPI, including congratulations (if >KPI) or encouragement (if <KPI).
+4. Return both structured JSON fields and a **\`fullReport\`** field containing the whole thing composed in Markdown.
 
-Do not add extra commentary or text outside the JSON.
+FORMAT YOUR OUTPUT AS:
+- summary
+- tasksList
+- analysis
+- fullReport (Markdown string)
+
+Reply in the expected JSON schema.
 `,
 });
 
 // -----------------------
-// Flow (like marketing flow)
+// Flow
 // -----------------------
 const generateReportFlow = ai.defineFlow(
   {
