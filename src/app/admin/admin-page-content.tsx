@@ -2,7 +2,6 @@
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,10 @@ import { allUsers } from '@/lib/users';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 
 function BrandingTabContent() {
@@ -97,6 +100,7 @@ function ApiConfigTabContent() {
 function UserManagementTabContent() {
     const users = allUsers.map(u => ({
         ...u,
+        name: u.label,
         email: `${u.label.toLowerCase().replace(/\s/g, '.')}@goalleader.com`,
         department: u.label.includes('Patrick') ? 'ICT' : 'Customer Service',
         role: u.label.includes('Patrick') ? 'Admin' : 'Consultant'
@@ -109,9 +113,32 @@ function UserManagementTabContent() {
                 <CardDescription>View, manage, and assign roles to all users in the system.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="mb-4 relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Search by name or email..." className="w-full pl-8" />
+                 <div className="flex flex-col md:flex-row gap-4 mb-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Search by name or email..." className="w-full pl-8" />
+                    </div>
+                    <Select>
+                        <SelectTrigger className="w-full md:w-[180px]">
+                            <SelectValue placeholder="Filter by Department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="ict">ICT</SelectItem>
+                            <SelectItem value="customer-service">Customer Service</SelectItem>
+                            <SelectItem value="engineering">Engineering</SelectItem>
+                            <SelectItem value="marketing">Marketing</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select>
+                        <SelectTrigger className="w-full md:w-[180px]">
+                            <SelectValue placeholder="Filter by Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="consultant">Consultant</SelectItem>
+                            <SelectItem value="team-leader">Team Leader</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
                 <ScrollArea className="h-[400px]">
                     <Table>
@@ -126,6 +153,7 @@ function UserManagementTabContent() {
                         <TableBody>
                             {users.map(user => {
                                 const avatar = PlaceHolderImages.find(p => p.id === user.value);
+                                const isSelf = user.name === 'Patrick Achitabwino';
                                 return (
                                     <TableRow key={user.value}>
                                         <TableCell className="py-2">
@@ -135,7 +163,9 @@ function UserManagementTabContent() {
                                                     <AvatarFallback>{user.label.slice(0, 2)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <p className="font-medium text-sm">{user.label}</p>
+                                                    <p className="font-medium text-sm">
+                                                        {user.name} {isSelf && <span className="text-muted-foreground">(You)</span>}
+                                                    </p>
                                                     <p className="text-xs text-muted-foreground">{user.email}</p>
                                                 </div>
                                             </div>
@@ -215,8 +245,35 @@ function RolesTabContent() {
     );
 }
 
+const navItems = [
+    { id: 'branding', label: 'Branding', icon: Palette },
+    { id: 'api', label: 'API Keys', icon: KeyRound },
+    { id: 'users', label: 'User Management', icon: Users },
+    { id: 'departments', label: 'Departments', icon: Building },
+    { id: 'roles', label: 'Roles', icon: Briefcase },
+];
+
 
 export function AdminPageContent() {
+    const [activeTab, setActiveTab] = useState('branding');
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'branding':
+                return <BrandingTabContent />;
+            case 'api':
+                return <ApiConfigTabContent />;
+            case 'users':
+                return <UserManagementTabContent />;
+            case 'departments':
+                return <DepartmentsTabContent />;
+            case 'roles':
+                return <RolesTabContent />;
+            default:
+                return null;
+        }
+    };
+    
     return (
         <main className="flex-grow p-4 md:p-8">
             <div className='flex items-center gap-3 mb-6'>
@@ -226,39 +283,30 @@ export function AdminPageContent() {
                     <p className="text-muted-foreground">System-wide configuration and management.</p>
                 </div>
             </div>
-            <Tabs defaultValue="branding">
-                <TabsList className="grid w-full max-w-lg grid-cols-3 mb-8">
-                    <TabsTrigger value="branding"><Palette className="mr-2 h-4 w-4" />Branding</TabsTrigger>
-                    <TabsTrigger value="api"><KeyRound className="mr-2 h-4 w-4" />API Keys</TabsTrigger>
-                    <TabsTrigger value="organization"><Building className="mr-2 h-4 w-4" />Organization</TabsTrigger>
-                </TabsList>
-                <TabsContent value="branding">
-                   <BrandingTabContent />
-                </TabsContent>
-                 <TabsContent value="api">
-                   <ApiConfigTabContent />
-                </TabsContent>
-                 <TabsContent value="organization">
-                    <Tabs defaultValue="users" className="w-full">
-                        <TabsList className="grid w-full max-w-lg grid-cols-3 mb-8">
-                            <TabsTrigger value="users"><Users className="mr-2 h-4 w-4"/>User Management</TabsTrigger>
-                            <TabsTrigger value="departments"><Building className="mr-2 h-4 w-4"/>Departments</TabsTrigger>
-                             <TabsTrigger value="roles"><Briefcase className="mr-2 h-4 w-4"/>Roles</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="users">
-                            <UserManagementTabContent />
-                        </TabsContent>
-                        <TabsContent value="departments">
-                            <DepartmentsTabContent />
-                        </TabsContent>
-                        <TabsContent value="roles">
-                            <RolesTabContent />
-                        </TabsContent>
-                    </Tabs>
-                 </TabsContent>
-            </Tabs>
+
+            <div className="grid md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
+                <nav className="flex flex-col gap-2">
+                    {navItems.map(item => {
+                        const Icon = item.icon;
+                        return (
+                            <Button 
+                                key={item.id}
+                                variant={activeTab === item.id ? 'default' : 'ghost'}
+                                className="justify-start"
+                                onClick={() => setActiveTab(item.id)}
+                            >
+                                <Icon className="mr-2 h-4 w-4" />
+                                {item.label}
+                            </Button>
+                        )
+                    })}
+                </nav>
+
+                <div className="md:col-span-1">
+                    {renderContent()}
+                </div>
+            </div>
         </main>
     );
 }
-
     
