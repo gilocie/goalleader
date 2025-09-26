@@ -72,10 +72,18 @@ export function CreateNoticeDialog({
     form.reset();
     setSendToAll(false);
   };
+  
+  const handleDialogChange = (open: boolean) => {
+    if (!open) {
+        form.reset();
+        setSendToAll(false);
+    }
+    onOpenChange(open);
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl h-[420px] max-h-[90vh] sm:h-[470px] flex flex-col p-0">
+    <Dialog open={isOpen} onOpenChange={handleDialogChange}>
+      <DialogContent className="sm:max-w-xl h-auto max-h-[90vh] sm:h-auto flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle>Create New Notice</DialogTitle>
           <DialogDescription>
@@ -83,8 +91,7 @@ export function CreateNoticeDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 overflow-y-auto">
-          <div className="px-6">
+        <div className="flex-1 overflow-y-auto px-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
                 <FormField
@@ -139,25 +146,26 @@ export function CreateNoticeDialog({
                     )}
                   />
                 )}
-
-                <DialogFooter className="gap-2 sm:gap-0 pt-4 sticky bottom-0 bg-background pb-6">
-                  <DialogClose asChild>
-                    <Button type="button" variant="outline">
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                  <Button
-                    type="submit"
-                    disabled={!sendToAll && !form.watch('recipients').length}
-                    className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
-                  >
-                    Send Notice
-                  </Button>
-                </DialogFooter>
+                
+                <div className="h-4"></div>
               </form>
             </Form>
           </div>
-        </ScrollArea>
+          <DialogFooter className="gap-2 sm:gap-0 p-6 pt-4 border-t sticky bottom-0 bg-background">
+            <DialogClose asChild>
+                <Button type="button" variant="outline">
+                    Cancel
+                </Button>
+            </DialogClose>
+            <Button
+                type="submit"
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={!sendToAll && !form.watch('recipients').length}
+                className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+            >
+                Send Notice
+            </Button>
+            </DialogFooter>
       </DialogContent>
     </Dialog>
   );

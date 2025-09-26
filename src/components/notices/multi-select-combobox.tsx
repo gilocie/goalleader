@@ -19,7 +19,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { Portal } from '@/components/ui/portal';
+import { PopoverPortal } from '@radix-ui/react-popover';
 
 export type ComboboxOption = {
   value: string;
@@ -69,7 +69,7 @@ export function MultiSelectCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-full justify-between h-auto', className)}
+          className={cn('w-full justify-between h-auto min-h-10', className)}
         >
           <div className="flex gap-1 flex-wrap">
             {selected.length > 0 ? (
@@ -97,9 +97,9 @@ export function MultiSelectCombobox({
         </Button>
       </PopoverTrigger>
 
-      <Portal>
+      <PopoverPortal>
         <PopoverContent
-          className="w-[--radix-popover-trigger-width] p-0 z-[1000] pointer-events-auto bg-background shadow-lg"
+          className="w-[--radix-popover-trigger-width] p-0"
           side="bottom"
           align="start"
         >
@@ -140,7 +140,7 @@ export function MultiSelectCombobox({
             </CommandList>
           </Command>
         </PopoverContent>
-      </Portal>
+      </PopoverPortal>
     </Popover>
   );
 }
