@@ -33,13 +33,13 @@ export default function LandingPage() {
                             src={heroBg.imageUrl}
                             alt={heroBg.description}
                             data-ai-hint={heroBg.imageHint}
-                            layout="fill"
+                            fill
                             objectFit="cover"
                             quality={100}
                             className="z-0"
                         />
                     )}
-                    <div className="absolute inset-0 bg-green-900/70 z-10" />
+                    <div className="absolute inset-0 bg-primary-dark/70 z-10" />
 
                     <div className="relative z-20 container px-4 md:px-6">
                         <div className="grid gap-6 lg:grid-cols-1">

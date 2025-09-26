@@ -25,6 +25,11 @@ function BrandingTabContent() {
                     <Input type="file" />
                     <p className='text-xs text-muted-foreground'>Upload a PNG or SVG file. Max size: 2MB.</p>
                 </div>
+                 <div className='space-y-2'>
+                    <Label>Hero Background Image</Label>
+                    <Input type="file" />
+                    <p className='text-xs text-muted-foreground'>Upload an image for the landing page hero. Recommended size: 1920x1080.</p>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div className='space-y-2'>
                         <Label>Primary Color</Label>
