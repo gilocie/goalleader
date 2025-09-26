@@ -51,14 +51,14 @@ export function CreateReportDialog({
           status: t.status,
           dueDate: t.dueDate,
           duration: t.duration,
-          endTime: t.endTime ? format(new Date(t.endTime), 'MMM d, yy') : 'N/A'
+          endTime: t.endTime ? format(new Date(t.endTime), 'MMM d, yy') : undefined
         })),
         period,
         kpi: COMPANY_KPI,
         performance,
       };
       const result = await generateReport(input);
-      setReportContent(result.fullReport);
+      setReportContent(result.fullReport || '');
     } catch (error) {
       console.error('Failed to generate report:', error);
       setReportContent('Could not generate report. Please try again.');
@@ -100,9 +100,16 @@ export function CreateReportDialog({
         setIsSubmitting(false);
     }
   };
+  
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      setReportContent('');
+    }
+    onOpenChange(open);
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Create Performance Report</DialogTitle>
