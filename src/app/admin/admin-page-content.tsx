@@ -6,7 +6,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Shield, Palette, KeyRound, Building } from 'lucide-react';
+import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { allUsers } from '@/lib/users';
+import { Badge } from '@/components/ui/badge';
+
 
 function BrandingTabContent() {
     return (
@@ -54,7 +60,7 @@ function BrandingTabContent() {
                     </TabsContent>
                     <TabsContent value="gradient" className="pt-4">
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div className='space-y-2'>
+                             <div className='space-y-2'>
                                 <Label>Gradient End Color</Label>
                                 <Input type="color" defaultValue="#1E8449" className='p-1 h-10' />
                             </div>
@@ -86,39 +92,92 @@ function ApiConfigTabContent() {
     );
 }
 
-function OrganizationTabContent() {
+function UserManagementTabContent() {
+    const users = allUsers.map(u => ({
+        ...u,
+        email: `${u.label.toLowerCase().replace(/\s/g, '.')}@goalleader.com`,
+        department: 'Customer Service',
+        role: u.label.includes('Patrick') ? 'Admin' : 'Consultant'
+    }));
+
     return (
-        <Card>
+         <Card>
             <CardHeader>
-                <CardTitle>Organization</CardTitle>
-                <CardDescription>Manage departments and assign roles to team leaders.</CardDescription>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>View, manage, and assign roles to all users in the system.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 max-w-2xl">
-                 <div className='space-y-4'>
-                    <h3 className='font-medium'>Departments</h3>
-                    <div className='space-y-2'>
-                        <Label>Add New Department</Label>
-                        <div className='flex gap-2'>
-                            <Input placeholder="e.g., Human Resources" />
-                            <Button>Add Department</Button>
-                        </div>
-                    </div>
-                    <p className='text-muted-foreground text-sm'>Existing: Customer Service, Engineering, Marketing</p>
-                 </div>
-                 <div className='space-y-4'>
-                    <h3 className='font-medium'>Roles</h3>
-                     <div className='space-y-2'>
-                        <Label>Assign Team Leader</Label>
-                        <div className='flex gap-2'>
-                            <Input placeholder="Team leader's email" />
-                            <Button>Assign Role</Button>
-                        </div>
-                    </div>
-                 </div>
+            <CardContent>
+                <div className="mb-4 relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input placeholder="Search by name or email..." className="w-full pl-8" />
+                </div>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>User</TableHead>
+                            <TableHead>Department</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {users.map(user => {
+                            const avatar = PlaceHolderImages.find(p => p.id === user.value);
+                            return (
+                                <TableRow key={user.value}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className='h-9 w-9'>
+                                                <AvatarImage src={avatar?.imageUrl} alt={user.label} />
+                                                <AvatarFallback>{user.label.slice(0, 2)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p className="font-medium">{user.label}</p>
+                                                <p className="text-xs text-muted-foreground">{user.email}</p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>{user.department}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>{user.role}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon"><MessageSquare className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon"><UserCheck className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" className="text-destructive"><Ban className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
             </CardContent>
         </Card>
     );
 }
+
+function DepartmentsTabContent() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Departments</CardTitle>
+                <CardDescription>Manage organizational departments.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 max-w-2xl">
+                 <div className='space-y-2'>
+                    <Label>Add New Department</Label>
+                    <div className='flex gap-2'>
+                        <Input placeholder="e.g., Human Resources" />
+                        <Button>Add Department</Button>
+                    </div>
+                </div>
+                <p className='text-muted-foreground text-sm'>Existing: Customer Service, Engineering, Marketing</p>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 export function AdminPageContent() {
     return (
@@ -131,7 +190,7 @@ export function AdminPageContent() {
                 </div>
             </div>
             <Tabs defaultValue="branding">
-                <TabsList className="grid w-full max-w-md grid-cols-3 mb-8">
+                <TabsList className="grid w-full max-w-lg grid-cols-3 mb-8">
                     <TabsTrigger value="branding"><Palette className="mr-2 h-4 w-4" />Branding</TabsTrigger>
                     <TabsTrigger value="api"><KeyRound className="mr-2 h-4 w-4" />API Keys</TabsTrigger>
                     <TabsTrigger value="organization"><Building className="mr-2 h-4 w-4" />Organization</TabsTrigger>
@@ -143,9 +202,21 @@ export function AdminPageContent() {
                    <ApiConfigTabContent />
                 </TabsContent>
                  <TabsContent value="organization">
-                   <OrganizationTabContent />
-                </TabsContent>
+                    <Tabs defaultValue="users" className="w-full">
+                        <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
+                            <TabsTrigger value="users"><Users className="mr-2 h-4 w-4"/>User Management</TabsTrigger>
+                            <TabsTrigger value="departments"><Building className="mr-2 h-4 w-4"/>Departments</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="users">
+                            <UserManagementTabContent />
+                        </TabsContent>
+                        <TabsContent value="departments">
+                            <DepartmentsTabContent />
+                        </TabsContent>
+                    </Tabs>
+                 </TabsContent>
             </Tabs>
         </main>
     );
 }
+
