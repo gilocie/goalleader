@@ -98,7 +98,7 @@ function UserManagementTabContent() {
     const users = allUsers.map(u => ({
         ...u,
         email: `${u.label.toLowerCase().replace(/\s/g, '.')}@goalleader.com`,
-        department: 'Customer Service',
+        department: u.label.includes('Patrick') ? 'ICT' : 'Customer Service',
         role: u.label.includes('Patrick') ? 'Admin' : 'Consultant'
     }));
 
@@ -113,7 +113,7 @@ function UserManagementTabContent() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input placeholder="Search by name or email..." className="w-full pl-8" />
                 </div>
-                <ScrollArea className="h-[480px]">
+                <ScrollArea className="h-[400px]">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -131,7 +131,7 @@ function UserManagementTabContent() {
                                         <TableCell className="py-2">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className='h-8 w-8'>
-                                                    <AvatarImage src={avatar?.imageUrl} alt={user.label} />
+                                                    <AvatarImage src={avatar?.imageUrl} alt={user.label} className='object-top' />
                                                     <AvatarFallback>{user.label.slice(0, 2)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
@@ -260,3 +260,5 @@ export function AdminPageContent() {
         </main>
     );
 }
+
+    
