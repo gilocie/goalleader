@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,10 +9,40 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Camera } from 'lucide-react';
+import { Camera, PlusCircle, Trash2 } from 'lucide-react';
+
+type Kpi = {
+  id: number;
+  value: string;
+};
 
 export function ProfilePageContent() {
   const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
+  const [kpis, setKpis] = useState<Kpi[]>([
+    { id: 1, value: '' },
+    { id: 2, value: '' },
+    { id: 3, value: '' },
+  ]);
+
+  const addKpi = () => {
+    setKpis([...kpis, { id: Date.now(), value: '' }]);
+  };
+
+  const removeKpi = (id: number) => {
+    setKpis(kpis.filter((kpi) => kpi.id !== id));
+  };
+
+  const handleKpiChange = (id: number, value: string) => {
+    setKpis(kpis.map((kpi) => (kpi.id === id ? { ...kpi, value } : kpi)));
+  };
+
+  const getKpiLabel = (index: number) => {
+    if (index === 0) return 'Primary KPI';
+    if (index === 1) return 'Secondary KPI';
+    if (index === 2) return 'Tertiary KPI';
+    return `KPI #${index + 1}`;
+  }
+
 
   return (
     <main className="flex-grow p-4 md:p-8">
@@ -90,23 +121,42 @@ export function ProfilePageContent() {
           <Card>
             <CardHeader>
               <CardTitle>Key Performance Indicators (KPIs)</CardTitle>
-              <CardDescription>
-                Define your primary goals and targets.
-              </CardDescription>
+              <CardDescription>Define your primary goals and targets.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="kpi1">Primary KPI</Label>
-                <Input id="kpi1" placeholder="e.g., Achieve a 95% customer satisfaction score" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="kpi2">Secondary KPI</Label>
-                <Input id="kpi2" placeholder="e.g., Reduce average response time to under 2 hours" />
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="kpi3">Tertiary KPI</Label>
-                <Input id="kpi3" placeholder="e.g., Upsell services to 10% of existing clients" />
-              </div>
+              {kpis.map((kpi, index) => (
+                <div key={kpi.id} className="space-y-2">
+                  <Label htmlFor={`kpi-${kpi.id}`}>{getKpiLabel(index)}</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id={`kpi-${kpi.id}`}
+                      value={kpi.value}
+                      onChange={(e) => handleKpiChange(kpi.id, e.target.value)}
+                      placeholder={`e.g., ${
+                        index === 0
+                          ? 'Achieve a 95% customer satisfaction score'
+                          : index === 1
+                          ? 'Reduce average response time to under 2 hours'
+                          : 'Define a new KPI...'
+                      }`}
+                    />
+                    {kpis.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeKpi(kpi.id)}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={addKpi}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add KPI
+              </Button>
             </CardContent>
           </Card>
            <div className="flex justify-end">
