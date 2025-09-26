@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon } from 'lucide-react';
+import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon, LifeBuoy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
 import { Badge } from '../ui/badge';
@@ -19,6 +19,7 @@ const links = [
   { href: '/meetings', icon: Calendar, label: 'Meetings' },
   { href: '/notices', icon: Megaphone, label: 'Notices' },
   { href: '/marketing', icon: Store, label: 'Marketing' },
+  { href: '/support', icon: LifeBuoy, label: 'Support' },
 ];
 
 export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {

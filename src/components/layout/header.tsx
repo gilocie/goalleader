@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings } from 'lucide-react';
+import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useParams } from 'next/navigation';
 
@@ -151,7 +151,12 @@ export function Header() {
               <span>Settings</span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
+           <DropdownMenuItem asChild>
+            <Link href="/support">
+                <LifeBuoy className="mr-2 h-4 w-4" />
+                <span>Support</span>
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>Logout</DropdownMenuItem>
         </DropdownMenuContent>
