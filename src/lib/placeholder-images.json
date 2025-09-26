@@ -1,137 +1,142 @@
-
 {
   "placeholderImages": [
     {
       "id": "avatar-1",
       "description": "Female user avatar",
-      "imageUrl": "https://picsum.photos/seed/101/40/40",
+      "imageUrl": "https://images.unsplash.com/photo-1679611978819-f10168367155?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMGZhY2V8ZW58MHx8fHwxNzU4ODY3OTE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face"
     },
     {
       "id": "avatar-2",
       "description": "Male user avatar",
-      "imageUrl": "https://picsum.photos/seed/102/40/40",
+      "imageUrl": "https://images.unsplash.com/photo-1619182597083-17bda72c1d56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBmYWNlfGVufDB8fHx8MTc1ODc3MzczMHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man face"
     },
     {
       "id": "avatar-3",
       "description": "Female user avatar",
-      "imageUrl": "https://picsum.photos/seed/103/40/40",
+      "imageUrl": "https://images.unsplash.com/photo-1679611978819-f10168367155?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMGZhY2V8ZW58MHx8fHwxNzU4ODY3OTE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face"
     },
     {
       "id": "avatar-4",
       "description": "Male user avatar",
-      "imageUrl": "https://picsum.photos/seed/104/40/40",
+      "imageUrl": "https://images.unsplash.com/photo-1611608822772-43a28a830759?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtYW4lMjBmYWNlfGVufDB8fHx8MTc1ODc3MzczMHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man face"
     },
     {
       "id": "user-avatar",
       "description": "Main user avatar",
-      "imageUrl": "https://picsum.photos/seed/100/40/40",
+      "imageUrl": "https://images.unsplash.com/photo-1693039537350-3bba6975add7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBmYWNlfGVufDB8fHx8MTc1ODgxODYyMHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person face"
     },
     {
       "id": "time-tracker-bg",
       "description": "Green leaves background for time tracker",
-      "imageUrl": "https://picsum.photos/seed/110/250/200",
+      "imageUrl": "https://images.unsplash.com/photo-1535663505464-81873dcdd303?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxncmVlbiUyMGxlYXZlc3xlbnwwfHx8fDE3NTg4OTAzNjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "green leaves"
     },
     {
       "id": "patrick-achitabwino-m1",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/201/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1680104073088-ad3ef1ba4a1c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtYW4lMjBmYWNlJTIwcHJvZmVzc2lvbmFsfGVufDB8fHx8MTc1ODg5MDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man face professional"
     },
     {
       "id": "frank-mhango-m2",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/202/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1521870749737-92928aafcc21?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFuJTIwZmFjZSUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NTg4OTAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man face professional"
     },
     {
       "id": "denis-maluwasa-m3",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/203/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1613391578228-0672f030ae95?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtYW4lMjBmYWNlJTIwc21pbGluZ3xlbnwwfHx8fDE3NTg4OTAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man face smiling"
     },
     {
       "id": "gift-banda-m4",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/204/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1641650254048-d2975cbf78b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtYW4lMjBmYWNlJTIwZ2xhc3Nlc3xlbnwwfHx8fDE3NTg4OTAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man face glasses"
     },
     {
       "id": "chiyanjano-mkandawire-m5",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/205/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1758598306913-5cd682b9e53b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b21hbiUyMGZhY2UlMjBmcmllbmRseXxlbnwwfHx8fDE3NTg4OTAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face friendly"
     },
     {
       "id": "wezi-chisale-m6",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/206/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1758598306913-5cd682b9e53b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b21hbiUyMGZhY2UlMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face professional"
     },
     {
       "id": "charity-moyo-m7",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/207/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1758600588854-56536665fc9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b21hbiUyMGZhY2UlMjBtb2Rlcm58ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face modern"
     },
     {
       "id": "fumbani-mwenefumbo-m8",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/208/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1644437687093-8a01d1721fae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtYW4lMjBmYWNlJTIwYmVhcmRlZHxlbnwwfHx8fDE3NTg4OTAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man face bearded"
     },
     {
       "id": "rose-kabudula-m9",
       "description": "Team member avatar",
-      "imageUrl": "https://picsum.photos/seed/209/80/80",
+      "imageUrl": "https://images.unsplash.com/photo-1580894732444-8ecded7900cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3b21hbiUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NTg4MzMxNDJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman professional"
     },
     {
       "id": "john-isner-p1",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/301/400/300",
+      "imageUrl": "https://images.unsplash.com/photo-1752170080627-0324ede1ddf2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtYW4lMjBwcm9mZXNzaW9uYWwlMjBvZmZpY2V8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man professional office"
     },
     {
       "id": "mia-jones-p2",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/302/400/300",
+      "imageUrl": "https://images.unsplash.com/photo-1758518729459-235dcaadc611?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3b21hbiUyMHByb2Zlc3Npb25hbCUyMHNtaWxpbmd8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman professional smiling"
     },
     {
       "id": "janice-wallberg-p3",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/303/400/300",
+      "imageUrl": "https://images.unsplash.com/photo-1720540974837-27e9fb4af786?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3b21hbiUyMGZhY2UlMjBnbGFzc2VzfGVufDB8fHx8MTc1ODg5MDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face glasses"
     },
     {
       "id": "camille-valdez-p4",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/304/400/300",
+      "imageUrl": "https://images.unsplash.com/photo-1720098110121-26aa70b87bfc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBmYWNlJTIwZnJpZW5kbHl8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face friendly"
     },
     {
       "id": "oliver-p5",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/305/400/300",
+      "imageUrl": "https://images.unsplash.com/photo-1629871870289-21efd577d820?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFuJTIwZmFjZSUyMG1vZGVybnxlbnwwfHx8fDE3NTg4OTAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "man face modern"
     },
     {
       "id": "simona-p6",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/306/400/300",
+      "imageUrl": "https://images.unsplash.com/photo-1615751596346-9df8006e5381?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMGZhY2UlMjBzbWlsaW5nfGVufDB8fHx8MTc1ODg5MDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman face smiling"
     },
     {
       "id": "nina-p7",
       "description": "Video call participant",
-      "imageUrl": "https://picsum.photos/seed/307/400/300",
+      "imageUrl": "https://images.unsplash.com/photo-1709136485727-b4407111e90a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBwcm9mZXNzaW9uYWwlMjBoZWFkc2V0fGVufDB8fHx8MTc1ODg5MDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "woman professional headset"
+    },
+    {
+      "id": "landing-hero-bg",
+      "description": "Abstract background for landing page hero",
+      "imageUrl": "https://images.unsplash.com/photo-1567193729952-23830c0743ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bW9kZXJuJTIwb2ZmaWNlJTIwYWJzdHJhY3R8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern office abstract"
     }
   ]
 }
