@@ -54,7 +54,7 @@ Include:
 
 Completed Tasks:
 {{#each tasks}}
-- "{{name}}" completed on {{endTime}}.
+- "{{name}}"{{#if endTime}} completed on {{endTime}}{{/if}}.
 {{/each}}
 
 Generate the report content as a single string, ready to be sent to a manager.
