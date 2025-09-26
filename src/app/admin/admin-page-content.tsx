@@ -18,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { buttonVariants } from '@/components/ui/button';
 
 
 function OverviewTabContent() {
@@ -123,24 +122,39 @@ function SettingsTabContent() {
                 <CardTitle>Settings</CardTitle>
                 <CardDescription>Manage system-wide settings and integrations.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 max-w-2xl">
-                <div className='space-y-2'>
-                    <Label htmlFor='gemini-key'>Google Gemini API Key</Label>
-                    <Input id="gemini-key" type="password" placeholder="Enter your Gemini API Key" />
-                </div>
-                <div className='space-y-2'>
-                    <Label htmlFor='admin-pin'>Admin PIN</Label>
-                    <Input id="admin-pin" type="password" placeholder="Set or change your admin PIN" />
-                </div>
-                 <div className='space-y-2'>
-                    <Label>Default Country</Label>
-                    <Input placeholder="e.g., Malawi" />
-                </div>
-                 <div className='space-y-2'>
-                    <Label>Default City</Label>
-                    <Input placeholder="e.g., Lilongwe" />
-                </div>
-                 <Button>Save Settings</Button>
+            <CardContent className="max-w-2xl">
+                 <Tabs defaultValue="general" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="general">General</TabsTrigger>
+                        <TabsTrigger value="security">Security</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="general" className="mt-6">
+                        <div className="space-y-6">
+                            <div className='space-y-2'>
+                                <Label>Default Country</Label>
+                                <Input placeholder="e.g., Malawi" />
+                            </div>
+                            <div className='space-y-2'>
+                                <Label>Default City</Label>
+                                <Input placeholder="e.g., Lilongwe" />
+                            </div>
+                            <Button>Save General Settings</Button>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="security" className="mt-6">
+                        <div className="space-y-6">
+                            <div className='space-y-2'>
+                                <Label htmlFor='gemini-key'>Google Gemini API Key</Label>
+                                <Input id="gemini-key" type="password" placeholder="Enter your Gemini API Key" />
+                            </div>
+                            <div className='space-y-2'>
+                                <Label htmlFor='admin-pin'>Admin PIN</Label>
+                                <Input id="admin-pin" type="password" placeholder="Set or change your admin PIN" />
+                            </div>
+                            <Button>Save Security Settings</Button>
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </CardContent>
         </Card>
     );
@@ -368,8 +382,8 @@ export function AdminPageContent() {
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                buttonVariants({ variant: activeTab === item.id ? 'default' : 'ghost' }),
-                                                "justify-start p-2 hover:no-underline w-full"
+                                                "justify-start p-2 hover:no-underline w-full",
+                                                activeTab === item.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground'
                                             )}
                                         >
                                             <Icon className="mr-2 h-4 w-4" />
