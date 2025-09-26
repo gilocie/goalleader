@@ -28,7 +28,6 @@ import {
 import { allUsers } from '@/lib/users';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '../ui/scroll-area';
 
 const noticeSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -91,67 +90,64 @@ export function CreateNoticeDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Notice Title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Write your notice here..." {...field} className="h-24" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex items-center space-x-2">
-                  <Switch id="send-to-all" checked={sendToAll} onCheckedChange={setSendToAll} />
-                  <Label htmlFor="send-to-all">Send to All Team Members</Label>
-                </div>
-
-                {!sendToAll && (
-                  <FormField
-                    control={form.control}
-                    name="recipients"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Recipients</FormLabel>
-                        <FormControl>
-                          <MultiSelectCombobox
-                            options={allUsers}
-                            selected={field.value}
-                            onChange={field.onChange}
-                            placeholder="Select recipients..."
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 overflow-y-auto px-6 space-y-4 pt-2">
+            <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                    <Input placeholder="Notice Title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
                 )}
-                
-                <div className="h-4"></div>
-              </form>
-            </Form>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0 p-6 pt-4 border-t sticky bottom-0 bg-background">
+            />
+            <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                    <Textarea placeholder="Write your notice here..." {...field} className="h-24" />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+
+            <div className="flex items-center space-x-2">
+                <Switch id="send-to-all" checked={sendToAll} onCheckedChange={setSendToAll} />
+                <Label htmlFor="send-to-all">Send to All Team Members</Label>
+            </div>
+
+            {!sendToAll && (
+                <FormField
+                control={form.control}
+                name="recipients"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Recipients</FormLabel>
+                    <FormControl>
+                        <MultiSelectCombobox
+                        options={allUsers}
+                        selected={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select recipients..."
+                        />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            )}
+            
+            </form>
+        </Form>
+        <DialogFooter className="p-6 pt-4 border-t">
             <DialogClose asChild>
                 <Button type="button" variant="outline">
                     Cancel
@@ -165,7 +161,7 @@ export function CreateNoticeDialog({
             >
                 Send Notice
             </Button>
-            </DialogFooter>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

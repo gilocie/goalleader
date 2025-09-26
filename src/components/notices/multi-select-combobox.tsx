@@ -17,9 +17,9 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  PopoverPortal,
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { PopoverPortal } from '@radix-ui/react-popover';
 
 export type ComboboxOption = {
   value: string;
