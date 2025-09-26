@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -66,6 +65,9 @@ export default function LandingPage() {
                     </div>
                 </section>
             </main>
+            <footer className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-transparent text-center text-white/70 text-sm">
+                © {new Date().getFullYear()} GoalLeader. All rights reserved.
+            </footer>
         </div>
     );
 }
