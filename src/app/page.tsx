@@ -29,10 +29,10 @@ export default function LandingPage() {
                              <div className="flex flex-col justify-center space-y-4 text-center">
                                 <div className="space-y-2">
                                     <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                                        Unlock Your Team's Potential with GoalLeader
+                                        GoalLeader
                                     </h1>
                                     <p className="max-w-[600px] text-muted-foreground md:text-xl mx-auto">
-                                        Our platform provides the tools you need to track progress, manage tasks, and drive performance.
+                                        The AI-powered platform to track progress, manage tasks, and drive performance.
                                     </p>
                                 </div>
                                 <div className="flex justify-center flex-col gap-2 min-[400px]:flex-row">
