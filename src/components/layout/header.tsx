@@ -129,6 +129,7 @@ export function Header() {
                 src={userAvatar?.imageUrl}
                 alt="User avatar"
                 data-ai-hint={userAvatar?.imageHint}
+                className="object-cover object-top"
               />
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
