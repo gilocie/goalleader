@@ -68,25 +68,25 @@ export function DashboardStats() {
           onOpenChange={isMobileOrTablet ? () => toggleCard(stat.title) : undefined}
           asChild
         >
-            <Card className="relative bg-gradient-to-br from-primary to-green-800 text-primary-foreground pt-2">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card className="relative bg-primary text-primary-foreground p-4 flex flex-col justify-between">
+             <div className="flex justify-between items-start">
                 <CardTitle className="text-base font-medium">{stat.title}</CardTitle>
                 <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-full bg-white/20 text-white hover:bg-white/30 flex-shrink-0"
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 rounded-full bg-white/20 text-white hover:bg-white/30 flex-shrink-0"
                 >
-                <ArrowUpRight className="h-4 w-4" />
+                    <ArrowUpRight className="h-4 w-4" />
                 </Button>
-            </CardHeader>
-            <CardContent>
-                <div className="flex items-center gap-2">
-                    <div className="text-4xl font-bold">{stat.value}</div>
-                </div>
-                 <CollapsibleContent>
-                    <p className="text-xs text-green-100 mt-2">{stat.description}</p>
+             </div>
+
+             <div>
+                <div className="text-4xl font-bold">{stat.value}</div>
+                <CollapsibleContent>
+                    <p className="text-xs text-green-100 mt-1">{stat.description}</p>
                 </CollapsibleContent>
-            </CardContent>
+             </div>
+            
             {isMobileOrTablet && (
               <CollapsibleTrigger asChild>
                   <button 
