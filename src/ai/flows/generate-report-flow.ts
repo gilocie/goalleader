@@ -83,7 +83,7 @@ GUIDELINES:
 1. Create a **professional summary** of performance.
 2. If tasks were completed, provide a **bulleted list in Markdown** of key completed tasks. If not, state that no tasks were completed.
 3. Add a **short analysis** of performance vs KPI, including congratulations (if >KPI) or encouragement (if <KPI).
-4. Return both structured JSON fields and a **`fullReport` field containing the whole thing composed in Markdown**.
+4. Return both structured JSON fields and a **\`fullReport\` field containing the whole thing composed in Markdown**.
 
 FORMAT YOUR OUTPUT AS:
 - summary
