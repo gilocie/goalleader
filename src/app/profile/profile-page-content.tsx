@@ -53,7 +53,7 @@ export function ProfilePageContent() {
             <CardHeader className="items-center">
                 <div className="relative">
                     <Avatar className="h-32 w-32">
-                        <AvatarImage src={userAvatar?.imageUrl} alt="User" data-ai-hint={userAvatar?.imageHint} />
+                        <AvatarImage src={userAvatar?.imageUrl} alt="User" data-ai-hint={userAvatar?.imageHint} className="object-cover object-top" />
                         <AvatarFallback className="text-4xl">PA</AvatarFallback>
                     </Avatar>
                     <Button variant="outline" size="icon" className="absolute bottom-2 right-2 rounded-full bg-background/80 h-10 w-10">
