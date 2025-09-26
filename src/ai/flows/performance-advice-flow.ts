@@ -39,7 +39,7 @@ export async function getPerformanceAdvice(input: PerformanceAdviceInput): Promi
 
 const prompt = ai.definePrompt({
   name: 'performanceAdvicePrompt',
-  model: googleAI.model('gemini-1.5-flash-preview-0514'),
+  model: googleAI.model('gemini-pro'),
   input: { schema: PerformanceAdviceInputSchema },
   output: { schema: PerformanceAdviceOutputSchema },
   prompt: `You are an AI performance analyst for GoalLeader. Your goal is to provide a summary to a team leader about their staff member's performance.

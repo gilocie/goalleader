@@ -32,7 +32,7 @@ export async function refineText(input: RefineTextInput): Promise<RefineTextOutp
 
 const refineTextPrompt = ai.definePrompt({
   name: 'refineTextPrompt',
-  model: googleAI.model('gemini-1.5-flash-preview-0514'),
+  model: googleAI.model('gemini-pro'),
   input: { schema: RefineTextInputSchema },
   output: { schema: RefineTextOutputSchema },
   prompt: `You are a writing assistant. Your task is to take the user\\'s performance report and refine it.

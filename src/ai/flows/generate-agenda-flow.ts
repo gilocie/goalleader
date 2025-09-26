@@ -26,7 +26,7 @@ export async function generateAgenda(input: GenerateAgendaInput): Promise<Genera
 
 const prompt = ai.definePrompt({
   name: 'generateAgendaPrompt',
-  model: googleAI.model('gemini-1.5-flash-preview-0514'),
+  model: googleAI.model('gemini-pro'),
   input: { schema: GenerateAgendaInputSchema },
   output: { schema: GenerateAgendaOutputSchema },
   prompt: `You are a helpful AI assistant. Your task is to generate a concise and structured meeting agenda based on the provided title and reason.

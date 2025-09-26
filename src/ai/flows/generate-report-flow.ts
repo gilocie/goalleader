@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview A flow to generate a structured performance report based on completed tasks.
@@ -32,7 +31,7 @@ const GenerateReportInputSchema = z.object({
 export type GenerateReportInput = z.infer<typeof GenerateReportInputSchema>;
 
 // -----------------------
-// Output Schema (structured instead of plain string)
+// Output Schema (structured, like marketing flow)
 // -----------------------
 const GenerateReportOutputSchema = z.object({
   summary: z.string().describe('Overall summary of performance.'),
@@ -54,7 +53,7 @@ export async function generateReport(input: GenerateReportInput): Promise<Genera
 // -----------------------
 const reportPrompt = ai.definePrompt({
   name: 'generateReportPrompt',
-  model: googleAI.model('gemini-1.5-flash-preview-0514'),
+  model: googleAI.model('gemini-pro'),
   input: { schema: GenerateReportInputSchema },
   output: { schema: GenerateReportOutputSchema },
   config: {
@@ -84,13 +83,13 @@ GUIDELINES:
 3. Add a **short analysis** of performance vs KPI, including congratulations (if >KPI) or encouragement (if <KPI).
 4. Return both structured JSON fields and a **\`fullReport\`** field containing the whole thing composed in Markdown.
 
-FORMAT YOUR OUTPUT AS:
-- summary
-- tasksList
-- analysis
-- fullReport (Markdown string)
-
-Reply in the expected JSON schema.
+FORMAT YOUR OUTPUT AS JSON, matching exactly this schema:
+{
+  "summary": "string",
+  "tasksList": "string",
+  "analysis": "string",
+  "fullReport": "string"
+}
 `,
 });
 
