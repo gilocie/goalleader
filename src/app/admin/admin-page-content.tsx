@@ -6,12 +6,13 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search } from 'lucide-react';
+import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { allUsers } from '@/lib/users';
 import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 
 function BrandingTabContent() {
@@ -125,27 +126,39 @@ function UserManagementTabContent() {
                             const avatar = PlaceHolderImages.find(p => p.id === user.value);
                             return (
                                 <TableRow key={user.value}>
-                                    <TableCell>
+                                    <TableCell className="py-2">
                                         <div className="flex items-center gap-3">
-                                            <Avatar className='h-9 w-9'>
+                                            <Avatar className='h-8 w-8'>
                                                 <AvatarImage src={avatar?.imageUrl} alt={user.label} />
                                                 <AvatarFallback>{user.label.slice(0, 2)}</AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <p className="font-medium">{user.label}</p>
+                                                <p className="font-medium text-sm">{user.label}</p>
                                                 <p className="text-xs text-muted-foreground">{user.email}</p>
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{user.department}</TableCell>
-                                    <TableCell>
+                                    <TableCell className="py-2">{user.department}</TableCell>
+                                    <TableCell className="py-2">
                                         <Badge variant={user.role === 'Admin' ? 'default' : 'secondary'}>{user.role}</Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon"><MessageSquare className="h-4 w-4" /></Button>
-                                        <Button variant="ghost" size="icon"><UserCheck className="h-4 w-4" /></Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive"><Ban className="h-4 w-4" /></Button>
-                                        <Button variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                                    <TableCell className="text-right py-2">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem><UserCheck className="mr-2 h-4 w-4" />Assign Role</DropdownMenuItem>
+                                                <DropdownMenuItem><MessageSquare className="mr-2 h-4 w-4" />Send Message</DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem className="text-destructive focus:text-destructive"><Ban className="mr-2 h-4 w-4" />Ban User</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete User</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
                             )
@@ -178,6 +191,27 @@ function DepartmentsTabContent() {
     );
 }
 
+function RolesTabContent() {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Roles</CardTitle>
+                <CardDescription>Define and manage user roles in the system.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 max-w-2xl">
+                 <div className='space-y-2'>
+                    <Label>Add New Role</Label>
+                    <div className='flex gap-2'>
+                        <Input placeholder="e.g., Team Leader" />
+                        <Button>Add Role</Button>
+                    </div>
+                </div>
+                <p className='text-muted-foreground text-sm'>Existing: Admin, Consultant</p>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 export function AdminPageContent() {
     return (
@@ -203,9 +237,10 @@ export function AdminPageContent() {
                 </TabsContent>
                  <TabsContent value="organization">
                     <Tabs defaultValue="users" className="w-full">
-                        <TabsList className="grid w-full max-w-md grid-cols-2 mb-8">
+                        <TabsList className="grid w-full max-w-lg grid-cols-3 mb-8">
                             <TabsTrigger value="users"><Users className="mr-2 h-4 w-4"/>User Management</TabsTrigger>
                             <TabsTrigger value="departments"><Building className="mr-2 h-4 w-4"/>Departments</TabsTrigger>
+                             <TabsTrigger value="roles"><Briefcase className="mr-2 h-4 w-4"/>Roles</TabsTrigger>
                         </TabsList>
                         <TabsContent value="users">
                             <UserManagementTabContent />
@@ -213,10 +248,12 @@ export function AdminPageContent() {
                         <TabsContent value="departments">
                             <DepartmentsTabContent />
                         </TabsContent>
+                        <TabsContent value="roles">
+                            <RolesTabContent />
+                        </TabsContent>
                     </Tabs>
                  </TabsContent>
             </Tabs>
         </main>
     );
 }
-
