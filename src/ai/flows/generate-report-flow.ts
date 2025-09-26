@@ -70,14 +70,18 @@ REPORT CONTEXT:
 - Staff Performance: {{performance}}%
 
 TASKS:
+{{#if tasks}}
 {{#each tasks}}
 - "{{name}}" (Status: {{status}}){{#if endTime}} — completed on {{endTime}}{{/if}}
 {{/each}}
+{{else}}
+No tasks were completed in this period.
+{{/if}}
 
 GUIDELINES:
 1. Create a **professional summary** of performance.
-2. Provide a **bulleted list in Markdown** of completed key tasks.
-3. Add a **short analysis** of performance vs KPI, including congratulations (if >KPI) or encouragement (if <KPI).
+2. If there are tasks, provide a **bulleted list in Markdown** of completed key tasks. If not, state that no tasks were completed.
+3. Add a **short analysis** of performance vs KPI. If performance is 0%, acknowledge this and provide encouragement.
 4. Return both structured JSON fields and a **\`fullReport\` field containing the whole thing composed in Markdown**.
 
 FORMAT YOUR OUTPUT AS:
@@ -119,3 +123,4 @@ const generateReportFlow = ai.defineFlow(
     }
   }
 );
+
