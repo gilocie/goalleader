@@ -75,11 +75,11 @@ export function ProfilePageContent() {
             <CardContent className="space-y-4">
                 <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" defaultValue="patrick.achitabwino@example.com" disabled />
+                    <Input id="email" defaultValue="patrick@goalleader.com" disabled />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" placeholder="+1 (555) 123-4567" />
+                    <Input id="phone" placeholder="+265 99 123 4567" />
                 </div>
             </CardContent>
           </Card>
