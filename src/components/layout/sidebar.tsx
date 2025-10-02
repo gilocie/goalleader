@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Logo } from '@/components/icons';
+import { HomeIcon } from 'lucide-react';
 import { TimeTracker } from '@/components/dashboard/time-tracker';
 import { NavLinks } from './nav-links';
 import { ScrollArea } from '../ui/scroll-area';
@@ -13,10 +13,10 @@ export function Sidebar() {
       <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link
-            href="/dashboard"
+            href="/"
             className="flex items-center gap-2 font-semibold"
           >
-            <Logo className="h-6 w-6" />
+            <HomeIcon className="h-6 w-6" />
             <span className="">GoalLeader</span>
           </Link>
         </div>
