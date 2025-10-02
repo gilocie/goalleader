@@ -8,8 +8,10 @@ import { NavLinks } from './nav-links';
 import { ScrollArea } from '../ui/scroll-area';
 import { Logo } from '../icons';
 import { Button } from '../ui/button';
+import { useBranding } from '@/context/branding-context';
 
 export function Sidebar() {
+  const { branding } = useBranding();
   return (
     <div className="hidden md:fixed md:inset-y-0 md:z-20 md:flex md:w-[220px] md:flex-col lg:w-[280px]">
       <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card">
@@ -19,7 +21,7 @@ export function Sidebar() {
             className="flex items-center gap-2 font-semibold"
           >
             <Logo className="h-6 w-6" />
-            <span className="">GoalLeader</span>
+            <span className="">{branding.companyName}</span>
           </Link>
           <Button
             size="icon"

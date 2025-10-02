@@ -25,6 +25,7 @@ import { NotificationDropdown } from '../notifications/notification-dropdown';
 import { useNotifications } from '@/context/notification-context';
 import { useChat } from '@/context/chat-context';
 import { ChatDropdown } from '../notifications/chat-dropdown';
+import { useBranding } from '@/context/branding-context';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -41,6 +42,7 @@ export function Header() {
   const params = useParams();
   const { notifications } = useNotifications();
   const { unreadMessagesCount } = useChat();
+  const { branding } = useBranding();
 
   const isMeetingPage = pathname.startsWith('/meetings/');
   const meetingId = isMeetingPage && typeof params.meetingId === 'string' ? params.meetingId : null;
@@ -69,7 +71,7 @@ export function Header() {
                 className="flex items-center gap-2 text-lg font-semibold"
               >
                 
-                <span className="">GoalLeader</span>
+                <span className="">{branding.companyName}</span>
               </Link>
             </div>
             <ScrollArea className="flex-1">

@@ -14,6 +14,7 @@ import { ReportsProvider } from '@/context/reports-context';
 import { cn } from '@/lib/utils';
 import { NotificationProvider } from '@/context/notification-context';
 import { ChatProvider } from '@/context/chat-context';
+import { BrandingProvider } from '@/context/branding-context';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
@@ -48,15 +49,17 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider>
-      <TimeTrackerProvider>
-        <ReportsProvider>
-            <ChatProvider>
-                <NotificationProvider>
-                    <LayoutWithTracker>{children}</LayoutWithTracker>
-                </NotificationProvider>
-            </ChatProvider>
-        </ReportsProvider>
-      </TimeTrackerProvider>
+      <BrandingProvider>
+        <TimeTrackerProvider>
+          <ReportsProvider>
+              <ChatProvider>
+                  <NotificationProvider>
+                      <LayoutWithTracker>{children}</LayoutWithTracker>
+                  </NotificationProvider>
+              </ChatProvider>
+          </ReportsProvider>
+        </TimeTrackerProvider>
+      </BrandingProvider>
     </ThemeProvider>
   );
 }

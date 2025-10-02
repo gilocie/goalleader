@@ -16,8 +16,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useBranding } from '@/context/branding-context';
 
 
 function OverviewTabContent() {
@@ -56,6 +57,22 @@ function OverviewTabContent() {
 }
 
 function BrandingTabContent() {
+    const { branding, saveBranding } = useBranding();
+    const [localBranding, setLocalBranding] = useState(branding);
+
+    useEffect(() => {
+        setLocalBranding(branding);
+    }, [branding]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setLocalBranding(prev => ({...prev, [name]: value}));
+    };
+
+    const handleSave = () => {
+        saveBranding(localBranding);
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -65,7 +82,7 @@ function BrandingTabContent() {
             <CardContent className="space-y-6 max-w-2xl">
                 <div className='space-y-2'>
                     <Label>Company Name</Label>
-                    <Input defaultValue="GoalLeader" />
+                    <Input name="companyName" value={localBranding.companyName} onChange={handleChange} />
                 </div>
                 <div className='space-y-2'>
                     <Label>Logo</Label>
@@ -87,15 +104,15 @@ function BrandingTabContent() {
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <div className='space-y-2'>
                                 <Label>Primary Color</Label>
-                                <Input type="color" defaultValue="#27AE60" className='p-1 h-10' />
+                                <Input type="color" name="primaryColor" value={localBranding.primaryColor} onChange={handleChange} className='p-1 h-10' />
                             </div>
                             <div className='space-y-2'>
                                 <Label>Background Color</Label>
-                                <Input type="color" defaultValue="#F7FAFC" className='p-1 h-10' />
+                                <Input type="color" name="backgroundColor" value={localBranding.backgroundColor} onChange={handleChange} className='p-1 h-10' />
                             </div>
                              <div className='space-y-2'>
                                 <Label>Accent Color</Label>
-                                <Input type="color" defaultValue="#90EE90" className='p-1 h-10' />
+                                <Input type="color" name="accentColor" value={localBranding.accentColor} onChange={handleChange} className='p-1 h-10' />
                             </div>
                         </div>
                     </TabsContent>
@@ -103,13 +120,13 @@ function BrandingTabContent() {
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                              <div className='space-y-2'>
                                 <Label>Gradient End Color</Label>
-                                <Input type="color" defaultValue="#1E8449" className='p-1 h-10' />
+                                <Input type="color" name="gradientEndColor" value={localBranding.gradientEndColor} onChange={handleChange} className='p-1 h-10' />
                             </div>
                         </div>
                     </TabsContent>
                 </Tabs>
 
-                <Button>Save Branding</Button>
+                <Button onClick={handleSave}>Save Branding</Button>
             </CardContent>
         </Card>
     )
