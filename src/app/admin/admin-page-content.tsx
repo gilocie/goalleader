@@ -39,7 +39,7 @@ function OverviewTabContent() {
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-gradient-to-br from-primary to-green-800 text-primary-foreground">
+                             <Card key={stat.title} className="bg-gradient-to-br from-primary to-primary-dark text-primary-foreground">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
                                     <Icon className="h-4 w-4 text-primary-foreground/70" />

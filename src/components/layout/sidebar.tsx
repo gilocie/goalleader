@@ -26,7 +26,7 @@ export function Sidebar() {
           <Button
             size="icon"
             asChild
-            className="h-8 w-8 bg-gradient-to-r from-primary to-green-800 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+            className="h-8 w-8 bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90"
           >
             <Link href="/">
               <HomeIcon className="h-5 w-5" />

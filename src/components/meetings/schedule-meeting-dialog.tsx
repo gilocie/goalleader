@@ -191,7 +191,7 @@ export function ScheduleMeetingDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+          <Button onClick={handleConfirm} className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">
             Confirm Schedule
           </Button>
         </DialogFooter>

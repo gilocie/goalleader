@@ -20,7 +20,7 @@ export default function LandingPage() {
              <Button variant="ghost" asChild className="text-white hover:bg-white/10 hover:text-white">
                 <Link href="/login">Login</Link>
             </Button>
-            <Button asChild className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+            <Button asChild className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">
                 <Link href="/register">Sign Up</Link>
             </Button>
           </nav>
@@ -48,7 +48,7 @@ export default function LandingPage() {
                         The ultimate productivity and project management tool designed to help you and your team reach your goals faster.
                     </p>
                     <div className="flex justify-center">
-                         <Button size="lg" asChild className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                         <Button size="lg" asChild className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">
                             <Link href="/dashboard">Go to Dashboard</Link>
                         </Button>
                     </div>

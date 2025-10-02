@@ -100,7 +100,7 @@ export function Header() {
       </div>
       
        <ChatDropdown>
-            <Button variant="default" size="icon" className="relative h-8 w-8 bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+            <Button variant="default" size="icon" className="relative h-8 w-8 bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">
                 <MessageSquare className="h-4 w-4" />
                 {unreadMessagesCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">

@@ -68,7 +68,7 @@ export function DashboardStats() {
           onOpenChange={isMobileOrTablet ? () => toggleCard(stat.title) : undefined}
           asChild
         >
-            <Card className="relative bg-gradient-to-br from-primary to-green-800 text-primary-foreground pt-2">
+            <Card className="relative bg-gradient-to-br from-primary to-primary-dark text-primary-foreground pt-2">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-medium">{stat.title}</CardTitle>
                 <Button
@@ -90,7 +90,7 @@ export function DashboardStats() {
             {isMobileOrTablet && (
               <CollapsibleTrigger asChild>
                   <button 
-                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-green-800 text-white flex items-center justify-center"
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-primary-dark text-white flex items-center justify-center"
                   >
                       {openCard === stat.title ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </button>

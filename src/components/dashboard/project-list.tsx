@@ -117,7 +117,7 @@ export function ProjectList() {
                 <CardDescription>A list of your ongoing tasks.</CardDescription>
             </div>
             <Button 
-                className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+                className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90"
                 onClick={() => setAddTaskOpen(true)}
             >
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -213,7 +213,7 @@ export function ProjectList() {
                                   aria-haspopup="true"
                                   size="icon"
                                   variant="ghost"
-                                  className="-mt-2 text-green-800"
+                                  className="-mt-2 text-primary-dark"
                               >
                                   <MoreHorizontal className="h-4 w-4" />
                                   <span className="sr-only">Toggle menu</span>
@@ -235,9 +235,9 @@ export function ProjectList() {
                                   variant="outline"
                                   size="icon"
                                   onClick={() => startTask(task.name)}
-                                  className="h-8 w-8 text-green-600 border-green-600"
+                                  className="h-8 w-8 text-primary border-primary"
                               >
-                                  <Play className="h-4 w-4 text-green-600" />
+                                  <Play className="h-4 w-4 text-primary" />
                                   <span className='sr-only'>Start</span>
                               </Button>
                           )}

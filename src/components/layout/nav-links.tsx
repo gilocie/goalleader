@@ -52,8 +52,8 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
             ? 'text-muted-foreground hover:text-foreground'
             : 'bg-secondary shadow-sm hover:bg-secondary/80 hover:shadow-lg',
             isActive && (isMobile 
-            ? 'bg-gradient-to-r from-primary to-green-700 text-white'
-            : 'bg-green-800 text-white shadow-md hover:bg-green-700')
+            ? 'bg-gradient-to-r from-primary to-primary-dark text-white'
+            : 'bg-primary-dark text-white shadow-md hover:bg-primary-dark/90')
         )}
         >
         <Icon className="h-4 w-4" />
@@ -61,7 +61,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
         {count > 0 && (
             <Badge className={cn(
                 'h-5 w-5 flex items-center justify-center p-0',
-                isActive ? 'bg-white text-green-800' : 'bg-primary text-primary-foreground'
+                isActive ? 'bg-white text-primary-dark' : 'bg-primary text-primary-foreground'
             )}>
             {count}
             </Badge>
