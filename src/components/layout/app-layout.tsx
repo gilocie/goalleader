@@ -7,14 +7,12 @@ import { TimeTrackerProvider, useTimeTracker } from '@/context/time-tracker-cont
 import { Sidebar } from './sidebar';
 import { Header } from './header';
 import { Footer } from '../dashboard/footer';
-import { ThemeProvider } from '@/context/theme-provider';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TimeTracker } from '../dashboard/time-tracker';
 import { ReportsProvider } from '@/context/reports-context';
 import { cn } from '@/lib/utils';
 import { NotificationProvider } from '@/context/notification-context';
 import { ChatProvider } from '@/context/chat-context';
-import { BrandingProvider } from '@/context/branding-context';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
@@ -48,18 +46,14 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider>
-      <BrandingProvider>
-        <TimeTrackerProvider>
-          <ReportsProvider>
-              <ChatProvider>
-                  <NotificationProvider>
-                      <LayoutWithTracker>{children}</LayoutWithTracker>
-                  </NotificationProvider>
-              </ChatProvider>
-          </ReportsProvider>
-        </TimeTrackerProvider>
-      </BrandingProvider>
-    </ThemeProvider>
+    <TimeTrackerProvider>
+        <ReportsProvider>
+            <ChatProvider>
+                <NotificationProvider>
+                    <LayoutWithTracker>{children}</LayoutWithTracker>
+                </NotificationProvider>
+            </ChatProvider>
+        </ReportsProvider>
+    </TimeTrackerProvider>
   );
 }
