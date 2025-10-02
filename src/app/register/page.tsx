@@ -82,7 +82,7 @@ export default function RegisterPage() {
                 <Label htmlFor="repeat-password">Repeat password</Label>
                 <div className="relative">
                   <Input id="repeat-password" type={showPassword ? 'text' : 'password'} required />
-                  <Button
+                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"

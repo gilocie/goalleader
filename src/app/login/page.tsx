@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,9 +10,11 @@ import { Logo } from '@/components/icons';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const heroBg = PlaceHolderImages.find(p => p.id === 'landing-hero-bg');
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -60,7 +63,18 @@ export default function LoginPage() {
                   Forgot your password?
                 </Link>
               </div>
-              <Input id="password" type="password" required />
+              <div className="relative">
+                <Input id="password" type={showPassword ? 'text' : 'password'} required />
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </Button>
+              </div>
             </div>
             <Button type="submit" className="w-full bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
               Login
