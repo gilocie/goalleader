@@ -84,7 +84,7 @@ export function DashboardStats() {
                     <div className="text-4xl font-bold">{stat.value}</div>
                 </div>
                  <CollapsibleContent>
-                    <p className="text-xs text-green-100 mt-2">{stat.description}</p>
+                    <p className="text-xs text-primary-foreground/80 mt-2">{stat.description}</p>
                 </CollapsibleContent>
             </CardContent>
             {isMobileOrTablet && (
