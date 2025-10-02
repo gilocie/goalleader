@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -14,8 +15,7 @@
     --popover-foreground: 222.2 84% 4.9%;
 
     --primary: 147 55% 42%; /* #27AE60 */
-    --primary-dark: 147 55% 32%; /* Darker shade for gradients */
-    --gradient-end: 147 55% 32%; /* Default gradient end, will be overridden by context */
+    --primary-dark: 147 55% 32%; /* Darker shade for hover/gradients */
     --primary-foreground: 0 0% 98%;
 
     --secondary: 145 50% 96%;
@@ -53,7 +53,6 @@
 
     --primary: 147 55% 42%;
     --primary-dark: 147 55% 32%;
-    --gradient-end: 147 55% 32%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 240 3.7% 15.9%;

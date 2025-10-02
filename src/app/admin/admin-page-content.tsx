@@ -39,7 +39,7 @@ function OverviewTabContent() {
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-gradient-to-br from-primary to-gradient-end text-primary-foreground">
+                             <Card key={stat.title} className="bg-primary text-primary-foreground">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
                                     <Icon className="h-4 w-4 text-primary-foreground/70" />
@@ -96,26 +96,12 @@ function BrandingTabContent() {
                 </div>
                 
                 <Card className='p-4'>
-                    <Label>Primary Gradient</Label>
+                    <Label>Theme Colors</Label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
                         <div className='space-y-2'>
-                            <Label>Start Color</Label>
+                            <Label>Primary Color</Label>
                             <Input type="color" name="primaryColor" value={localBranding.primaryColor} onChange={handleChange} className='p-1 h-10' />
                         </div>
-                        <div className='space-y-2'>
-                            <Label>End Color</Label>
-                            <Input type="color" name="gradientEndColor" value={localBranding.gradientEndColor} onChange={handleChange} className='p-1 h-10' />
-                        </div>
-                        <div className="md:col-span-1 space-y-2">
-                            <Label>Preview</Label>
-                            <div className="h-10 rounded-md" style={{ background: `linear-gradient(to right, ${localBranding.primaryColor}, ${localBranding.gradientEndColor})` }} />
-                        </div>
-                    </div>
-                </Card>
-
-                 <Card className='p-4'>
-                    <Label>Other Colors</Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
                         <div className='space-y-2'>
                             <Label>Background Color</Label>
                             <Input type="color" name="backgroundColor" value={localBranding.backgroundColor} onChange={handleChange} className='p-1 h-10' />
@@ -125,11 +111,11 @@ function BrandingTabContent() {
                             <Input type="color" name="accentColor" value={localBranding.accentColor} onChange={handleChange} className='p-1 h-10' />
                         </div>
                     </div>
-                 </Card>
+                </Card>
 
 
                 <div className="flex gap-2">
-                    <Button onClick={handleSave} className="bg-gradient-to-r from-primary to-gradient-end text-primary-foreground hover:from-primary/90 hover:to-gradient-end/90">Save Branding</Button>
+                    <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">Save Branding</Button>
                     <Button variant="outline" onClick={resetBranding}>Reset Branding</Button>
                 </div>
             </CardContent>
@@ -460,4 +446,3 @@ export function AdminPageContent() {
     
 
     
-
