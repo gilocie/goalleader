@@ -39,7 +39,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
   
   const renderLink = (href: string, icon: React.ElementType, label: string, notificationKey?: string) => {
     const count = getNotificationCount(notificationKey);
-    const isActive = pathname === href;
+    const isActive = pathname === href || (href === '/teams' && pathname.startsWith('/teams/'));
     const Icon = icon;
 
     return (
@@ -47,13 +47,8 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
         key={href}
         href={href}
         className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-secondary-foreground transition-all relative',
-            isMobile 
-            ? 'text-muted-foreground hover:text-foreground'
-            : 'bg-secondary shadow-sm hover:bg-secondary/80 hover:shadow-lg',
-            isActive && (isMobile 
-            ? 'bg-gradient-to-r from-primary to-primary-dark text-white'
-            : 'bg-primary-dark text-white shadow-md hover:bg-primary-dark/90')
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted',
+            isActive && 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground'
         )}
         >
         <Icon className="h-4 w-4" />
@@ -61,7 +56,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
         {count > 0 && (
             <Badge className={cn(
                 'h-5 w-5 flex items-center justify-center p-0',
-                isActive ? 'bg-white text-primary-dark' : 'bg-primary text-primary-foreground'
+                isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
             )}>
             {count}
             </Badge>
