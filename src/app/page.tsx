@@ -28,7 +28,7 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative w-full h-[60vh] flex items-center justify-center text-center">
+        <section className="relative w-full h-screen flex items-center justify-center text-center">
             {heroBg && (
                  <Image 
                     src={heroBg.imageUrl} 
