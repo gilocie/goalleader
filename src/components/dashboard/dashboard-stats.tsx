@@ -74,7 +74,7 @@ export function DashboardStats() {
                 <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 rounded-full bg-white/20 text-white hover:bg-white/30 flex-shrink-0"
+                className="h-8 w-8 rounded-full bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 flex-shrink-0"
                 >
                 <ArrowUpRight className="h-4 w-4" />
                 </Button>
@@ -90,7 +90,7 @@ export function DashboardStats() {
             {isMobileOrTablet && (
               <CollapsibleTrigger asChild>
                   <button 
-                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-primary-dark text-white flex items-center justify-center"
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-primary-dark text-primary-foreground flex items-center justify-center"
                   >
                       {openCard === stat.title ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </button>
