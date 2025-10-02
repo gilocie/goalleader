@@ -39,7 +39,7 @@ function OverviewTabContent() {
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-gradient-to-br from-primary to-primary-dark text-primary-foreground">
+                             <Card key={stat.title} className="bg-gradient-to-br from-primary to-gradient-end text-primary-foreground">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
                                     <Icon className="h-4 w-4 text-primary-foreground/70" />
@@ -129,7 +129,7 @@ function BrandingTabContent() {
 
 
                 <div className="flex gap-2">
-                    <Button onClick={handleSave} className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">Save Branding</Button>
+                    <Button onClick={handleSave} className="bg-gradient-to-r from-primary to-gradient-end text-primary-foreground hover:from-primary/90 hover:to-gradient-end/90">Save Branding</Button>
                     <Button variant="outline" onClick={resetBranding}>Reset Branding</Button>
                 </div>
             </CardContent>

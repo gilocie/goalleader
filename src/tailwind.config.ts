@@ -30,6 +30,7 @@ export default {
           dark: 'hsl(var(--gradient-end))',
           foreground: 'hsl(var(--primary-foreground))',
         },
+        "gradient-end": "hsl(var(--gradient-end))",
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
           foreground: 'hsl(var(--secondary-foreground))',

@@ -68,7 +68,7 @@ export function DashboardStats() {
           onOpenChange={isMobileOrTablet ? () => toggleCard(stat.title) : undefined}
           asChild
         >
-            <Card className="relative bg-gradient-to-br from-primary to-primary-dark text-primary-foreground pt-2">
+            <Card className="relative bg-gradient-to-br from-primary to-gradient-end text-primary-foreground pt-2">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-medium">{stat.title}</CardTitle>
                 <Button
