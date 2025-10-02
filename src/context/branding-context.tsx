@@ -74,8 +74,8 @@ const BrandingStyle = () => {
             root.style.setProperty('--background', `${backgroundHsl[0]} ${backgroundHsl[1]}% ${backgroundHsl[2]}%`);
             root.style.setProperty('--accent', `${accentHsl[0]} ${accentHsl[1]}% ${accentHsl[2]}%`);
             
+            // Set --primary-dark to be the gradient end color
             root.style.setProperty('--primary-dark', `${gradientEndHsl[0]} ${gradientEndHsl[1]}% ${gradientEndHsl[2]}%`);
-            root.style.setProperty('--gradient-end', `${gradientEndHsl[0]} ${gradientEndHsl[1]}% ${gradientEndHsl[2]}%`);
         }
     }, [branding]);
   
