@@ -74,7 +74,7 @@ export function DashboardStats() {
                 <Button
                 size="icon"
                 variant="ghost"
-                className="h-8 w-8 rounded-full bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30 flex-shrink-0"
+                className="h-8 w-8 rounded-full bg-primary-dark text-primary-foreground hover:bg-primary-dark/90 flex-shrink-0"
                 >
                 <ArrowUpRight className="h-4 w-4" />
                 </Button>

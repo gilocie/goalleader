@@ -8,6 +8,7 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 type BrandingState = {
   companyName: string;
   primaryColor: string;
+  primaryDarkColor: string; // New dark color
   backgroundColor: string;
   accentColor: string;
 };
@@ -15,6 +16,7 @@ type BrandingState = {
 const defaultBranding: BrandingState = {
   companyName: 'GoalLeader',
   primaryColor: '#27AE60',
+  primaryDarkColor: '#1E8449', // Darker green for contrast
   backgroundColor: '#F7FAFC',
   accentColor: '#90EE90',
 };
@@ -61,18 +63,17 @@ const BrandingStyle = () => {
   
     useEffect(() => {
         const primaryHsl = hexToHsl(branding.primaryColor);
+        const primaryDarkHsl = hexToHsl(branding.primaryDarkColor);
         const backgroundHsl = hexToHsl(branding.backgroundColor);
         const accentHsl = hexToHsl(branding.accentColor);
 
-        if (primaryHsl && backgroundHsl && accentHsl) {
+        if (primaryHsl && primaryDarkHsl && backgroundHsl && accentHsl) {
             const root = document.documentElement;
             
             root.style.setProperty('--primary', `${primaryHsl[0]} ${primaryHsl[1]}% ${primaryHsl[2]}%`);
+            root.style.setProperty('--primary-dark', `${primaryDarkHsl[0]} ${primaryDarkHsl[1]}% ${primaryDarkHsl[2]}%`);
             root.style.setProperty('--background', `${backgroundHsl[0]} ${backgroundHsl[1]}% ${backgroundHsl[2]}%`);
             root.style.setProperty('--accent', `${accentHsl[0]} ${accentHsl[1]}% ${accentHsl[2]}%`);
-            
-            const primaryDarkL = Math.max(0, primaryHsl[2] - 10);
-            root.style.setProperty('--primary-dark', `${primaryHsl[0]} ${primaryHsl[1]}% ${primaryDarkL}%`);
         }
     }, [branding]);
   
@@ -89,10 +90,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
     try {
         const storedBranding = localStorage.getItem('brandingSettings');
         if (storedBranding) {
-            const parsed = JSON.parse(storedBranding);
-            // Ensure gradientEndColor doesn't cause issues if it's still in old storage
-            const { gradientEndColor, ...rest } = parsed;
-            setBranding(rest);
+            setBranding(JSON.parse(storedBranding));
         }
     } catch (error) {
         console.error("Failed to load branding settings from localStorage", error);
@@ -101,9 +99,8 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
 
   const saveBranding = (newBranding: BrandingState) => {
     try {
-        const { gradientEndColor, ...rest } = newBranding as any;
-        localStorage.setItem('brandingSettings', JSON.stringify(rest));
-        setBranding(rest);
+        localStorage.setItem('brandingSettings', JSON.stringify(newBranding));
+        setBranding(newBranding);
         toast({
             title: 'Branding Saved',
             description: 'Your new branding settings have been applied.',

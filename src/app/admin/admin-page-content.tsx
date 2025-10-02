@@ -102,6 +102,10 @@ function BrandingTabContent() {
                             <Label>Primary Color</Label>
                             <Input type="color" name="primaryColor" value={localBranding.primaryColor} onChange={handleChange} className='p-1 h-10' />
                         </div>
+                         <div className='space-y-2'>
+                            <Label>Primary Dark</Label>
+                            <Input type="color" name="primaryDarkColor" value={localBranding.primaryDarkColor} onChange={handleChange} className='p-1 h-10' />
+                        </div>
                         <div className='space-y-2'>
                             <Label>Background Color</Label>
                             <Input type="color" name="backgroundColor" value={localBranding.backgroundColor} onChange={handleChange} className='p-1 h-10' />
@@ -455,4 +459,5 @@ export function AdminPageContent() {
     
 
     
+
 
