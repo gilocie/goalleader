@@ -21,7 +21,11 @@ export function Sidebar() {
             <Logo className="h-6 w-6" />
             <span className="">GoalLeader</span>
           </Link>
-          <Button variant="ghost" size="icon" asChild>
+          <Button
+            size="icon"
+            asChild
+            className="h-8 w-8 bg-gradient-to-r from-primary to-green-800 text-primary-foreground hover:from-primary/90 hover:to-green-700/90"
+          >
             <Link href="/">
               <HomeIcon className="h-5 w-5" />
               <span className="sr-only">Home</span>
