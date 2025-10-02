@@ -394,10 +394,10 @@ export function AdminPageContent() {
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
+                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto shadow-md shadow-primary/20 text-primary",
                                                 "transition-colors duration-200",
                                                 activeTab === item.id 
-                                                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-accent hover:text-primary' 
+                                                    ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
                                                     : 'hover:bg-primary hover:text-primary-foreground'
                                             )}
                                         >
@@ -411,9 +411,9 @@ export function AdminPageContent() {
                                                         key={sub.id}
                                                         variant={'ghost'}
                                                         className={cn(
-                                                            "justify-start",
+                                                            "justify-start text-primary shadow-md shadow-primary/20",
                                                             activeSubTab === sub.id && activeTab === 'organization' 
-                                                                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-accent hover:text-primary' 
+                                                                ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
                                                                 : 'hover:bg-primary hover:text-primary-foreground'
                                                         )}
                                                         onClick={() => {
@@ -435,10 +435,10 @@ export function AdminPageContent() {
                                 key={item.id}
                                 variant="ghost"
                                 className={cn(
-                                    "justify-start p-3 font-semibold text-base h-auto",
+                                    "justify-start p-3 font-semibold text-base h-auto shadow-md shadow-primary/20 text-primary",
                                     "transition-colors duration-200",
                                     activeTab === item.id 
-                                        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-accent hover:text-primary' 
+                                        ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
                                         : 'hover:bg-primary hover:text-primary-foreground'
                                 )}
                                 onClick={() => setActiveTab(item.id)}
