@@ -394,7 +394,7 @@ export function AdminPageContent() {
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold",
+                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
                                                 "transition-colors duration-200",
                                                 activeTab === item.id 
                                                     ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
@@ -409,8 +409,13 @@ export function AdminPageContent() {
                                                 {item.subItems.map(sub => (
                                                     <Button
                                                         key={sub.id}
-                                                        variant={activeSubTab === sub.id && activeTab === 'organization' ? 'secondary' : 'ghost'}
-                                                        className="justify-start"
+                                                        variant={'ghost'}
+                                                        className={cn(
+                                                            "justify-start",
+                                                            activeSubTab === sub.id && activeTab === 'organization' 
+                                                                ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
+                                                                : 'hover:bg-primary hover:text-primary-foreground'
+                                                        )}
                                                         onClick={() => {
                                                             setActiveTab('organization');
                                                             setActiveSubTab(sub.id);
