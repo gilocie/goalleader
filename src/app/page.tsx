@@ -42,7 +42,7 @@ export default function LandingPage() {
             <div className="relative z-10 container mx-auto px-4 md:px-6">
                 <div className="max-w-3xl mx-auto space-y-4">
                     <h1 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl md:text-6xl">
-                        Achieve More with GoalLeader
+                        Goal Leader
                     </h1>
                     <p className="text-lg text-gray-200 md:text-xl">
                         The ultimate productivity and project management tool designed to help you and your team reach your goals faster.
