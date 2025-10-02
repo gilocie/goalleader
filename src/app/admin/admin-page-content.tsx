@@ -57,7 +57,7 @@ function OverviewTabContent() {
 }
 
 function BrandingTabContent() {
-    const { branding, saveBranding } = useBranding();
+    const { branding, saveBranding, resetBranding } = useBranding();
     const [localBranding, setLocalBranding] = useState(branding);
 
     useEffect(() => {
@@ -125,8 +125,10 @@ function BrandingTabContent() {
                         </div>
                     </TabsContent>
                 </Tabs>
-
-                <Button onClick={handleSave}>Save Branding</Button>
+                <div className="flex gap-2">
+                    <Button onClick={handleSave}>Save Branding</Button>
+                    <Button variant="outline" onClick={resetBranding}>Reset Branding</Button>
+                </div>
             </CardContent>
         </Card>
     )

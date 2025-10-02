@@ -25,6 +25,7 @@ interface BrandingContextType {
   branding: BrandingState;
   setBranding: React.Dispatch<React.SetStateAction<BrandingState>>;
   saveBranding: (newBranding: BrandingState) => void;
+  resetBranding: () => void;
 }
 
 // --- Context Definition ---
@@ -113,10 +114,29 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const resetBranding = () => {
+    try {
+        localStorage.removeItem('brandingSettings');
+        setBranding(defaultBranding);
+        toast({
+            title: 'Branding Reset',
+            description: 'Branding has been reset to default values.',
+        });
+    } catch (error) {
+        console.error("Failed to reset branding settings", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not reset branding settings.',
+        });
+    }
+  };
+
   const value = {
     branding,
     setBranding,
     saveBranding,
+    resetBranding,
   };
 
   return (
