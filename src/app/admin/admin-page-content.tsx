@@ -103,10 +103,6 @@ function BrandingTabContent() {
                             <Input type="color" name="primaryColor" value={localBranding.primaryColor} onChange={handleChange} className='p-1 h-10' />
                         </div>
                         <div className='space-y-2'>
-                            <Label>Primary Dark</Label>
-                            <Input type="color" name="primaryDarkColor" value={localBranding.primaryDarkColor} onChange={handleChange} className='p-1 h-10' />
-                        </div>
-                        <div className='space-y-2'>
                             <Label>Background Color</Label>
                             <Input type="color" name="backgroundColor" value={localBranding.backgroundColor} onChange={handleChange} className='p-1 h-10' />
                         </div>
@@ -394,7 +390,7 @@ export function AdminPageContent() {
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto text-primary border-b",
+                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto text-primary border-b shadow-lg",
                                                 "transition-colors duration-200",
                                                 activeTab === item.id 
                                                     ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
@@ -411,7 +407,7 @@ export function AdminPageContent() {
                                                         key={sub.id}
                                                         variant={'ghost'}
                                                         className={cn(
-                                                            "justify-start text-primary border-b",
+                                                            "justify-start text-primary border-b shadow-lg",
                                                             activeSubTab === sub.id && activeTab === 'organization' 
                                                                 ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
                                                                 : 'hover:bg-primary hover:text-primary-foreground'
@@ -435,7 +431,7 @@ export function AdminPageContent() {
                                 key={item.id}
                                 variant="ghost"
                                 className={cn(
-                                    "justify-start p-3 font-semibold text-base h-auto text-primary border-b",
+                                    "justify-start p-3 font-semibold text-base h-auto text-primary border-b shadow-lg",
                                     "transition-colors duration-200",
                                     activeTab === item.id 
                                         ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 

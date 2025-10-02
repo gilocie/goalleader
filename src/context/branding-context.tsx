@@ -8,7 +8,6 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 type BrandingState = {
   companyName: string;
   primaryColor: string;
-  primaryDarkColor: string; // New dark color
   backgroundColor: string;
   accentColor: string;
 };
@@ -16,7 +15,6 @@ type BrandingState = {
 const defaultBranding: BrandingState = {
   companyName: 'GoalLeader',
   primaryColor: '#27AE60',
-  primaryDarkColor: '#1E8449', // Darker green for contrast
   backgroundColor: '#F7FAFC',
   accentColor: '#90EE90',
 };
@@ -63,15 +61,13 @@ const BrandingStyle = () => {
   
     useEffect(() => {
         const primaryHsl = hexToHsl(branding.primaryColor);
-        const primaryDarkHsl = hexToHsl(branding.primaryDarkColor);
         const backgroundHsl = hexToHsl(branding.backgroundColor);
         const accentHsl = hexToHsl(branding.accentColor);
 
-        if (primaryHsl && primaryDarkHsl && backgroundHsl && accentHsl) {
+        if (primaryHsl && backgroundHsl && accentHsl) {
             const root = document.documentElement;
             
             root.style.setProperty('--primary', `${primaryHsl[0]} ${primaryHsl[1]}% ${primaryHsl[2]}%`);
-            root.style.setProperty('--primary-dark', `${primaryDarkHsl[0]} ${primaryDarkHsl[1]}% ${primaryDarkHsl[2]}%`);
             root.style.setProperty('--background', `${backgroundHsl[0]} ${backgroundHsl[1]}% ${backgroundHsl[2]}%`);
             root.style.setProperty('--accent', `${accentHsl[0]} ${accentHsl[1]}% ${accentHsl[2]}%`);
         }
