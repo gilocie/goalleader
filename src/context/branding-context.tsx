@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +29,6 @@ interface BrandingContextType {
 
 // --- Context Definition ---
 const BrandingContext = createContext<BrandingContextType | undefined>(undefined);
-
 
 // --- Helper Functions ---
 function hexToHsl(hex: string): [number, number, number] | null {
@@ -70,28 +68,36 @@ const BrandingStyle = () => {
 
         if (primaryHsl && backgroundHsl && accentHsl && gradientEndHsl) {
             const root = document.documentElement;
+            
+            // Set all color variables
             root.style.setProperty('--primary', `${primaryHsl[0]} ${primaryHsl[1]}% ${primaryHsl[2]}%`);
             root.style.setProperty('--background', `${backgroundHsl[0]} ${backgroundHsl[1]}% ${backgroundHsl[2]}%`);
             root.style.setProperty('--accent', `${accentHsl[0]} ${accentHsl[1]}% ${accentHsl[2]}%`);
             
-            // Set --primary-dark to be the gradient end color
-            root.style.setProperty('--primary-dark', `${gradientEndHsl[0]} ${gradientEndHsl[1]}% ${gradientEndHsl[2]}%`);
+            // CRITICAL: Set --primary-dark to the gradient end color
+            const darkValue = `${gradientEndHsl[0]} ${gradientEndHsl[1]}% ${gradientEndHsl[2]}%`;
+            root.style.setProperty('--primary-dark', darkValue);
+            
+            // Optional: Also set gradient-end if you want to use it directly
+            root.style.setProperty('--gradient-end', darkValue);
         }
     }, [branding]);
   
     return null;
-  };
+};
 
 // --- Provider Component ---
 export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   const [branding, setBranding] = useState<BrandingState>(defaultBranding);
   const { toast } = useToast();
 
+  // Load branding from localStorage on mount
   useEffect(() => {
     try {
         const storedBranding = localStorage.getItem('brandingSettings');
         if (storedBranding) {
-            setBranding(JSON.parse(storedBranding));
+            const parsed = JSON.parse(storedBranding);
+            setBranding(parsed);
         }
     } catch (error) {
         console.error("Failed to load branding settings from localStorage", error);
@@ -106,6 +112,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
             title: 'Branding Saved',
             description: 'Your new branding settings have been applied.',
         });
+        // Force page reload to ensure all components pick up the new CSS variables
         window.location.reload();
     } catch (error) {
         console.error("Failed to save branding settings to localStorage", error);
@@ -125,6 +132,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
             title: 'Branding Reset',
             description: 'Branding has been reset to default values.',
         });
+        // Force page reload
         window.location.reload();
     } catch (error) {
         console.error("Failed to reset branding settings", error);
@@ -148,7 +156,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
         <BrandingStyle />
         {children}
     </BrandingContext.Provider>
-    );
+  );
 };
 
 // --- Hook ---
