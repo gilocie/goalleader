@@ -102,10 +102,6 @@ function BrandingTabContent() {
                             <Label>Primary Color</Label>
                             <Input type="color" name="primaryColor" value={localBranding.primaryColor} onChange={handleChange} className='p-1 h-10' />
                         </div>
-                         <div className='space-y-2'>
-                            <Label>Primary Dark</Label>
-                            <Input type="color" name="primaryDarkColor" value={localBranding.primaryDarkColor} onChange={handleChange} className='p-1 h-10' />
-                        </div>
                         <div className='space-y-2'>
                             <Label>Background Color</Label>
                             <Input type="color" name="backgroundColor" value={localBranding.backgroundColor} onChange={handleChange} className='p-1 h-10' />
@@ -397,8 +393,8 @@ export function AdminPageContent() {
                                                 "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold",
                                                 "transition-colors duration-200",
                                                 activeTab === item.id 
-                                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                                    : 'hover:bg-accent hover:text-accent-foreground'
+                                                    ? 'bg-primary text-primary-foreground' 
+                                                    : 'hover:bg-primary hover:text-primary-foreground'
                                             )}
                                         >
                                             <Icon className="mr-3 h-5 w-5" />
@@ -434,7 +430,7 @@ export function AdminPageContent() {
                                     "transition-colors duration-200",
                                     activeTab === item.id 
                                         ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                        : 'hover:bg-accent hover:text-accent-foreground'
+                                        : 'hover:bg-primary hover:text-primary-foreground'
                                 )}
                                 onClick={() => setActiveTab(item.id)}
                             >
@@ -461,3 +457,6 @@ export function AdminPageContent() {
     
 
 
+
+
+    
