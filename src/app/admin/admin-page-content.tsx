@@ -95,36 +95,39 @@ function BrandingTabContent() {
                     <p className='text-xs text-muted-foreground'>Upload an image for the landing page hero. Recommended size: 1920x1080.</p>
                 </div>
                 
-                <Tabs defaultValue="solid">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="solid">Solid Colors</TabsTrigger>
-                        <TabsTrigger value="gradient">Gradient Colors</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="solid" className="pt-4">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div className='space-y-2'>
-                                <Label>Primary Color</Label>
-                                <Input type="color" name="primaryColor" value={localBranding.primaryColor} onChange={handleChange} className='p-1 h-10' />
-                            </div>
-                            <div className='space-y-2'>
-                                <Label>Background Color</Label>
-                                <Input type="color" name="backgroundColor" value={localBranding.backgroundColor} onChange={handleChange} className='p-1 h-10' />
-                            </div>
-                             <div className='space-y-2'>
-                                <Label>Accent Color</Label>
-                                <Input type="color" name="accentColor" value={localBranding.accentColor} onChange={handleChange} className='p-1 h-10' />
-                            </div>
+                <Card className='p-4'>
+                    <Label>Primary Gradient</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+                        <div className='space-y-2'>
+                            <Label>Start Color</Label>
+                            <Input type="color" name="primaryColor" value={localBranding.primaryColor} onChange={handleChange} className='p-1 h-10' />
                         </div>
-                    </TabsContent>
-                    <TabsContent value="gradient" className="pt-4">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                             <div className='space-y-2'>
-                                <Label>Gradient End Color</Label>
-                                <Input type="color" name="gradientEndColor" value={localBranding.gradientEndColor} onChange={handleChange} className='p-1 h-10' />
-                            </div>
+                        <div className='space-y-2'>
+                            <Label>End Color</Label>
+                            <Input type="color" name="gradientEndColor" value={localBranding.gradientEndColor} onChange={handleChange} className='p-1 h-10' />
                         </div>
-                    </TabsContent>
-                </Tabs>
+                        <div className="md:col-span-1 space-y-2">
+                            <Label>Preview</Label>
+                            <div className="h-10 rounded-md" style={{ background: `linear-gradient(to right, ${localBranding.primaryColor}, ${localBranding.gradientEndColor})` }} />
+                        </div>
+                    </div>
+                </Card>
+
+                 <Card className='p-4'>
+                    <Label>Other Colors</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+                        <div className='space-y-2'>
+                            <Label>Background Color</Label>
+                            <Input type="color" name="backgroundColor" value={localBranding.backgroundColor} onChange={handleChange} className='p-1 h-10' />
+                        </div>
+                         <div className='space-y-2'>
+                            <Label>Accent Color</Label>
+                            <Input type="color" name="accentColor" value={localBranding.accentColor} onChange={handleChange} className='p-1 h-10' />
+                        </div>
+                    </div>
+                 </Card>
+
+
                 <div className="flex gap-2">
                     <Button onClick={handleSave} className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">Save Branding</Button>
                     <Button variant="outline" onClick={resetBranding}>Reset Branding</Button>
@@ -457,3 +460,4 @@ export function AdminPageContent() {
     
 
     
+
