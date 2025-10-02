@@ -11,7 +11,7 @@ export default {
   theme: {
     extend: {
       boxShadow: {
-        'menu-item': '0 0 10px 0px rgba(0, 0, 0, 0.1)',
+        'menu-item': '0 0 10px 0px var(--tw-shadow-color)',
       },
       fontFamily: {
         body: ['PT Sans', 'sans-serif'],
