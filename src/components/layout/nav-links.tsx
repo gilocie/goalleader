@@ -47,7 +47,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
         key={href}
         href={href}
         className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all shadow-lg',
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all shadow-glow',
             isActive 
                 ? 'bg-primary text-primary-foreground' 
                 : 'hover:bg-primary hover:text-primary-foreground'
