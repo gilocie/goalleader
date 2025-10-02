@@ -112,8 +112,6 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
             title: 'Branding Saved',
             description: 'Your new branding settings have been applied.',
         });
-        // Force page reload to ensure all components pick up the new CSS variables
-        window.location.reload();
     } catch (error) {
         console.error("Failed to save branding settings to localStorage", error);
         toast({
@@ -132,8 +130,6 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
             title: 'Branding Reset',
             description: 'Branding has been reset to default values.',
         });
-        // Force page reload
-        window.location.reload();
     } catch (error) {
         console.error("Failed to reset branding settings", error);
         toast({
