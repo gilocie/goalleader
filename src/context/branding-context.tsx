@@ -74,10 +74,7 @@ const BrandingStyle = () => {
             root.style.setProperty('--background', `${backgroundHsl[0]} ${backgroundHsl[1]}% ${backgroundHsl[2]}%`);
             root.style.setProperty('--accent', `${accentHsl[0]} ${accentHsl[1]}% ${accentHsl[2]}%`);
             
-            // Use gradientEndHsl to set the --primary-dark variable for gradients
             root.style.setProperty('--primary-dark', `${gradientEndHsl[0]} ${gradientEndHsl[1]}% ${gradientEndHsl[2]}%`);
-            
-            // This is now correctly used by the `to-primary-dark` class
             root.style.setProperty('--gradient-end', `${gradientEndHsl[0]} ${gradientEndHsl[1]}% ${gradientEndHsl[2]}%`);
         }
     }, [branding]);
@@ -109,6 +106,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
             title: 'Branding Saved',
             description: 'Your new branding settings have been applied.',
         });
+        window.location.reload();
     } catch (error) {
         console.error("Failed to save branding settings to localStorage", error);
         toast({
@@ -127,6 +125,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
             title: 'Branding Reset',
             description: 'Branding has been reset to default values.',
         });
+        window.location.reload();
     } catch (error) {
         console.error("Failed to reset branding settings", error);
         toast({
