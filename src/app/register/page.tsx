@@ -45,7 +45,6 @@ export default function RegisterPage() {
         <div className="absolute inset-0 bg-black/50" />
         <Card className="w-full max-w-md z-10 bg-card/80 backdrop-blur-sm">
           <CardHeader className="text-center">
-            <Logo className="h-10 w-10 text-primary mx-auto" />
             <CardTitle className="text-2xl pt-2">Create an account</CardTitle>
             <CardDescription>Enter your information to create an account</CardDescription>
           </CardHeader>

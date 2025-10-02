@@ -45,7 +45,6 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/50" />
         <Card className="w-full max-w-sm z-10 bg-card/80 backdrop-blur-sm">
           <CardHeader className="space-y-1 text-center">
-            <Logo className="h-10 w-10 text-primary mx-auto" />
             <CardTitle className="text-2xl pt-2">Welcome Back</CardTitle>
             <CardDescription>Enter your email below to login to your account</CardDescription>
           </CardHeader>
