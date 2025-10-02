@@ -397,7 +397,7 @@ export function AdminPageContent() {
                                                 "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
                                                 "transition-colors duration-200",
                                                 activeTab === item.id 
-                                                    ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
+                                                    ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-accent hover:text-primary' 
                                                     : 'hover:bg-primary hover:text-primary-foreground'
                                             )}
                                         >
@@ -413,7 +413,7 @@ export function AdminPageContent() {
                                                         className={cn(
                                                             "justify-start",
                                                             activeSubTab === sub.id && activeTab === 'organization' 
-                                                                ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
+                                                                ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-accent hover:text-primary' 
                                                                 : 'hover:bg-primary hover:text-primary-foreground'
                                                         )}
                                                         onClick={() => {
@@ -438,7 +438,7 @@ export function AdminPageContent() {
                                     "justify-start p-3 font-semibold text-base h-auto",
                                     "transition-colors duration-200",
                                     activeTab === item.id 
-                                        ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
+                                        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-accent hover:text-primary' 
                                         : 'hover:bg-primary hover:text-primary-foreground'
                                 )}
                                 onClick={() => setActiveTab(item.id)}
