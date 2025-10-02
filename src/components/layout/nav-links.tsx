@@ -9,7 +9,7 @@ import { useChat } from '@/context/chat-context';
 import { Badge } from '../ui/badge';
 
 const links = [
-  { href: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
+  { href: '/', icon: HomeIcon, label: 'Dashboard' },
   { href: '/performance', icon: Package, label: 'Performance' },
   { href: '/reports', icon: FileText, label: 'Reports' },
   { href: '/teams', icon: Users, label: 'Teams' },
@@ -39,7 +39,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
   
   const renderLink = (href: string, icon: React.ElementType, label: string, notificationKey?: string) => {
     const count = getNotificationCount(notificationKey);
-    const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+    const isActive = (href === '/' && pathname === '/') || (href !== '/' && pathname.startsWith(href));
     const Icon = icon;
 
     return (
