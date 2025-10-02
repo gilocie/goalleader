@@ -10,9 +10,6 @@ export default {
   ],
   theme: {
     extend: {
-      boxShadow: {
-        'glow': '0 0 15px 1px hsl(var(--primary) / 0.2)',
-      },
       fontFamily: {
         body: ['PT Sans', 'sans-serif'],
         headline: ['PT Sans', 'sans-serif'],

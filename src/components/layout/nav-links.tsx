@@ -7,6 +7,7 @@ import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Sto
 import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
 import { Badge } from '../ui/badge';
+import { Separator } from '../ui/separator';
 
 const links = [
   { href: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
@@ -47,7 +48,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
         key={href}
         href={href}
         className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all shadow-glow',
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all border-b',
             isActive 
                 ? 'bg-primary text-primary-foreground' 
                 : 'hover:bg-primary hover:text-primary-foreground'
@@ -70,7 +71,7 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
   return (
     <>
       {links.map(({ href, icon, label, notificationKey }) => renderLink(href, icon, label, notificationKey))}
-      <div className="my-2 border-t border-border -mx-2 lg:-mx-4"></div>
+      <Separator className="my-2" />
       {secondaryLinks.map(({ href, icon, label, notificationKey }) => renderLink(href, icon, label, notificationKey))}
     </>
   );
