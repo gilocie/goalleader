@@ -390,14 +390,17 @@ export function AdminPageContent() {
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-2 hover:no-underline w-full rounded-lg",
-                                                activeTab === item.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground'
+                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold",
+                                                "transition-colors duration-200",
+                                                activeTab === item.id 
+                                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                                    : 'hover:bg-accent hover:text-accent-foreground'
                                             )}
                                         >
-                                            <Icon className="mr-2 h-4 w-4" />
+                                            <Icon className="mr-3 h-5 w-5" />
                                             {item.label}
                                         </AccordionTrigger>
-                                        <AccordionContent className="pl-4">
+                                        <AccordionContent className="pl-4 pt-1">
                                             <div className="flex flex-col gap-1">
                                                 {item.subItems.map(sub => (
                                                     <Button
@@ -421,11 +424,17 @@ export function AdminPageContent() {
                         return (
                             <Button 
                                 key={item.id}
-                                variant={activeTab === item.id ? 'default' : 'ghost'}
-                                className="justify-start"
+                                variant="ghost"
+                                className={cn(
+                                    "justify-start p-3 font-semibold text-base h-auto",
+                                    "transition-colors duration-200",
+                                    activeTab === item.id 
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                        : 'hover:bg-accent hover:text-accent-foreground'
+                                )}
                                 onClick={() => setActiveTab(item.id)}
                             >
-                                <Icon className="mr-2 h-4 w-4" />
+                                <Icon className="mr-3 h-5 w-5" />
                                 {item.label}
                             </Button>
                         )
@@ -446,3 +455,4 @@ export function AdminPageContent() {
     
 
     
+
