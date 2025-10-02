@@ -27,7 +27,7 @@ export default {
         },
         primary: {
           DEFAULT: 'hsl(var(--primary))',
-          dark: 'hsl(var(--primary-dark))',
+          dark: 'hsl(var(--gradient-end))',
           foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
