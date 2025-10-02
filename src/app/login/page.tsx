@@ -22,9 +22,6 @@ export default function LoginPage() {
             <span className="text-lg">GoalLeader</span>
           </Link>
           <nav className="flex items-center gap-4">
-             <Button variant="ghost" asChild className="text-white hover:bg-white/10 hover:text-white">
-                <Link href="/login">Login</Link>
-            </Button>
             <Button asChild className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
                 <Link href="/register">Sign Up</Link>
             </Button>
