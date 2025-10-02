@@ -126,7 +126,7 @@ function BrandingTabContent() {
                     </TabsContent>
                 </Tabs>
                 <div className="flex gap-2">
-                    <Button onClick={handleSave}>Save Branding</Button>
+                    <Button onClick={handleSave} className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">Save Branding</Button>
                     <Button variant="outline" onClick={resetBranding}>Reset Branding</Button>
                 </div>
             </CardContent>
@@ -401,7 +401,7 @@ export function AdminPageContent() {
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-2 hover:no-underline w-full",
+                                                "justify-start p-2 hover:no-underline w-full rounded-lg",
                                                 activeTab === item.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-accent hover:text-accent-foreground'
                                             )}
                                         >

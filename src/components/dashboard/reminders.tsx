@@ -41,7 +41,7 @@ export function Reminders() {
               </p>
               <p className="text-sm text-muted-foreground">{nextMeeting.time}</p>
             </div>
-            <Button className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+            <Button className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">
               <Video className="mr-2 h-4 w-4" /> Start Meeting
             </Button>
           </div>
