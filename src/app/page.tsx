@@ -54,13 +54,13 @@ export default function LandingPage() {
                     </div>
                 </div>
             </div>
+            <footer className="absolute bottom-0 w-full py-6">
+                <div className="container mx-auto flex justify-center px-4 md:px-6">
+                    <p className="text-sm text-white/80">© 2025 GoalLeader. All rights reserved.</p>
+                </div>
+            </footer>
         </section>
       </main>
-      <footer className="py-6 border-t">
-        <div className="container mx-auto flex justify-center px-4 md:px-6">
-            <p className="text-sm text-muted-foreground">© 2025 GoalLeader. All rights reserved.</p>
-        </div>
-      </footer>
     </div>
   );
 }
