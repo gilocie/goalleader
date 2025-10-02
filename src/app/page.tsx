@@ -10,14 +10,14 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
+      <header className="absolute top-0 z-40 w-full">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
+          <Link href="/" className="flex items-center gap-2 font-semibold text-white">
             <Logo className="h-6 w-6 text-primary" />
             <span className="text-lg">GoalLeader</span>
           </Link>
           <nav className="flex items-center gap-4">
-             <Button variant="ghost" asChild>
+             <Button variant="ghost" asChild className="text-white hover:bg-white/10 hover:text-white">
                 <Link href="/login">Login</Link>
             </Button>
             <Button asChild className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
@@ -28,7 +28,7 @@ export default function LandingPage() {
       </header>
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative w-full h-[calc(100vh-theme(height.14))] flex items-center justify-center text-center">
+        <section className="relative w-full h-screen flex items-center justify-center text-center">
             {heroBg && (
                  <Image 
                     src={heroBg.imageUrl} 
