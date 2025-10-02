@@ -162,7 +162,7 @@ export function NoticesPageContent() {
         </div>
         <Button 
             onClick={() => setIsCreateDialogOpen(true)}
-            className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90"
+            variant="primary-dark"
         >
             <PlusCircle className="mr-2 h-4 w-4" />
             Create Notice

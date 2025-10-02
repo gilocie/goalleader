@@ -161,7 +161,7 @@ export function CreateNoticeDialog({
             type="submit"
             onClick={form.handleSubmit(onSubmit)}
             disabled={!sendToAll && form.watch('recipients').length === 0}
-            className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90"
+            variant="primary-dark"
           >
             Send Notice
           </Button>
