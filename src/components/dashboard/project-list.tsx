@@ -117,7 +117,7 @@ export function ProjectList() {
                 <CardDescription>A list of your ongoing tasks.</CardDescription>
             </div>
             <Button 
-                className="bg-primary-dark text-primary-foreground hover:bg-primary-dark/90"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => setAddTaskOpen(true)}
             >
                 <PlusCircle className="mr-2 h-4 w-4" />
