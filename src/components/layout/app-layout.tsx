@@ -18,7 +18,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
     const isMobile = useIsMobile();
     const pathname = usePathname();
-    const { setOpen } = useSidebar();
+    const { open, setOpen } = useSidebar();
     
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
@@ -50,8 +50,9 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
       <div className={cn("flex min-h-screen w-full bg-muted/40", isMeetingPage && 'flex-col')}>
         {!isMeetingPage && <Sidebar />}
         <div className={cn(
-            "flex flex-1 flex-col relative", 
-            !isMeetingPage && "md:pl-[220px] lg:pl-[280px]"
+            "flex flex-1 flex-col relative transition-[padding-left] duration-300", 
+            !isMeetingPage && open && "md:pl-[220px] lg:pl-[280px]",
+            !isMeetingPage && !open && "md:pl-[72px] lg:pl-[72px]"
         )}>
           <Header />
           <div className="flex flex-1 flex-col">
