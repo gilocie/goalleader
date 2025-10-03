@@ -1,7 +1,7 @@
 
 'use client';
 
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Notification, getNotificationIcon, useNotifications } from "@/context/notification-context";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from 'date-fns';
@@ -26,6 +26,7 @@ export function NotificationItem({ notification }: NotificationItemProps) {
     };
 
     return (
+        <>
         <DropdownMenuItem 
             className={cn(
                 "flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto",
@@ -35,11 +36,13 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         >
             <div className="mt-1">{icon}</div>
             <div className="flex-1 space-y-1">
-                <p className="font-semibold text-sm">{notification.title}</p>
-                <p className="text-xs text-muted-foreground line-clamp-2">{notification.message}</p>
-                <p className="text-xs text-muted-foreground/80">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+                <p className="font-semibold text-sm text-white">{notification.title}</p>
+                <p className="text-xs text-white/80 line-clamp-2">{notification.message}</p>
+                <p className="text-xs text-white/80">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
             </div>
             {!notification.read && <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1 self-center" />}
         </DropdownMenuItem>
+        <DropdownMenuSeparator className="bg-white/10" />
+        </>
     );
 }
