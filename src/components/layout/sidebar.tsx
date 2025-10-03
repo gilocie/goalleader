@@ -105,7 +105,7 @@ export function Sidebar() {
         </div>
         <div className={cn("flex items-center", open && 'hidden')}>
             <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
-                <LayoutDashboard className="h-5 w-5" />
+                <Logo className="h-5 w-5" />
             </Link>
         </div>
       </div>
