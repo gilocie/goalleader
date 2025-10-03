@@ -10,6 +10,8 @@ import { TimeTracker } from '@/components/dashboard/time-tracker';
 import { NavLinks } from './nav-links';
 import { ScrollArea } from '../ui/scroll-area';
 import { useBranding } from '@/context/branding-context';
+import { Button } from '../ui/button';
+import { ChevronLeft } from 'lucide-react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -66,7 +68,7 @@ SidebarProvider.displayName = 'SidebarProvider';
 
 export function Sidebar() {
   const { branding } = useBranding();
-  const { open } = useSidebar();
+  const { open, setOpen } = useSidebar();
 
   if (!open) {
     return (
@@ -89,7 +91,7 @@ export function Sidebar() {
 
   return (
     <div className="hidden md:fixed md:inset-y-0 md:z-20 md:flex md:w-[220px] md:flex-col lg:w-[280px] transition-all duration-300">
-      <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card">
+      <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card relative">
         <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
           <Link
             href="/"
@@ -99,6 +101,16 @@ export function Sidebar() {
             <span className="">{branding.companyName}</span>
           </Link>
         </div>
+
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute top-1/2 -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-30"
+          onClick={() => setOpen(false)}
+        >
+            <ChevronLeft className="h-4 w-4" />
+        </Button>
+
         <ScrollArea className="flex-1">
           <nav className="flex flex-col gap-2 text-sm font-medium px-2 lg:px-4 py-4">
             <NavLinks />
