@@ -20,8 +20,6 @@ import { useState, useEffect, Fragment } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
-import { useSidebar } from '@/components/layout/sidebar';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 
 function OverviewTabContent() {
     const stats = [
@@ -354,13 +352,11 @@ const navItems = [
         ]
     },
     { id: 'users', label: 'User Management', icon: Users, content: <UserManagementTabContent /> },
-    { id: 'divider', type: 'divider' },
     { id: 'settings', label: 'Settings', icon: Settings, content: <SettingsTabContent /> },
 ];
 
 
 export function AdminPageContent() {
-    const { adminSidebarOpen } = useSidebar();
     const [activeTab, setActiveTab] = useState('overview');
     const [activeSubTab, setActiveSubTab] = useState('departments');
 
@@ -385,12 +381,6 @@ export function AdminPageContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
                 <nav className="hidden md:flex flex-col gap-2 p-4 bg-background rounded-lg border relative self-start">
-                     <SidebarTrigger
-                        className={cn(
-                        'absolute top-4 -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90',
-                        'transition-all duration-300'
-                        )}
-                    />
                     {navItems.map((item, index) => {
                         if (item.type === 'divider') {
                             return <Separator key={`divider-${index}`} className="my-2" />;

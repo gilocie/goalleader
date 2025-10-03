@@ -20,8 +20,6 @@ const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 type SidebarContextType = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  adminSidebarOpen: boolean;
-  setAdminSidebarOpen: (open: boolean) => void;
   isMobile: boolean;
 };
 
@@ -41,7 +39,6 @@ export const SidebarProvider = React.forwardRef<
 >(({ className, style, children, ...props }, ref) => {
   const isMobile = useIsMobile();
   const [open, _setOpen] = React.useState(true);
-  const [adminSidebarOpen, _setAdminSidebarOpen] = React.useState(false);
 
   const setOpen = React.useCallback(
     (value: boolean) => {
@@ -53,22 +50,14 @@ export const SidebarProvider = React.forwardRef<
     [isMobile]
   );
   
-  const setAdminSidebarOpen = React.useCallback(
-    (value: boolean) => {
-      _setAdminSidebarOpen(value);
-    },
-    []
-  );
 
   const contextValue = React.useMemo<SidebarContextType>(
     () => ({
       open,
       setOpen,
-      adminSidebarOpen,
-      setAdminSidebarOpen,
       isMobile,
     }),
-    [open, setOpen, adminSidebarOpen, setAdminSidebarOpen, isMobile]
+    [open, setOpen, isMobile]
   );
 
   return (
@@ -85,22 +74,19 @@ export function Sidebar() {
   const { branding } = useBranding();
   const { open, setOpen } = useSidebar();
 
-  const collapsedWidth = 'md:w-[72px] lg:w-[72px]';
-  const expandedWidth = 'md:w-[220px] lg:w-[280px]';
-
   return (
     <div
       className={cn(
         'hidden md:fixed md:inset-y-0 md:z-20 md:flex md:flex-col border-r bg-card transition-all duration-300',
-        open ? expandedWidth : collapsedWidth
+        open ? 'md:w-[220px] lg:w-[280px]' : 'md:w-[72px] lg:w-[72px]'
       )}
     >
       <Button
         variant="ghost"
         size="icon"
         className={cn(
-          'absolute top-1/2 -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-30',
-          'transition-all duration-300'
+          'absolute top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-30 transition-all duration-300',
+           open ? 'right-[-16px]' : 'right-[-16px] lg:right-[-16px]'
         )}
         onClick={() => setOpen(!open)}
       >
@@ -111,7 +97,7 @@ export function Sidebar() {
           )}
         />
       </Button>
-
+      
       <div
         className={cn(
           'flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 transition-all duration-300 justify-between',
@@ -142,7 +128,7 @@ export function Sidebar() {
       </ScrollArea>
       
       <div className={cn(
-          "mt-auto p-4 border-t transition-opacity duration-300",
+          "mt-auto p-2 border-t transition-opacity duration-300",
           !open && 'opacity-0 pointer-events-none h-0 p-0 border-none'
       )}>
         <TimeTracker />
