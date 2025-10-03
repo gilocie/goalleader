@@ -27,16 +27,8 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         const mainCookie = document.cookie.split('; ').find(row => row.startsWith('sidebar_state='))?.split('=')[1];
-        const adminCookie = document.cookie.split('; ').find(row => row.startsWith('admin_sidebar_state='))?.split('=')[1];
-
-        if (isAdminPage) {
-            setOpen(false); // Always collapse main sidebar on admin page
-            setAdminSidebarOpen(adminCookie ? adminCookie === 'true' : true);
-        } else {
-            setAdminSidebarOpen(false); // Always collapse admin sidebar on other pages
-            setOpen(mainCookie ? mainCookie === 'true' : true);
-        }
-    }, [pathname, setOpen, setAdminSidebarOpen, isAdminPage]);
+        setOpen(mainCookie ? mainCookie === 'true' : true);
+    }, [setOpen]);
 
 
     if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings'))) {
@@ -45,12 +37,11 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
   
     return (
       <div className={cn("flex min-h-screen w-full bg-muted/40", isMeetingPage && 'flex-col')}>
-        {!isAdminPage && <Sidebar />}
+        <Sidebar />
         <div className={cn(
             "flex flex-1 flex-col relative transition-[padding-left] duration-300", 
-            open && !isAdminPage && "md:pl-[220px] lg:pl-[280px]",
-            !open && !isAdminPage && "md:pl-[72px] lg:pl-[72px]",
-            isAdminPage && "pl-0" // No padding when admin page is active
+            open && "md:pl-[220px] lg:pl-[280px]",
+            !open && "md:pl-[72px] lg:pl-[72px]",
         )}>
           <Header />
           <div className="flex flex-1 flex-col">
