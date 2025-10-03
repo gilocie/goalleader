@@ -33,7 +33,6 @@ const secondaryLinks = [
 export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?: boolean, isCollapsed?: boolean }) {
   const pathname = usePathname();
   const { unreadMessagesCount } = useChat();
-  const { open, setOpen } = useSidebar();
 
   const getNotificationCount = (key?: string) => {
     if (key === 'chat') {
@@ -95,29 +94,6 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
       </>
     );
 
-    if (isActive) {
-        return (
-            <div key={href} className="relative">
-                <div className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all',
-                    isActive 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'hover:bg-primary hover:text-primary-foreground'
-                )}>
-                    {linkContent}
-                </div>
-                 <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-1/2 -right-2 -translate-y-1/2 h-10 w-7 rounded-l-none rounded-r-lg bg-accent text-accent-foreground hover:bg-accent/90"
-                    onClick={() => setOpen(!open)}
-                >
-                    <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
-                </Button>
-            </div>
-        )
-    }
-
     return (
         <Link
             key={href}
@@ -125,7 +101,9 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
             className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all',
                 isMobile ? 'border-b' : '',
-                'hover:bg-primary hover:text-primary-foreground'
+                isActive 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:bg-primary hover:text-primary-foreground'
             )}
         >
             {linkContent}

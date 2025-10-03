@@ -80,9 +80,19 @@ export function Sidebar() {
         open ? 'md:w-[220px] lg:w-[280px]' : 'md:w-[72px] lg:w-[72px]'
       )}
     >
+        <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-[76px] -right-4 h-8 w-8 bg-accent text-accent-foreground hover:bg-accent/90 z-30 transition-all duration-300"
+            onClick={() => setOpen(!open)}
+        >
+            <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
+        </Button>
+
       <div
         className={cn(
-          'flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 transition-all duration-300 justify-between',
+          'flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 transition-all duration-300',
+          open ? 'justify-between' : 'justify-center'
         )}
       >
         <div
@@ -93,7 +103,7 @@ export function Sidebar() {
             {branding.companyName}
           </span>
         </div>
-        <div className="flex items-center">
+        <div className={cn("flex items-center", open && 'hidden')}>
             <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
                 <HomeIcon className="h-5 w-5" />
             </Link>
