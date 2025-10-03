@@ -23,7 +23,7 @@ export default function RegisterPage() {
       <header className="absolute top-0 z-40 w-full">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold text-white">
-            <Logo className="h-6 w-6" />
+            <Logo className="h-6 w-6 text-primary" />
             <span className="text-lg">{branding.companyName}</span>
           </Link>
           <nav className="flex items-center gap-4">

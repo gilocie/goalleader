@@ -73,7 +73,7 @@ export function Header() {
                 className="flex items-center gap-2 text-lg font-semibold"
               >
                 
-                <Logo className="h-6 w-6" />
+                <Logo className="h-6 w-6 text-primary" />
                 <span className="">{branding.companyName}</span>
               </Link>
             </div>
