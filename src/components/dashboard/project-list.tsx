@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import {
@@ -117,7 +116,6 @@ export function ProjectList() {
                 <CardDescription>A list of your ongoing tasks.</CardDescription>
             </div>
             <Button 
-                variant="primary-dark"
                 onClick={() => setAddTaskOpen(true)}
             >
                 <PlusCircle className="mr-2 h-4 w-4" />

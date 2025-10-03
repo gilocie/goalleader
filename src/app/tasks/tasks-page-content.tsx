@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -115,7 +114,6 @@ export function TasksPageContent() {
                   <CardDescription>A list of your ongoing tasks for today.</CardDescription>
               </div>
               <Button 
-                  variant="primary-dark"
                   onClick={() => setAddTaskOpen(true)}
               >
                   <PlusCircle className="mr-2 h-4 w-4" />

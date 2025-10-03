@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -162,7 +161,7 @@ export function AddTaskDialog({
                         type="button"
                         variant="default"
                         size="icon"
-                        className="w-8 h-8 rounded-md bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90 flex items-center justify-center z-20 shadow-lg"
+                        className="w-8 h-8 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center z-20 shadow-lg"
                       >
                        {showSuggestions ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                      </Button>
@@ -265,7 +264,7 @@ export function AddTaskDialog({
               <DialogFooter className="p-6 pt-4 border-t sticky bottom-0 bg-background z-10">
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90 w-full"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 w-full"
                 >
                   Add Task
                 </Button>
@@ -339,7 +338,7 @@ export function AddTaskDialog({
                 <Button
                     onClick={handleGetSuggestions}
                     disabled={isSuggesting}
-                    className="w-full bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                     {isSuggesting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
