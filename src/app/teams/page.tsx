@@ -74,6 +74,8 @@ const teamMembers = [
 export default function TeamsPage() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
 
+  const otherTeamMembers = teamMembers.filter(member => !member.name.includes('(You)'));
+
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8">
@@ -128,7 +130,7 @@ export default function TeamsPage() {
                         : 'flex flex-col gap-4'
                     )}
                     >
-                    {teamMembers.map((member) => {
+                    {otherTeamMembers.map((member) => {
                         const avatar = PlaceHolderImages.find((img) => img.id === member.id);
                         return (
                         <Card
@@ -164,7 +166,7 @@ export default function TeamsPage() {
                             )}
                             >
                             <Avatar className={cn(layout === 'grid' ? 'h-20 w-20' : 'h-12 w-12')}>
-                                <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} />
+                                <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} className="object-cover" />
                                 <AvatarFallback>
                                 {member.name.split(' ').map((n) => n[0]).join('')}
                                 </AvatarFallback>
@@ -173,13 +175,13 @@ export default function TeamsPage() {
                                 <p className="font-semibold">{member.name}</p>
                                 <p className="text-sm text-muted-foreground">{member.role}</p>
                                 {layout === 'grid' && (
-                                <Button asChild size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                                <Button asChild size="sm">
                                     <Link href={`/teams/${member.id}`}>View Performance</Link>
                                 </Button>
                                 )}
                             </div>
                             {layout === 'list' && (
-                                <Button asChild size="sm" className="bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90">
+                                <Button asChild size="sm">
                                     <Link href={`/teams/${member.id}`}>View Performance</Link>
                                 </Button>
                             )}
