@@ -41,7 +41,7 @@ export function Reminders() {
               </p>
               <p className="text-sm text-muted-foreground">{nextMeeting.time}</p>
             </div>
-            <Button variant="primary-dark">
+            <Button>
               <Video className="mr-2 h-4 w-4" /> Start Meeting
             </Button>
           </div>

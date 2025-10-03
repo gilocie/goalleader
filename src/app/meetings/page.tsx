@@ -117,7 +117,7 @@ const MyMeetingCard = ({ title, time, date, id }: { title: string; time: string;
         </DropdownMenu>
         <CardContent className="p-6 flex flex-col items-center text-center space-y-4 pt-12">
             <p className="font-semibold text-lg leading-none">{title}</p>
-            <Button asChild variant="primary-dark">
+            <Button asChild>
                  <NextLink href={`/meetings/${id}/lobby`}>
                     <Video className="mr-2 h-4 w-4" /> Start Meeting
                 </NextLink>
@@ -192,7 +192,7 @@ export default function MeetingsPage() {
             </div>
             <Button 
                 onClick={() => setScheduleDialogOpen(true)}
-                variant="primary-dark"
+                
             >
               <PlusCircle className="mr-2 h-4 w-4" /> Create New Meeting
             </Button>
