@@ -15,14 +15,11 @@ import { cn } from '@/lib/utils';
 import { SidebarTrigger } from '../ui/sidebar';
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";
-const ADMIN_SIDEBAR_COOKIE_NAME = "admin_sidebar_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 
 type SidebarContext = {
   open: boolean;
   setOpen: (open: boolean) => void;
-  adminSidebarOpen: boolean;
-  setAdminSidebarOpen: (open: boolean) => void;
   isMobile: boolean;
 };
 
@@ -42,27 +39,17 @@ export const SidebarProvider = React.forwardRef<
 >(({ className, style, children, ...props }, ref) => {
     const isMobile = useIsMobile();
     const [open, _setOpen] = React.useState(true);
-    const [adminSidebarOpen, _setAdminSidebarOpen] = React.useState(false);
-
+    
     const setOpen = React.useCallback((value: boolean) => {
         _setOpen(value);
-        if (value) _setAdminSidebarOpen(false); // Close admin if main opens
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
-    }, []);
-    
-    const setAdminSidebarOpen = React.useCallback((value: boolean) => {
-        _setAdminSidebarOpen(value);
-        if (value) _setOpen(false); // Close main if admin opens
-        document.cookie = `${ADMIN_SIDEBAR_COOKIE_NAME}=${value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
     }, []);
 
     const contextValue = React.useMemo<SidebarContext>(() => ({
         open,
         setOpen,
-        adminSidebarOpen,
-        setAdminSidebarOpen,
         isMobile,
-    }), [open, setOpen, adminSidebarOpen, setAdminSidebarOpen, isMobile]);
+    }), [open, setOpen, isMobile]);
 
     return (
         <SidebarContext.Provider value={contextValue}>
@@ -85,7 +72,7 @@ export function Sidebar() {
              <div className="flex h-full max-h-screen flex-col items-center gap-2 border-r bg-card">
                  <div className="flex h-14 items-center justify-center border-b px-4 lg:h-[60px] w-full">
                     <Link href="/" className="flex items-center gap-2 font-semibold">
-                        <SidebarTrigger />
+                        <Logo className="h-6 w-6" />
                     </Link>
                 </div>
                  <ScrollArea className="flex-1 w-full">
@@ -109,7 +96,6 @@ export function Sidebar() {
             <Logo className="h-6 w-6" />
             <span className="">{branding.companyName}</span>
           </Link>
-          <SidebarTrigger />
         </div>
         <ScrollArea className="flex-1">
           <nav className="flex flex-col gap-2 text-sm font-medium px-2 lg:px-4 py-4">
