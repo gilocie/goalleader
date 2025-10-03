@@ -76,7 +76,7 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        'hidden md:fixed md:inset-y-0 md:z-20 md:flex md:flex-col border-r bg-card transition-all duration-300',
+        'hidden md:fixed md:inset-y-0 md:z-20 md:flex md:flex-col border-r bg-card transition-all duration-300 relative',
         open ? 'md:w-[220px] lg:w-[280px]' : 'md:w-[72px] lg:w-[72px]'
       )}
     >
@@ -97,14 +97,6 @@ export function Sidebar() {
             <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
                 <HomeIcon className="h-5 w-5" />
             </Link>
-             <Button
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 text-accent-foreground hover:bg-accent/90"
-                onClick={() => setOpen(!open)}
-            >
-                <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
-            </Button>
         </div>
       </div>
 

@@ -9,6 +9,8 @@ import { useChat } from '@/context/chat-context';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import { useSidebar } from './sidebar';
+import { Button } from '../ui/button';
 
 const links = [
   { href: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
@@ -31,6 +33,7 @@ const secondaryLinks = [
 export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?: boolean, isCollapsed?: boolean }) {
   const pathname = usePathname();
   const { unreadMessagesCount } = useChat();
+  const { open, setOpen } = useSidebar();
 
   const getNotificationCount = (key?: string) => {
     if (key === 'chat') {
@@ -41,7 +44,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
   
   const renderLink = (href: string, icon: React.ElementType, label: string, notificationKey?: string) => {
     const count = getNotificationCount(notificationKey);
-    const isActive = pathname === href || (href === '/teams' && pathname.startsWith('/teams/'));
+    const isActive = pathname === href || (href === '/teams' && pathname.startsWith('/teams/')) || (href === '/performance' && pathname.startsWith('/performance'));
     const Icon = icon;
 
     if (isCollapsed) {
@@ -77,6 +80,43 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
         )
     }
 
+    const linkContent = (
+      <>
+        <Icon className="h-4 w-4" />
+        <span className="flex-1">{label}</span>
+        {count > 0 && (
+          <Badge className={cn(
+            'h-5 w-5 flex items-center justify-center p-0',
+            isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
+          )}>
+            {count}
+          </Badge>
+        )}
+      </>
+    );
+
+    if (isActive) {
+        return (
+            <div key={href} className="relative">
+                <div className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all',
+                    isActive 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'hover:bg-primary hover:text-primary-foreground'
+                )}>
+                    {linkContent}
+                </div>
+                 <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-1/2 -right-2 -translate-y-1/2 h-10 w-7 rounded-l-none rounded-r-lg bg-accent text-accent-foreground hover:bg-accent/90"
+                    onClick={() => setOpen(!open)}
+                >
+                    <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
+                </Button>
+            </div>
+        )
+    }
 
     return (
         <Link
@@ -85,21 +125,10 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
             className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all',
                 isMobile ? 'border-b' : '',
-                isActive 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-primary hover:text-primary-foreground'
+                'hover:bg-primary hover:text-primary-foreground'
             )}
         >
-            <Icon className="h-4 w-4" />
-            <span className="flex-1">{label}</span>
-            {count > 0 && (
-                <Badge className={cn(
-                    'h-5 w-5 flex items-center justify-center p-0',
-                    isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
-                )}>
-                {count}
-                </Badge>
-            )}
+            {linkContent}
         </Link>
     )
   }
