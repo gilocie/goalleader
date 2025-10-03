@@ -16,9 +16,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
+import { Separator } from '@/components/ui/separator';
 
 
 function OverviewTabContent() {
@@ -352,6 +353,7 @@ const navItems = [
         ]
     },
     { id: 'users', label: 'User Management', icon: Users, content: <UserManagementTabContent /> },
+    { id: 'divider', type: 'divider' },
     { id: 'settings', label: 'Settings', icon: Settings, content: <SettingsTabContent /> },
 ];
 
@@ -362,7 +364,7 @@ export function AdminPageContent() {
 
     const renderContent = () => {
         if (activeTab === 'organization') {
-            const subItem = navItems.find(i => i.id === 'organization')?.subItems?.find(s => s.id === activeSubTab);
+            const subItem = navItems.find(i => i.id === 'organization' && i.subItems)?.subItems?.find(s => s.id === activeSubTab);
             return subItem?.content;
         }
         const item = navItems.find(i => i.id === activeTab);
@@ -380,71 +382,78 @@ export function AdminPageContent() {
             </div>
 
             <div className="flex flex-col md:grid md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
-                <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
-                    {navItems.map(item => {
-                        const Icon = item.icon;
-                        if (item.subItems) {
-                             return (
-                                <Accordion key={item.id} type="single" collapsible defaultValue='organization' className="w-full md:w-auto">
-                                    <AccordionItem value="organization" className="border-b-0">
-                                        <AccordionTrigger
-                                            onClick={() => setActiveTab(item.id)}
-                                            className={cn(
-                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
-                                                "transition-colors duration-200",
-                                                activeTab === item.id 
-                                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                                    : 'hover:bg-accent hover:text-accent-foreground'
-                                            )}
-                                        >
-                                            <Icon className="mr-3 h-5 w-5" />
-                                            {item.label}
-                                        </AccordionTrigger>
-                                        <AccordionContent className="pl-4 pt-1">
-                                            <div className="flex flex-col gap-1">
-                                                {item.subItems.map(sub => (
-                                                    <Button
-                                                        key={sub.id}
-                                                        variant={'ghost'}
-                                                        className={cn(
-                                                            "justify-start",
-                                                            activeSubTab === sub.id && activeTab === 'organization' 
-                                                                ? 'bg-accent text-accent-foreground' 
-                                                                : 'hover:bg-accent hover:text-accent-foreground'
-                                                        )}
-                                                        onClick={() => {
-                                                            setActiveTab('organization');
-                                                            setActiveSubTab(sub.id);
-                                                        }}
-                                                    >
-                                                        {sub.label}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                </Accordion>
-                             )
-                        }
-                        return (
-                            <Button 
-                                key={item.id}
-                                variant="ghost"
-                                className={cn(
-                                    "justify-start p-3 font-semibold text-base h-auto",
-                                    "transition-colors duration-200",
-                                    activeTab === item.id 
-                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                        : 'hover:bg-accent hover:text-accent-foreground'
-                                )}
-                                onClick={() => setActiveTab(item.id)}
-                            >
-                                <Icon className={cn("mr-3 h-5 w-5", activeTab !== item.id && "text-primary")} />
-                                {item.label}
-                            </Button>
-                        )
-                    })}
-                </nav>
+                <Card className="p-4">
+                    <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
+                        {navItems.map((item, index) => {
+                            if (item.type === 'divider') {
+                                return <Separator key={`divider-${index}`} className="my-2" />;
+                            }
+                            const Icon = item.icon;
+                            if (!Icon) return null;
+
+                            if (item.subItems) {
+                                return (
+                                    <Accordion key={item.id} type="single" collapsible defaultValue='organization' className="w-full md:w-auto">
+                                        <AccordionItem value="organization" className="border-b-0">
+                                            <AccordionTrigger
+                                                onClick={() => setActiveTab(item.id)}
+                                                className={cn(
+                                                    "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
+                                                    "transition-colors duration-200",
+                                                    activeTab === item.id 
+                                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                                        : 'hover:bg-accent hover:text-accent-foreground'
+                                                )}
+                                            >
+                                                <Icon className="mr-3 h-5 w-5" />
+                                                {item.label}
+                                            </AccordionTrigger>
+                                            <AccordionContent className="pl-4 pt-1">
+                                                <div className="flex flex-col gap-1">
+                                                    {item.subItems.map(sub => (
+                                                        <Button
+                                                            key={sub.id}
+                                                            variant={'ghost'}
+                                                            className={cn(
+                                                                "justify-start",
+                                                                activeSubTab === sub.id && activeTab === 'organization' 
+                                                                    ? 'bg-accent text-accent-foreground' 
+                                                                    : 'hover:bg-accent hover:text-accent-foreground'
+                                                            )}
+                                                            onClick={() => {
+                                                                setActiveTab('organization');
+                                                                setActiveSubTab(sub.id);
+                                                            }}
+                                                        >
+                                                            {sub.label}
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
+                                )
+                            }
+                            return (
+                                <Button 
+                                    key={item.id}
+                                    variant="ghost"
+                                    className={cn(
+                                        "justify-start p-3 font-semibold text-base h-auto",
+                                        "transition-colors duration-200",
+                                        activeTab === item.id 
+                                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                            : 'hover:bg-accent hover:text-accent-foreground'
+                                    )}
+                                    onClick={() => setActiveTab(item.id)}
+                                >
+                                    <Icon className={cn("mr-3 h-5 w-5")} />
+                                    {item.label}
+                                </Button>
+                            )
+                        })}
+                    </nav>
+                </Card>
 
                 <div className="md:col-span-1 rounded-lg">
                     {renderContent()}
