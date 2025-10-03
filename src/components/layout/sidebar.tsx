@@ -125,8 +125,8 @@ export function Sidebar() {
             {branding.companyName}
           </span>
         </div>
-        <Link href="/dashboard" className="h-7 w-7 flex items-center justify-center">
-            <HomeIcon className="h-5 w-5 text-primary" />
+        <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+            <HomeIcon className="h-5 w-5" />
         </Link>
       </div>
 
