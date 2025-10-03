@@ -20,6 +20,8 @@ import { useState, useEffect, Fragment } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
+import { useSidebar } from '@/components/layout/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 
 function OverviewTabContent() {
@@ -359,6 +361,7 @@ const navItems = [
 
 
 export function AdminPageContent() {
+    const { adminSidebarOpen } = useSidebar();
     const [activeTab, setActiveTab] = useState('overview');
     const [activeSubTab, setActiveSubTab] = useState('departments');
 
@@ -374,6 +377,7 @@ export function AdminPageContent() {
     return (
         <main className="flex-grow p-4 md:p-8">
             <div className='flex items-center gap-3 mb-6'>
+                <SidebarTrigger />
                 <Shield className='h-8 w-8 text-primary' />
                 <div>
                     <h1 className="text-2xl font-bold">Admin Control Panel</h1>
@@ -381,79 +385,81 @@ export function AdminPageContent() {
                 </div>
             </div>
 
-            <div className="flex flex-col md:grid md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
-                <Card className="p-4">
-                    <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
-                        {navItems.map((item, index) => {
-                            if (item.type === 'divider') {
-                                return <Separator key={`divider-${index}`} className="my-2" />;
-                            }
-                            const Icon = item.icon;
-                            if (!Icon) return null;
+            <div className={cn("grid gap-8 transition-all duration-300", adminSidebarOpen ? "grid-cols-1 md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr]" : "grid-cols-1")}>
+                <div className={cn("transition-all duration-300", adminSidebarOpen ? "block" : "hidden")}>
+                    <Card className="p-4">
+                        <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
+                            {navItems.map((item, index) => {
+                                if (item.type === 'divider') {
+                                    return <Separator key={`divider-${index}`} className="my-2" />;
+                                }
+                                const Icon = item.icon;
+                                if (!Icon) return null;
 
-                            if (item.subItems) {
+                                if (item.subItems) {
+                                    return (
+                                        <Accordion key={item.id} type="single" collapsible defaultValue='organization' className="w-full md:w-auto">
+                                            <AccordionItem value="organization" className="border-b-0">
+                                                <AccordionTrigger
+                                                    onClick={() => setActiveTab(item.id)}
+                                                    className={cn(
+                                                        "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
+                                                        "transition-colors duration-200",
+                                                        activeTab === item.id 
+                                                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                                            : 'hover:bg-accent hover:text-accent-foreground'
+                                                    )}
+                                                >
+                                                    <Icon className="mr-3 h-5 w-5" />
+                                                    {item.label}
+                                                </AccordionTrigger>
+                                                <AccordionContent className="pl-4 pt-1">
+                                                    <div className="flex flex-col gap-1">
+                                                        {item.subItems.map(sub => (
+                                                            <Button
+                                                                key={sub.id}
+                                                                variant={'ghost'}
+                                                                className={cn(
+                                                                    "justify-start",
+                                                                    activeSubTab === sub.id && activeTab === 'organization' 
+                                                                        ? 'bg-accent text-accent-foreground' 
+                                                                        : 'hover:bg-accent hover:text-accent-foreground'
+                                                                )}
+                                                                onClick={() => {
+                                                                    setActiveTab('organization');
+                                                                    setActiveSubTab(sub.id);
+                                                                }}
+                                                            >
+                                                                {sub.label}
+                                                            </Button>
+                                                        ))}
+                                                    </div>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        </Accordion>
+                                    )
+                                }
                                 return (
-                                    <Accordion key={item.id} type="single" collapsible defaultValue='organization' className="w-full md:w-auto">
-                                        <AccordionItem value="organization" className="border-b-0">
-                                            <AccordionTrigger
-                                                onClick={() => setActiveTab(item.id)}
-                                                className={cn(
-                                                    "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
-                                                    "transition-colors duration-200",
-                                                    activeTab === item.id 
-                                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                                        : 'hover:bg-accent hover:text-accent-foreground'
-                                                )}
-                                            >
-                                                <Icon className="mr-3 h-5 w-5" />
-                                                {item.label}
-                                            </AccordionTrigger>
-                                            <AccordionContent className="pl-4 pt-1">
-                                                <div className="flex flex-col gap-1">
-                                                    {item.subItems.map(sub => (
-                                                        <Button
-                                                            key={sub.id}
-                                                            variant={'ghost'}
-                                                            className={cn(
-                                                                "justify-start",
-                                                                activeSubTab === sub.id && activeTab === 'organization' 
-                                                                    ? 'bg-accent text-accent-foreground' 
-                                                                    : 'hover:bg-accent hover:text-accent-foreground'
-                                                            )}
-                                                            onClick={() => {
-                                                                setActiveTab('organization');
-                                                                setActiveSubTab(sub.id);
-                                                            }}
-                                                        >
-                                                            {sub.label}
-                                                        </Button>
-                                                    ))}
-                                                </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    </Accordion>
+                                    <Button 
+                                        key={item.id}
+                                        variant="ghost"
+                                        className={cn(
+                                            "justify-start p-3 font-semibold text-base h-auto",
+                                            "transition-colors duration-200",
+                                            activeTab === item.id 
+                                                ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                                : 'hover:bg-accent hover:text-accent-foreground'
+                                        )}
+                                        onClick={() => setActiveTab(item.id)}
+                                    >
+                                        <Icon className={cn("mr-3 h-5 w-5")} />
+                                        {item.label}
+                                    </Button>
                                 )
-                            }
-                            return (
-                                <Button 
-                                    key={item.id}
-                                    variant="ghost"
-                                    className={cn(
-                                        "justify-start p-3 font-semibold text-base h-auto",
-                                        "transition-colors duration-200",
-                                        activeTab === item.id 
-                                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                            : 'hover:bg-accent hover:text-accent-foreground'
-                                    )}
-                                    onClick={() => setActiveTab(item.id)}
-                                >
-                                    <Icon className={cn("mr-3 h-5 w-5")} />
-                                    {item.label}
-                                </Button>
-                            )
-                        })}
-                    </nav>
-                </Card>
+                            })}
+                        </nav>
+                    </Card>
+                </div>
 
                 <div className="md:col-span-1 rounded-lg">
                     {renderContent()}

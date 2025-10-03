@@ -12,51 +12,38 @@ import { useBranding } from '@/context/branding-context';
 import * as React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { SidebarTrigger } from '../ui/sidebar';
 
-const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+const SIDEBAR_COOKIE_NAME = "sidebar_state";
+const ADMIN_SIDEBAR_COOKIE_NAME = "admin_sidebar_state";
+const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 
 type SidebarContext = {
-  open: boolean
-  setOpen: (open: boolean) => void
-  isMobile: boolean
-}
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  adminSidebarOpen: boolean;
+  setAdminSidebarOpen: (open: boolean) => void;
+  isMobile: boolean;
+};
 
-const SidebarContext = React.createContext<SidebarContext | null>(null)
+const SidebarContext = React.createContext<SidebarContext | null>(null);
 
 export function useSidebar() {
-  const context = React.useContext(SidebarContext)
+  const context = React.useContext(SidebarContext);
   if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider.")
+    throw new Error("useSidebar must be used within a SidebarProvider.");
   }
-
-  return context
+  return context;
 }
 
 export const SidebarProvider = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> & {
-    defaultOpen?: boolean
-    open?: boolean
-    onOpenChange?: (open: boolean) => void
-  }
->(
-  (
-    {
-      defaultOpen = true,
-      open: openProp,
-      onOpenChange: setOpenProp,
-      className,
-      style,
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const isMobile = useIsMobile()
-    const [open, _setOpen] = React.useState(defaultOpen)
-    
-    // Read from cookie on mount
+  React.ComponentProps<"div">
+>(({ className, style, children, ...props }, ref) => {
+    const isMobile = useIsMobile();
+    const [open, _setOpen] = React.useState(true);
+    const [adminSidebarOpen, _setAdminSidebarOpen] = React.useState(false);
+
     React.useEffect(() => {
         const cookieValue = document.cookie
             .split('; ')
@@ -67,38 +54,35 @@ export const SidebarProvider = React.forwardRef<
         }
     }, []);
 
-
-    const setOpen = React.useCallback(
-      (value: boolean) => {
+    const setOpen = React.useCallback((value: boolean) => {
         _setOpen(value);
+        if (value) _setAdminSidebarOpen(false); // Close admin if main opens
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
-      },
-      []
-    );
+    }, []);
+    
+    const setAdminSidebarOpen = React.useCallback((value: boolean) => {
+        _setAdminSidebarOpen(value);
+        if (value) _setOpen(false); // Close main if admin opens
+        document.cookie = `${ADMIN_SIDEBAR_COOKIE_NAME}=${value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+    }, []);
 
-    const contextValue = React.useMemo<SidebarContext>(
-      () => ({
+    const contextValue = React.useMemo<SidebarContext>(() => ({
         open,
         setOpen,
+        adminSidebarOpen,
+        setAdminSidebarOpen,
         isMobile,
-      }),
-      [open, setOpen, isMobile]
-    );
+    }), [open, setOpen, adminSidebarOpen, setAdminSidebarOpen, isMobile]);
 
     return (
-      <SidebarContext.Provider value={contextValue}>
-          <div
-            className={cn("w-full", className)}
-            ref={ref}
-            {...props}
-          >
-            {children}
-          </div>
-      </SidebarContext.Provider>
-    )
-  }
-)
-SidebarProvider.displayName = "SidebarProvider"
+        <SidebarContext.Provider value={contextValue}>
+            <div className={cn("w-full", className)} ref={ref} {...props}>
+                {children}
+            </div>
+        </SidebarContext.Provider>
+    );
+});
+SidebarProvider.displayName = "SidebarProvider";
 
 
 export function Sidebar() {
@@ -111,7 +95,7 @@ export function Sidebar() {
              <div className="flex h-full max-h-screen flex-col items-center gap-2 border-r bg-card">
                  <div className="flex h-14 items-center justify-center border-b px-4 lg:h-[60px] w-full">
                     <Link href="/" className="flex items-center gap-2 font-semibold">
-                        <Logo className="h-6 w-6" />
+                        <SidebarTrigger />
                     </Link>
                 </div>
                  <ScrollArea className="flex-1 w-full">
@@ -135,16 +119,7 @@ export function Sidebar() {
             <Logo className="h-6 w-6" />
             <span className="">{branding.companyName}</span>
           </Link>
-          <Button
-            size="icon"
-            asChild
-            className="h-8 w-8"
-          >
-            <Link href="/">
-              <HomeIcon className="h-5 w-5" />
-              <span className="sr-only">Home</span>
-            </Link>
-          </Button>
+          <SidebarTrigger />
         </div>
         <ScrollArea className="flex-1">
           <nav className="flex flex-col gap-2 text-sm font-medium px-2 lg:px-4 py-4">

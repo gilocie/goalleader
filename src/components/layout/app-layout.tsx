@@ -18,7 +18,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
     const isMobile = useIsMobile();
     const pathname = usePathname();
-    const { open, setOpen } = useSidebar();
+    const { open, setOpen, adminSidebarOpen, setAdminSidebarOpen } = useSidebar();
     
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
@@ -26,20 +26,23 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const isAdminPage = pathname === '/admin';
 
     useEffect(() => {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('sidebar_state='))
+            ?.split('=')[1];
+        
+        const shouldBeOpen = cookieValue ? cookieValue === 'true' : true;
+
         if (isAdminPage) {
-            setOpen(false);
+            setOpen(false); // Collapse main sidebar
+            // Optionally, respect a stored state for admin sidebar
+            const adminCookie = document.cookie.split('; ').find(row => row.startsWith('admin_sidebar_state='))?.split('=')[1];
+            setAdminSidebarOpen(adminCookie ? adminCookie === 'true' : true);
         } else {
-            // Check cookie for persisted state if not on admin page
-            const cookieValue = document.cookie
-                .split('; ')
-                .find(row => row.startsWith('sidebar_state='))
-                ?.split('=')[1];
-            
-            // Default to true (expanded) if no cookie is found
-            const shouldBeOpen = cookieValue ? cookieValue === 'true' : true;
             setOpen(shouldBeOpen);
+            setAdminSidebarOpen(false); // Collapse admin sidebar
         }
-    }, [pathname, setOpen, isAdminPage]);
+    }, [pathname, setOpen, isAdminPage, setAdminSidebarOpen]);
 
 
     if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings'))) {
@@ -51,8 +54,9 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
         {!isMeetingPage && <Sidebar />}
         <div className={cn(
             "flex flex-1 flex-col relative transition-[padding-left] duration-300", 
-            !isMeetingPage && open && "md:pl-[220px] lg:pl-[280px]",
-            !isMeetingPage && !open && "md:pl-[72px] lg:pl-[72px]"
+            open && !isAdminPage && "md:pl-[220px] lg:pl-[280px]",
+            !open && !isAdminPage && "md:pl-[72px] lg:pl-[72px]",
+            isAdminPage && "md:pl-0 lg:pl-0"
         )}>
           <Header />
           <div className="flex flex-1 flex-col">

@@ -4,7 +4,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, PanelRight } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -26,7 +26,18 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { setOpen, open } = useSidebar()
+  const { setOpen, open, setAdminSidebarOpen, adminSidebarOpen } = useSidebar()
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event);
+    // This trigger is used in both sidebars, so we check which one is active
+    if (adminSidebarOpen) {
+      setAdminSidebarOpen(false);
+      setOpen(true);
+    } else {
+      setOpen(!open);
+    }
+  };
 
   return (
     <Button
@@ -35,13 +46,10 @@ const SidebarTrigger = React.forwardRef<
       variant="ghost"
       size="icon"
       className={cn("h-7 w-7", className)}
-      onClick={(event) => {
-        onClick?.(event)
-        setOpen(!open);
-      }}
+      onClick={handleClick}
       {...props}
     >
-      <PanelLeft />
+      <PanelLeft className={cn("h-5 w-5 transition-transform duration-300", open || adminSidebarOpen ? "" : "rotate-180")} />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )
