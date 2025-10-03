@@ -25,7 +25,7 @@ export default function LoginPage() {
             <span className="text-lg">GoalLeader</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <Button asChild className="bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">
+            <Button asChild>
                 <Link href="/register">Sign Up</Link>
             </Button>
           </nav>
@@ -73,7 +73,7 @@ export default function LoginPage() {
                   </Button>
               </div>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">
+            <Button type="submit" className="w-full">
               Login
             </Button>
           </CardContent>

@@ -161,7 +161,6 @@ export function CreateNoticeDialog({
             type="submit"
             onClick={form.handleSubmit(onSubmit)}
             disabled={!sendToAll && form.watch('recipients').length === 0}
-            variant="primary-dark"
           >
             Send Notice
           </Button>

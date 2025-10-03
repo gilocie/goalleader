@@ -191,7 +191,7 @@ export function ScheduleMeetingDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} variant="primary-dark">
+          <Button onClick={handleConfirm}>
             Confirm Schedule
           </Button>
         </DialogFooter>

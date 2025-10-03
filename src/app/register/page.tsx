@@ -91,7 +91,7 @@ export default function RegisterPage() {
                 </div>
               </div>
             </div>
-            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary-dark text-primary-foreground hover:from-primary/90 hover:to-primary-dark/90">
+            <Button type="submit" className="w-full">
               Create account
             </Button>
           </CardContent>
