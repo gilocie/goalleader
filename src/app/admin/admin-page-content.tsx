@@ -20,6 +20,8 @@ import { useState, useEffect, Fragment } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
+import { useSidebar } from '@/components/layout/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 function OverviewTabContent() {
     const stats = [
@@ -358,6 +360,7 @@ const navItems = [
 
 
 export function AdminPageContent() {
+    const { adminSidebarOpen } = useSidebar();
     const [activeTab, setActiveTab] = useState('overview');
     const [activeSubTab, setActiveSubTab] = useState('departments');
 
@@ -381,78 +384,82 @@ export function AdminPageContent() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
-                <Card className="hidden md:block p-4 self-start">
-                    <nav className="flex flex-col gap-2">
-                        {navItems.map((item, index) => {
-                            if (item.type === 'divider') {
-                                return <Separator key={`divider-${index}`} className="my-2" />;
-                            }
-                            const Icon = item.icon;
-                            if (!Icon) return null;
+                <nav className="hidden md:flex flex-col gap-2 p-4 bg-background rounded-lg border relative self-start">
+                     <SidebarTrigger
+                        className={cn(
+                        'absolute top-4 -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90',
+                        'transition-all duration-300'
+                        )}
+                    />
+                    {navItems.map((item, index) => {
+                        if (item.type === 'divider') {
+                            return <Separator key={`divider-${index}`} className="my-2" />;
+                        }
+                        const Icon = item.icon;
+                        if (!Icon) return null;
 
-                            if (item.subItems) {
-                                return (
-                                    <Accordion key={item.id} type="single" collapsible defaultValue='organization' className="w-full">
-                                        <AccordionItem value="organization" className="border-b-0">
-                                            <AccordionTrigger
-                                                onClick={() => setActiveTab(item.id)}
-                                                className={cn(
-                                                    "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
-                                                    "transition-colors duration-200",
-                                                    activeTab === item.id 
-                                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                                        : 'hover:bg-accent hover:text-accent-foreground'
-                                                )}
-                                            >
-                                                <Icon className="mr-3 h-5 w-5" />
-                                                {item.label}
-                                            </AccordionTrigger>
-                                            <AccordionContent className="pl-4 pt-1">
-                                                <div className="flex flex-col gap-1">
-                                                    {item.subItems.map(sub => (
-                                                        <Button
-                                                            key={sub.id}
-                                                            variant={'ghost'}
-                                                            className={cn(
-                                                                "justify-start",
-                                                                activeSubTab === sub.id && activeTab === 'organization' 
-                                                                    ? 'bg-accent text-accent-foreground' 
-                                                                    : 'hover:bg-accent hover:text-accent-foreground'
-                                                            )}
-                                                            onClick={() => {
-                                                                setActiveTab('organization');
-                                                                setActiveSubTab(sub.id);
-                                                            }}
-                                                        >
-                                                            {sub.label}
-                                                        </Button>
-                                                    ))}
-                                                </div>
-                                            </AccordionContent>
-                                        </AccordionItem>
-                                    </Accordion>
-                                )
-                            }
+                        if (item.subItems) {
                             return (
-                                <Button 
-                                    key={item.id}
-                                    variant="ghost"
-                                    className={cn(
-                                        "justify-start p-3 font-semibold text-base h-auto",
-                                        "transition-colors duration-200",
-                                        activeTab === item.id 
-                                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                            : 'hover:bg-accent hover:text-accent-foreground'
-                                    )}
-                                    onClick={() => setActiveTab(item.id)}
-                                >
-                                    <Icon className={cn("mr-3 h-5 w-5")} />
-                                    {item.label}
-                                </Button>
+                                <Accordion key={item.id} type="single" collapsible defaultValue='organization' className="w-full">
+                                    <AccordionItem value="organization" className="border-b-0">
+                                        <AccordionTrigger
+                                            onClick={() => setActiveTab(item.id)}
+                                            className={cn(
+                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
+                                                "transition-colors duration-200",
+                                                activeTab === item.id 
+                                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                                    : 'hover:bg-accent hover:text-accent-foreground'
+                                            )}
+                                        >
+                                            <Icon className="mr-3 h-5 w-5" />
+                                            {item.label}
+                                        </AccordionTrigger>
+                                        <AccordionContent className="pl-4 pt-1">
+                                            <div className="flex flex-col gap-1">
+                                                {item.subItems.map(sub => (
+                                                    <Button
+                                                        key={sub.id}
+                                                        variant={'ghost'}
+                                                        className={cn(
+                                                            "justify-start",
+                                                            activeSubTab === sub.id && activeTab === 'organization' 
+                                                                ? 'bg-accent text-accent-foreground' 
+                                                                : 'hover:bg-accent hover:text-accent-foreground'
+                                                        )}
+                                                        onClick={() => {
+                                                            setActiveTab('organization');
+                                                            setActiveSubTab(sub.id);
+                                                        }}
+                                                    >
+                                                        {sub.label}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
                             )
-                        })}
-                    </nav>
-                </Card>
+                        }
+                        return (
+                            <Button 
+                                key={item.id}
+                                variant="ghost"
+                                className={cn(
+                                    "justify-start p-3 font-semibold text-base h-auto",
+                                    "transition-colors duration-200",
+                                    activeTab === item.id 
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                        : 'hover:bg-accent hover:text-accent-foreground'
+                                )}
+                                onClick={() => setActiveTab(item.id)}
+                            >
+                                <Icon className={cn("mr-3 h-5 w-5")} />
+                                {item.label}
+                            </Button>
+                        )
+                    })}
+                </nav>
 
                 <div className="md:col-span-1 rounded-lg">
                     {renderContent()}
