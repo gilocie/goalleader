@@ -95,7 +95,7 @@ export function Sidebar() {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute top-[76px] -right-7 h-8 w-8 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 z-30 transition-all duration-300"
+        className="absolute top-[76px] -right-7 h-8 w-8 rounded-md bg-accent text-primary hover:bg-accent/90 z-30 transition-all duration-300"
         onClick={() => setOpen(!open)}
       >
         <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
@@ -117,7 +117,7 @@ export function Sidebar() {
           </span>
         </div>
         <div className={cn("flex items-center", open && 'hidden')}>
-            <Link href="/" className="h-8 w-8 flex items-center justify-center rounded-md hover:text-accent">
+            <Link href="/" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-transparent hover:text-accent">
                 <Logo className="h-5 w-5" />
             </Link>
         </div>
