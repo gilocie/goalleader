@@ -20,9 +20,6 @@ import { useState, useEffect, Fragment } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
-import { useSidebar } from '@/components/layout/sidebar';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-
 
 function OverviewTabContent() {
     const stats = [
@@ -38,7 +35,7 @@ function OverviewTabContent() {
                 <CardDescription>A high-level view of your organization.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
@@ -361,7 +358,6 @@ const navItems = [
 
 
 export function AdminPageContent() {
-    const { adminSidebarOpen } = useSidebar();
     const [activeTab, setActiveTab] = useState('overview');
     const [activeSubTab, setActiveSubTab] = useState('departments');
 
@@ -377,7 +373,6 @@ export function AdminPageContent() {
     return (
         <main className="flex-grow p-4 md:p-8">
             <div className='flex items-center gap-3 mb-6'>
-                <SidebarTrigger />
                 <Shield className='h-8 w-8 text-primary' />
                 <div>
                     <h1 className="text-2xl font-bold">Admin Control Panel</h1>
