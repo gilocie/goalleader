@@ -84,32 +84,32 @@ export function TimeTracker({ isMobileFooter = false }: { isMobileFooter?: boole
                 className="object-cover z-0"
             />
         )}
-      <div className="relative z-10 bg-green-900/50 p-4 h-full flex flex-col justify-between">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
-          <CardTitle className="text-sm font-medium">Time Tracker</CardTitle>
+      <div className="relative z-10 bg-green-900/50 p-2 h-full flex flex-col justify-between">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-0">
+          <CardTitle className="text-xs font-medium">Time Tracker</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center gap-2 p-0">
-          <div className="text-4xl font-bold font-mono tabular-nums">
+        <CardContent className="flex flex-col items-center justify-center gap-1 p-0">
+          <div className="text-2xl font-bold font-mono tabular-nums">
             {formatTime(time)}
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             <Button
               onClick={handleStartStop}
               size="icon"
               variant="ghost"
               aria-label={isActive ? 'Pause timer' : 'Start timer'}
-              className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30"
+              className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30"
             >
-              {isActive ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+              {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </Button>
             <Button
               onClick={handleStopClick}
               variant="destructive"
               size="icon"
               aria-label="Stop timer"
-              className="w-10 h-10 rounded-full"
+              className="w-8 h-8 rounded-full"
             >
-              <Square className="h-5 w-5" />
+              <Square className="h-4 w-4" />
             </Button>
           </div>
         </CardContent>
