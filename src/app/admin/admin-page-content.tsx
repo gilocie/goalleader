@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -40,12 +39,10 @@ function OverviewTabContent() {
                         const Icon = stat.icon;
                         return (
                              <Card key={stat.title} className="bg-primary text-primary-foreground">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-xs sm:text-sm font-medium">{stat.title}</CardTitle>
-                                    <Icon className="h-4 w-4 flex-shrink-0 text-primary-foreground/80" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-xl sm:text-2xl font-bold">{stat.value}</div>
+                                <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
+                                    <Icon className="h-8 w-8 text-primary-foreground/80 mb-2" />
+                                    <p className="text-xs sm:text-sm font-medium text-center">{stat.title}</p>
+                                    <p className="text-2xl sm:text-3xl font-bold">{stat.value}</p>
                                 </CardContent>
                             </Card>
                         )
