@@ -12,6 +12,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useBranding } from '@/context/branding-context';
 import { Button } from '../ui/button';
 import { ChevronLeft } from 'lucide-react';
+import { SidebarTrigger } from '../ui/sidebar';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -19,6 +20,8 @@ const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 type SidebarContextType = {
   open: boolean;
   setOpen: (open: boolean) => void;
+  adminSidebarOpen: boolean;
+  setAdminSidebarOpen: (open: boolean) => void;
   isMobile: boolean;
 };
 
@@ -38,6 +41,7 @@ export const SidebarProvider = React.forwardRef<
 >(({ className, style, children, ...props }, ref) => {
   const isMobile = useIsMobile();
   const [open, _setOpen] = React.useState(true);
+  const [adminSidebarOpen, _setAdminSidebarOpen] = React.useState(false);
 
   const setOpen = React.useCallback(
     (value: boolean) => {
@@ -48,14 +52,23 @@ export const SidebarProvider = React.forwardRef<
     },
     [isMobile]
   );
+  
+  const setAdminSidebarOpen = React.useCallback(
+    (value: boolean) => {
+      _setAdminSidebarOpen(value);
+    },
+    []
+  );
 
   const contextValue = React.useMemo<SidebarContextType>(
     () => ({
       open,
       setOpen,
+      adminSidebarOpen,
+      setAdminSidebarOpen,
       isMobile,
     }),
-    [open, setOpen, isMobile]
+    [open, setOpen, adminSidebarOpen, setAdminSidebarOpen, isMobile]
   );
 
   return (
@@ -99,25 +112,22 @@ export function Sidebar() {
         />
       </Button>
 
-      {/* Header for both states */}
       <div
         className={cn(
-          'flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 transition-all duration-300',
-          !open && 'justify-center px-2'
+          'flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 transition-all duration-300 justify-between',
         )}
       >
-        <Link
-          href="/"
+        <div
           className="flex items-center gap-2 font-semibold"
         >
           <Logo className="h-6 w-6 text-primary" />
           <span className={cn('transition-opacity duration-200', !open && 'opacity-0 w-0')}>
             {branding.companyName}
           </span>
-        </Link>
+        </div>
+        {open && <SidebarTrigger />}
       </div>
 
-      {/* Navigation */}
       <ScrollArea className="flex-1">
         <nav
           className={cn(
@@ -129,7 +139,6 @@ export function Sidebar() {
         </nav>
       </ScrollArea>
       
-      {/* Footer */}
       <div className={cn(
           "mt-auto p-4 border-t transition-opacity duration-300",
           !open && 'opacity-0 pointer-events-none h-0 p-0 border-none'
