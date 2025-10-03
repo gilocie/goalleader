@@ -291,7 +291,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
         </div>
         <Button 
           type="submit" 
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-primary to-green-700 text-primary-foreground hover:from-primary/90 hover:to-green-700/90" 
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground hover:bg-primary/90" 
           disabled={!message.trim()}
         >
           <Send className="h-4 w-4 mr-2" />
