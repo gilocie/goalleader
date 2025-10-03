@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon, LifeBuoy, Shield, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon, LifeBuoy, Shield, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
 import { Badge } from '../ui/badge';
@@ -13,7 +13,7 @@ import { useSidebar } from './sidebar';
 import { Button } from '../ui/button';
 
 const links = [
-  { href: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/performance', icon: Package, label: 'Performance' },
   { href: '/reports', icon: FileText, label: 'Reports' },
   { href: '/teams', icon: Users, label: 'Teams' },

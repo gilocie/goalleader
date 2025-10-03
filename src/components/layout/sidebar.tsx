@@ -11,7 +11,7 @@ import { NavLinks } from './nav-links';
 import { ScrollArea } from '../ui/scroll-area';
 import { useBranding } from '@/context/branding-context';
 import { Button } from '../ui/button';
-import { ChevronLeft, HomeIcon } from 'lucide-react';
+import { ChevronLeft, LayoutDashboard } from 'lucide-react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -105,7 +105,7 @@ export function Sidebar() {
         </div>
         <div className={cn("flex items-center", open && 'hidden')}>
             <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
-                <HomeIcon className="h-5 w-5" />
+                <LayoutDashboard className="h-5 w-5" />
             </Link>
         </div>
       </div>
