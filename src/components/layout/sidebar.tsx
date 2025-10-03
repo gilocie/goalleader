@@ -72,7 +72,7 @@ SidebarProvider.displayName = 'SidebarProvider';
 
 export function Sidebar() {
   const { branding } = useBranding();
-  const { open, setOpen } = useSidebar();
+  const { open } = useSidebar();
 
   return (
     <div
@@ -81,22 +81,6 @@ export function Sidebar() {
         open ? 'md:w-[220px] lg:w-[280px]' : 'md:w-[72px] lg:w-[72px]'
       )}
     >
-      <Button
-        variant="ghost"
-        size="icon"
-        className={cn(
-          'absolute top-[76px] -right-4 h-10 w-10 bg-accent text-accent-foreground hover:bg-accent/90 z-30 transition-all duration-300',
-        )}
-        onClick={() => setOpen(!open)}
-      >
-        <ChevronLeft
-          className={cn(
-            'h-4 w-4 transition-transform duration-300',
-            !open && 'rotate-180'
-          )}
-        />
-      </Button>
-      
       <div
         className={cn(
           'flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 transition-all duration-300 justify-between',
@@ -118,8 +102,8 @@ export function Sidebar() {
       <ScrollArea className="flex-1">
         <nav
           className={cn(
-            'flex flex-col gap-2 text-sm font-medium py-4 transition-all duration-300',
-            open ? 'px-2' : 'items-center px-2'
+            'flex flex-col gap-2 text-sm font-medium py-4 transition-all duration-300 px-2',
+            !open && 'items-center'
           )}
         >
           <NavLinks isCollapsed={!open} />
