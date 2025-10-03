@@ -1,10 +1,10 @@
 
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { TimeTrackerProvider, useTimeTracker } from '@/context/time-tracker-context';
-import { Sidebar } from './sidebar';
+import { Sidebar, SidebarProvider, useSidebar } from './sidebar';
 import { Header } from './header';
 import { Footer } from '../dashboard/footer';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -18,9 +18,29 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
     const isMobile = useIsMobile();
     const pathname = usePathname();
+    const { setOpen } = useSidebar();
+    
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
     const isLobbyPage = pathname.includes('/lobby');
+    const isAdminPage = pathname === '/admin';
+
+    useEffect(() => {
+        if (isAdminPage) {
+            setOpen(false);
+        } else {
+            // Check cookie for persisted state if not on admin page
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('sidebar_state='))
+                ?.split('=')[1];
+            
+            // Default to true (expanded) if no cookie is found
+            const shouldBeOpen = cookieValue ? cookieValue === 'true' : true;
+            setOpen(shouldBeOpen);
+        }
+    }, [pathname, setOpen, isAdminPage]);
+
 
     if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings'))) {
       return <>{children}</>;
@@ -46,14 +66,16 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <TimeTrackerProvider>
-        <ReportsProvider>
-            <ChatProvider>
-                <NotificationProvider>
-                    <LayoutWithTracker>{children}</LayoutWithTracker>
-                </NotificationProvider>
-            </ChatProvider>
-        </ReportsProvider>
-    </TimeTrackerProvider>
+    <SidebarProvider>
+        <TimeTrackerProvider>
+            <ReportsProvider>
+                <ChatProvider>
+                    <NotificationProvider>
+                        <LayoutWithTracker>{children}</LayoutWithTracker>
+                    </NotificationProvider>
+                </ChatProvider>
+            </ReportsProvider>
+        </TimeTrackerProvider>
+    </SidebarProvider>
   );
 }

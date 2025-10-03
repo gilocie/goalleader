@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 
 const links = [
   { href: '/dashboard', icon: HomeIcon, label: 'Dashboard' },
@@ -27,7 +28,7 @@ const secondaryLinks = [
     { href: '/admin', icon: Shield, label: 'Admin' },
 ]
 
-export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
+export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?: boolean, isCollapsed?: boolean }) {
   const pathname = usePathname();
   const { unreadMessagesCount } = useChat();
 
@@ -43,12 +44,47 @@ export function NavLinks({ isMobile = false }: { isMobile?: boolean }) {
     const isActive = pathname === href || (href === '/teams' && pathname.startsWith('/teams/'));
     const Icon = icon;
 
+    if (isCollapsed) {
+        return (
+            <TooltipProvider key={href} delayDuration={0}>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                         <Link
+                            href={href}
+                            className={cn(
+                                'flex items-center justify-center h-10 w-10 rounded-lg text-primary transition-all relative',
+                                isActive 
+                                    ? 'bg-primary text-primary-foreground' 
+                                    : 'hover:bg-primary hover:text-primary-foreground'
+                            )}
+                        >
+                            <Icon className="h-5 w-5" />
+                            {count > 0 && (
+                                <Badge className={cn(
+                                    'absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0',
+                                    isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
+                                )}>
+                                {count}
+                                </Badge>
+                            )}
+                        </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                        <p>{label}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        )
+    }
+
+
     return (
         <Link
         key={href}
         href={href}
         className={cn(
-            'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all border-b',
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all',
+            isMobile ? 'border-b' : '',
             isActive 
                 ? 'bg-primary text-primary-foreground' 
                 : 'hover:bg-primary hover:text-primary-foreground'
