@@ -42,9 +42,11 @@ export const SidebarProvider = React.forwardRef<
   const setOpen = React.useCallback(
     (value: boolean) => {
       _setOpen(value);
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      if (!isMobile) {
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      }
     },
-    []
+    [isMobile]
   );
 
   const contextValue = React.useMemo<SidebarContextType>(
@@ -70,28 +72,32 @@ export function Sidebar() {
   const { branding } = useBranding();
   const { open, setOpen } = useSidebar();
 
-  if (!open) {
-    return (
-      <div className="hidden md:fixed md:inset-y-0 md:z-20 md:flex md:w-[72px] md:flex-col lg:w-[72px] transition-all duration-300">
-        <div className="flex h-full max-h-screen flex-col items-center gap-2 border-r bg-card">
-          <div className="flex h-14 items-center justify-center border-b px-4 lg:h-[60px] w-full">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Logo className="h-6 w-6 text-primary" />
-            </Link>
-          </div>
-          <ScrollArea className="flex-1 w-full">
-            <nav className="flex flex-col items-center gap-2 text-sm font-medium px-2 lg:px-4 py-4">
-              <NavLinks isCollapsed={true} />
-            </nav>
-          </ScrollArea>
-        </div>
-      </div>
-    );
-  }
+  const collapsedWidth = 'md:w-[72px] lg:w-[72px]';
+  const expandedWidth = 'md:w-[220px] lg:w-[280px]';
 
   return (
-    <div className="hidden md:fixed md:inset-y-0 md:z-20 md:flex md:w-[220px] md:flex-col lg:w-[280px] transition-all duration-300">
-      <div className="flex h-full max-h-screen flex-col gap-2 border-r bg-card relative">
+    <div className={cn(
+        "hidden md:fixed md:inset-y-0 md:z-20 md:flex md:flex-col transition-all duration-300",
+        open ? expandedWidth : collapsedWidth
+    )}>
+      {/* Toggle button that is always rendered */}
+      <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+              "absolute top-1/2 -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-30",
+              "transition-transform duration-300",
+          )}
+          onClick={() => setOpen(!open)}
+      >
+          <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", !open && "rotate-180")} />
+      </Button>
+
+      {/* Expanded Sidebar */}
+      <div className={cn(
+        "flex h-full max-h-screen flex-col gap-2 border-r bg-card transition-opacity duration-300",
+        !open && "opacity-0 pointer-events-none"
+      )}>
         <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
           <Link
             href="/"
@@ -102,15 +108,6 @@ export function Sidebar() {
           </Link>
         </div>
 
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="absolute top-1/2 -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-30"
-          onClick={() => setOpen(false)}
-        >
-            <ChevronLeft className="h-4 w-4" />
-        </Button>
-
         <ScrollArea className="flex-1">
           <nav className="flex flex-col gap-2 text-sm font-medium px-2 lg:px-4 py-4">
             <NavLinks />
@@ -120,6 +117,24 @@ export function Sidebar() {
           <TimeTracker />
         </div>
       </div>
+      
+      {/* Collapsed Sidebar */}
+      <div className={cn(
+        "flex h-full max-h-screen flex-col items-center gap-2 border-r bg-card transition-opacity duration-300",
+        open && "opacity-0 pointer-events-none"
+      )}>
+          <div className="flex h-14 items-center justify-center border-b px-4 lg:h-[60px] w-full">
+            <Link href="/" className="flex items-center gap-2 font-semibold">
+              <Logo className="h-6 w-6 text-primary" />
+            </Link>
+          </div>
+          <ScrollArea className="flex-1 w-full">
+            <nav className="flex flex-col items-center gap-2 text-sm font-medium px-2 lg:px-4 py-4">
+              <NavLinks isCollapsed={true} />
+            </nav>
+          </ScrollArea>
+      </div>
+
     </div>
   );
 }
