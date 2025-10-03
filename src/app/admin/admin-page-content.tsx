@@ -397,7 +397,7 @@ export function AdminPageContent() {
                                                     : 'hover:bg-accent hover:text-accent-foreground'
                                             )}
                                         >
-                                            <Icon className={cn("mr-3 h-5 w-5", activeTab !== item.id && "text-primary")} />
+                                            <Icon className="mr-3 h-5 w-5" />
                                             {item.label}
                                         </AccordionTrigger>
                                         <AccordionContent className="pl-4 pt-1">
@@ -453,8 +453,3 @@ export function AdminPageContent() {
         </main>
     );
 }
-
-    
-
-    
-
