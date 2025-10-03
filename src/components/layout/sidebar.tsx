@@ -11,7 +11,7 @@ import { NavLinks } from './nav-links';
 import { ScrollArea } from '../ui/scroll-area';
 import { useBranding } from '@/context/branding-context';
 import { Button } from '../ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, HomeIcon } from 'lucide-react';
 import { SidebarTrigger } from '../ui/sidebar';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
@@ -125,7 +125,9 @@ export function Sidebar() {
             {branding.companyName}
           </span>
         </div>
-        {open && <SidebarTrigger />}
+        <Link href="/dashboard" className="h-7 w-7 flex items-center justify-center">
+            <HomeIcon className="h-5 w-5 text-primary" />
+        </Link>
       </div>
 
       <ScrollArea className="flex-1">
