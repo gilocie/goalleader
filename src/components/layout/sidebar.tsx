@@ -83,7 +83,7 @@ export function Sidebar() {
         <Button
             variant="ghost"
             size="icon"
-            className="absolute top-[76px] -right-4 h-8 w-8 bg-accent text-accent-foreground hover:bg-accent/90 z-30 transition-all duration-300"
+            className="absolute top-[76px] -right-4 h-8 w-8 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 z-30 transition-all duration-300"
             onClick={() => setOpen(!open)}
         >
             <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
@@ -114,7 +114,7 @@ export function Sidebar() {
         <nav
           className={cn(
             'flex flex-col gap-2 text-sm font-medium py-4 transition-all duration-300 px-2',
-            !open && 'items-center'
+            !open && 'items-center px-2'
           )}
         >
           <NavLinks isCollapsed={!open} />
