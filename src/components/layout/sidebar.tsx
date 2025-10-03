@@ -119,7 +119,7 @@ export function Sidebar() {
         <nav
           className={cn(
             'flex flex-col gap-2 text-sm font-medium py-4 transition-all duration-300',
-            open ? 'px-2 lg:px-4' : 'items-center px-2'
+            open ? 'px-2' : 'items-center px-2'
           )}
         >
           <NavLinks isCollapsed={!open} />
