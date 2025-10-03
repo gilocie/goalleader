@@ -52,10 +52,10 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                          <Link
                             href={href}
                             className={cn(
-                                'flex items-center justify-center h-10 w-10 rounded-lg text-primary transition-all relative',
+                                'flex items-center justify-center h-10 w-10 rounded-lg text-muted-foreground transition-all relative hover:text-primary-foreground',
                                 isActive 
                                     ? 'bg-primary text-primary-foreground' 
-                                    : 'hover:bg-primary hover:text-primary-foreground'
+                                    : 'hover:bg-primary'
                             )}
                         >
                             <Icon className="h-5 w-5" />
