@@ -3,32 +3,32 @@
     {
       "id": "avatar-1",
       "description": "Female user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1679611978819-f10168367155?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMGZhY2V8ZW58MHx8fHwxNzU4ODY3OTE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman face"
+      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMHdvbWFuJTIwcHJvZmVzc2lvbmFsfGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black woman professional"
     },
     {
       "id": "avatar-2",
       "description": "Male user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1619182597083-17bda72c1d56?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBmYWNlfGVufDB8fHx8MTc1ODc3MzczMHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "man face"
+      "imageUrl": "https://images.unsplash.com/photo-1537511446984-935f663eb1f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMG1hbiUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NTg5MDAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black man professional"
     },
     {
       "id": "avatar-3",
       "description": "Female user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1679611978819-f10168367155?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMGZhY2V8ZW58MHx8fHwxNzU4ODY3OTE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman face"
+      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwd29tYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "african woman smiling"
     },
     {
       "id": "avatar-4",
       "description": "Male user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1611608822772-43a28a830759?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtYW4lMjBmYWNlfGVufDB8fHx8MTc1ODc3MzczMHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "man face"
+      "imageUrl": "https://images.unsplash.com/photo-1610276198568-eb6d0ff53e48?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwbWFuJTIwc21pbGluZ3xlbnwwfHx8fDE3NTg5MDAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "african man smiling"
     },
     {
       "id": "user-avatar",
       "description": "Main user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1693039537350-3bba6975add7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBmYWNlfGVufDB8fHx8MTc1ODgxODYyMHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "person face"
+      "imageUrl": "https://images.unsplash.com/photo-1537511446984-935f663eb1f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      "imageHint": "black man professional"
     },
     {
       "id": "time-tracker-bg",
@@ -63,7 +63,7 @@
     {
       "id": "chiyanjano-mkandawire-m5",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-14947901_08377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
       "imageHint": "black woman professional"
     },
     {
@@ -93,44 +93,44 @@
     {
       "id": "john-isner-p1",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1752170080627-0324ede1ddf2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxtYW4lMjBwcm9mZXNzaW9uYWwlMjBvZmZpY2V8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "man professional office"
+      "imageUrl": "https://images.unsplash.com/photo-1537511446984-935f663eb1f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMG1hbiUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NTg5MDAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black man professional"
     },
     {
       "id": "mia-jones-p2",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1758518729459-235dcaadc611?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3b21hbiUyMHByb2Zlc3Npb25hbCUyMHNtaWxpbmd8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman professional smiling"
+      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMHdvbWFuJTIwcHJvZmVzc2lvbmFsfGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black woman professional"
     },
     {
       "id": "janice-wallberg-p3",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1720540974837-27e9fb4af786?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3b21hbiUyMGZhY2UlMjBnbGFzc2VzfGVufDB8fHx8MTc1ODg5MDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman face glasses"
+      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwd29tYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "african woman smiling"
     },
     {
       "id": "camille-valdez-p4",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1720098110121-26aa70b87bfc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBmYWNlJTIwZnJpZW5kbHl8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman face friendly"
+      "imageUrl": "https://images.unsplash.com/photo-1632765879339-9b98a10f8a37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMHdvbWFuJTIwbW9kZXJufGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black woman modern"
     },
     {
       "id": "oliver-p5",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1629871870289-21efd577d820?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFuJTIwZmFjZSUyMG1vZGVybnxlbnwwfHx8fDE3NTg4OTAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "man face modern"
+      "imageUrl": "https://images.unsplash.com/photo-1615823824833-313c422a0ed3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMG1hbiUyMGdsYXNzZXN8ZW58MHx8fHwxNzU4OTAwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black man glasses"
     },
     {
       "id": "simona-p6",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1615751596346-9df8006e5381?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3b21hbiUyMGZhY2UlMjBzbWlsaW5nfGVufDB8fHx8MTc1ODg5MDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman face smiling"
+      "imageUrl": "https://images.unsplash.com/photo-1614283233556-f35b7c15b1ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMGJsYWNrJTIwd29tYW58ZW58MHx8fHwxNzU4OTAwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "young black woman"
     },
     {
       "id": "nina-p7",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1709136485727-b4407111e90a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d29tYW4lMjBwcm9mZXNzaW9uYWwlMjBoZWFkc2V0fGVufDB8fHx8MTc1ODg5MDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "woman professional headset"
+      "imageUrl": "https://images.unsplash.com/photo-1628890920690-9e29d0019b9b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMGFmcmljYW4lMjBtYW58ZW58MHx8fHwxNzU4OTAwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "young african man"
     },
     {
       "id": "landing-hero-bg",
