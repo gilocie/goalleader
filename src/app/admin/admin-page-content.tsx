@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -19,7 +20,6 @@ import { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 
 function OverviewTabContent() {
     const stats = [
@@ -40,7 +40,7 @@ function OverviewTabContent() {
                         const Icon = stat.icon;
                         return (
                              <Card key={stat.title} className="bg-primary text-primary-foreground aspect-square">
-                                <CardContent className="flex flex-col items-center justify-center h-full p-2 text-center gap-2">
+                                <CardContent className="flex flex-col items-center justify-center h-full p-2 text-center gap-1">
                                     <Icon className="h-8 w-8 text-primary-foreground/80" />
                                     <div>
                                         <p className="text-sm font-medium">{stat.title}</p>
