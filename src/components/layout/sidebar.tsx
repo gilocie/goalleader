@@ -12,7 +12,6 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useBranding } from '@/context/branding-context';
 import { Button } from '../ui/button';
 import { ChevronLeft, HomeIcon } from 'lucide-react';
-import { SidebarTrigger } from '../ui/sidebar';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
@@ -72,7 +71,7 @@ SidebarProvider.displayName = 'SidebarProvider';
 
 export function Sidebar() {
   const { branding } = useBranding();
-  const { open } = useSidebar();
+  const { open, setOpen } = useSidebar();
 
   return (
     <div
@@ -94,9 +93,19 @@ export function Sidebar() {
             {branding.companyName}
           </span>
         </div>
-        <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
-            <HomeIcon className="h-5 w-5" />
-        </Link>
+        <div className="flex items-center">
+            <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
+                <HomeIcon className="h-5 w-5" />
+            </Link>
+             <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-accent-foreground hover:bg-accent/90"
+                onClick={() => setOpen(!open)}
+            >
+                <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
+            </Button>
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
