@@ -14,7 +14,12 @@ import Image from 'next/image';
 import { useTimeTracker } from '@/context/time-tracker-context';
 import { cn } from '@/lib/utils';
 
-export function TimeTracker({ isMobileFooter = false }: { isMobileFooter?: boolean }) {
+interface TimeTrackerProps {
+  isMobileFooter?: boolean;
+  layout?: 'card' | 'inline';
+}
+
+export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTrackerProps) {
   const { time, isActive, activeTask, handleStartStop, handleReset, handleStop, tasks, setCompleteTaskOpen, setSelectedTask } = useTimeTracker();
   const timeTrackerBg = PlaceHolderImages.find((img) => img.id === 'time-tracker-bg');
 
@@ -68,6 +73,39 @@ export function TimeTracker({ isMobileFooter = false }: { isMobileFooter?: boole
               <Square className="h-6 w-6" />
             </Button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (layout === 'inline') {
+    return (
+      <div className="flex items-center gap-4 bg-muted px-3 py-1.5 rounded-lg">
+        <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground font-medium truncate max-w-28">{activeTask || "No active task"}</span>
+            <span className="text-xl font-bold font-mono tabular-nums leading-tight">{formatTime(time)}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            onClick={handleStartStop}
+            size="icon"
+            variant="ghost"
+            aria-label={isActive ? 'Pause timer' : 'Start timer'}
+            className="w-8 h-8 rounded-full"
+            disabled={!activeTask}
+          >
+            {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          </Button>
+          <Button
+            onClick={handleStopClick}
+            variant="ghost"
+            size="icon"
+            aria-label="Stop timer"
+            className="w-8 h-8 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={!activeTask}
+          >
+            <Square className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     );

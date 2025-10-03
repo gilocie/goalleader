@@ -105,7 +105,7 @@ export function Sidebar() {
           </span>
         </div>
         <div className={cn("flex items-center", open && 'hidden')}>
-            <Link href="/" className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-transparent hover:text-accent">
+            <Link href="/" className="h-8 w-8 flex items-center justify-center rounded-md hover:text-accent">
                 <Logo className="h-5 w-5" />
             </Link>
         </div>

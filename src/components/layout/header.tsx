@@ -28,6 +28,7 @@ import { ChatDropdown } from '../notifications/chat-dropdown';
 import { useBranding } from '@/context/branding-context';
 import { Logo } from '../icons';
 import { cn } from '@/lib/utils';
+import { useSidebar } from './sidebar';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -45,6 +46,7 @@ export function Header() {
   const { notifications } = useNotifications();
   const { unreadMessagesCount } = useChat();
   const { branding } = useBranding();
+  const { open } = useSidebar();
 
   const isMeetingPage = pathname.startsWith('/meetings/');
   const meetingId = isMeetingPage && typeof params.meetingId === 'string' ? params.meetingId : null;
@@ -88,7 +90,7 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
-      <div className="w-full flex-1">
+      <div className="w-full flex-1 flex items-center">
         {isMeetingPage && meetingDetails && (
             <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -99,6 +101,11 @@ export function Header() {
                     <Badge variant="outline" className="text-xs">{meetingDetails.category}</Badge>
                 </div>
             </div>
+        )}
+         {!open && (
+          <div className="hidden md:block">
+            <TimeTracker layout="inline" />
+          </div>
         )}
       </div>
       
