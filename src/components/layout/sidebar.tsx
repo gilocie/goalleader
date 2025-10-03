@@ -76,65 +76,66 @@ export function Sidebar() {
   const expandedWidth = 'md:w-[220px] lg:w-[280px]';
 
   return (
-    <div className={cn(
-        "hidden md:fixed md:inset-y-0 md:z-20 md:flex md:flex-col transition-all duration-300",
+    <div
+      className={cn(
+        'hidden md:fixed md:inset-y-0 md:z-20 md:flex md:flex-col border-r bg-card transition-all duration-300',
         open ? expandedWidth : collapsedWidth
-    )}>
-      {/* Toggle button that is always rendered */}
+      )}
+    >
       <Button
-          variant="ghost"
-          size="icon"
-          className={cn(
-              "absolute top-1/2 -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-30",
-              "transition-transform duration-300",
-          )}
-          onClick={() => setOpen(!open)}
+        variant="ghost"
+        size="icon"
+        className={cn(
+          'absolute top-1/2 -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-30',
+          'transition-all duration-300'
+        )}
+        onClick={() => setOpen(!open)}
       >
-          <ChevronLeft className={cn("h-4 w-4 transition-transform duration-300", !open && "rotate-180")} />
+        <ChevronLeft
+          className={cn(
+            'h-4 w-4 transition-transform duration-300',
+            !open && 'rotate-180'
+          )}
+        />
       </Button>
 
-      {/* Expanded Sidebar */}
-      <div className={cn(
-        "flex h-full max-h-screen flex-col gap-2 border-r bg-card transition-opacity duration-300",
-        !open && "opacity-0 pointer-events-none"
-      )}>
-        <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
-          <Link
-            href="/"
-            className="flex items-center gap-2 font-semibold"
-          >
-            <Logo className="h-6 w-6 text-primary" />
-            <span className="">{branding.companyName}</span>
-          </Link>
-        </div>
-
-        <ScrollArea className="flex-1">
-          <nav className="flex flex-col gap-2 text-sm font-medium px-2 lg:px-4 py-4">
-            <NavLinks />
-          </nav>
-        </ScrollArea>
-        <div className="mt-auto p-4 border-t">
-          <TimeTracker />
-        </div>
+      {/* Header for both states */}
+      <div
+        className={cn(
+          'flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 transition-all duration-300',
+          !open && 'justify-center px-2'
+        )}
+      >
+        <Link
+          href="/"
+          className="flex items-center gap-2 font-semibold"
+        >
+          <Logo className="h-6 w-6 text-primary" />
+          <span className={cn('transition-opacity duration-200', !open && 'opacity-0 w-0')}>
+            {branding.companyName}
+          </span>
+        </Link>
       </div>
+
+      {/* Navigation */}
+      <ScrollArea className="flex-1">
+        <nav
+          className={cn(
+            'flex flex-col gap-2 text-sm font-medium py-4 transition-all duration-300',
+            open ? 'px-2 lg:px-4' : 'items-center px-2'
+          )}
+        >
+          <NavLinks isCollapsed={!open} />
+        </nav>
+      </ScrollArea>
       
-      {/* Collapsed Sidebar */}
+      {/* Footer */}
       <div className={cn(
-        "flex h-full max-h-screen flex-col items-center gap-2 border-r bg-card transition-opacity duration-300",
-        open && "opacity-0 pointer-events-none"
+          "mt-auto p-4 border-t transition-opacity duration-300",
+          !open && 'opacity-0 pointer-events-none h-0 p-0 border-none'
       )}>
-          <div className="flex h-14 items-center justify-center border-b px-4 lg:h-[60px] w-full">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Logo className="h-6 w-6 text-primary" />
-            </Link>
-          </div>
-          <ScrollArea className="flex-1 w-full">
-            <nav className="flex flex-col items-center gap-2 text-sm font-medium px-2 lg:px-4 py-4">
-              <NavLinks isCollapsed={true} />
-            </nav>
-          </ScrollArea>
+        <TimeTracker />
       </div>
-
     </div>
   );
 }
