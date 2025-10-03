@@ -39,10 +39,10 @@ function OverviewTabContent() {
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-primary text-primary-foreground">
+                             <Card key={stat.title}>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                                    <Icon className="h-4 w-4 text-primary-foreground/70" />
+                                    <Icon className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">{stat.value}</div>
@@ -115,7 +115,7 @@ function BrandingTabContent() {
 
 
                 <div className="flex gap-2">
-                    <Button onClick={handleSave} className="bg-primary text-primary-foreground hover:bg-primary/90">Save Branding</Button>
+                    <Button onClick={handleSave}>Save Branding</Button>
                     <Button variant="outline" onClick={resetBranding}>Reset Branding</Button>
                 </div>
             </CardContent>
@@ -379,25 +379,25 @@ export function AdminPageContent() {
                 </div>
             </div>
 
-            <div className="grid md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
-                <nav className="flex flex-col gap-2">
+            <div className="flex flex-col md:grid md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
+                <nav className="flex flex-row md:flex-col gap-2 overflow-x-auto md:overflow-x-visible pb-2 md:pb-0">
                     {navItems.map(item => {
                         const Icon = item.icon;
                         if (item.subItems) {
                              return (
-                                <Accordion key={item.id} type="single" collapsible defaultValue='organization'>
+                                <Accordion key={item.id} type="single" collapsible defaultValue='organization' className="w-full md:w-auto">
                                     <AccordionItem value="organization" className="border-b-0">
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto border-b",
+                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto",
                                                 "transition-colors duration-200",
                                                 activeTab === item.id 
-                                                    ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground' 
-                                                    : 'text-primary hover:bg-primary hover:text-primary-foreground'
+                                                    ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                                    : 'hover:bg-accent hover:text-accent-foreground'
                                             )}
                                         >
-                                            <Icon className="mr-3 h-5 w-5" />
+                                            <Icon className={cn("mr-3 h-5 w-5", activeTab !== item.id && "text-primary")} />
                                             {item.label}
                                         </AccordionTrigger>
                                         <AccordionContent className="pl-4 pt-1">
@@ -407,10 +407,10 @@ export function AdminPageContent() {
                                                         key={sub.id}
                                                         variant={'ghost'}
                                                         className={cn(
-                                                            "justify-start text-primary border-b",
+                                                            "justify-start",
                                                             activeSubTab === sub.id && activeTab === 'organization' 
-                                                                ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
-                                                                : 'hover:bg-primary hover:text-primary-foreground'
+                                                                ? 'bg-accent text-accent-foreground' 
+                                                                : 'hover:bg-accent hover:text-accent-foreground'
                                                         )}
                                                         onClick={() => {
                                                             setActiveTab('organization');
@@ -431,22 +431,22 @@ export function AdminPageContent() {
                                 key={item.id}
                                 variant="ghost"
                                 className={cn(
-                                    "justify-start p-3 font-semibold text-base h-auto text-primary border-b",
+                                    "justify-start p-3 font-semibold text-base h-auto",
                                     "transition-colors duration-200",
                                     activeTab === item.id 
-                                        ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
-                                        : 'hover:bg-primary hover:text-primary-foreground'
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                        : 'hover:bg-accent hover:text-accent-foreground'
                                 )}
                                 onClick={() => setActiveTab(item.id)}
                             >
-                                <Icon className="mr-3 h-5 w-5" />
+                                <Icon className={cn("mr-3 h-5 w-5", activeTab !== item.id && "text-primary")} />
                                 {item.label}
                             </Button>
                         )
                     })}
                 </nav>
 
-                <div className="md:col-span-1">
+                <div className="md:col-span-1 rounded-lg">
                     {renderContent()}
                 </div>
             </div>
@@ -457,3 +457,4 @@ export function AdminPageContent() {
     
 
     
+
