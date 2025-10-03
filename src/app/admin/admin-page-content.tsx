@@ -393,7 +393,7 @@ export function AdminPageContent() {
                                                 "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto border-b",
                                                 "transition-colors duration-200",
                                                 activeTab === item.id 
-                                                    ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
+                                                    ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground' 
                                                     : 'text-primary hover:bg-primary hover:text-primary-foreground'
                                             )}
                                         >
@@ -453,5 +453,7 @@ export function AdminPageContent() {
         </main>
     );
 }
+
+    
 
     
