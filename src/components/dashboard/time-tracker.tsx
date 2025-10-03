@@ -101,17 +101,17 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
                     size="icon"
                     variant="ghost"
                     aria-label={isActive ? 'Pause timer' : 'Start timer'}
-                    className="w-8 h-8 rounded-full hover:bg-white/20"
+                    className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30"
                     disabled={!activeTask}
                 >
                     {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
                 <Button
                     onClick={handleStopClick}
-                    variant="ghost"
+                    variant="destructive"
                     size="icon"
                     aria-label="Stop timer"
-                    className="w-8 h-8 rounded-full text-red-300 hover:bg-red-500/50 hover:text-white"
+                    className="w-8 h-8 rounded-full"
                     disabled={!activeTask}
                 >
                     <Square className="h-4 w-4" />
@@ -166,4 +166,5 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
     </Card>
   );
 }
+
 
