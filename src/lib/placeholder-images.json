@@ -3,32 +3,32 @@
     {
       "id": "avatar-1",
       "description": "Female user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMHdvbWFuJTIwcHJvZmVzc2lvbmFsfGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "black woman professional"
+      "imageUrl": "https://images.unsplash.com/photo-1603263297544-979bfcde910f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxuYXR1cmUlMjBmb3Jlc3R8ZW58MHx8fHwxNzU5NDA0MjI3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nature forest"
     },
     {
       "id": "avatar-2",
       "description": "Male user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1537511446984-935f663eb1f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMG1hbiUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NTg5MDAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "black man professional"
+      "imageUrl": "https://images.unsplash.com/photo-1643875402004-22631ef914aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjaXR5JTIwYXJjaGl0ZWN0dXJlfGVufDB8fHx8MTc1OTQ0MDcwM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "city architecture"
     },
     {
       "id": "avatar-3",
       "description": "Female user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwd29tYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "african woman smiling"
+      "imageUrl": "https://images.unsplash.com/photo-1610552050890-fe99536c2615?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb3VudGFpbiUyMGxhbmRzY2FwZXxlbnwwfHx8fDE3NTk0NjM3MDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mountain landscape"
     },
     {
       "id": "avatar-4",
       "description": "Male user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1610276198568-eb6d0ff53e48?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwbWFuJTIwc21pbGluZ3xlbnwwfHx8fDE3NTg5MDAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "african man smiling"
+      "imageUrl": "https://images.unsplash.com/photo-1504366130991-154787072d46?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBjYXJ8ZW58MHx8fHwxNzU5NDUzMjAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern car"
     },
     {
       "id": "user-avatar",
       "description": "Main user avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1537511446984-935f663eb1f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "black man professional"
+      "imageUrl": "https://images.unsplash.com/photo-1696738061271-401a7ef09e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxvZmZpY2UlMjBidWlsZGluZ3xlbnwwfHx8fDE3NTk0NzI4MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "office building"
     },
     {
       "id": "time-tracker-bg",
@@ -39,98 +39,98 @@
     {
       "id": "patrick-achitabwino-m1",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1537511446984-935f663eb1f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "black man professional"
+      "imageUrl": "https://images.unsplash.com/photo-1471922694854-ff1b63b20054?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxuYXR1cmUlMjB3YXRlcnxlbnwwfHx8fDE3NTk0NzI4MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nature water"
     },
     {
       "id": "frank-mhango-m2",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1610276198568-eb6d0ff53e48?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "african man smiling"
+      "imageUrl": "https://images.unsplash.com/photo-1695067441231-a76a08f1ab89?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxidWlsZGluZyUyMG1vZGVybnxlbnwwfHx8fDE3NTk0NzI4MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "building modern"
     },
     {
       "id": "denis-maluwasa-m3",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1615823824833-313c422a0ed3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "black man glasses"
+      "imageUrl": "https://images.unsplash.com/photo-1712316146767-610c37aa62a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhbmltYWwlMjBwZXR8ZW58MHx8fHwxNzU5MzkyMjYzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "animal pet"
     },
     {
       "id": "gift-banda-m4",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1628890920690-9e29d0019b9b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "young african man"
+      "imageUrl": "https://images.unsplash.com/photo-1641209624342-e20d49275892?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2FyJTIwc3BvcnR8ZW58MHx8fHwxNzU5NDcyODEyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car sport"
     },
     {
       "id": "chiyanjano-mkandawire-m5",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-14947901_08377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "black woman professional"
+      "imageUrl": "https://images.unsplash.com/photo-1458966480358-a0ac42de0a7a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxuYXR1cmUlMjB0cmVlfGVufDB8fHx8MTc1OTM2NDcyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nature tree"
     },
     {
       "id": "wezi-chisale-m6",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "african woman smiling"
+      "imageUrl": "https://images.unsplash.com/photo-1592342001587-51d958a5bed3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxhYnN0cmFjdCUyMGxpbmVzfGVufDB8fHx8MTc1OTQ1NTU0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract lines"
     },
     {
       "id": "charity-moyo-m7",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1614283233556-f35b7c15b1ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "young black woman"
+      "imageUrl": "https://images.unsplash.com/photo-1445264918150-66a2371142a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjaXR5JTIwc2t5bGluZXxlbnwwfHx8fDE3NTkzNzIzMzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "city skyline"
     },
     {
       "id": "fumbani-mwenefumbo-m8",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1605495393163-95243b73e038?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "african man bearded"
+      "imageUrl": "https://images.unsplash.com/photo-1690279844725-8cceb9423288?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhbmltYWwlMjB3aWxkbGlmZXxlbnwwfHx8fDE3NTk0MTEwOTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "animal wildlife"
     },
     {
       "id": "rose-kabudula-m9",
       "description": "Team member avatar",
-      "imageUrl": "https://images.unsplash.com/photo-1632765879339-9b98a10f8a37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      "imageHint": "black woman modern"
+      "imageUrl": "https://images.unsplash.com/photo-1712516240085-5aee78a22a77?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmbG93ZXIlMjBjbG9zZXxlbnwwfHx8fDE3NTkzNzM5NjZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "flower close"
     },
     {
       "id": "john-isner-p1",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1537511446984-935f663eb1f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMG1hbiUyMHByb2Zlc3Npb25hbHxlbnwwfHx8fDE3NTg5MDAzNjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "black man professional"
+      "imageUrl": "https://images.unsplash.com/photo-1649968441067-2f99a94cbdca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxidWlsZGluZyUyMGNpdHl8ZW58MHx8fHwxNzU5NDcyODEzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "building city"
     },
     {
       "id": "mia-jones-p2",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMHdvbWFuJTIwcHJvZmVzc2lvbmFsfGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "black woman professional"
+      "imageUrl": "https://images.unsplash.com/photo-1530092285049-1c42085fd395?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuYXR1cmUlMjBmbG93ZXJ8ZW58MHx8fHwxNzU5NDUyNTA5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nature flower"
     },
     {
       "id": "janice-wallberg-p3",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZnJpY2FuJTIwd29tYW4lMjBzbWlsaW5nfGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "african woman smiling"
+      "imageUrl": "https://images.unsplash.com/photo-1653372373570-a89cb344eb1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxhbmltYWwlMjB3aWxkfGVufDB8fHx8MTc1OTQ3MjgxM3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "animal wild"
     },
     {
       "id": "camille-valdez-p4",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1632765879339-9b98a10f8a37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMHdvbWFuJTIwbW9kZXJufGVufDB8fHx8MTc1ODkwMDM2N3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "black woman modern"
+      "imageUrl": "https://images.unsplash.com/photo-1728775370339-4b359722a023?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjYXIlMjBjbGFzc2ljfGVufDB8fHx8MTc1OTQ3MjgxMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "car classic"
     },
     {
       "id": "oliver-p5",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1615823824833-313c422a0ed3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMG1hbiUyMGdsYXNzZXN8ZW58MHx8fHwxNzU4OTAwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "black man glasses"
+      "imageUrl": "https://images.unsplash.com/photo-1605196560547-b2f7281b7355?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmb3Jlc3QlMjBwYXRofGVufDB8fHx8MTc1OTQ2ODIzOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "forest path"
     },
     {
       "id": "simona-p6",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1614283233556-f35b7c15b1ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMGJsYWNrJTIwd29tYW58ZW58MHx8fHwxNzU4OTAwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "young black woman"
+      "imageUrl": "https://images.unsplash.com/photo-1583407723467-9b2d22504831?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bW9kZXJuJTIwYXJ0fGVufDB8fHx8MTc1OTQyMjY2OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern art"
     },
     {
       "id": "nina-p7",
       "description": "Video call participant",
-      "imageUrl": "https://images.unsplash.com/photo-1628890920690-9e29d0019b9b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx5b3VuZyUyMGFmcmljYW4lMjBtYW58ZW58MHx8fHwxNzU4OTAwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "young african man"
+      "imageUrl": "https://images.unsplash.com/photo-1560260240-c6ef90a163a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxvY2VhbiUyMHdhdmV8ZW58MHx8fHwxNzU5NDE3NjA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ocean wave"
     },
     {
       "id": "landing-hero-bg",
