@@ -39,12 +39,12 @@ function OverviewTabContent() {
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-primary text-primary-foreground aspect-square">
-                                <CardContent className="flex flex-col items-center justify-center h-full p-2 text-center">
-                                    <Icon className="h-8 w-8 text-primary-foreground/80 mb-1" />
+                             <Card key={stat.title} className="bg-primary text-primary-foreground">
+                                <CardContent className="flex flex-col items-center justify-center h-full p-4">
+                                    <Icon className="h-6 w-6 text-primary-foreground/80 mb-1" />
                                     <div>
-                                        <p className="text-sm font-medium">{stat.title}</p>
-                                        <p className="text-3xl font-bold">{stat.value}</p>
+                                        <p className="text-sm font-medium text-center">{stat.title}</p>
+                                        <p className="text-2xl font-bold text-center">{stat.value}</p>
                                     </div>
                                 </CardContent>
                             </Card>
