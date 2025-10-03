@@ -38,10 +38,12 @@ function OverviewTabContent() {
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-primary text-primary-foreground">
-                                <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                                    <Icon className="h-8 w-8 text-primary-foreground/80 mb-2" />
-                                    <p className="text-xs sm:text-sm font-medium text-center">{stat.title}</p>
+                             <Card key={stat.title} className="bg-primary text-primary-foreground aspect-square flex flex-col">
+                                <CardHeader className="flex-1 flex items-center justify-center p-2">
+                                    <Icon className="h-8 w-8 text-primary-foreground/80" />
+                                </CardHeader>
+                                <CardContent className="flex-1 flex flex-col items-center justify-center p-2 text-center">
+                                    <p className="text-xs sm:text-sm font-medium">{stat.title}</p>
                                     <p className="text-2xl sm:text-3xl font-bold">{stat.value}</p>
                                 </CardContent>
                             </Card>
