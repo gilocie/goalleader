@@ -9,7 +9,97 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Logo } from '../icons';
 import { Button } from '../ui/button';
 import { useBranding } from '@/context/branding-context';
-import { useSidebar } from '@/components/ui/sidebar';
+import * as React from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+
+const SIDEBAR_COOKIE_NAME = "sidebar_state"
+const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+
+type SidebarContext = {
+  open: boolean
+  setOpen: (open: boolean) => void
+  isMobile: boolean
+}
+
+const SidebarContext = React.createContext<SidebarContext | null>(null)
+
+export function useSidebar() {
+  const context = React.useContext(SidebarContext)
+  if (!context) {
+    throw new Error("useSidebar must be used within a SidebarProvider.")
+  }
+
+  return context
+}
+
+export const SidebarProvider = React.forwardRef<
+  HTMLDivElement,
+  React.ComponentProps<"div"> & {
+    defaultOpen?: boolean
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+  }
+>(
+  (
+    {
+      defaultOpen = true,
+      open: openProp,
+      onOpenChange: setOpenProp,
+      className,
+      style,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const isMobile = useIsMobile()
+    const [open, _setOpen] = React.useState(defaultOpen)
+    
+    // Read from cookie on mount
+    React.useEffect(() => {
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+            ?.split('=')[1];
+        if (cookieValue) {
+            _setOpen(cookieValue === 'true');
+        }
+    }, []);
+
+
+    const setOpen = React.useCallback(
+      (value: boolean) => {
+        _setOpen(value);
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${value}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      },
+      []
+    );
+
+    const contextValue = React.useMemo<SidebarContext>(
+      () => ({
+        open,
+        setOpen,
+        isMobile,
+      }),
+      [open, setOpen, isMobile]
+    );
+
+    return (
+      <SidebarContext.Provider value={contextValue}>
+          <div
+            className={cn("w-full", className)}
+            ref={ref}
+            {...props}
+          >
+            {children}
+          </div>
+      </SidebarContext.Provider>
+    )
+  }
+)
+SidebarProvider.displayName = "SidebarProvider"
+
 
 export function Sidebar() {
   const { branding } = useBranding();
