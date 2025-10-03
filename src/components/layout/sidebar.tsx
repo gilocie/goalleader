@@ -80,19 +80,20 @@ export function Sidebar() {
         open ? 'md:w-[220px] lg:w-[280px]' : 'md:w-[72px] lg:w-[72px]'
       )}
     >
-        <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-[76px] -right-7 h-8 w-8 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 z-30 transition-all duration-300"
-            onClick={() => setOpen(!open)}
-        >
-            <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
-        </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-[76px] -right-7 h-8 w-8 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 z-30 transition-all duration-300"
+        onClick={() => setOpen(!open)}
+      >
+        <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />
+      </Button>
 
       <div
         className={cn(
           'flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6 transition-all duration-300',
-          open ? 'justify-between' : 'justify-center'
+          open ? 'justify-between' : 'justify-center',
+          !open && 'bg-primary text-primary-foreground'
         )}
       >
         <div
@@ -104,7 +105,7 @@ export function Sidebar() {
           </span>
         </div>
         <div className={cn("flex items-center", open && 'hidden')}>
-            <Link href="/" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-transparent hover:text-accent">
+            <Link href="/" className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-transparent hover:text-accent">
                 <Logo className="h-5 w-5" />
             </Link>
         </div>
