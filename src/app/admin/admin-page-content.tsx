@@ -19,6 +19,7 @@ import { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 function OverviewTabContent() {
     const stats = [
@@ -38,13 +39,13 @@ function OverviewTabContent() {
                     {stats.map(stat => {
                         const Icon = stat.icon;
                         return (
-                             <Card key={stat.title} className="bg-primary text-primary-foreground aspect-square flex flex-col">
-                                <CardHeader className="flex-1 flex items-center justify-center p-2">
+                             <Card key={stat.title} className="bg-primary text-primary-foreground aspect-square">
+                                <CardContent className="flex flex-col items-center justify-center h-full p-2 text-center gap-2">
                                     <Icon className="h-8 w-8 text-primary-foreground/80" />
-                                </CardHeader>
-                                <CardContent className="flex-1 flex flex-col items-center justify-center p-2 text-center">
-                                    <p className="text-xs sm:text-sm font-medium">{stat.title}</p>
-                                    <p className="text-2xl sm:text-3xl font-bold">{stat.value}</p>
+                                    <div>
+                                        <p className="text-sm font-medium">{stat.title}</p>
+                                        <p className="text-3xl font-bold">{stat.value}</p>
+                                    </div>
                                 </CardContent>
                             </Card>
                         )
