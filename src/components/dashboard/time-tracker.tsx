@@ -80,34 +80,45 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
 
   if (layout === 'inline') {
     return (
-      <div className="flex items-center gap-4 bg-muted px-3 py-1.5 rounded-lg">
-        <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground font-medium truncate max-w-28">{activeTask || "No active task"}</span>
-            <span className="text-xl font-bold font-mono tabular-nums leading-tight">{formatTime(time)}</span>
+        <div className="relative rounded-lg overflow-hidden text-white">
+            {timeTrackerBg && (
+                <Image
+                    src={timeTrackerBg.imageUrl}
+                    alt={timeTrackerBg.description}
+                    data-ai-hint={timeTrackerBg.imageHint}
+                    fill
+                    className="object-cover z-0"
+                />
+            )}
+            <div className="relative z-10 flex items-center gap-4 bg-green-900/50 px-3 py-1.5">
+                <div className="flex flex-col">
+                    <span className="text-xs text-white/80 font-medium truncate max-w-28">{activeTask || "No active task"}</span>
+                    <span className="text-xl font-bold font-mono tabular-nums leading-tight">{formatTime(time)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                <Button
+                    onClick={handleStartStop}
+                    size="icon"
+                    variant="ghost"
+                    aria-label={isActive ? 'Pause timer' : 'Start timer'}
+                    className="w-8 h-8 rounded-full hover:bg-white/20"
+                    disabled={!activeTask}
+                >
+                    {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                </Button>
+                <Button
+                    onClick={handleStopClick}
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Stop timer"
+                    className="w-8 h-8 rounded-full text-red-300 hover:bg-red-500/50 hover:text-white"
+                    disabled={!activeTask}
+                >
+                    <Square className="h-4 w-4" />
+                </Button>
+                </div>
+            </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Button
-            onClick={handleStartStop}
-            size="icon"
-            variant="ghost"
-            aria-label={isActive ? 'Pause timer' : 'Start timer'}
-            className="w-8 h-8 rounded-full"
-            disabled={!activeTask}
-          >
-            {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-          </Button>
-          <Button
-            onClick={handleStopClick}
-            variant="ghost"
-            size="icon"
-            aria-label="Stop timer"
-            className="w-8 h-8 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
-            disabled={!activeTask}
-          >
-            <Square className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
     );
   }
 
@@ -155,3 +166,4 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
     </Card>
   );
 }
+
