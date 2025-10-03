@@ -390,11 +390,11 @@ export function AdminPageContent() {
                                         <AccordionTrigger
                                             onClick={() => setActiveTab(item.id)}
                                             className={cn(
-                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto text-primary border-b",
+                                                "justify-start p-3 hover:no-underline w-full rounded-lg font-semibold text-base h-auto border-b",
                                                 "transition-colors duration-200",
                                                 activeTab === item.id 
                                                     ? 'bg-primary text-primary-foreground hover:bg-accent hover:text-primary' 
-                                                    : 'hover:bg-primary hover:text-primary-foreground'
+                                                    : 'text-primary hover:bg-primary hover:text-primary-foreground'
                                             )}
                                         >
                                             <Icon className="mr-3 h-5 w-5" />
@@ -453,3 +453,5 @@ export function AdminPageContent() {
         </main>
     );
 }
+
+    
