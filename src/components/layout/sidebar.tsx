@@ -103,14 +103,14 @@ export function Sidebar() {
         )}
       >
         <div
-          className="flex items-center gap-2 font-semibold"
+          className={cn("flex items-center gap-2 font-semibold", !open && "w-0 overflow-hidden")}
         >
           <Logo className="h-6 w-6 text-primary" />
           <span className={cn('transition-opacity duration-200', !open && 'opacity-0 w-0')}>
             {branding.companyName}
           </span>
         </div>
-        <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+        <Link href="/dashboard" className="h-8 w-8 flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
             <HomeIcon className="h-5 w-5" />
         </Link>
       </div>
