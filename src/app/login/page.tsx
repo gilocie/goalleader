@@ -11,8 +11,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Eye, EyeOff } from 'lucide-react';
+import { useBranding } from '@/context/branding-context';
 
 export default function LoginPage() {
+  const { branding } = useBranding();
   const heroBg = PlaceHolderImages.find(p => p.id === 'landing-hero-bg');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -22,7 +24,7 @@ export default function LoginPage() {
         <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold text-white">
             <Logo className="h-6 w-6" />
-            <span className="text-lg">GoalLeader</span>
+            <span className="text-lg">{branding.companyName}</span>
           </Link>
           <nav className="flex items-center gap-4">
             <Button asChild>
@@ -90,7 +92,7 @@ export default function LoginPage() {
 
       <footer className="absolute bottom-0 w-full py-6">
         <div className="container mx-auto flex justify-center px-4 md:px-6">
-            <p className="text-sm text-white/80">© 2025 GoalLeader. All rights reserved.</p>
+            <p className="text-sm text-white/80">© 2025 {branding.companyName}. All rights reserved.</p>
         </div>
       </footer>
     </div>

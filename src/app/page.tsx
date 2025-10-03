@@ -1,11 +1,15 @@
 
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/icons';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useBranding } from '@/context/branding-context';
 
 export default function LandingPage() {
+  const { branding } = useBranding();
   const heroBg = PlaceHolderImages.find(p => p.id === 'landing-hero-bg');
 
   return (
@@ -14,7 +18,7 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold text-white">
             <Logo className="h-6 w-6 text-primary" />
-            <span className="text-lg">GoalLeader</span>
+            <span className="text-lg">{branding.companyName}</span>
           </Link>
           <nav className="flex items-center gap-4">
              <Button variant="ghost" asChild className="text-white hover:bg-white/10 hover:text-white">
@@ -42,7 +46,7 @@ export default function LandingPage() {
             <div className="relative z-10 container mx-auto px-4 md:px-6">
                 <div className="max-w-3xl mx-auto space-y-4">
                     <h1 className="text-4xl font-bold tracking-tighter text-white sm:text-5xl md:text-6xl">
-                        Goal Leader
+                        {branding.companyName}
                     </h1>
                     <p className="text-lg text-gray-200 md:text-xl">
                         The ultimate productivity and project management tool designed to help you and your team reach your goals faster.
@@ -56,7 +60,7 @@ export default function LandingPage() {
             </div>
             <footer className="absolute bottom-0 w-full py-6">
                 <div className="container mx-auto flex justify-center px-4 md:px-6">
-                    <p className="text-sm text-white/80">© 2025 GoalLeader. All rights reserved.</p>
+                    <p className="text-sm text-white/80">© 2025 {branding.companyName}. All rights reserved.</p>
                 </div>
             </footer>
         </section>
