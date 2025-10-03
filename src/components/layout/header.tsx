@@ -27,6 +27,7 @@ import { useChat } from '@/context/chat-context';
 import { ChatDropdown } from '../notifications/chat-dropdown';
 import { useBranding } from '@/context/branding-context';
 import { Logo } from '../icons';
+import { cn } from '@/lib/utils';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -37,7 +38,7 @@ const meetings: { [key: string]: { title: string; category: string } } = {
 
 
 export function Header() {
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
+  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
@@ -102,7 +103,7 @@ export function Header() {
       </div>
       
        <ChatDropdown>
-            <Button variant="default" size="icon" className="relative h-8 w-8">
+            <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
                 <MessageSquare className="h-4 w-4" />
                 {unreadMessagesCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
@@ -114,7 +115,7 @@ export function Header() {
         </ChatDropdown>
 
        <NotificationDropdown>
-            <Button variant="outline" size="icon" className="relative h-8 w-8">
+            <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
                 <Bell className="h-4 w-4" />
                 {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
