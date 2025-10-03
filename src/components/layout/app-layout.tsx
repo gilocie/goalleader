@@ -26,23 +26,17 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const isAdminPage = pathname === '/admin';
 
     useEffect(() => {
-        const cookieValue = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('sidebar_state='))
-            ?.split('=')[1];
-        
-        const shouldBeOpen = cookieValue ? cookieValue === 'true' : true;
+        const mainCookie = document.cookie.split('; ').find(row => row.startsWith('sidebar_state='))?.split('=')[1];
+        const adminCookie = document.cookie.split('; ').find(row => row.startsWith('admin_sidebar_state='))?.split('=')[1];
 
         if (isAdminPage) {
-            setOpen(false); // Collapse main sidebar
-            // Optionally, respect a stored state for admin sidebar
-            const adminCookie = document.cookie.split('; ').find(row => row.startsWith('admin_sidebar_state='))?.split('=')[1];
+            setOpen(false); // Always collapse main sidebar on admin page
             setAdminSidebarOpen(adminCookie ? adminCookie === 'true' : true);
         } else {
-            setOpen(shouldBeOpen);
-            setAdminSidebarOpen(false); // Collapse admin sidebar
+            setAdminSidebarOpen(false); // Always collapse admin sidebar on other pages
+            setOpen(mainCookie ? mainCookie === 'true' : true);
         }
-    }, [pathname, setOpen, isAdminPage, setAdminSidebarOpen]);
+    }, [pathname, setOpen, setAdminSidebarOpen, isAdminPage]);
 
 
     if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings'))) {
@@ -51,12 +45,12 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
   
     return (
       <div className={cn("flex min-h-screen w-full bg-muted/40", isMeetingPage && 'flex-col')}>
-        {!isMeetingPage && <Sidebar />}
+        {!isAdminPage && <Sidebar />}
         <div className={cn(
             "flex flex-1 flex-col relative transition-[padding-left] duration-300", 
             open && !isAdminPage && "md:pl-[220px] lg:pl-[280px]",
             !open && !isAdminPage && "md:pl-[72px] lg:pl-[72px]",
-            isAdminPage && "md:pl-0 lg:pl-0"
+            isAdminPage && "pl-0" // No padding when admin page is active
         )}>
           <Header />
           <div className="flex flex-1 flex-col">

@@ -44,16 +44,6 @@ export const SidebarProvider = React.forwardRef<
     const [open, _setOpen] = React.useState(true);
     const [adminSidebarOpen, _setAdminSidebarOpen] = React.useState(false);
 
-    React.useEffect(() => {
-        const cookieValue = document.cookie
-            .split('; ')
-            .find(row => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
-            ?.split('=')[1];
-        if (cookieValue) {
-            _setOpen(cookieValue === 'true');
-        }
-    }, []);
-
     const setOpen = React.useCallback((value: boolean) => {
         _setOpen(value);
         if (value) _setAdminSidebarOpen(false); // Close admin if main opens
