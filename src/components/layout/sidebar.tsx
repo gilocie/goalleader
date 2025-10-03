@@ -14,7 +14,7 @@ import { Button } from '../ui/button';
 import { ChevronLeft } from 'lucide-react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 1 week
 
 type SidebarContextType = {
   open: boolean;
@@ -39,6 +39,19 @@ export const SidebarProvider = React.forwardRef<
   const isMobile = useIsMobile();
   const [open, _setOpen] = React.useState(true);
 
+  React.useEffect(() => {
+    if (!isMobile) {
+      const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+        ?.split('=')[1];
+      
+      if (cookieValue !== undefined) {
+        _setOpen(cookieValue === 'true');
+      }
+    }
+  }, [isMobile]);
+
   const setOpen = React.useCallback(
     (value: boolean) => {
       _setOpen(value);
@@ -48,7 +61,6 @@ export const SidebarProvider = React.forwardRef<
     },
     [isMobile]
   );
-  
 
   const contextValue = React.useMemo<SidebarContextType>(
     () => ({

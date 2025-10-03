@@ -18,18 +18,12 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const { isActive } = useTimeTracker();
     const isMobile = useIsMobile();
     const pathname = usePathname();
-    const { open, setOpen, adminSidebarOpen, setAdminSidebarOpen } = useSidebar();
+    const { open, setOpen } = useSidebar();
     
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
     const isLobbyPage = pathname.includes('/lobby');
     const isAdminPage = pathname === '/admin';
-
-    useEffect(() => {
-        const mainCookie = document.cookie.split('; ').find(row => row.startsWith('sidebar_state='))?.split('=')[1];
-        setOpen(mainCookie ? mainCookie === 'true' : true);
-    }, [setOpen]);
-
 
     if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings'))) {
       return <>{children}</>;
