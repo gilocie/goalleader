@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard, ChevronLeft } from 'lucide-react';
+import { Shield, Palette, KeyRound, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard, ChevronLeft, LucideIcon } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -337,8 +337,35 @@ function BranchesTabContent() {
     );
 }
 
+type NavItem = {
+    id: string;
+    label: string;
+    icon: LucideIcon;
+    content: React.ReactNode;
+    subItems?: undefined;
+    type?: undefined;
+} | {
+    id: string;
+    label: string;
+    icon: LucideIcon;
+    content?: undefined;
+    subItems: {
+        id: string;
+        label: string;
+        content: React.ReactNode;
+    }[];
+    type?: undefined;
+} | {
+    type: 'divider';
+    id?: undefined;
+    label?: undefined;
+    icon?: undefined;
+    content?: undefined;
+    subItems?: undefined;
+};
 
-const navItems = [
+
+const navItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard, content: <OverviewTabContent /> },
     { id: 'branding', label: 'Branding', icon: Palette, content: <BrandingTabContent /> },
     { 
@@ -352,6 +379,7 @@ const navItems = [
         ]
     },
     { id: 'users', label: 'User Management', icon: Users, content: <UserManagementTabContent /> },
+    { type: 'divider' },
     { id: 'settings', label: 'Settings', icon: Settings, content: <SettingsTabContent /> },
 ];
 
@@ -362,7 +390,7 @@ export function AdminPageContent() {
 
     const renderContent = () => {
         if (activeTab === 'organization') {
-            const subItem = navItems.find(i => i.id === 'organization' && i.subItems)?.subItems?.find(s => s.id === activeSubTab);
+            const subItem = (navItems.find(i => i.id === 'organization' && i.subItems) as Extract<NavItem, { subItems: any[] }>)?.subItems?.find(s => s.id === activeSubTab);
             return subItem?.content;
         }
         const item = navItems.find(i => i.id === activeTab);
