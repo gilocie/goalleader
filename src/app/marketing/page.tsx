@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,7 +11,7 @@ import { GenerateContentDialog } from '@/components/marketing/generate-content-d
 import type { Suggestion } from '@/types/marketing';
 import { Logo } from '@/components/icons';
 import { ApprovedContentActions } from '@/components/marketing/approved-content-actions';
-import { ClientLeadsTable } from '@/components/marketing/client-leads-table';
+import { ClientLeadsGrid } from '@/components/marketing/client-leads-table';
 
 export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
@@ -38,7 +39,7 @@ export default function MarketingPage() {
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
               <TabsContent value="leads" className="mt-4">
-                <ClientLeadsTable />
+                <ClientLeadsGrid />
               </TabsContent>
               <TabsContent value="content">
                 <Card>
