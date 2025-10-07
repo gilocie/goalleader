@@ -93,7 +93,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-4xl h-auto max-h-[90vh] flex flex-col p-0">
+      <DialogContent className="sm:max-w-2xl h-[700px] flex flex-col p-0">
         <div className="flex-1 flex flex-col min-h-0">
             {isLoading ? (
                 <div className="flex-1 flex items-center justify-center">
@@ -163,7 +163,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
                                 <FormControl>
                                     <Textarea
                                         placeholder="e.g., 'An innovative insurance policy that gives customers 15% more on every claim.'"
-                                        className="flex-1 resize-none"
+                                        className="h-40 resize-none"
                                         {...field}
                                     />
                                 </FormControl>
