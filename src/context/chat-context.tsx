@@ -35,7 +35,7 @@ interface ChatContextType {
   unreadMessagesCount: number;
   selectedContact: Contact | null;
   setSelectedContact: Dispatch<SetStateAction<Contact | null>>;
-  addMessage: (content: string, recipientId: string, type: 'text' | 'audio', data?: Partial<Message>) => void;
+  addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -51,7 +51,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
-  const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio', data: Partial<Message> = {}) => {
+  const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self) return;
     const newMessage: Message = {
       id: `msg${Date.now()}`,
@@ -74,11 +74,17 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         // Simulate a reply from the recipient
         const recipient = allContacts.find(c => c.id === recipientId);
         if (recipient) {
+            let replyContent = `Thanks for the message! I've received: "${content.substring(0, 20)}..."`;
+            if (type === 'image') replyContent = "Cool image!";
+            if (type === 'file') replyContent = `Got the file: ${data.fileName}`;
+            if (type === 'audio') replyContent = `Heard your voice note.`;
+
+
             const replyMessage: Message = {
                 id: `msg${Date.now() + 1}`,
                 senderId: recipientId,
                 recipientId: self.id,
-                content: `Thanks for the message! I've received: "${content.substring(0, 20)}..."`,
+                content: replyContent,
                 timestamp: format(new Date(), 'p'),
                 type: 'text'
             };

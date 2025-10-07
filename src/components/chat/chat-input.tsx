@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Paperclip, Mic, Send, X } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface ChatInputProps {
-    onSendMessage: (message: string, type: 'text' | 'audio', audioUrl?: string, duration?: number) => void;
+    onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
 }
 
 const AudioWaveform = ({ stream, isRecording }: { stream: MediaStream | null, isRecording: boolean }) => {
@@ -170,6 +170,8 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
   const audioStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const { toast } = useToast();
 
@@ -235,7 +237,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
             const audioUrl = URL.createObjectURL(audioBlob);
             
-            onSendMessage(`Voice Note`, 'audio', audioUrl, recordingTime);
+            onSendMessage(`Voice Note`, 'audio', { audioUrl: audioUrl, duration: recordingTime });
             
             if (recordingIntervalRef.current) {
                 clearInterval(recordingIntervalRef.current);
@@ -262,6 +264,26 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
     setShowRecordingDialog(false);
   }, []);
 
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const imageUrl = e.target?.result as string;
+            onSendMessage(file.name, 'image', { imageUrl });
+        };
+        reader.readAsDataURL(file);
+    } else {
+        const fileUrl = URL.createObjectURL(file);
+        onSendMessage(file.name, 'file', { fileName: file.name, fileUrl });
+    }
+
+    // Reset file input
+    event.target.value = '';
+  };
+
   useEffect(() => {
       return () => {
           if (recordingState === 'recording') {
@@ -273,6 +295,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
   return (
     <>
       <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -282,7 +305,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
           rows={1}
         />
         <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          <Button variant="ghost" size="icon" type="button">
+          <Button variant="ghost" size="icon" type="button" onClick={() => fileInputRef.current?.click()}>
             <Paperclip className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="icon" type="button" onClick={startRecording}>

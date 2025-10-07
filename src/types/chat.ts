@@ -18,7 +18,10 @@ export interface Message {
     timestamp: string;
     readStatus?: 'sent' | 'delivered' | 'read';
     isSystem?: boolean;
-    type?: 'text' | 'audio';
+    type?: 'text' | 'audio' | 'image' | 'file';
     audioUrl?: string;
     audioDuration?: number;
+    imageUrl?: string;
+    fileName?: string;
+    fileUrl?: string;
 }

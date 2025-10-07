@@ -16,13 +16,9 @@ export function ChatPageContent() {
       )
     : [];
   
-  const handleSendMessage = (content: string, type: 'text' | 'audio', audioUrl?: string, duration?: number) => {
+  const handleSendMessage = (content: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => {
     if (selectedContact) {
-      const messageData: Partial<Message> = {
-        audioUrl,
-        audioDuration: duration,
-      };
-      addMessage(content, selectedContact.id, type, messageData);
+      addMessage(content, selectedContact.id, type, data);
     }
   };
 

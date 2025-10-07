@@ -4,7 +4,7 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -22,6 +22,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
 import { useRef, useState } from 'react';
+import Image from 'next/image';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -90,7 +91,7 @@ interface ChatMessagesProps {
   messages: Message[];
   selectedContact: Contact;
   onExitChat?: () => void;
-  onSendMessage: (message: string, type: 'text' | 'audio', audioUrl?: string, duration?: number) => void;
+  onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage }: ChatMessagesProps) {
@@ -199,19 +200,35 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
               )}
               <div
                 className={cn(
-                  'max-w-[70%] rounded-lg p-3 text-sm',
+                  'max-w-[70%] rounded-lg p-0 text-sm',
                   message.senderId === self.id
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted rounded-bl-none',
-                  message.type !== 'audio' && 'whitespace-pre-wrap'
+                  message.type === 'text' && 'p-3',
                 )}
               >
-                {message.type === 'audio' && message.audioUrl && message.audioDuration ? (
-                    <AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} />
+                {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
+                    <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
+                ) : message.type === 'image' && message.imageUrl ? (
+                    <div className="relative w-64 h-48 rounded-lg overflow-hidden">
+                        <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover" />
+                    </div>
+                ) : message.type === 'file' && message.fileName && message.fileUrl ? (
+                    <div className="p-3">
+                      <div className="flex items-center gap-3">
+                        <FileIcon className="h-8 w-8" />
+                        <div className="flex-1">
+                          <p className="font-medium truncate">{message.fileName}</p>
+                        </div>
+                        <a href={message.fileUrl} download={message.fileName}>
+                          <Download className="h-5 w-5" />
+                        </a>
+                      </div>
+                    </div>
                 ) : (
-                    <p>{message.content}</p>
+                    <p className="whitespace-pre-wrap">{message.content}</p>
                 )}
-                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 p-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                     <span>{message.timestamp}</span>
                     {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
                 </div>
