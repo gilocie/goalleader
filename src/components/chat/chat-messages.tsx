@@ -4,7 +4,7 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -299,7 +299,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </DialogHeader>
             <div className="relative w-full h-full flex-1 flex items-center justify-center">
                 {selectedImageUrl && (
-                    <Image src={selectedImageUrl} alt="Full screen image" layout="fill" objectFit="contain" />
+                    <Image src={selectedImageUrl} alt="Full screen image" fill objectFit="contain" />
                 )}
             </div>
         </DialogContent>
