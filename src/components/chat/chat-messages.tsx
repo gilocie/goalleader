@@ -284,10 +284,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     ) : null}
                   </div>
                   {message.content && (
-                    <div className={cn(
-                        "p-3",
-                        message.type === 'image' && "text-primary"
-                    )}>
+                    <div className={cn("p-3", message.type === 'image' && 'text-primary-foreground')}>
                       <p className="whitespace-pre-wrap">{message.content}</p>
                     </div>
                   )}
