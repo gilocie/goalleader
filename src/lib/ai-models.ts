@@ -5,7 +5,7 @@
  * Using a constant ensures consistency and makes it easy to update the model in one place.
  */
 
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * The primary, stable Gemini model used for most generative tasks.
