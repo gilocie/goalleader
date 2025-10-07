@@ -78,7 +78,7 @@ export function DashboardChat() {
         performance: {
           completedTasks: completedTasks.length,
           totalTasks: tasks.length,
-          performancePercentage,
+          performancePercentage: `${performancePercentage}%`,
         },
         lastInteractionMinutesAgo: 0,
       };
