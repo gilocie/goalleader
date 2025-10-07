@@ -37,16 +37,8 @@ export default function MarketingPage() {
                 <TabsTrigger value="content">Use GoalLeader</TabsTrigger>
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
-              <TabsContent value="leads" className="overflow-hidden">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Client Leads</CardTitle>
-                    <CardDescription>This is a placeholder. The table has been removed.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>The ClientLeadsTable component was here.</p>
-                  </CardContent>
-                </Card>
+              <TabsContent value="leads">
+                <ClientLeadsTable />
               </TabsContent>
               <TabsContent value="content">
                 <Card>

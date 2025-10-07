@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AddLeadDialog } from './add-lead-dialog';
+import { ScrollArea } from '../ui/scroll-area';
 
 type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Lost';
 
@@ -42,6 +43,8 @@ const initialLeads: Lead[] = [
   { id: 'lead-3', name: 'Olivia Garcia', company: 'Quantum Tech', email: 'olivia.garcia@quantum.tech', phone: '+265 995 345 678', service: 'Frontend Dev', status: 'Qualified' },
   { id: 'lead-4', name: 'Noah Rodriguez', company: 'Synergy Corp', email: 'noah.rodriguez@synergy.com', phone: '+265 884 456 789', service: 'QA Testing', status: 'New' },
   { id: 'lead-5', name: 'Emma Wilson', company: 'Apex Enterprises', email: 'emma.wilson@apex.com', phone: '+265 991 567 890', service: 'Cloud Services', status: 'Lost' },
+  { id: 'lead-6', name: 'James Brown', company: 'Digital Future', email: 'james.brown@digitalfuture.com', phone: '+265 992 345 678', service: 'UX/UI Design', status: 'New' },
+  { id: 'lead-7', name: 'Isabella Chen', company: 'NextGen Solutions', email: 'isabella.chen@nextgen.com', phone: '+265 881 987 654', service: 'Backend Dev', status: 'Contacted' },
 ];
 
 const statusStyles: Record<LeadStatus, string> = {
@@ -96,54 +99,54 @@ export function ClientLeadsTable() {
                 </SelectContent>
             </Select>
         </div>
-        <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-              <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>
-                  <span className="sr-only">Actions</span>
-              </TableHead>
-              </TableRow>
-          </TableHeader>
-          <TableBody>
-              {leads.map((lead) => (
-              <TableRow key={lead.id}>
-                  <TableCell className="font-medium">{lead.name}</TableCell>
-                  <TableCell>{lead.company}</TableCell>
-                  <TableCell>
-                      <div className="text-sm">{lead.email}</div>
-                      <div className="text-xs text-muted-foreground">{lead.phone}</div>
-                  </TableCell>
-                  <TableCell>{lead.service}</TableCell>
-                  <TableCell>
-                  <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                  <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                      </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Send Email</DropdownMenuItem>
-                      <DropdownMenuItem>Mark as Contacted</DropdownMenuItem>
-                      <DropdownMenuItem>Mark as Qualified</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-              </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-        </div>
+        <ScrollArea className="h-[400px] w-full">
+            <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>
+                        <span className="sr-only">Actions</span>
+                    </TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {leads.map((lead) => (
+                <TableRow key={lead.id}>
+                    <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
+                    <TableCell className="whitespace-nowrap">{lead.company}</TableCell>
+                    <TableCell>
+                        <div className="text-sm whitespace-nowrap">{lead.email}</div>
+                        <div className="text-xs text-muted-foreground whitespace-nowrap">{lead.phone}</div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{lead.service}</TableCell>
+                    <TableCell>
+                        <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>Send Email</DropdownMenuItem>
+                        <DropdownMenuItem>Mark as Contacted</DropdownMenuItem>
+                        <DropdownMenuItem>Mark as Qualified</DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                </TableRow>
+                ))}
+            </TableBody>
+            </Table>
+        </ScrollArea>
       </CardContent>
     </Card>
     <AddLeadDialog 
