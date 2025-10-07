@@ -97,6 +97,7 @@ export function ClientLeadsTable() {
                 </SelectContent>
             </Select>
         </div>
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
               <TableRow>
@@ -143,6 +144,7 @@ export function ClientLeadsTable() {
               ))}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
     <AddLeadDialog 
