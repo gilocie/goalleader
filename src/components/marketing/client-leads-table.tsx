@@ -97,8 +97,8 @@ export function ClientLeadsTable() {
                 </SelectContent>
             </Select>
         </div>
-        <div className="overflow-x-auto">
-          <Table>
+        <div className="overflow-x-auto w-full">
+            <Table>
             <TableHeader>
                 <TableRow>
                 <TableHead>Name</TableHead>
@@ -138,12 +138,12 @@ export function ClientLeadsTable() {
                         <DropdownMenuItem>Mark as Contacted</DropdownMenuItem>
                         <DropdownMenuItem>Mark as Qualified</DropdownMenuItem>
                         </DropdownMenuContent>
-                      </DropdownMenu>
+                        </DropdownMenu>
                     </TableCell>
                 </TableRow>
                 ))}
             </TableBody>
-          </Table>
+            </Table>
         </div>
       </CardContent>
     </Card>
