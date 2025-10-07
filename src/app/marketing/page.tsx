@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Bot } from 'lucide-react';
+import { Bot, PlusCircle } from 'lucide-react';
 import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
 import type { Suggestion } from '@/types/marketing';
 import { Logo } from '@/components/icons';
@@ -78,8 +78,8 @@ export default function MarketingPage() {
                   <CardContent className="space-y-6">
                     <div className="flex justify-start">
                         <Button onClick={() => setGenerateDialogOpen(true)}>
-                            <Bot className="mr-2 h-4 w-4" />
-                            Use GoalLeader to Generate Content
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Create New
                         </Button>
                     </div>
                     <ApprovedContentActions content={approvedContent} onContentDeleted={handleContentDeleted} />
@@ -90,14 +90,14 @@ export default function MarketingPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>GoalLeader-Generated Campaign Ads</CardTitle>
-                    <CardDescription>Create and manage campaign ads to share with clients.</CardDescription>
+                    <CardDescription>Effortlessly create blog posts, social media updates, and email newsletters.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50">
                             <Logo className="h-12 w-12 text-primary" />
                             <h3 className="font-semibold">Create Ad Campaigns</h3>
                             <p className="text-muted-foreground max-w-md">
-                                Design and launch effective ad campaigns. GoalLeader can help you with targeting, copy, and visuals to maximize your reach and impact.
+                                Design and launch effective ad campaigns to maximize your reach and impact.
                             </p>
                             <Button>
                                 <Logo className="mr-2 h-4 w-4 text-primary" />
