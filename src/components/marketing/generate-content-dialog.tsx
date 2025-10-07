@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -28,10 +29,11 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { Loader2, Wand2 } from 'lucide-react';
 import { generateMarketingContent, GenerateMarketingContentOutput } from '@/ai/flows/generate-marketing-content-flow';
 import type { Suggestion } from '@/types/marketing';
 import { cn } from '@/lib/utils';
+import { Progress } from '../ui/progress';
 
 
 const formSchema = z.object({
@@ -48,6 +50,7 @@ interface GenerateContentDialogProps {
 
 export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: GenerateContentDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [generatedContent, setGeneratedContent] = useState<GenerateMarketingContentOutput | null>(null);
   const [activeTab, setActiveTab] = useState("suggestion-0");
 
@@ -58,16 +61,40 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
     },
   });
 
+   useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isLoading) {
+      setProgress(0);
+      let currentProgress = 0;
+      timer = setInterval(() => {
+        currentProgress += 5;
+        if (currentProgress > 100) {
+            currentProgress = 100;
+        }
+        setProgress(currentProgress);
+      }, 300);
+    }
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [isLoading]);
+
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     setGeneratedContent(null);
+    setProgress(0);
     try {
       const result = await generateMarketingContent({ topic: data.topic });
-      setGeneratedContent(result);
-      setActiveTab("suggestion-0");
+      setProgress(100);
+      setTimeout(() => {
+        setGeneratedContent(result);
+        setActiveTab("suggestion-0");
+        setIsLoading(false);
+      }, 500);
     } catch (error) {
       console.error("Failed to generate content:", error);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -95,23 +122,30 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className={cn(
         "sm:max-w-2xl flex flex-col p-0 transition-all duration-300",
-        generatedContent ? "h-[700px]" : "h-auto"
+        generatedContent ? "h-[500px]" : "h-auto",
+        isLoading && "h-auto"
       )}>
         <div className="flex-1 flex flex-col min-h-0">
             {isLoading ? (
-                <div className="flex-1 flex items-center justify-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <div className="flex-1 flex flex-col items-center justify-center p-8 gap-4">
+                    <p className="font-semibold text-lg">Generating your content...</p>
+                    <div className="w-full max-w-sm">
+                        <Progress value={progress} />
+                        <p className="text-center text-sm text-muted-foreground mt-2">{Math.round(progress)}%</p>
+                    </div>
                 </div>
             ) : generatedContent ? (
                 <div className="flex flex-col h-full">
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0 p-6 pb-0">
-                        <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="suggestion-0">Suggestion 1</TabsTrigger>
-                        <TabsTrigger value="suggestion-1">Suggestion 2</TabsTrigger>
-                        <TabsTrigger value="suggestion-2">Suggestion 3</TabsTrigger>
-                        </TabsList>
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0 pt-6">
+                        <div className='px-6'>
+                            <TabsList className="grid w-full grid-cols-3">
+                            <TabsTrigger value="suggestion-0">Suggestion 1</TabsTrigger>
+                            <TabsTrigger value="suggestion-1">Suggestion 2</TabsTrigger>
+                            <TabsTrigger value="suggestion-2">Suggestion 3</TabsTrigger>
+                            </TabsList>
+                        </div>
                         <div className="flex-1 mt-4 overflow-hidden">
-                            <ScrollArea className="h-full pr-4">
+                            <ScrollArea className="h-full px-6">
                                 {generatedContent.suggestions.map((suggestion, index) => (
                                 <TabsContent key={index} value={`suggestion-${index}`} className="mt-0 space-y-4">
                                     <Card>
@@ -147,16 +181,16 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
                     </Tabs>
                 </div>
             ) : (
-                <>
+                <div className="flex flex-col min-h-[350px]">
                 <DialogHeader className="p-6 pb-4">
                     <DialogTitle>Generate Marketing Content</DialogTitle>
                     <DialogDescription>
                         Enter a topic or product, and GoalLeader will create a set of marketing materials for you.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="px-6 flex-1">
+                <div className="px-6 flex-1 flex">
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 h-full flex flex-col">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 h-full flex flex-col w-full">
                             <FormField
                             control={form.control}
                             name="topic"
@@ -166,7 +200,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
                                 <FormControl>
                                     <Textarea
                                         placeholder="e.g., 'An innovative insurance policy that gives customers 15% more on every claim.'"
-                                        className="h-full resize-none"
+                                        className="h-full resize-none flex-1"
                                         {...field}
                                     />
                                 </FormControl>
@@ -177,7 +211,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
                         </form>
                     </Form>
                 </div>
-                </>
+                </div>
             )}
         </div>
 
