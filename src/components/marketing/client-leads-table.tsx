@@ -98,7 +98,7 @@ export function ClientLeadsTable() {
                 </SelectContent>
             </Select>
         </div>
-        <ScrollArea className="w-full whitespace-nowrap">
+        <ScrollArea className="w-full">
             <Table>
             <TableHeader>
                 <TableRow>
