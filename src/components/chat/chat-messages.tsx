@@ -286,8 +286,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           </div>
         </CardHeader>
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full p-4">
-            <div className="space-y-4">
+          <ScrollArea className="h-full p-4 pt-0">
+            <div className="space-y-4 pt-4">
                 {messages.map((message) => {
                 const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
                 return (
