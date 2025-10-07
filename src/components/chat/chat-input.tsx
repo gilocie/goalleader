@@ -173,7 +173,7 @@ const ImagePreviewDialog = ({
     onClose,
   }: {
     images: { url: string; file: File }[];
-    onSend: (images: { url: string; file: File; caption: string }[]) => void;
+    onSend: (images: { urls: string[]; caption: string }) => void;
     onClose: () => void;
   }) => {
     const [caption, setCaption] = useState('');
@@ -181,7 +181,7 @@ const ImagePreviewDialog = ({
     if (!images.length) return null;
 
     const handleSend = () => {
-        onSend(images.map(img => ({ ...img, caption })));
+        onSend({ urls: images.map(img => img.url), caption });
     };
   
     return (
@@ -350,12 +350,8 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
     }
   };
 
-  const handleSendImages = (images: { url: string; file: File; caption: string }[]) => {
-    images.forEach((image, index) => {
-        // Send caption only with the first image
-        const captionToSend = index === 0 ? image.caption : '';
-        onSendMessage(captionToSend || '', 'image', { imageUrl: image.url });
-    });
+  const handleSendImages = (data: { urls: string[]; caption: string }) => {
+    onSendMessage(data.caption || '', 'image', { imageUrls: data.urls });
     setImagePreviews([]);
   };
 
@@ -376,7 +372,7 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
                     <Reply className="h-4 w-4 flex-shrink-0" />
                     <div className="truncate">
                         <p className="font-semibold">Replying to {replyTo.senderId === self?.id ? 'yourself' : selectedContact?.name}</p>
-                        <p className="truncate">{replyTo.content}</p>
+                        <p className="truncate">{message.content || message.type}</p>
                     </div>
                 </div>
                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onCancelReply}>
@@ -429,3 +425,5 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
     </>
   );
 }
+
+    

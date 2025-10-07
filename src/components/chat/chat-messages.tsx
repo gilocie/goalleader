@@ -134,17 +134,19 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         } else if (action === 'forward') {
             setForwardMessage(message);
         } else if (action === 'download') {
-            const url = message.imageUrl || message.audioUrl || message.fileUrl;
-            if (url) {
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = message.fileName || `download-${message.id}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            const urls = message.imageUrls || (message.imageUrl ? [message.imageUrl] : []) || (message.audioUrl ? [message.audioUrl] : []) || (message.fileUrl ? [message.fileUrl] : []);
+            if (urls.length > 0) {
+                urls.forEach((url, index) => {
+                     const a = document.createElement('a');
+                    a.href = url;
+                    a.download = message.fileName || `download-${message.id}-${index}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                });
                 toast({
                     title: "Downloading...",
-                    description: "Your file has started downloading.",
+                    description: `Your file(s) have started downloading.`,
                 });
             } else {
                  toast({
@@ -310,8 +312,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                         'max-w-[70%] rounded-lg text-sm overflow-hidden relative', 
                         message.senderId === self.id
                         ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted',
-                        message.type === 'image' && 'bg-primary/10'
+                        : 'bg-muted'
                     )}
                     >
                     {originalMessage && (
@@ -320,13 +321,19 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                             message.senderId === self.id ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50'
                         )}>
                             <p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p>
-                            <p className="truncate opacity-80">{originalMessage.content}</p>
+                            <p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p>
                         </div>
                     )}
-                    {message.type === 'image' && message.imageUrl ? (
-                        <button onClick={() => handleImageClick(message.imageUrl!)} className="relative w-64 h-48 block cursor-pointer">
-                            <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover" />
-                        </button>
+                    {message.type === 'image' && message.imageUrls ? (
+                         <div className="p-2">
+                             <div className="grid grid-cols-2 gap-1">
+                                {message.imageUrls.map((url, index) => (
+                                    <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-full block cursor-pointer overflow-hidden rounded-md">
+                                        <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
+                                    </button>
+                                ))}
+                            </div>
+                         </div>
                     ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
                         <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
                     ) : message.type === 'file' && message.fileName && message.fileUrl ? (
@@ -344,8 +351,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     ) : null}
                     
                     {message.content && (
-                        <div className={cn("p-3", message.type === 'image' ? (message.senderId === self.id ? 'text-primary-foreground' : '') : '')}>
-                        <p className="whitespace-pre-wrap">{message.content}</p>
+                         <div className={cn("p-3", message.type === 'image' && message.senderId === self.id ? 'text-primary-foreground' : (message.type === 'image' ? 'text-primary' : ''))}>
+                           <p className="whitespace-pre-wrap">{message.content}</p>
                         </div>
                     )}
                     <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
@@ -414,3 +421,5 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
+    

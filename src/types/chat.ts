@@ -22,7 +22,10 @@ export interface Message {
     audioUrl?: string;
     audioDuration?: number;
     imageUrl?: string;
+    imageUrls?: string[];
     fileName?: string;
     fileUrl?: string;
     replyTo?: string; // ID of the message this is a reply to
 }
+
+    
