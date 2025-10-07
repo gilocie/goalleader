@@ -132,10 +132,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     const hasAttachment = message.type === 'image' || message.type === 'file' || message.type === 'audio';
 
     return (
-      <div className={cn("transition-opacity opacity-0 group-hover:opacity-100", isSelf ? 'order-first' : 'order-last')}>
+      <div className={cn("transition-opacity", isSelf ? 'order-first' : 'order-last')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
+            <Button variant="default" size="icon" className="h-6 w-6 rounded-full bg-primary hover:bg-primary/90">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -259,7 +259,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     message.senderId === self.id
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted',
-                     message.type === 'image' && 'p-1 border border-border bg-primary'
+                     message.type === 'image' && 'p-1 border bg-primary'
                   )}
                 >
                    <div className={cn(message.type === 'image' && 'relative w-64 h-48 block cursor-pointer')}>
