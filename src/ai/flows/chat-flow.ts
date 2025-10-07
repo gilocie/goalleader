@@ -27,7 +27,7 @@ const TaskSchema = z.object({
 const PerformanceSchema = z.object({
   completedTasks: z.number(),
   totalTasks: z.number(),
-  performancePercentage: z.number(),
+  performancePercentage: z.string(),
 });
 
 const ChatInputSchema = z.object({
