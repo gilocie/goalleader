@@ -8,7 +8,7 @@ import { useChat } from '@/context/chat-context';
 import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '../layout/sidebar';
-import { Sheet, SheetContent } from '../ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
 
 
@@ -49,7 +49,7 @@ export function ChatLayout({
       <div
         className={cn(
           'border-r bg-background h-full flex-col',
-          selectedContact ? 'hidden lg:flex' : 'flex col-span-full lg:col-span-1',
+          selectedContact && isMobileOrTablet ? 'hidden' : 'flex col-span-full lg:col-span-1',
         )}
       >
         <ChatContactList
@@ -88,6 +88,7 @@ export function ChatLayout({
       {selectedContact && isMobileOrTablet && (
          <Sheet open={isProfileOpen} onOpenChange={onToggleProfile}>
             <SheetContent className="p-0 w-full max-w-sm">
+                <SheetTitle className="sr-only">Contact Profile</SheetTitle>
                 <ChatUserProfile contact={selectedContact} />
             </SheetContent>
          </Sheet>
