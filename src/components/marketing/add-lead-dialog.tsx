@@ -24,6 +24,7 @@ const leadSchema = z.object({
   email: z.string().email('Invalid email address'),
   phone: z.string().min(1, 'Phone number is required'),
   service: z.string().min(1, 'Service is required'),
+  status: z.string().min(1, 'Status is required'),
 });
 
 type LeadFormValues = z.infer<typeof leadSchema>;
@@ -43,6 +44,7 @@ export function AddLeadDialog({ isOpen, onOpenChange, onAddLead }: AddLeadDialog
       email: '',
       phone: '',
       service: '',
+      status: 'New',
     },
   });
 

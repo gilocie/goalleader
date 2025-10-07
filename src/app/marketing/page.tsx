@@ -37,7 +37,7 @@ export default function MarketingPage() {
                 <TabsTrigger value="content">Use GoalLeader</TabsTrigger>
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
-              <TabsContent value="leads">
+              <TabsContent value="leads" className="mt-4">
                 <ClientLeadsTable />
               </TabsContent>
               <TabsContent value="content">
