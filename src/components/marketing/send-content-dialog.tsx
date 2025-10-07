@@ -18,8 +18,13 @@ import { ScrollArea } from '../ui/scroll-area';
 import { clientLeadsForCombobox } from '@/lib/client-leads';
 import type { Suggestion } from '@/types/marketing';
 import { useToast } from '@/hooks/use-toast';
-import { Send } from 'lucide-react';
+import { Send, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { Switch } from '../ui/switch';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Input } from '../ui/input';
 
 interface SendContentDialogProps {
   isOpen: boolean;
@@ -34,6 +39,9 @@ export function SendContentDialog({
 }: SendContentDialogProps) {
   const [recipients, setRecipients] = useState<string[]>([]);
   const [sendToAll, setSendToAll] = useState(false);
+  const [schedule, setSchedule] = useState(false);
+  const [date, setDate] = useState<Date | undefined>();
+  const [time, setTime] = useState('10:00');
   const { toast } = useToast();
 
   const handleSend = () => {
@@ -42,10 +50,16 @@ export function SendContentDialog({
     console.log({
       content: selectedContent.map(c => c.blogTitle),
       recipients: finalRecipients,
+      scheduled: schedule ? `${format(date!, 'PPP')} at ${time}` : 'Now',
     });
+
+    const description = schedule
+      ? `Your content has been scheduled to be sent to ${finalRecipients.length} client(s) on ${format(date!, 'PPP')} at ${time}.`
+      : `Your selected marketing materials have been sent to ${finalRecipients.length} client(s).`;
+
     toast({
-        title: "Content Sent!",
-        description: `Your selected marketing materials have been sent to ${finalRecipients.length} client(s).`,
+        title: schedule ? "Content Scheduled!" : "Content Sent!",
+        description,
     });
     onOpenChange(false);
   };
@@ -54,6 +68,9 @@ export function SendContentDialog({
     if (!open) {
         setRecipients([]);
         setSendToAll(false);
+        setSchedule(false);
+        setDate(undefined);
+        setTime('10:00');
     }
     onOpenChange(open);
   }
@@ -68,14 +85,14 @@ export function SendContentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 space-y-4">
+        <ScrollArea className="flex-1 overflow-y-auto px-6 space-y-4">
             <div className="space-y-2">
                 <Label>Selected Content</Label>
-                <ScrollArea className="h-24 rounded-md border p-2">
+                <div className="h-24 rounded-md border p-2">
                     <ul className="list-disc pl-5 text-sm text-muted-foreground">
                         {selectedContent.map(c => <li key={c.blogTitle}>{c.blogTitle}</li>)}
                     </ul>
-                </ScrollArea>
+                </div>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -93,7 +110,46 @@ export function SendContentDialog({
                     disabled={sendToAll}
                 />
             </div>
-        </div>
+
+            <div className="space-y-4 rounded-md border p-4">
+                <div className="flex items-center space-x-2">
+                    <Switch id="schedule-send" checked={schedule} onCheckedChange={setSchedule} />
+                    <Label htmlFor="schedule-send">Schedule for later</Label>
+                </div>
+                {schedule && (
+                    <div className="grid grid-cols-2 gap-4">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                variant={'outline'}
+                                className={cn(
+                                'justify-start text-left font-normal',
+                                !date && 'text-muted-foreground'
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={date}
+                                onSelect={setDate}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                         <Input 
+                            id="time"
+                            type="time"
+                            value={time}
+                            onChange={(e) => setTime(e.target.value)}
+                        />
+                    </div>
+                )}
+            </div>
+        </ScrollArea>
         
         <DialogFooter className="p-6 pt-4 border-t mt-auto">
           <DialogClose asChild>
@@ -103,10 +159,10 @@ export function SendContentDialog({
           </DialogClose>
           <Button
             onClick={handleSend}
-            disabled={!sendToAll && recipients.length === 0}
+            disabled={(!sendToAll && recipients.length === 0) || (schedule && !date)}
           >
             <Send className="mr-2 h-4 w-4" />
-            Send to {sendToAll ? clientLeadsForCombobox.length : recipients.length} client(s)
+            {schedule ? 'Schedule' : `Send to ${sendToAll ? clientLeadsForCombobox.length : recipients.length} client(s)`}
           </Button>
         </DialogFooter>
       </DialogContent>
