@@ -36,9 +36,9 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         >
             <div className="mt-1">{icon}</div>
             <div className="flex-1 space-y-1">
-                <p className="font-semibold text-sm text-white">{notification.title}</p>
-                <p className="text-xs text-white/80 line-clamp-2">{notification.message}</p>
-                <p className="text-xs text-white/80">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+                <p className="font-semibold text-sm text-accent-foreground">{notification.title}</p>
+                <p className="text-xs text-accent-foreground/80 line-clamp-2">{notification.message}</p>
+                <p className="text-xs text-accent-foreground/80">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
             </div>
             {!notification.read && <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1 self-center" />}
         </DropdownMenuItem>
