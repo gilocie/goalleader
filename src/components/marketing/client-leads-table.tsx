@@ -60,16 +60,16 @@ export function ClientLeadsGrid() {
           <ScrollArea className="h-[450px] w-full p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
               {leads.map((lead, index) => (
-                <Card key={index} className="flex flex-col">
+                <Card key={index} className="flex flex-col bg-primary text-primary-foreground">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                         <div>
                             <CardTitle className="text-xl">{lead.name}</CardTitle>
-                            <CardDescription>{lead.company}</CardDescription>
+                            <CardDescription className="text-primary-foreground/80">{lead.company}</CardDescription>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -89,17 +89,17 @@ export function ClientLeadsGrid() {
                   </CardHeader>
                   <CardContent className="flex-grow space-y-3">
                     <div>
-                        <p className="text-xs font-semibold text-muted-foreground">CONTACT</p>
+                        <p className="text-xs font-semibold text-primary-foreground/70">CONTACT</p>
                         <p className="text-sm">{lead.email}</p>
                         <p className="text-sm">{lead.phone}</p>
                     </div>
                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground">SERVICE</p>
+                        <p className="text-xs font-semibold text-primary-foreground/70">SERVICE</p>
                         <p className="text-sm">{lead.service}</p>
                     </div>
                   </CardContent>
                   <CardFooter>
-                     <Badge variant={lead.status === 'New' ? 'default' : 'secondary'} className="w-full justify-center">
+                     <Badge variant={lead.status === 'New' ? 'secondary' : 'outline'} className="w-full justify-center">
                         {lead.status}
                     </Badge>
                   </CardFooter>
