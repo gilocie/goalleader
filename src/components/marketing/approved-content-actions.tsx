@@ -40,7 +40,7 @@ export function ApprovedContentActions({ content }: ApprovedContentActionsProps)
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>Approved Marketing Content</CardTitle>
             <CardDescription>
