@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { MoreHorizontal, PlusCircle, Search } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -12,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -55,35 +53,37 @@ export function ClientLeadsTable() {
         <CardDescription>Manage promotional materials and leads.</CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[400px] w-full border rounded-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leads.map((lead) => (
-                <TableRow key={lead.id}>
-                  <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
-                  <TableCell className="whitespace-nowrap">{lead.company}</TableCell>
-                  <TableCell>
-                    <div className="text-sm whitespace-nowrap">{lead.email}</div>
-                    <div className="text-xs text-muted-foreground whitespace-nowrap">{lead.phone}</div>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">{lead.service}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
-                  </TableCell>
+        <div className="max-w-[500px]">
+            <ScrollArea className="h-[400px] w-full border rounded-md">
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ScrollArea>
+                </TableHeader>
+                <TableBody>
+                {leads.map((lead) => (
+                    <TableRow key={lead.id}>
+                    <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
+                    <TableCell className="whitespace-nowrap">{lead.company}</TableCell>
+                    <TableCell>
+                        <div className="text-sm whitespace-nowrap">{lead.email}</div>
+                        <div className="text-xs text-muted-foreground whitespace-nowrap">{lead.phone}</div>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{lead.service}</TableCell>
+                    <TableCell>
+                        <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
+                    </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+            </ScrollArea>
+        </div>
       </CardContent>
     </Card>
   );
