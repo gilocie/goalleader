@@ -10,7 +10,6 @@ import { Bot } from 'lucide-react';
 import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
 import type { Suggestion } from '@/types/marketing';
 import { Logo } from '@/components/icons';
-import { ClientLeadsTable } from '@/components/marketing/client-leads-table';
 import { ApprovedContentActions } from '@/components/marketing/approved-content-actions';
 
 export default function MarketingPage() {
@@ -39,7 +38,15 @@ export default function MarketingPage() {
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
               <TabsContent value="leads" className="overflow-x-hidden">
-                <ClientLeadsTable />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Client Leads</CardTitle>
+                    <CardDescription>Manage promotional materials and leads.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p>Client leads table has been temporarily removed for debugging.</p>
+                  </CardContent>
+                </Card>
               </TabsContent>
               <TabsContent value="content">
                 <Card>
