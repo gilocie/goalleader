@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
+import { ForwardMessageDialog } from './forward-message-dialog';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -98,12 +99,15 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage }: ChatMessagesProps) {
-  const { self } = useChat();
+  const { self, contacts } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
 
   const handleCallClick = () => {
     toast({
@@ -125,7 +129,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   };
   
     const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
-        if (action === 'download') {
+        if (action === 'reply') {
+            setReplyTo(message);
+        } else if (action === 'forward') {
+            setForwardMessage(message);
+        } else if (action === 'download') {
             const url = message.imageUrl || message.audioUrl || message.fileUrl;
             if (url) {
                 const a = document.createElement('a');
@@ -152,6 +160,15 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             });
         }
     };
+    
+    const handleSendMessageWithContext = (content: string, type: 'text' | 'audio' | 'image' | 'file', data: any = {}) => {
+        const messageData = { ...data };
+        if (replyTo) {
+            messageData.replyTo = replyTo.id;
+        }
+        onSendMessage(content, type, messageData);
+        setReplyTo(null);
+    }
 
 
   if (!self) {
@@ -163,10 +180,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     const hasAttachment = message.type === 'image' || message.type === 'file' || message.type === 'audio';
 
     return (
-      <div className={cn("transition-opacity", isSelf ? 'order-first' : 'order-last')}>
+      <div className="transition-opacity opacity-0 group-hover:opacity-100">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="default" size="icon" className="h-6 w-6 rounded-full bg-primary hover:bg-primary/90">
+            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -199,6 +216,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       </div>
     );
   };
+  
+    const findMessageById = (id: string) => messages.find(m => m.id === id);
 
   return (
     <>
@@ -267,39 +286,49 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         </CardHeader>
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={cn(
-                  'flex items-end gap-2 group',
-                  message.senderId === self.id ? 'justify-end' : 'justify-start'
-                )}
-              >
-                {message.senderId !== self.id && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
-                    <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
-                  </Avatar>
-                )}
-
-                <MessageActions message={message} />
-                
+            {messages.map((message) => {
+               const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
+              return (
                 <div
-                  className={cn(
-                    'max-w-[70%] rounded-lg text-sm overflow-hidden group relative', 
-                    message.senderId === self.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted',
-                     message.type === 'image' && 'p-1 border border-border bg-primary'
-                  )}
+                    key={message.id}
+                    className={cn(
+                    'flex items-end gap-2 group',
+                    message.senderId === self.id ? 'justify-end' : 'justify-start'
+                    )}
                 >
-                   <div className={cn(message.type === 'image' && 'relative w-64 h-48 block cursor-pointer')}>
-                    {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
-                        <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
-                    ) : message.type === 'image' && message.imageUrl ? (
+                    {message.senderId !== self.id && (
+                    <Avatar className="h-8 w-8 self-end">
+                        <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
+                        <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                    )}
+
+                    {message.senderId === self.id && <MessageActions message={message} />}
+
+                    <div
+                    className={cn(
+                        'max-w-[70%] rounded-lg text-sm overflow-hidden relative', 
+                        message.senderId === self.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted',
+                        message.type === 'image' && 'bg-primary/10'
+                    )}
+                    >
+                    {originalMessage && (
+                        <div className={cn(
+                            "p-2 text-xs border-b",
+                            message.senderId === self.id ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50'
+                        )}>
+                            <p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p>
+                            <p className="truncate opacity-80">{originalMessage.content}</p>
+                        </div>
+                    )}
+                    {message.type === 'image' && message.imageUrl ? (
                         <button onClick={() => handleImageClick(message.imageUrl!)} className="relative w-64 h-48 block cursor-pointer">
-                            <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover rounded-md" />
+                            <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover" />
                         </button>
+                    ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
+                        <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
                     ) : message.type === 'file' && message.fileName && message.fileUrl ? (
                         <div className="p-3">
                             <div className="flex items-center gap-3">
@@ -313,30 +342,36 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                             </div>
                         </div>
                     ) : null}
-                  </div>
-                  {message.content && (
-                    <div className={cn("p-3", message.type === 'image' && 'text-primary-foreground')}>
-                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    
+                    {message.content && (
+                        <div className={cn("p-3", message.type === 'image' ? (message.senderId === self.id ? 'text-primary-foreground' : '') : '')}>
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                        </div>
+                    )}
+                    <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                        <span>{message.timestamp}</span>
+                        {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
                     </div>
-                  )}
-                  <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                      <span>{message.timestamp}</span>
-                      {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
-                  </div>
-                </div>
+                    </div>
 
-                {message.senderId === self.id && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-            ))}
+                    {message.senderId !== self.id && <MessageActions message={message} />}
+
+                    {message.senderId === self.id && (
+                    <Avatar className="h-8 w-8 self-end">
+                        <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
+                        <AvatarFallback>U</AvatarFallback>
+                    </Avatar>
+                    )}
+                </div>
+              )})}
           </div>
         </ScrollArea>
         <div className="p-4 border-t">
-          <ChatInput onSendMessage={onSendMessage} />
+          <ChatInput
+            onSendMessage={handleSendMessageWithContext}
+            replyTo={replyTo}
+            onCancelReply={() => setReplyTo(null)}
+          />
         </div>
       </Card>
 
@@ -368,6 +403,14 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </div>
         </DialogContent>
       </Dialog>
+        {forwardMessage && (
+            <ForwardMessageDialog
+                isOpen={!!forwardMessage}
+                onOpenChange={() => setForwardMessage(null)}
+                message={forwardMessage}
+                contacts={contacts}
+            />
+        )}
     </>
   );
 }

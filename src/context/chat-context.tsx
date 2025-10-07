@@ -37,6 +37,7 @@ interface ChatContextType {
   setSelectedContact: Dispatch<SetStateAction<Contact | null>>;
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
   deleteMessage: (messageId: string) => void;
+  forwardMessage: (message: Message, recipientIds: string[]) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -117,6 +118,36 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const deleteMessage = useCallback((messageId: string) => {
     setMessages(prev => prev.filter(m => m.id !== messageId));
   }, []);
+
+  const forwardMessage = useCallback((message: Message, recipientIds: string[]) => {
+    if (!self) return;
+
+    recipientIds.forEach((recipientId, index) => {
+        setTimeout(() => {
+            const forwardedMessage: Message = {
+                ...message,
+                id: `fwd-${Date.now()}-${index}`,
+                senderId: self.id,
+                recipientId: recipientId,
+                timestamp: format(new Date(), 'p'),
+                readStatus: 'sent',
+            };
+            setMessages(prev => [...prev, forwardedMessage]);
+
+             // Update contact list with new message and unread count
+            setAllContacts(prev => prev.map(c => 
+                c.id === recipientId 
+                ? {
+                    ...c, 
+                    lastMessage: `Forwarded: ${message.content || message.type}`,
+                    lastMessageTime: format(new Date(), 'p'),
+                    unreadCount: (selectedContact?.id !== c.id) ? (c.unreadCount || 0) + 1 : c.unreadCount
+                  } 
+                : c
+            ));
+        }, index * 100); // Stagger sending
+    });
+  }, [self, selectedContact]);
   
   // Effect to mark messages as read when a chat is opened
   useEffect(() => {
@@ -145,6 +176,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     setSelectedContact,
     addMessage,
     deleteMessage,
+    forwardMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

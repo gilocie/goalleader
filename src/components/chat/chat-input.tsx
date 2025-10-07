@@ -3,15 +3,20 @@
 
 import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { Paperclip, Mic, Send, X } from 'lucide-react';
+import { Paperclip, Mic, Send, X, Reply } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { Input } from '../ui/input';
+import { Message } from '@/types/chat';
+import { cn } from '@/lib/utils';
+import { useChat } from '@/context/chat-context';
 
 interface ChatInputProps {
     onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
+    replyTo: Message | null;
+    onCancelReply: () => void;
 }
 
 const AudioWaveform = ({ stream, isRecording }: { stream: MediaStream | null, isRecording: boolean }) => {
@@ -163,46 +168,58 @@ const VoiceRecordingDialog = ({
 };
 
 const ImagePreviewDialog = ({
-    imageUrl,
+    images,
     onSend,
     onClose,
   }: {
-    imageUrl: string | null;
-    onSend: (caption: string) => void;
+    images: { url: string; file: File }[];
+    onSend: (images: { url: string; file: File; caption: string }[]) => void;
     onClose: () => void;
   }) => {
-    const [caption, setCaption] = useState('');
+    const [captions, setCaptions] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (images.length > 0) {
+            setCaptions(Array(images.length).fill(''));
+        }
+    }, [images]);
   
-    if (!imageUrl) return null;
+    if (!images.length) return null;
+
+    const handleSend = () => {
+        onSend(images.map((img, i) => ({ ...img, caption: captions[i] || '' })));
+    };
   
     return (
-      <Dialog open={!!imageUrl} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent>
+      <Dialog open={images.length > 0} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Send Image</DialogTitle>
-            <DialogDescription>Add a caption to your image before sending.</DialogDescription>
+            <DialogTitle>Send Images</DialogTitle>
+            <DialogDescription>Add captions to your images before sending.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="relative aspect-video w-full overflow-hidden rounded-md">
-              <Image src={imageUrl} alt="Image preview" layout="fill" objectFit="contain" />
-            </div>
-            <Input
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Add a caption..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  onSend(caption);
-                }
-              }}
-            />
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {images.map((image, index) => (
+                 <div key={index} className="space-y-2">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-md">
+                        <Image src={image.url} alt={`Image preview ${index + 1}`} layout="fill" objectFit="contain" />
+                    </div>
+                    <Input
+                        value={captions[index] || ''}
+                        onChange={(e) => {
+                            const newCaptions = [...captions];
+                            newCaptions[index] = e.target.value;
+                            setCaptions(newCaptions);
+                        }}
+                        placeholder={`Add a caption for image ${index + 1}...`}
+                    />
+                </div>
+            ))}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={() => onSend(caption)}>
+            <Button onClick={handleSend}>
               <Send className="mr-2 h-4 w-4" />
               Send
             </Button>
@@ -212,19 +229,19 @@ const ImagePreviewDialog = ({
     );
   };
 
-export function ChatInput({ onSendMessage }: ChatInputProps) {
+export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [recordingState, setRecordingState] = useState<'idle' | 'recording'>('idle');
   const [recordingTime, setRecordingTime] = useState(0);
   const [showRecordingDialog, setShowRecordingDialog] = useState(false);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<{ url: string; file: File }[]>([]);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { self, selectedContact } = useChat();
 
   const { toast } = useToast();
 
@@ -318,30 +335,36 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
   }, []);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const imageUrl = e.target?.result as string;
-            setImagePreviewUrl(imageUrl);
-        };
-        reader.readAsDataURL(file);
-    } else {
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    const otherFiles = Array.from(files).filter(file => !file.type.startsWith('image/'));
+
+    if (imageFiles.length > 0) {
+        const imagePreviews = imageFiles.map(file => ({
+            url: URL.createObjectURL(file),
+            file: file
+        }));
+        setImagePreviews(imagePreviews);
+    }
+    
+    otherFiles.forEach(file => {
         const fileUrl = URL.createObjectURL(file);
         onSendMessage(file.name, 'file', { fileName: file.name, fileUrl });
-    }
+    });
 
     // Reset file input
-    event.target.value = '';
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
   };
 
-  const handleSendImage = (caption: string) => {
-    if (imagePreviewUrl) {
-      onSendMessage(caption || 'Image', 'image', { imageUrl: imagePreviewUrl });
-      setImagePreviewUrl(null);
-    }
+  const handleSendImages = (images: { url: string; file: File; caption: string }[]) => {
+    images.forEach(image => {
+        onSendMessage(image.caption || '', 'image', { imageUrl: image.url });
+    });
+    setImagePreviews([]);
   };
 
   useEffect(() => {
@@ -354,33 +377,49 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
 
   return (
     <>
-      <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*, application/pdf, .doc, .docx, .xls, .xlsx" />
-        <Textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          className="pr-24 pl-20 min-h-[40px] h-10 max-h-40 resize-none"
-          rows={1}
-        />
-        <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-          <Button variant="ghost" size="icon" type="button" onClick={() => fileInputRef.current?.click()}>
-            <Paperclip className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" type="button" onClick={startRecording}>
-            <Mic className="h-4 w-4" />
-          </Button>
-        </div>
-        <Button 
-          type="submit" 
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground hover:bg-primary/90" 
-          disabled={!message.trim()}
-        >
-          <Send className="h-4 w-4 mr-2" />
-          Send
-        </Button>
-      </form>
+      <div className="relative">
+         {replyTo && (
+            <div className="bg-muted p-2 rounded-t-md flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground overflow-hidden">
+                    <Reply className="h-4 w-4 flex-shrink-0" />
+                    <div className="truncate">
+                        <p className="font-semibold">Replying to {replyTo.senderId === self?.id ? 'yourself' : selectedContact?.name}</p>
+                        <p className="truncate">{replyTo.content}</p>
+                    </div>
+                </div>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onCancelReply}>
+                    <X className="h-4 w-4" />
+                </Button>
+            </div>
+        )}
+        <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className={cn("relative", replyTo && 'border-t-0 rounded-t-none')}>
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*, application/pdf, .doc, .docx, .xls, .xlsx" multiple />
+            <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            className={cn("pr-24 pl-20 min-h-[40px] h-10 max-h-40 resize-none", replyTo && "rounded-t-none")}
+            rows={1}
+            />
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <Button variant="ghost" size="icon" type="button" onClick={() => fileInputRef.current?.click()}>
+                <Paperclip className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" type="button" onClick={startRecording}>
+                <Mic className="h-4 w-4" />
+            </Button>
+            </div>
+            <Button 
+            type="submit" 
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground hover:bg-primary/90" 
+            disabled={!message.trim()}
+            >
+            <Send className="h-4 w-4 mr-2" />
+            Send
+            </Button>
+        </form>
+      </div>
 
       <VoiceRecordingDialog
         isOpen={showRecordingDialog}
@@ -391,9 +430,9 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
         recordingTime={recordingTime}
       />
       <ImagePreviewDialog
-        imageUrl={imagePreviewUrl}
-        onSend={handleSendImage}
-        onClose={() => setImagePreviewUrl(null)}
+        images={imagePreviews}
+        onSend={handleSendImages}
+        onClose={() => setImagePreviews([])}
       />
     </>
   );
