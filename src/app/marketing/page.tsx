@@ -71,17 +71,17 @@ export default function MarketingPage() {
               </TabsContent>
               <TabsContent value="content">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>GoalLeader Content</CardTitle>
-                    <CardDescription>Let GoalLeader help your sales team create compelling marketing content.</CardDescription>
+                  <CardHeader className="flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <CardTitle>GoalLeader Content</CardTitle>
+                      <CardDescription>Let GoalLeader help your sales team create compelling marketing content.</CardDescription>
+                    </div>
+                    <Button onClick={() => setGenerateDialogOpen(true)} className="mt-4 md:mt-0">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Generate New Content
+                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="flex justify-start">
-                        <Button onClick={() => setGenerateDialogOpen(true)}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Create New
-                        </Button>
-                    </div>
                     <ApprovedContentActions content={approvedContent} onContentDeleted={handleContentDeleted} />
                   </CardContent>
                 </Card>
