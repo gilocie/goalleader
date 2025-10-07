@@ -185,7 +185,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       <div className={cn("transition-opacity", message.type === 'text' ? 'opacity-0 group-hover:opacity-100' : 'opacity-100')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
+            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-primary text-primary-foreground hover:bg-primary/80">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -305,7 +305,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     </Avatar>
                     )}
 
-                    {message.senderId === self.id && message.type === 'text' && <MessageActions message={message} />}
+                    {message.senderId === self.id && message.type === 'text' && (
+                        <div className="self-center">
+                            <MessageActions message={message} />
+                        </div>
+                    )}
 
                     <div
                     className={cn(
@@ -354,7 +358,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     ) : null}
                     
                     {message.content && (
-                         <div className={cn("p-3", message.type === 'image' && message.content ? 'pt-1' : '')}>
+                         <div className={cn("p-3 text-primary", message.type === 'image' && message.content ? 'pt-1' : '')}>
                            <p className="whitespace-pre-wrap">{message.content}</p>
                         </div>
                     )}
@@ -364,7 +368,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     </div>
                     </div>
 
-                    {message.senderId !== self.id && <MessageActions message={message} />}
+                    {message.senderId !== self.id && (
+                        <div className="self-center">
+                            <MessageActions message={message} />
+                        </div>
+                    )}
 
                     {message.senderId === self.id && (
                     <Avatar className="h-8 w-8 self-end">
@@ -424,5 +432,3 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
-
-    
