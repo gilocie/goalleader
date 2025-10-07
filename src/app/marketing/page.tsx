@@ -8,10 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Bot } from 'lucide-react';
 import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
-import { ApprovedContentTable } from '@/components/marketing/approved-content-table';
 import type { Suggestion } from '@/types/marketing';
 import { Logo } from '@/components/icons';
 import { ClientLeadsTable } from '@/components/marketing/client-leads-table';
+import { ApprovedContentActions } from '@/components/marketing/approved-content-actions';
 
 export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
@@ -59,7 +59,7 @@ export default function MarketingPage() {
                             Use GoalLeader
                         </Button>
                     </div>
-                    <ApprovedContentTable content={approvedContent} />
+                    <ApprovedContentActions content={approvedContent} />
                   </CardContent>
                 </Card>
               </TabsContent>
