@@ -1,4 +1,3 @@
-
 'use client';
 
 import { AppLayout } from '@/components/layout/app-layout';
@@ -7,9 +6,12 @@ import { ChatPageContent } from '@/components/chat/chat-page-content';
 export default function ChatPage() {
   return (
     <AppLayout>
-      <div className="flex-1 flex flex-col h-[calc(100vh-60px)]">
-        <ChatPageContent />
-      </div>
+      {/*
+        Because AppLayout now correctly manages the height, ChatPageContent
+        can be placed directly and its `h-full` class will work as intended,
+        filling the main content area without causing a page scrollbar.
+      */}
+      <ChatPageContent />
     </AppLayout>
   );
 }

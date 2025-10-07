@@ -14,15 +14,12 @@ import { NotificationProvider } from '@/context/notification-context';
 import { ChatProvider } from '@/context/chat-context';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
-    const { isActive } = useTimeTracker();
-    const isMobile = useIsMobile();
     const pathname = usePathname();
     const { open, setOpen } = useSidebar();
     
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
     const isLobbyPage = pathname.includes('/lobby');
-    const isAdminPage = pathname === '/admin';
 
     useEffect(() => {
         if (isChatPage) {
@@ -30,23 +27,31 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
         }
     }, [isChatPage, setOpen]);
 
-    if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings'))) {
+    // Render children directly for special full-screen layouts
+    if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings') && !isChatPage)) {
       return <>{children}</>;
     }
   
     return (
-      <div className={cn("flex min-h-screen w-full bg-muted/40", isMeetingPage && 'flex-col')}>
+      <div className={cn("flex min-h-screen w-full bg-muted/40")}>
         <Sidebar />
         <div className={cn(
-            "flex flex-1 flex-col relative transition-[padding-left] duration-300", 
-            open && "md:pl-[220px] lg:pl-[280px]",
-            !open && "md:pl-[72px] lg:pl-[72px]",
+            "flex flex-1 flex-col transition-[margin-left] duration-300", 
+            open && "md:ml-[220px] lg:ml-[280px]",
+            !open && "md:ml-[72px] lg:ml-[72px]",
         )}>
           <Header />
-          <div className="flex flex-1 flex-col">
-            <main className="flex-1 flex flex-col">{children}</main>
-            {!isChatPage && !isMeetingPage && <Footer />}
-          </div>
+          {/* 
+            This is the main content area.
+            - `flex-1` makes it fill the vertical space between header and footer.
+            - `flex flex-col` allows its children to also use flex properties.
+            - `overflow-hidden` is key to containing children and their scrollbars.
+          */}
+          <main className="flex-1 flex flex-col overflow-hidden">
+            {children}
+          </main>
+          {/* Footer is only shown on specific pages */}
+          {!isChatPage && !isMeetingPage && <Footer />}
         </div>
       </div>
     );
