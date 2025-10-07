@@ -53,7 +53,7 @@ export function ClientLeadsTable() {
         <CardDescription>Manage promotional materials and leads.</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="max-w-[500px]">
+        <div className="overflow-x-auto">
             <ScrollArea className="h-[400px] w-full border rounded-md">
             <Table>
                 <TableHeader>
