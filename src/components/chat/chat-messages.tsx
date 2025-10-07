@@ -130,7 +130,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     setImageViewerOpen(true);
   };
   
-    const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
+    const handleAction = (action: 'reply' | 'forward' | 'download' | 'edit', message: Message) => {
         if (action === 'reply') {
             setReplyTo(message);
         } else if (action === 'forward') {
@@ -242,7 +242,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
               <div className="relative">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
-                  <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
+                  <AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <span
                   className={cn(
@@ -305,7 +305,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                         {message.senderId !== self.id && (
                         <Avatar className="h-8 w-8 self-end">
                             <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
-                            <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
+                            <AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         )}
 
