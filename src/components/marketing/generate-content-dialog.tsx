@@ -93,10 +93,13 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-2xl h-[700px] flex flex-col p-0">
+      <DialogContent className={cn(
+        "sm:max-w-2xl flex flex-col p-0 transition-all duration-300",
+        generatedContent ? "h-[700px]" : "h-auto"
+      )}>
         <div className="flex-1 flex flex-col min-h-0">
             {isLoading ? (
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center h-64">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             ) : generatedContent ? (
@@ -163,7 +166,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
                                 <FormControl>
                                     <Textarea
                                         placeholder="e.g., 'An innovative insurance policy that gives customers 15% more on every claim.'"
-                                        className="h-40 resize-none"
+                                        className="h-full resize-none"
                                         {...field}
                                     />
                                 </FormControl>
