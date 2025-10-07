@@ -29,8 +29,6 @@ export function ChatLayout({
   const { self } = useChat();
   const { open: isSidebarOpen } = useSidebar();
   
-  // Determine grid columns based on sidebar state. This is a simple example.
-  // You might need a more robust way to handle different screen sizes.
   const gridColsClass = isSidebarOpen ? 'lg:grid-cols-12' : 'lg:grid-cols-10';
 
   return (
@@ -67,7 +65,10 @@ export function ChatLayout({
           />
         </div>
       ) : (
-        <div className="hidden lg:flex col-span-7 flex-col items-center justify-center bg-muted/30">
+        <div className={cn(
+          "hidden lg:flex flex-col items-center justify-center bg-muted/30",
+           isSidebarOpen ? 'lg:col-span-9' : 'lg:col-span-7'
+        )}>
             <p className="text-muted-foreground">Select a contact to start chatting</p>
         </div>
       )}
