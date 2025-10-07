@@ -99,7 +99,7 @@ export function ClientLeadsTable() {
                   </SelectContent>
               </Select>
           </div>
-          <ScrollArea className="h-[400px] w-full">
+          <ScrollArea className="h-[400px]">
             <Table>
               <TableHeader>
                   <TableRow>

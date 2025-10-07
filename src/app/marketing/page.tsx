@@ -23,21 +23,20 @@ export default function MarketingPage() {
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8">
-        <Card className="overflow-x-hidden">
+        <Card>
           <CardHeader>
             <CardTitle>Marketing Hub</CardTitle>
             <CardDescription>
               Your central place for managing client leads, generating marketing content with GoalLeader, and creating campaigns.
             </CardDescription>
           </CardHeader>
-          <CardContent className="overflow-x-hidden">
+          <CardContent>
             <Tabs defaultValue="leads">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="leads">Client Leads</TabsTrigger>
                 <TabsTrigger value="content">Use GoalLeader</TabsTrigger>
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
-              {/* THE ONLY CHANGE IS HERE: removed className="overflow-x-hidden" */}
               <TabsContent value="leads">
                 <ClientLeadsTable />
               </TabsContent>
