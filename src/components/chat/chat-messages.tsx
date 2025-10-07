@@ -132,10 +132,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     const hasAttachment = message.type === 'image' || message.type === 'file' || message.type === 'audio';
 
     return (
-      <div className={cn("transition-opacity", isSelf ? 'order-first' : 'order-last')}>
+      <div className={cn("transition-opacity opacity-0 group-hover:opacity-100", isSelf ? 'order-first' : 'order-last')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="default" size="icon" className="h-6 w-6 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
+            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -251,16 +251,15 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                   </Avatar>
                 )}
 
-                {message.senderId === self.id && <MessageActions message={message} />}
+                <MessageActions message={message} />
                 
                 <div
                   className={cn(
-                    'max-w-[70%] rounded-lg text-sm overflow-hidden group relative border', 
+                    'max-w-[70%] rounded-lg text-sm overflow-hidden group relative', 
                     message.senderId === self.id
-                      ? 'bg-primary text-primary-foreground border-primary-dark'
-                      : 'bg-muted border-border',
-                    message.type !== 'image' && 'p-0 border-0',
-                    message.type === 'image' && 'p-0.5'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted',
+                    message.type === 'image' && 'p-1 border bg-card-foreground/10'
                   )}
                 >
                   {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
@@ -281,16 +280,17 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                           </a>
                         </div>
                       </div>
-                  ) : (
-                      <p className="whitespace-pre-wrap p-3">{message.content}</p>
+                  ) : null}
+                  {(message.type === 'text' || message.content) && (
+                    <div className="p-3">
+                      <p className="whitespace-pre-wrap">{message.content}</p>
+                    </div>
                   )}
-                  <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 p-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                  <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                       <span>{message.timestamp}</span>
                       {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
                   </div>
                 </div>
-
-                {message.senderId !== self.id && <MessageActions message={message} />}
 
                 {message.senderId === self.id && (
                   <Avatar className="h-8 w-8">

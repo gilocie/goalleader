@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Paperclip, Mic, Send, X } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import Image from 'next/image';
+import { Input } from '../ui/input';
 
 interface ChatInputProps {
     onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
@@ -160,11 +162,62 @@ const VoiceRecordingDialog = ({
   );
 };
 
+const ImagePreviewDialog = ({
+    imageUrl,
+    onSend,
+    onClose,
+  }: {
+    imageUrl: string | null;
+    onSend: (caption: string) => void;
+    onClose: () => void;
+  }) => {
+    const [caption, setCaption] = useState('');
+  
+    if (!imageUrl) return null;
+  
+    return (
+      <Dialog open={!!imageUrl} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Image</DialogTitle>
+            <DialogDescription>Add a caption to your image before sending.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="relative aspect-video w-full overflow-hidden rounded-md">
+              <Image src={imageUrl} alt="Image preview" layout="fill" objectFit="contain" />
+            </div>
+            <Input
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              placeholder="Add a caption..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  onSend(caption);
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={() => onSend(caption)}>
+              <Send className="mr-2 h-4 w-4" />
+              Send
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
 export function ChatInput({ onSendMessage }: ChatInputProps) {
   const [message, setMessage] = useState('');
   const [recordingState, setRecordingState] = useState<'idle' | 'recording'>('idle');
   const [recordingTime, setRecordingTime] = useState(0);
   const [showRecordingDialog, setShowRecordingDialog] = useState(false);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
@@ -272,7 +325,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
         const reader = new FileReader();
         reader.onload = (e) => {
             const imageUrl = e.target?.result as string;
-            onSendMessage(file.name, 'image', { imageUrl });
+            setImagePreviewUrl(imageUrl);
         };
         reader.readAsDataURL(file);
     } else {
@@ -282,6 +335,13 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
 
     // Reset file input
     event.target.value = '';
+  };
+
+  const handleSendImage = (caption: string) => {
+    if (imagePreviewUrl) {
+      onSendMessage(caption || 'Image', 'image', { imageUrl: imagePreviewUrl });
+      setImagePreviewUrl(null);
+    }
   };
 
   useEffect(() => {
@@ -295,7 +355,7 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
   return (
     <>
       <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="relative">
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*, application/pdf, .doc, .docx, .xls, .xlsx" />
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -329,6 +389,11 @@ export function ChatInput({ onSendMessage }: ChatInputProps) {
         stream={audioStreamRef.current}
         isRecording={recordingState === 'recording'}
         recordingTime={recordingTime}
+      />
+      <ImagePreviewDialog
+        imageUrl={imagePreviewUrl}
+        onSend={handleSendImage}
+        onClose={() => setImagePreviewUrl(null)}
       />
     </>
   );
