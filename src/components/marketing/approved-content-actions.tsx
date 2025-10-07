@@ -16,6 +16,7 @@ import type { Suggestion } from "@/types/marketing";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { format } from 'date-fns';
 import { SendContentDialog } from './send-content-dialog';
+import { ViewContentDialog } from './view-content-dialog';
 
 interface ApprovedContentActionsProps {
   content: Suggestion[];
@@ -24,7 +25,9 @@ interface ApprovedContentActionsProps {
 
 export function ApprovedContentActions({ content, onContentDeleted }: ApprovedContentActionsProps) {
   const [isSendDialogOpen, setSendDialogOpen] = useState(false);
+  const [isViewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<Suggestion[]>([]);
+  const [viewingContent, setViewingContent] = useState<Suggestion | null>(null);
 
   const handleDelete = (titleToDelete: string) => {
     const updatedContent = content.filter(c => c.blogTitle !== titleToDelete);
@@ -36,8 +39,11 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
     setSendDialogOpen(true);
   };
   
-  // We can add a date property to the suggestion when it's approved.
-  // For now, we'll just use the current date for demonstration.
+  const handleViewClick = (item: Suggestion) => {
+    setViewingContent(item);
+    setViewDialogOpen(true);
+  };
+  
   const approvedDate = new Date();
 
   return (
@@ -72,7 +78,7 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
                         <CardContent className="flex-grow p-4" />
                         <CardFooter className="flex justify-between p-4 pt-0">
                             <div className="flex gap-2">
-                                <Button variant="outline" className="hover:bg-primary hover:text-primary-foreground">
+                                <Button variant="outline" className="hover:bg-primary hover:text-primary-foreground" onClick={() => handleViewClick(item)}>
                                     <Eye className="mr-2 h-4 w-4" /> View
                                 </Button>
                                 <Button onClick={() => handleSendClick(item)} className="bg-primary text-primary-foreground hover:bg-primary/90">
@@ -93,6 +99,11 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
         onOpenChange={setSendDialogOpen}
         selectedContent={selectedContent}
        />
+       <ViewContentDialog
+        isOpen={isViewDialogOpen}
+        onOpenChange={setViewDialogOpen}
+        content={viewingContent}
+      />
     </>
   );
 }
