@@ -259,30 +259,35 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     message.senderId === self.id
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted',
-                    message.type === 'image' && 'p-1 border bg-card-foreground/10'
+                     message.type === 'image' && 'p-1 border border-border bg-card-foreground/10'
                   )}
                 >
-                  {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
-                      <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
-                  ) : message.type === 'image' && message.imageUrl ? (
-                      <button onClick={() => handleImageClick(message.imageUrl!)} className="relative w-64 h-48 block cursor-pointer">
-                          <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover rounded-md" />
-                      </button>
-                  ) : message.type === 'file' && message.fileName && message.fileUrl ? (
-                      <div className="p-3">
-                        <div className="flex items-center gap-3">
-                          <FileIcon className="h-8 w-8" />
-                          <div className="flex-1">
-                            <p className="font-medium truncate">{message.fileName}</p>
-                          </div>
-                          <a href={message.fileUrl} download={message.fileName}>
-                            <Download className="h-5 w-5" />
-                          </a>
+                   <div className={cn(message.type === 'image' && 'relative w-64 h-48 block cursor-pointer')}>
+                    {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
+                        <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
+                    ) : message.type === 'image' && message.imageUrl ? (
+                        <button onClick={() => handleImageClick(message.imageUrl!)} className="relative w-64 h-48 block cursor-pointer">
+                            <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover rounded-md" />
+                        </button>
+                    ) : message.type === 'file' && message.fileName && message.fileUrl ? (
+                        <div className="p-3">
+                            <div className="flex items-center gap-3">
+                            <FileIcon className="h-8 w-8" />
+                            <div className="flex-1">
+                                <p className="font-medium truncate">{message.fileName}</p>
+                            </div>
+                            <a href={message.fileUrl} download={message.fileName}>
+                                <Download className="h-5 w-5" />
+                            </a>
+                            </div>
                         </div>
-                      </div>
-                  ) : null}
-                  {(message.type === 'text' || message.content) && (
-                    <div className="p-3">
+                    ) : null}
+                  </div>
+                  {message.content && (
+                    <div className={cn(
+                        "p-3",
+                        message.type === 'image' && "text-primary-foreground"
+                    )}>
                       <p className="whitespace-pre-wrap">{message.content}</p>
                     </div>
                   )}
