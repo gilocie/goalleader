@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -96,53 +97,53 @@ export function ClientLeadsTable() {
                 </SelectContent>
             </Select>
         </div>
-        <div className="relative w-full overflow-auto">
-        <Table>
-          <TableHeader>
-              <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>
-                  <span className="sr-only">Actions</span>
-              </TableHead>
-              </TableRow>
-          </TableHeader>
-          <TableBody>
-              {leads.map((lead) => (
-              <TableRow key={lead.id}>
-                  <TableCell className="font-medium">{lead.name}</TableCell>
-                  <TableCell>{lead.company}</TableCell>
-                  <TableCell>
-                      <div className="text-sm">{lead.email}</div>
-                      <div className="text-xs text-muted-foreground">{lead.phone}</div>
-                  </TableCell>
-                  <TableCell>{lead.service}</TableCell>
-                  <TableCell>
-                  <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
-                  </TableCell>
-                  <TableCell>
-                  <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                      </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Send Email</DropdownMenuItem>
-                      <DropdownMenuItem>Mark as Contacted</DropdownMenuItem>
-                      <DropdownMenuItem>Mark as Qualified</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-              </TableRow>
-              ))}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+                <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Service</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>
+                    <span className="sr-only">Actions</span>
+                </TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {leads.map((lead) => (
+                <TableRow key={lead.id}>
+                    <TableCell className="font-medium">{lead.name}</TableCell>
+                    <TableCell>{lead.company}</TableCell>
+                    <TableCell>
+                        <div className="text-sm">{lead.email}</div>
+                        <div className="text-xs text-muted-foreground">{lead.phone}</div>
+                    </TableCell>
+                    <TableCell>{lead.service}</TableCell>
+                    <TableCell>
+                    <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                        </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>Send Email</DropdownMenuItem>
+                        <DropdownMenuItem>Mark as Contacted</DropdownMenuItem>
+                        <DropdownMenuItem>Mark as Qualified</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                </TableRow>
+                ))}
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>
