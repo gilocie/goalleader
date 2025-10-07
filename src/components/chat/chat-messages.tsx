@@ -4,7 +4,7 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X, Reply, Forward } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -126,6 +126,48 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   if (!self) {
     return null; // Or a loading state
   }
+  
+  const MessageActions = ({ message }: { message: Message }) => {
+    const isSelf = message.senderId === self.id;
+    const hasAttachment = message.type === 'image' || message.type === 'file' || message.type === 'audio';
+
+    return (
+      <div className={cn("opacity-0 group-hover:opacity-100 transition-opacity", isSelf ? 'order-first' : 'order-last')}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-6 w-6">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align={isSelf ? "end" : "start"}>
+            <DropdownMenuItem>
+              <Reply className="mr-2 h-4 w-4" />
+              <span>Reply</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Forward className="mr-2 h-4 w-4" />
+              <span>Forward</span>
+            </DropdownMenuItem>
+            {hasAttachment && (
+              <DropdownMenuItem>
+                <Download className="mr-2 h-4 w-4" />
+                <span>Download</span>
+              </DropdownMenuItem>
+            )}
+            {isSelf && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => onDeleteMessage(message.id)} className="text-destructive focus:text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -202,32 +244,16 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                   message.senderId === self.id ? 'justify-end' : 'justify-start'
                 )}
               >
-                 {message.senderId === self.id && (
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                           <Button variant="ghost" size="icon" className="h-6 w-6">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onDeleteMessage(message.id)} className="text-destructive focus:text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                )}
                 {message.senderId !== self.id && (
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
                     <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
                   </Avatar>
                 )}
+                
                 <div
                   className={cn(
-                    'max-w-[70%] rounded-lg text-sm overflow-hidden',
+                    'max-w-[70%] rounded-lg text-sm overflow-hidden group relative', // Added group and relative
                     message.senderId === self.id
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted',
@@ -235,6 +261,9 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     message.type === 'image' && 'border-2 border-border p-0.5'
                   )}
                 >
+                  <div className="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <MessageActions message={message} />
+                  </div>
                   {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
                       <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
                   ) : message.type === 'image' && message.imageUrl ? (
@@ -261,6 +290,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                       {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
                   </div>
                 </div>
+
                 {message.senderId === self.id && (
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
