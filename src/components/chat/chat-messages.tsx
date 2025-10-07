@@ -223,8 +223,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
   return (
     <>
-      <Card className="h-full flex flex-col rounded-none border-none">
-        <CardHeader className="flex flex-row items-center justify-between p-4 border-b">
+      <div className="h-full flex flex-col rounded-none border-none bg-card">
+        <CardHeader className="flex flex-row items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
               {onExitChat && (
                   <TooltipProvider>
@@ -296,128 +296,129 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </DropdownMenu>
           </div>
         </CardHeader>
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.map((message) => {
-               const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
-              return (
-                <div
-                    key={message.id}
-                    className={cn(
-                    'flex items-end gap-2 group',
-                    message.senderId === self.id ? 'justify-end' : 'justify-start'
-                    )}
-                >
-                    {message.senderId !== self.id && (
-                    <Avatar className="h-8 w-8 self-end">
-                        <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
-                        <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    )}
-
-                    {message.senderId === self.id && (
-                        <div className="self-center">
-                            <MessageActions message={message} />
-                        </div>
-                    )}
-
+        <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full p-4">
+            <div className="space-y-4">
+                {messages.map((message) => {
+                const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
+                return (
                     <div
-                    className={cn(
-                        'max-w-[70%] rounded-lg text-sm overflow-hidden relative', 
-                        message.senderId === self.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    )}
+                        key={message.id}
+                        className={cn(
+                        'flex items-end gap-2 group',
+                        message.senderId === self.id ? 'justify-end' : 'justify-start'
+                        )}
                     >
-                    {originalMessage && (
-                        <div className={cn(
-                            "p-2 text-xs border-b",
-                            message.senderId === self.id ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50'
-                        )}>
-                            <p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p>
-                            <p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p>
-                        </div>
-                    )}
-                    {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
-                         <div className="p-1">
-                             <div className="grid grid-cols-2 gap-1">
-                                {message.imageUrls.slice(0, 4).map((url, index) => {
-                                    const remainingImages = message.imageUrls!.length - 4;
-                                    if (index === 3 && remainingImages > 0) {
-                                        return (
-                                            <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-24 h-24 block cursor-pointer overflow-hidden rounded-md group/more">
-                                                <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover transition-all group-hover/more:brightness-50" />
-                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white">
-                                                    <Plus className="h-6 w-6" />
-                                                    <span className="text-xl font-bold">{remainingImages}</span>
-                                                </div>
-                                            </button>
-                                        )
-                                    }
-                                    return (
-                                        <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-24 h-24 block cursor-pointer overflow-hidden rounded-md">
-                                            <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
-                                        </button>
-                                    )
-                                })}
-                            </div>
-                             {message.content && (
-                                <div className={cn("p-3 pt-2", message.senderId === self.id ? 'text-white' : 'text-primary-foreground')}>
-                                    <p className="whitespace-pre-wrap">{message.content}</p>
-                                </div>
+                        {message.senderId !== self.id && (
+                        <Avatar className="h-8 w-8 self-end">
+                            <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
+                            <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        )}
+
+                        <div
+                            className={cn(
+                                'flex items-center gap-1',
+                                message.senderId === self.id ? 'flex-row-reverse' : 'flex-row'
                             )}
-                         </div>
-                    ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
-                        <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
-                    ) : message.type === 'file' && message.fileName && message.fileUrl ? (
-                        <div className="p-3">
-                            <div className="flex items-center gap-3">
-                            <FileIcon className="h-8 w-8" />
-                            <div className="flex-1">
-                                <p className="font-medium truncate">{message.fileName}</p>
+                        >
+                            <div className="self-center">
+                                <MessageActions message={message} />
                             </div>
-                            <a href={message.fileUrl} download={message.fileName}>
-                                <Download className="h-5 w-5" />
-                            </a>
+
+                            <div
+                                className={cn(
+                                    'max-w-[70%] rounded-lg text-sm overflow-hidden relative', 
+                                    message.senderId === self.id
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-muted'
+                                )}
+                            >
+                                {originalMessage && (
+                                    <div className={cn(
+                                        "p-2 text-xs border-b",
+                                        message.senderId === self.id ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50'
+                                    )}>
+                                        <p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p>
+                                        <p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p>
+                                    </div>
+                                )}
+                                {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
+                                    <div className="p-1">
+                                        <div className="grid grid-cols-2 gap-1">
+                                            {message.imageUrls.slice(0, 4).map((url, index) => {
+                                                const remainingImages = message.imageUrls!.length - 4;
+                                                if (index === 3 && remainingImages > 0) {
+                                                    return (
+                                                        <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-32 h-32 block cursor-pointer overflow-hidden rounded-md group/more">
+                                                            <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover transition-all group-hover/more:brightness-50" />
+                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white">
+                                                                <Plus className="h-6 w-6" />
+                                                                <span className="text-xl font-bold">{remainingImages}</span>
+                                                            </div>
+                                                        </button>
+                                                    )
+                                                }
+                                                return (
+                                                    <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-32 h-32 block cursor-pointer overflow-hidden rounded-md">
+                                                        <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                        {message.content && (
+                                            <div className="p-3 pt-2">
+                                                <p className="whitespace-pre-wrap">{message.content}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
+                                    <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
+                                ) : message.type === 'file' && message.fileName && message.fileUrl ? (
+                                    <div className="p-3">
+                                        <div className="flex items-center gap-3">
+                                        <FileIcon className="h-8 w-8" />
+                                        <div className="flex-1">
+                                            <p className="font-medium truncate">{message.fileName}</p>
+                                        </div>
+                                        <a href={message.fileUrl} download={message.fileName}>
+                                            <Download className="h-5 w-5" />
+                                        </a>
+                                        </div>
+                                    </div>
+                                ) : null}
+                                
+                                {message.content && message.type === 'text' && (
+                                    <div className="p-3">
+                                    <p className="whitespace-pre-wrap">{message.content}</p>
+                                    </div>
+                                )}
+                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                                    <span>{message.timestamp}</span>
+                                    {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
+                                </div>
                             </div>
                         </div>
-                    ) : null}
-                    
-                    {message.content && message.type === 'text' && (
-                         <div className={cn("p-3", message.senderId === self.id ? 'text-white' : 'text-primary-foreground')}>
-                           <p className="whitespace-pre-wrap">{message.content}</p>
-                        </div>
-                    )}
-                    <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                        <span>{message.timestamp}</span>
-                        {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
-                    </div>
-                    </div>
 
-                    {message.senderId !== self.id && (
-                        <div className="self-center">
-                            <MessageActions message={message} />
-                        </div>
-                    )}
-
-                    {message.senderId === self.id && (
-                    <Avatar className="h-8 w-8 self-end">
-                        <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
-                        <AvatarFallback>U</AvatarFallback>
-                    </Avatar>
-                    )}
-                </div>
-              )})}
-          </div>
-        </ScrollArea>
-        <div className="p-4 border-t">
+                        {message.senderId === self.id && (
+                        <Avatar className="h-8 w-8 self-end">
+                            <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
+                            <AvatarFallback>U</AvatarFallback>
+                        </Avatar>
+                        )}
+                    </div>
+                )})}
+            </div>
+            </ScrollArea>
+        </div>
+        <div className="p-4 border-t flex-shrink-0">
           <ChatInput
             onSendMessage={handleSendMessageWithContext}
             replyTo={replyTo}
             onCancelReply={() => setReplyTo(null)}
           />
         </div>
-      </Card>
+      </div>
 
       <Dialog open={isImageViewerOpen} onOpenChange={setImageViewerOpen}>
         <DialogContent className="max-w-4xl h-[90vh] p-2 bg-black/80 border-none flex flex-col">
