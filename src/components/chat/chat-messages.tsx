@@ -222,7 +222,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
   return (
     <>
-      <div className="h-full flex flex-col rounded-none border-none bg-card">
+      <div className="flex flex-col rounded-none border-none bg-card h-full max-h-[500px]">
         <CardHeader className="flex flex-row items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
               {onExitChat && (
