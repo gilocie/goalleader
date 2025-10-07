@@ -17,7 +17,8 @@ import { PlusCircle, MoreHorizontal, Mail, Phone, User } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddLeadDialog } from './add-lead-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '../ui/separator';
+import { cn } from '@/lib/utils';
+import { useSidebar } from '../layout/sidebar';
 
 const initialLeads = [
   { name: 'Sophia Davis', company: 'Innovate Inc.', email: 'sophia@innovate.com', phone: '+265 99 123 4567', service: 'UX/UI Design', status: 'New' },
@@ -32,6 +33,7 @@ export function ClientLeadsGrid() {
   const [leads, setLeads] = useState(initialLeads);
   const [isAddLeadOpen, setAddLeadOpen] = useState(false);
   const { toast } = useToast();
+  const { open: isSidebarOpen } = useSidebar();
 
   const handleAddLead = (data: typeof initialLeads[0]) => {
     setLeads(prev => [data, ...prev]);
@@ -58,7 +60,10 @@ export function ClientLeadsGrid() {
 
         <CardContent>
           <ScrollArea className="h-[450px] w-full p-4">
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className={cn(
+                "grid grid-cols-2 xl:grid-cols-4 gap-4",
+                isSidebarOpen ? "md:grid-cols-2" : "md:grid-cols-3"
+            )}>
               {leads.map((lead, index) => (
                 <Card key={index} className="flex flex-col bg-primary text-primary-foreground rounded-lg shadow-lg hover:shadow-xl transition-shadow">
                   <CardHeader>
