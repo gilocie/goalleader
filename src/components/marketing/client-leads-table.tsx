@@ -61,8 +61,8 @@ export function ClientLeadsGrid() {
         <CardContent>
           <ScrollArea className="h-[450px] w-full p-4">
             <div className={cn(
-                "grid grid-cols-2 xl:grid-cols-4 gap-4",
-                isSidebarOpen ? "md:grid-cols-2" : "md:grid-cols-3"
+                "grid grid-cols-2 gap-4",
+                isSidebarOpen ? "md:grid-cols-2 xl:grid-cols-3" : "md:grid-cols-3 xl:grid-cols-4"
             )}>
               {leads.map((lead, index) => (
                 <Card key={index} className="flex flex-col bg-primary text-primary-foreground rounded-lg shadow-lg hover:shadow-xl transition-shadow">
