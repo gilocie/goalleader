@@ -45,7 +45,7 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {content.length > 0 ? (
                 content.map((item, index) => (
-                    <Card key={index} className="flex flex-col">
+                    <Card key={index} className="flex flex-col p-4 shadow-md hover:shadow-lg transition-shadow">
                         <CardHeader className='p-4'>
                             <CardTitle className="text-lg line-clamp-2 text-primary">{item.blogTitle}</CardTitle>
                             <CardDescription>
@@ -55,7 +55,7 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
                         <CardContent className="flex-grow p-4" />
                         <CardFooter className="flex justify-between p-4 pt-0">
                             <div className="flex gap-2">
-                                <Button variant="outline">
+                                <Button variant="outline" className="hover:bg-primary hover:text-primary-foreground">
                                     <Eye className="mr-2 h-4 w-4" /> View
                                 </Button>
                                 <Button onClick={() => handleSendClick(item)}>
@@ -64,7 +64,7 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
+                                    <Button variant="ghost" size="icon" className="hover:bg-primary hover:text-primary-foreground">
                                         <MoreHorizontal className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
