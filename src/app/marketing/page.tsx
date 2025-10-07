@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,9 +17,37 @@ export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [approvedContent, setApprovedContent] = useState<Suggestion[]>([]);
 
+  useEffect(() => {
+    try {
+      const storedContent = localStorage.getItem('approvedMarketingContent');
+      if (storedContent) {
+        setApprovedContent(JSON.parse(storedContent));
+      }
+    } catch (error) {
+      console.error("Failed to load approved content from localStorage", error);
+    }
+  }, []);
+
   const handleApproveContent = (content: Suggestion) => {
-    setApprovedContent(prev => [content, ...prev]);
+    setApprovedContent(prev => {
+      const newContent = [content, ...prev];
+      try {
+        localStorage.setItem('approvedMarketingContent', JSON.stringify(newContent));
+      } catch (error) {
+        console.error("Failed to save approved content to localStorage", error);
+      }
+      return newContent;
+    });
   };
+
+  const handleContentDeleted = (updatedContent: Suggestion[]) => {
+    setApprovedContent(updatedContent);
+     try {
+        localStorage.setItem('approvedMarketingContent', JSON.stringify(updatedContent));
+      } catch (error) {
+        console.error("Failed to save approved content to localStorage", error);
+      }
+  }
 
   return (
     <AppLayout>
@@ -59,7 +87,7 @@ export default function MarketingPage() {
                             Use GoalLeader
                         </Button>
                     </div>
-                    <ApprovedContentActions content={approvedContent} />
+                    <ApprovedContentActions content={approvedContent} onContentDeleted={handleContentDeleted} />
                   </CardContent>
                 </Card>
               </TabsContent>

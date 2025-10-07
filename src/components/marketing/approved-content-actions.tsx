@@ -1,7 +1,6 @@
 
 'use client';
 
-import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -11,21 +10,21 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Send, Eye, MoreHorizontal, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import type { Suggestion } from "@/types/marketing";
-import { SendContentDialog } from './send-content-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { format } from 'date-fns';
 
 interface ApprovedContentActionsProps {
   content: Suggestion[];
+  onContentDeleted: (updatedContent: Suggestion[]) => void;
 }
 
-export function ApprovedContentActions({ content: initialContent }: ApprovedContentActionsProps) {
-  const [content, setContent] = useState(initialContent);
+export function ApprovedContentActions({ content, onContentDeleted }: ApprovedContentActionsProps) {
 
   const handleDelete = (titleToDelete: string) => {
-    setContent(prev => prev.filter(c => c.blogTitle !== titleToDelete));
+    const updatedContent = content.filter(c => c.blogTitle !== titleToDelete);
+    onContentDeleted(updatedContent);
   };
   
   // We can add a date property to the suggestion when it's approved.
@@ -34,7 +33,7 @@ export function ApprovedContentActions({ content: initialContent }: ApprovedCont
 
   return (
     <>
-      <Card className="col-span-1 lg:col-span-2">
+      <Card className="col-span-1">
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>Approved Marketing Content</CardTitle>
@@ -44,7 +43,7 @@ export function ApprovedContentActions({ content: initialContent }: ApprovedCont
           </div>
         </CardHeader>
         <CardContent>
-           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+           <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                 {content.length > 0 ? (
                     content.map((item, index) => (
                         <Card key={index} className="flex flex-col">
