@@ -46,6 +46,7 @@ const prompt = ai.definePrompt({
 
 The company's Key Performance Indicator (KPI) for task completion is {{kpi}}%. The staff member's current performance is {{performance}}%.
 
+{{#if completedTasks}}
 Analyze the staff member's performance based on their completed tasks and performance score.
 - If performance is at or above the KPI, highlight their strengths and achievements.
 - If performance is below the KPI, identify areas for improvement and provide constructive feedback for the team leader to discuss with the staff member.
@@ -64,6 +65,12 @@ Staff member's completed tasks:
 {{#each completedTasks}}
 - {{name}} (Completed in {{duration}} seconds)
 {{/each}}
+
+{{else}}
+The staff member has not completed any tasks yet. 
+- Your 'title' should be "Ready to Start!".
+- Your 'advice' should be a short, encouraging message to motivate them to begin working on their tasks. For example: "It looks like a fresh start! Complete your first task to see your performance analysis here. You've got this!".
+{{/if}}
 `,
 });
 
@@ -90,3 +97,4 @@ const performanceAdviceFlow = ai.defineFlow(
     }
   }
 );
+
