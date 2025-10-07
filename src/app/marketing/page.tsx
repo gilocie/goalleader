@@ -38,7 +38,15 @@ export default function MarketingPage() {
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
               <TabsContent value="leads" className="overflow-hidden">
-                <ClientLeadsTable />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Client Leads</CardTitle>
+                    <CardDescription>This is a placeholder. The table has been removed.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p>The ClientLeadsTable component was here.</p>
+                  </CardContent>
+                </Card>
               </TabsContent>
               <TabsContent value="content">
                 <Card>
