@@ -45,10 +45,10 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {content.length > 0 ? (
                 content.map((item, index) => (
-                    <Card key={index} className="flex flex-col p-4 shadow-md hover:shadow-lg transition-shadow relative">
+                    <Card key={index} className="flex flex-col p-4 shadow-md hover:shadow-lg transition-shadow relative border-2 border-primary">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="default" size="icon" className="absolute top-2 right-2 h-8 w-8">
+                                <Button variant="default" size="icon" className="absolute top-2 right-2 h-8 w-8 bg-primary text-primary-foreground hover:bg-primary/90">
                                     <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -75,7 +75,7 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
                                 <Button variant="outline" className="hover:bg-primary hover:text-primary-foreground">
                                     <Eye className="mr-2 h-4 w-4" /> View
                                 </Button>
-                                <Button onClick={() => handleSendClick(item)}>
+                                <Button onClick={() => handleSendClick(item)} className="bg-primary text-primary-foreground hover:bg-primary/90">
                                     <Send className="mr-2 h-4 w-4" /> Send
                                 </Button>
                             </div>
