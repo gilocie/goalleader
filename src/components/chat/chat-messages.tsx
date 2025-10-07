@@ -230,7 +230,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                   <TooltipProvider>
                   <Tooltip>
                       <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10 lg:hidden bg-primary text-primary-foreground hover:bg-primary/90">
+                          <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10 lg:hidden bg-primary text-primary-foreground hover:bg-primary/90 ml-4">
                               <ArrowLeft className="h-5 w-5" />
                           </Button>
                       </TooltipTrigger>
