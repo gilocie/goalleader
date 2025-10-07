@@ -10,6 +10,7 @@ import React, {
   ReactNode,
 } from 'react';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 export type Task = {
   name: string;
@@ -56,6 +57,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   const [isCompleteTaskOpen, setCompleteTaskOpen] = useState(false);
   const [isTaskDetailsOpen, setTaskDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Sync active task on initial load
@@ -86,8 +88,28 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   }, [isActive]);
 
   const handleStartStop = () => {
-    if (activeTask) {
-      setIsActive(!isActive);
+    if (isActive) {
+      // If a task is active, pause it.
+      setIsActive(false);
+    } else {
+      // If no task is active...
+      if (activeTask) {
+        // ...but there's a paused task, resume it.
+        setIsActive(true);
+      } else {
+        // ...and no task is paused, find the first pending task to start.
+        const pendingTask = tasks.find((t) => t.status === 'Pending');
+        if (pendingTask) {
+          startTask(pendingTask.name);
+        } else {
+          // If there are no pending tasks, show a notification.
+          toast({
+            title: 'No Task to Start',
+            description: 'Please add a new task to your to-do list before starting the tracker.',
+            variant: 'destructive',
+          });
+        }
+      }
     }
   };
 
