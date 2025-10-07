@@ -39,10 +39,10 @@ export function ChatLayout({
       {/* Contact List */}
       <div
         className={cn(
-          'border-r bg-background h-full',
+          'border-r bg-background h-full flex flex-col',
           // On mobile, hide if a contact is selected.
           // On desktop, always show and define column span.
-          selectedContact ? 'hidden lg:block' : 'col-span-full'
+          selectedContact ? 'hidden lg:flex' : 'col-span-full'
         )}
       >
         <ChatContactList
