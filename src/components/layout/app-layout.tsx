@@ -24,6 +24,12 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const isLobbyPage = pathname.includes('/lobby');
     const isAdminPage = pathname === '/admin';
 
+    useEffect(() => {
+        if (isChatPage) {
+            setOpen(false);
+        }
+    }, [isChatPage, setOpen]);
+
     if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings'))) {
       return <>{children}</>;
     }
