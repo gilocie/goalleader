@@ -14,7 +14,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { GEMINI_MODEL } from '@/lib/ai-models';
 
 // --------------------------
 // Schemas
@@ -50,14 +49,9 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 // --------------------------
 const conversationalPrompt = ai.definePrompt({
   name: 'conversationalChatPrompt',
-  model: GEMINI_MODEL,
   input: { schema: ChatInputSchema },
   output: { schema: ChatOutputSchema },
-  config: {
-    temperature: 0.85,
-    maxOutputTokens: 1200,
-  },
-  prompt: `
+  system: `
 You are **GoalLeader**, a proactive productivity coach and AI assistant.
 You help staff stay focused, achieve their KPIs, and feel motivated — like a true human mentor.
 
@@ -71,12 +65,12 @@ You help staff stay focused, achieve their KPIs, and feel motivated — like a t
 5. Sometimes suggest a **tiny article snippet** (Markdown headings, bullets) with advice on productivity, teamwork, or resilience.
 6. If **lastInteractionMinutesAgo > 20**, proactively check in with a friendly nudge like _"Hey, just checking in. Want to tackle the next step?"_.
 7. Replies should be warm, concise, and human-like — not robotic.
-
+`,
+  prompt: `
 ---
-
 **Staff context if available:**
 {{#if performance}}
-- Performance: Completed {{performance.completedTasks}} of {{performance.totalTasks}} tasks ({{performance.performancePercentage}}%).
+- Performance: Completed {{performance.completedTasks}} of {{performance.totalTasks}} tasks ({{performance.performancePercentage}}).
 - Tasks:
 {{#each tasks}}
   - {{name}} (Status: {{status}})
@@ -84,14 +78,11 @@ You help staff stay focused, achieve their KPIs, and feel motivated — like a t
 {{else}}
 - No performance data available.
 {{/if}}
-
 ---
 
 **User’s message:** {{message}}
 
 Please provide your **assistant reply** below as Markdown:
-
-Reply:
   `,
 });
 
@@ -106,12 +97,7 @@ const chatFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await conversationalPrompt(input);
-
-    if (!output?.reply || typeof output.reply !== 'string') {
-      throw new Error('Model did not return a valid reply.');
-    }
-
-    return { reply: output.reply.trim() };
+    return output!;
   }
 );
 
@@ -119,28 +105,8 @@ const chatFlow = ai.defineFlow(
 // Public Helper
 // --------------------------
 export async function runChat(input: ChatInput): Promise<string> {
-  try {
-    const parsed = ChatInputSchema.safeParse(input);
-    if (!parsed.success) {
-      console.error('Input validation failed:', parsed.error);
-      return "I'm sorry — I couldn't read that message. Please try again.";
-    }
-
-    const result = await chatFlow(parsed.data);
-    return result.reply;
-  } catch (err) {
-    console.error('=== runChat error ===', err);
-    if (err instanceof Error) {
-      const msg = err.message.toLowerCase();
-      if (msg.includes('api key') || msg.includes('authentication'))
-        return "Authentication error: Please check your Google AI API key configuration.";
-      if (msg.includes('quota') || msg.includes('rate limit'))
-        return "Rate limit exceeded. Please try again later.";
-      if (msg.includes('network') || msg.includes('fetch'))
-        return "Network error: Please check your internet connection and try again.";
-    }
-    return "I'm sorry, an internal error occurred while processing your request. Please try again.";
-  }
+  const result = await chatFlow(input);
+  return result.reply;
 }
 
 // --------------------------

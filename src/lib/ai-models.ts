@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Centralized AI model definitions for Genkit.
  *
@@ -10,7 +11,5 @@ import { googleAI } from '@genkit-ai/google-genai';
 /**
  * The primary, stable Gemini model used for most generative tasks.
  * Using 'gemini-1.5-flash' provides a balance of speed and capability.
- * Avoid using '-latest' or specific version numbers in production to prevent
- * access issues when Google rotates model versions.
  */
-export const GEMINI_MODEL = googleAI.model('gemini-1.5-flash');
+export const GEMINI_MODEL = 'googleai/gemini-1.5-flash';
