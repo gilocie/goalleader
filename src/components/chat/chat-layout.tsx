@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ChatContactList } from './chat-contact-list';
@@ -11,7 +12,8 @@ interface ChatLayoutProps {
   messages: Message[];
   selectedContact: Contact | null;
   onSelectContact: (contact: Contact | null) => void;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
+  onDeleteMessage: (messageId: string) => void;
 }
 
 export function ChatLayout({
@@ -20,6 +22,7 @@ export function ChatLayout({
   selectedContact,
   onSelectContact,
   onSendMessage,
+  onDeleteMessage,
 }: ChatLayoutProps) {
   const { self } = useChat();
   
@@ -45,6 +48,7 @@ export function ChatLayout({
             selectedContact={selectedContact}
             onExitChat={() => onSelectContact(null)}
             onSendMessage={onSendMessage}
+            onDeleteMessage={onDeleteMessage}
           />
         </div>
       )}

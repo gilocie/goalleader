@@ -6,7 +6,7 @@ import type { Contact, Message } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
 
 export function ChatPageContent() {
-  const { contacts, messages, selectedContact, setSelectedContact, addMessage, self } = useChat();
+  const { contacts, messages, selectedContact, setSelectedContact, addMessage, deleteMessage, self } = useChat();
 
   const contactMessages = selectedContact && self
     ? messages.filter(
@@ -25,6 +25,10 @@ export function ChatPageContent() {
   const handleSelectContact = (contact: Contact | null) => {
     setSelectedContact(contact);
   };
+  
+  const handleDeleteMessage = (messageId: string) => {
+    deleteMessage(messageId);
+  }
 
   return (
     <main className="flex-grow h-full">
@@ -34,6 +38,7 @@ export function ChatPageContent() {
         selectedContact={selectedContact}
         onSelectContact={handleSelectContact}
         onSendMessage={handleSendMessage}
+        onDeleteMessage={handleDeleteMessage}
       />
     </main>
   );

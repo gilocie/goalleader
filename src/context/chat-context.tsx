@@ -36,6 +36,7 @@ interface ChatContextType {
   selectedContact: Contact | null;
   setSelectedContact: Dispatch<SetStateAction<Contact | null>>;
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
+  deleteMessage: (messageId: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -112,6 +113,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }, 3000);
 
   }, [self, allContacts, selectedContact]);
+
+  const deleteMessage = useCallback((messageId: string) => {
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+  }, []);
   
   // Effect to mark messages as read when a chat is opened
   useEffect(() => {
@@ -139,6 +144,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     selectedContact,
     setSelectedContact,
     addMessage,
+    deleteMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
