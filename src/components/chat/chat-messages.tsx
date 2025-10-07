@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -222,7 +221,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
   return (
     <>
-      <div className="flex flex-col rounded-none border-none bg-card h-full max-h-[500px]">
+      <div className="flex flex-col rounded-none border-none bg-card h-full max-h-[570px]">
         <CardHeader className="flex flex-row items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
               {onExitChat && (
@@ -286,38 +285,33 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </DropdownMenu>
           </div>
         </CardHeader>
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-              {messages.map((message) => {
-              const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
-              return (
-                  <div
-                      key={message.id}
-                      className={cn(
-                      'flex items-end gap-2 group',
-                      message.senderId === self.id ? 'justify-end' : 'justify-start'
-                      )}
-                  >
-                      {message.senderId !== self.id && (
-                      <Avatar className="h-8 w-8 self-end">
-                          <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
-                          <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
-                      </Avatar>
-                      )}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full p-4">
+            <div className="space-y-4">
+                {messages.map((message) => {
+                const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
+                return (
+                    <div
+                        key={message.id}
+                        className={cn(
+                        'flex items-end gap-2 group',
+                        message.senderId === self.id ? 'justify-end' : 'justify-start'
+                        )}
+                    >
+                        {message.senderId !== self.id && (
+                        <Avatar className="h-8 w-8 self-end">
+                            <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
+                            <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        )}
 
-                      <div
-                          className={cn(
-                              'flex items-center gap-1',
-                              message.senderId === self.id ? 'flex-row-reverse' : 'flex-row'
-                          )}
-                      >
-                          <div className="self-center">
-                              <MessageActions message={message} />
+                        <div className="flex items-center gap-1">
+                          <div className={cn("self-center", message.senderId === self.id ? 'order-2' : 'order-1')}>
+                            <MessageActions message={message} />
                           </div>
-
                           <div
                               className={cn(
-                                  'max-w-[70%] rounded-lg text-sm overflow-hidden relative', 
+                                  'max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden relative order-1', 
                                   message.senderId === self.id
                                   ? 'bg-primary text-primary-foreground'
                                   : 'bg-muted'
@@ -337,20 +331,16 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                       <div className="grid grid-cols-2 gap-1">
                                           {message.imageUrls.slice(0, 4).map((url, index) => {
                                               const remainingImages = message.imageUrls!.length - 4;
-                                              if (index === 3 && remainingImages > 0) {
-                                                  return (
-                                                      <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-32 h-32 block cursor-pointer overflow-hidden rounded-md group/more">
-                                                          <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover transition-all group-hover/more:brightness-50" />
-                                                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white">
+                                              const showMore = index === 3 && remainingImages > 0;
+                                              return (
+                                                  <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square w-36 h-36 block cursor-pointer overflow-hidden rounded-md group/more", showMore && "bg-black")}>
+                                                      <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} />
+                                                      {showMore && (
+                                                          <div className="absolute inset-0 flex items-center justify-center text-white">
                                                               <Plus className="h-6 w-6" />
                                                               <span className="text-xl font-bold">{remainingImages}</span>
                                                           </div>
-                                                      </button>
-                                                  )
-                                              }
-                                              return (
-                                                  <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-32 h-32 block cursor-pointer overflow-hidden rounded-md">
-                                                      <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
+                                                      )}
                                                   </button>
                                               )
                                           })}
@@ -387,18 +377,19 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                   {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
                               </div>
                           </div>
-                      </div>
+                        </div>
 
-                      {message.senderId === self.id && (
-                      <Avatar className="h-8 w-8 self-end">
-                          <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
-                          <AvatarFallback>U</AvatarFallback>
-                      </Avatar>
-                      )}
-                  </div>
-              )})}
-          </div>
-        </ScrollArea>
+                        {message.senderId === self.id && (
+                        <Avatar className="h-8 w-8 self-end">
+                            <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
+                            <AvatarFallback>U</AvatarFallback>
+                        </Avatar>
+                        )}
+                    </div>
+                )})}
+            </div>
+          </ScrollArea>
+        </div>
         <div className="p-4 border-t flex-shrink-0">
           <ChatInput
             onSendMessage={handleSendMessageWithContext}
