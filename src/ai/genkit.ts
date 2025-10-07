@@ -43,13 +43,13 @@ let ai: ReturnType<typeof genkit>;
 
 /**
  * If we have a valid API key, initialize the GoogleAI plugin.
- * The plugin reads API keys directly from process.env (not from an argument).
+ * We pass the apiKey explicitly to avoid environment variable conflicts.
  */
 if (apiKey) {
   try {
     ai = genkit({
       plugins: [
-        googleAI() // 🚨 Do not pass apiKey directly, environment handles this
+        googleAI({ apiKey })
       ],
     });
     console.log('✅ Genkit initialized successfully.');
@@ -73,6 +73,17 @@ function createMockAI() {
         console.warn(
           `Mock flow called: '${config.name}' (AI not configured)`
         );
+        if (config.outputSchema) {
+          const schema = config.outputSchema;
+          if (schema instanceof z.ZodObject) {
+            const shape = schema.shape as z.ZodRawShape;
+            const mockOutput: Record<string, any> = {};
+            for (const key in shape) {
+                mockOutput[key] = `AI is not configured. Add API Key.`;
+            }
+            return mockOutput;
+          }
+        }
         return 'AI features are not configured. Please add your Google AI API key to your .env.local file.';
       };
     },
@@ -81,9 +92,19 @@ function createMockAI() {
         console.warn(
           `Mock prompt called: '${config.name}' (AI not configured)`
         );
+        const mockOutput = 'AI features are not configured. Please add your Google AI API key to your .env.local file.';
+        
+        if (config.output?.schema instanceof z.ZodObject) {
+            const shape = config.output.schema.shape as z.ZodRawShape;
+            const mockObject: Record<string, any> = {};
+            for (const key in shape) {
+                mockObject[key] = mockOutput;
+            }
+            return { output: mockObject };
+        }
+
         return {
-          output:
-            'AI features are not configured. Please add your Google AI API key to your .env.local file.',
+          output: mockOutput
         };
       };
     },
@@ -101,25 +122,22 @@ export async function testConnection() {
   }
 
   try {
-    const testPrompt = ai.definePrompt({
-      name: 'testPrompt',
+    const { output } = await ai.generate({
       model: GEMINI_MODEL,
-      input: { schema: z.string() },
-      output: { schema: z.string() },
+      prompt: 'Say "Hello, World!"',
       config: {
         temperature: 0.3,
         maxOutputTokens: 50,
       },
-      prompt: 'Say "Hello, World!" in response to: {{this}}',
     });
 
-    const result = await testPrompt('test');
-    if (!result || typeof result.output !== 'string') {
-      throw new Error('Invalid model response: ' + JSON.stringify(result));
+    const resultText = output?.text;
+    if (!resultText) {
+      throw new Error('Invalid model response: ' + JSON.stringify(output));
     }
 
-    console.log('✅ Connection test succeeded:', result.output);
-    return { success: true, result: result.output };
+    console.log('✅ Connection test succeeded:', resultText);
+    return { success: true, result: resultText };
   } catch (error) {
     console.error('❌ Connection test failed:', error);
     return {
