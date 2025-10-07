@@ -232,13 +232,14 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted',
                     message.type !== 'image' && 'p-0',
+                    message.type === 'image' && 'border-2 border-border p-0.5'
                   )}
                 >
                   {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
                       <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
                   ) : message.type === 'image' && message.imageUrl ? (
                       <button onClick={() => handleImageClick(message.imageUrl!)} className="relative w-64 h-48 block cursor-pointer">
-                          <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover" />
+                          <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover rounded-md" />
                       </button>
                   ) : message.type === 'file' && message.fileName && message.fileUrl ? (
                       <div className="p-3">
@@ -283,13 +284,17 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     {selectedImageUrl && (
                          <a href={selectedImageUrl} download="image.png" className={cn(
                             'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-                            'text-white',
+                            'text-white hover:bg-white/10',
                             'h-8 w-8'
                          )}>
                             <Download className="h-5 w-5" />
                         </a>
                     )}
-                    <DialogClose className="text-white h-8 w-8 relative" />
+                    <DialogClose asChild>
+                       <Button variant={'ghost'} size={'icon'} className="text-white hover:bg-white/10 hover:text-white h-8 w-8">
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </DialogClose>
                 </div>
             </DialogHeader>
             <div className="relative w-full h-full flex-1 flex items-center justify-center">
