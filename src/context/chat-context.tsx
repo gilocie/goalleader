@@ -56,7 +56,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self) return;
     const newMessage: Message = {
-      id: `msg${Date.now()}`,
+      id: `msg${Date.now()}-${Math.random()}`,
       senderId: self.id,
       recipientId,
       content,
@@ -83,7 +83,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
 
             const replyMessage: Message = {
-                id: `msg${Date.now() + 1}`,
+                id: `msg${Date.now() + 1}-${Math.random()}`,
                 senderId: recipientId,
                 recipientId: self.id,
                 content: replyContent,
@@ -126,7 +126,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
             const forwardedMessage: Message = {
                 ...message,
-                id: `fwd-${Date.now()}-${index}`,
+                id: `fwd-${Date.now()}-${index}-${Math.random()}`,
                 senderId: self.id,
                 recipientId: recipientId,
                 timestamp: format(new Date(), 'p'),
