@@ -5,7 +5,7 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X, Reply, Forward, Plus } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X, Reply, Forward, Plus, User } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -26,6 +26,8 @@ import { useChat } from '@/context/chat-context';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { ChatUserProfile } from './chat-user-profile';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -184,7 +186,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-primary text-primary-foreground hover:bg-primary/80">
+            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full group-hover:opacity-100 opacity-0 transition-opacity">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -228,7 +230,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                   <TooltipProvider>
                   <Tooltip>
                       <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10">
+                          <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10 lg:hidden">
                               <ArrowLeft className="h-5 w-5" />
                           </Button>
                       </TooltipTrigger>
@@ -260,6 +262,16 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             <Button variant="outline" size="icon" onClick={handleVideoClick}>
               <Video className="h-4 w-4" />
             </Button>
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <User className="h-4 w-4" />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent className="p-0">
+                    <ChatUserProfile contact={selectedContact} />
+                </SheetContent>
+            </Sheet>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -349,6 +361,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                     )
                                 })}
                             </div>
+                             {message.content && (
+                                <div className={cn("p-3 pt-2", message.senderId === self.id ? 'text-white' : 'text-primary-foreground')}>
+                                    <p className="whitespace-pre-wrap">{message.content}</p>
+                                </div>
+                            )}
                          </div>
                     ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
                         <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
@@ -366,8 +383,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                         </div>
                     ) : null}
                     
-                    {message.content && (
-                         <div className={cn("p-3", message.type !== 'image' && (message.senderId === self.id ? 'text-white' : 'text-primary-foreground'))}>
+                    {message.content && message.type === 'text' && (
+                         <div className={cn("p-3", message.senderId === self.id ? 'text-white' : 'text-primary-foreground')}>
                            <p className="whitespace-pre-wrap">{message.content}</p>
                         </div>
                     )}
