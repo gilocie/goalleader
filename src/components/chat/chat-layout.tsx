@@ -32,14 +32,14 @@ export function ChatLayout({
   const { self } = useChat();
   const { open: isSidebarOpen } = useSidebar();
   
-  const gridColsClass = isSidebarOpen ? 'lg:grid-cols-[1fr,3fr]' : 'lg:grid-cols-[1fr,4fr]';
+  const gridColsClass = isSidebarOpen ? 'lg:grid-cols-[3fr,7fr]' : 'lg:grid-cols-[1fr,4fr]';
 
   return (
     <div className={cn("grid h-full w-full", gridColsClass)}>
       {/* Contact List */}
       <div
         className={cn(
-          'border-r bg-background',
+          'border-r bg-background h-full',
           // On mobile, hide if a contact is selected.
           // On desktop, always show and define column span.
           selectedContact ? 'hidden lg:block' : 'col-span-full'
@@ -54,7 +54,7 @@ export function ChatLayout({
 
       {/* Main Chat Area */}
       {selectedContact && self ? (
-         <div className="col-span-full lg:col-span-1 flex flex-col">
+         <div className="col-span-full lg:col-span-1 flex flex-col h-full">
            <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
@@ -75,7 +75,7 @@ export function ChatLayout({
           </ChatMessages>
         </div>
       ) : (
-        <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30">
+        <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30 h-full">
             <p className="text-muted-foreground text-lg">Select a contact to start chatting</p>
         </div>
       )}

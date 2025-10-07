@@ -31,7 +31,7 @@ export function ChatPageContent() {
   }
 
   return (
-    <main className="flex-grow h-[calc(100vh-260px)]">
+    <main className="flex-1 overflow-hidden">
       <ChatLayout
         contacts={contacts}
         messages={contactMessages}
