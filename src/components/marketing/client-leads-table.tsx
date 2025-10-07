@@ -23,7 +23,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AddLeadDialog } from './add-lead-dialog';
-import { ScrollArea } from '../ui/scroll-area';
 
 type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Lost';
 
@@ -43,8 +42,6 @@ const initialLeads: Lead[] = [
   { id: 'lead-3', name: 'Olivia Garcia', company: 'Quantum Tech', email: 'olivia.garcia@quantum.tech', phone: '+265 995 345 678', service: 'Frontend Dev', status: 'Qualified' },
   { id: 'lead-4', name: 'Noah Rodriguez', company: 'Synergy Corp', email: 'noah.rodriguez@synergy.com', phone: '+265 884 456 789', service: 'QA Testing', status: 'New' },
   { id: 'lead-5', name: 'Emma Wilson', company: 'Apex Enterprises', email: 'emma.wilson@apex.com', phone: '+265 991 567 890', service: 'Cloud Services', status: 'Lost' },
-  { id: 'lead-6', name: 'James Brown', company: 'Data Dynamics', email: 'james.brown@datadynamics.com', phone: '+265 992 345 678', service: 'Backend Dev', status: 'New' },
-  { id: 'lead-7', name: 'Ava Jones', company: 'Creative LLC', email: 'ava.jones@creative.llc', phone: '+265 881 234 567', service: 'UX/UI Design', status: 'Contacted' },
 ];
 
 const statusStyles: Record<LeadStatus, string> = {
@@ -70,90 +67,90 @@ export function ClientLeadsTable() {
 
   return (
     <>
-      <Card>
-        <CardHeader className='flex flex-row items-center justify-between'>
-          <div>
-              <CardTitle>Client Leads</CardTitle>
-              <CardDescription>Manage promotional materials and leads.</CardDescription>
-          </div>
-          <Button onClick={() => setAddLeadOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Lead
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2 mb-4">
-              <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search leads..." className="w-full pl-8" />
-              </div>
-              <Select>
-                  <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="contacted">Contacted</SelectItem>
-                      <SelectItem value="qualified">Qualified</SelectItem>
-                      <SelectItem value="lost">Lost</SelectItem>
-                  </SelectContent>
-              </Select>
-          </div>
-          <ScrollArea className="h-[400px]">
-            <Table>
-              <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">
-                        <span className="sr-only">Actions</span>
-                    </TableHead>
-                  </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {leads.map((lead) => (
-                    <TableRow key={lead.id}>
-                        <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
-                        <TableCell className="whitespace-nowrap">{lead.company}</TableCell>
-                        <TableCell>
-                            <div className="text-sm whitespace-nowrap">{lead.email}</div>
-                            <div className="text-xs text-muted-foreground whitespace-nowrap">{lead.phone}</div>
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">{lead.service}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>Send Email</DropdownMenuItem>
-                            <DropdownMenuItem>Mark as Contacted</DropdownMenuItem>
-                            <DropdownMenuItem>Mark as Qualified</DropdownMenuItem>
-                            </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-      <AddLeadDialog 
-          isOpen={isAddLeadOpen}
-          onOpenChange={setAddLeadOpen}
-          onAddLead={handleAddLead}
-      />
+    <Card>
+      <CardHeader className='flex flex-row items-center justify-between'>
+        <div>
+            <CardTitle>Client Leads</CardTitle>
+            <CardDescription>Manage promotional materials and leads.</CardDescription>
+        </div>
+        <Button onClick={() => setAddLeadOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Lead
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-2 mb-4">
+            <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search leads..." className="w-full pl-8" />
+            </div>
+            <Select>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="contacted">Contacted</SelectItem>
+                    <SelectItem value="qualified">Qualified</SelectItem>
+                    <SelectItem value="lost">Lost</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+              <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Service</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>
+                  <span className="sr-only">Actions</span>
+              </TableHead>
+              </TableRow>
+          </TableHeader>
+          <TableBody>
+              {leads.map((lead) => (
+              <TableRow key={lead.id}>
+                  <TableCell className="font-medium">{lead.name}</TableCell>
+                  <TableCell>{lead.company}</TableCell>
+                  <TableCell>
+                      <div className="text-sm">{lead.email}</div>
+                      <div className="text-xs text-muted-foreground">{lead.phone}</div>
+                  </TableCell>
+                  <TableCell>{lead.service}</TableCell>
+                  <TableCell>
+                  <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
+                  </TableCell>
+                  <TableCell>
+                  <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                      <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                      </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem>Send Email</DropdownMenuItem>
+                      <DropdownMenuItem>Mark as Contacted</DropdownMenuItem>
+                      <DropdownMenuItem>Mark as Qualified</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+              </TableRow>
+              ))}
+          </TableBody>
+        </Table>
+        </div>
+      </CardContent>
+    </Card>
+    <AddLeadDialog 
+        isOpen={isAddLeadOpen}
+        onOpenChange={setAddLeadOpen}
+        onAddLead={handleAddLead}
+    />
     </>
   );
 }
