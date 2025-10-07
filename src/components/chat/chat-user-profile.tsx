@@ -64,15 +64,15 @@ export function ChatUserProfile({ contact }: ChatUserProfileProps) {
             </Accordion>
         </ScrollArea>
       </CardContent>
-      <div className="p-4 border-t space-y-4 flex-shrink-0">
-        <Button variant="outline" className="w-full justify-between">
+      <div className="p-4 border-t flex gap-2 flex-shrink-0">
+        <Button variant="outline" className="w-full justify-between flex-1">
           <span>Notifications</span>
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">On</span>
           </div>
         </Button>
-        <Button variant="destructive" className="w-full">Block</Button>
+        <Button variant="destructive" className="w-full flex-1">Block</Button>
       </div>
     </Card>
   );
