@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Bot } from 'lucide-react';
 import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
 import { ApprovedContentTable } from '@/components/marketing/approved-content-table';
-import { Separator } from '@/components/ui/separator';
 import type { Suggestion } from '@/types/marketing';
 import { Logo } from '@/components/icons';
+import { ClientLeadsTable } from '@/components/marketing/client-leads-table';
 
 export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
@@ -39,15 +39,7 @@ export default function MarketingPage() {
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
               <TabsContent value="leads">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Client Leads</CardTitle>
-                    <CardDescription>Manage promotional materials and leads.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground">Lead management content will go here.</p>
-                  </CardContent>
-                </Card>
+                <ClientLeadsTable />
               </TabsContent>
               <TabsContent value="content">
                 <Card>
