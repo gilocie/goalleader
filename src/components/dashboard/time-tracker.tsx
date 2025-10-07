@@ -90,10 +90,10 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
                     className="object-cover z-0"
                 />
             )}
-            <div className="relative z-10 flex items-center gap-4 bg-green-900/50 px-3 py-1.5">
+            <div className="relative z-10 flex items-center gap-2 bg-green-900/50 px-2 py-1">
                 <div className="flex flex-col">
-                    <span className="text-xs text-white/80 font-medium truncate max-w-28">{activeTask || "No active task"}</span>
-                    <span className="text-xl font-bold font-mono tabular-nums leading-tight">{formatTime(time)}</span>
+                    <span className="text-xs text-white/80 font-medium truncate max-w-24">{activeTask || "No active task"}</span>
+                    <span className="text-lg font-bold font-mono tabular-nums leading-tight">{formatTime(time)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                 <Button
@@ -101,7 +101,7 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
                     size="icon"
                     variant="ghost"
                     aria-label={isActive ? 'Pause timer' : 'Start timer'}
-                    className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30"
+                    className="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30"
                 >
                     {isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
@@ -110,7 +110,7 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
                     variant="destructive"
                     size="icon"
                     aria-label="Stop timer"
-                    className="w-8 h-8 rounded-full"
+                    className="w-7 h-7 rounded-full"
                 >
                     <Square className="h-4 w-4" />
                 </Button>
@@ -164,6 +164,7 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
     </Card>
   );
 }
+
 
 
 
