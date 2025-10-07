@@ -34,9 +34,9 @@ export function ChatLayout({
 
   const getGridCols = () => {
     if (isProfileOpen) {
-      return 'grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)_minmax(280px,1fr)]';
+      return 'lg:grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)_minmax(280px,1fr)]';
     }
-    return 'grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)]';
+    return 'lg:grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)]';
   }
 
   return (
@@ -44,9 +44,8 @@ export function ChatLayout({
       {/* Contact List */}
       <div
         className={cn(
-          'border-r bg-background h-full flex flex-col',
-          selectedContact && !isProfileOpen ? 'hidden lg:flex' : '',
-          !selectedContact && !isProfileOpen ? 'col-span-full lg:col-span-1' : '',
+          'border-r bg-background h-full flex-col',
+          selectedContact ? 'hidden lg:flex' : 'flex col-span-full lg:col-span-1',
         )}
       >
         <ChatContactList
@@ -58,7 +57,7 @@ export function ChatLayout({
 
       {/* Main Chat Area */}
       {selectedContact && self ? (
-         <div className="flex flex-col h-full overflow-hidden">
+         <div className={cn("flex-col h-full overflow-hidden", selectedContact ? 'flex col-span-full' : 'hidden')}>
            <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
