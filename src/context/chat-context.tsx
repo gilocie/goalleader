@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 
@@ -41,7 +41,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const [allContacts] = useState<Contact[]>(teamMembers);
+  const [allContacts, setAllContacts] = useState<Contact[]>(teamMembers);
   const [messages, setMessages] = useState<Message[]>(messagesData);
   
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
@@ -49,7 +49,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
-  const unreadMessagesCount = contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0);
+  const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio', data: Partial<Message> = {}) => {
     if (!self) return;
@@ -64,11 +64,70 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       ...data
     };
     setMessages(prev => [...prev, newMessage]);
-  }, [self]);
+    
+    // Simulate recipient receiving and replying
+    setTimeout(() => {
+        // Mark as delivered
+        setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'delivered'} : m));
+        setAllContacts(prev => prev.map(c => c.id === self.id ? {...c, lastMessageReadStatus: 'delivered'} : c));
+
+        // Simulate a reply from the recipient
+        const recipient = allContacts.find(c => c.id === recipientId);
+        if (recipient) {
+            const replyMessage: Message = {
+                id: `msg${Date.now() + 1}`,
+                senderId: recipientId,
+                recipientId: self.id,
+                content: `Thanks for the message! I've received: "${content.substring(0, 20)}..."`,
+                timestamp: format(new Date(), 'p'),
+                type: 'text'
+            };
+            setMessages(prev => [...prev, replyMessage]);
+            
+            // Update contact list with new message and unread count
+            setAllContacts(prev => prev.map(c => 
+                c.id === recipientId 
+                ? {
+                    ...c, 
+                    lastMessage: replyMessage.content, 
+                    lastMessageTime: format(new Date(), 'p'),
+                    unreadCount: (selectedContact?.id !== c.id) ? (c.unreadCount || 0) + 1 : c.unreadCount
+                  } 
+                : c
+            ));
+        }
+
+    }, 2000);
+
+    // After 3 seconds, simulate that the recipient read the message
+    setTimeout(() => {
+      setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'read'} : m));
+      setAllContacts(prev => prev.map(c => c.id === self.id ? {...c, lastMessageReadStatus: 'read'} : c));
+    }, 3000);
+
+  }, [self, allContacts, selectedContact]);
+  
+  // Effect to mark messages as read when a chat is opened
+  useEffect(() => {
+    if (selectedContact) {
+        // Mark messages as read in the main message list
+        setMessages(prev => prev.map(m => 
+            (m.senderId === selectedContact.id && m.recipientId === self?.id) 
+            ? { ...m, readStatus: 'read' } 
+            : m
+        ));
+        
+        // Update unread count on the contact
+        setAllContacts(prev => prev.map(c => 
+            c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c
+        ));
+    }
+  }, [selectedContact, self?.id]);
+
 
   const value = {
     self,
-    contacts,
+    contacts: allContacts.filter(c => c.id !== USER_ID),
     messages,
     unreadMessagesCount,
     selectedContact,
