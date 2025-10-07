@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -24,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AddLeadDialog } from './add-lead-dialog';
+import { ScrollArea } from '../ui/scroll-area';
 
 type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Lost';
 
@@ -43,6 +43,8 @@ const initialLeads: Lead[] = [
   { id: 'lead-3', name: 'Olivia Garcia', company: 'Quantum Tech', email: 'olivia.garcia@quantum.tech', phone: '+265 995 345 678', service: 'Frontend Dev', status: 'Qualified' },
   { id: 'lead-4', name: 'Noah Rodriguez', company: 'Synergy Corp', email: 'noah.rodriguez@synergy.com', phone: '+265 884 456 789', service: 'QA Testing', status: 'New' },
   { id: 'lead-5', name: 'Emma Wilson', company: 'Apex Enterprises', email: 'emma.wilson@apex.com', phone: '+265 991 567 890', service: 'Cloud Services', status: 'Lost' },
+  { id: 'lead-6', name: 'James Brown', company: 'Data Dynamics', email: 'james.brown@datadynamics.com', phone: '+265 992 345 678', service: 'Backend Dev', status: 'New' },
+  { id: 'lead-7', name: 'Ava Jones', company: 'Creative LLC', email: 'ava.jones@creative.llc', phone: '+265 881 234 567', service: 'UX/UI Design', status: 'Contacted' },
 ];
 
 const statusStyles: Record<LeadStatus, string> = {
@@ -97,14 +99,14 @@ export function ClientLeadsTable() {
                 </SelectContent>
             </Select>
         </div>
-        <div className="overflow-x-auto w-full">
+        <ScrollArea className="h-[400px] w-full">
             <Table>
             <TableHeader>
                 <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Company</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Service</TableHead>
+                <TableHead className="min-w-[150px]">Name</TableHead>
+                <TableHead className="min-w-[150px]">Company</TableHead>
+                <TableHead className="min-w-[250px]">Contact</TableHead>
+                <TableHead className="min-w-[150px]">Service</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>
                     <span className="sr-only">Actions</span>
@@ -144,7 +146,7 @@ export function ClientLeadsTable() {
                 ))}
             </TableBody>
             </Table>
-        </div>
+        </ScrollArea>
       </CardContent>
     </Card>
     <AddLeadDialog 
