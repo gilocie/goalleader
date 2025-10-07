@@ -176,18 +176,12 @@ const ImagePreviewDialog = ({
     onSend: (images: { url: string; file: File; caption: string }[]) => void;
     onClose: () => void;
   }) => {
-    const [captions, setCaptions] = useState<string[]>([]);
-
-    useEffect(() => {
-        if (images.length > 0) {
-            setCaptions(Array(images.length).fill(''));
-        }
-    }, [images]);
+    const [caption, setCaption] = useState('');
   
     if (!images.length) return null;
 
     const handleSend = () => {
-        onSend(images.map((img, i) => ({ ...img, caption: captions[i] || '' })));
+        onSend(images.map(img => ({ ...img, caption })));
     };
   
     return (
@@ -195,25 +189,21 @@ const ImagePreviewDialog = ({
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Send Images</DialogTitle>
-            <DialogDescription>Add captions to your images before sending.</DialogDescription>
+            <DialogDescription>Add a caption to your images before sending.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {images.map((image, index) => (
-                 <div key={index} className="space-y-2">
-                    <div className="relative aspect-video w-full overflow-hidden rounded-md">
-                        <Image src={image.url} alt={`Image preview ${index + 1}`} layout="fill" objectFit="contain" />
+             <div className="grid grid-cols-4 gap-2">
+                {images.map((image, index) => (
+                    <div key={index} className="relative aspect-square w-full overflow-hidden rounded-md">
+                        <Image src={image.url} alt={`Image preview ${index + 1}`} layout="fill" objectFit="cover" />
                     </div>
-                    <Input
-                        value={captions[index] || ''}
-                        onChange={(e) => {
-                            const newCaptions = [...captions];
-                            newCaptions[index] = e.target.value;
-                            setCaptions(newCaptions);
-                        }}
-                        placeholder={`Add a caption for image ${index + 1}...`}
-                    />
-                </div>
-            ))}
+                ))}
+            </div>
+            <Input
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Add a caption..."
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={onClose}>
@@ -361,8 +351,10 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
   };
 
   const handleSendImages = (images: { url: string; file: File; caption: string }[]) => {
-    images.forEach(image => {
-        onSendMessage(image.caption || '', 'image', { imageUrl: image.url });
+    images.forEach((image, index) => {
+        // Send caption only with the first image
+        const captionToSend = index === 0 ? image.caption : '';
+        onSendMessage(captionToSend || '', 'image', { imageUrl: image.url });
     });
     setImagePreviews([]);
   };
