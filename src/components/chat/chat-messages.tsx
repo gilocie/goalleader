@@ -132,10 +132,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     const hasAttachment = message.type === 'image' || message.type === 'file' || message.type === 'audio';
 
     return (
-      <div className={cn("opacity-0 group-hover:opacity-100 transition-opacity", isSelf ? 'order-first' : 'order-last')}>
+      <div className={cn("transition-opacity", isSelf ? 'order-first' : 'order-last')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6">
+            <Button variant="default" size="icon" className="h-6 w-6 rounded-full bg-green-500 hover:bg-green-600 text-white">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -261,7 +261,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     message.type === 'image' && 'border-2 border-border p-0.5'
                   )}
                 >
-                  <div className="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute top-1 right-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                      <MessageActions message={message} />
                   </div>
                   {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
@@ -337,3 +337,5 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
+    
