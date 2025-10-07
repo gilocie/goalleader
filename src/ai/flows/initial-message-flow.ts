@@ -17,11 +17,14 @@ const InitialMessageInputSchema = z.object({
 });
 export type InitialMessageInput = z.infer<typeof InitialMessageInputSchema>;
 
-const InitialMessageOutputSchema = z.string();
+const InitialMessageOutputSchema = z.object({
+    greeting: z.string().describe('A short, friendly, and welcoming initial message for the user. Ask how you can help them today. Be creative and avoid being repetitive. Example: "Hi User! Ready to make some progress today? Let me know what you\'d like to work on."'),
+});
 export type InitialMessageOutput = z.infer<typeof InitialMessageOutputSchema>;
 
-export async function getInitialMessage(input: InitialMessageInput): Promise<InitialMessageOutput> {
-  return initialMessageFlow(input);
+export async function getInitialMessage(input: InitialMessageInput): Promise<string> {
+  const result = await initialMessageFlow(input);
+  return result.greeting;
 }
 
 const prompt = ai.definePrompt({
@@ -32,7 +35,9 @@ const prompt = ai.definePrompt({
   prompt: `You are GoalLeader, an expert productivity coach. 
 Generate a short, friendly, and welcoming initial message for a user named {{name}}. 
 Ask how you can help them today. Be creative and avoid being repetitive.
-Example: "Hi {{name}}! Ready to make some progress today? Let me know what you'd like to work on."
+
+Output:
+{ {{output}} }
 `,
 });
 
@@ -44,6 +49,6 @@ const initialMessageFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await prompt(input);
-    return output || `Welcome, ${input.name}! How can I assist you today?`;
+    return output!;
   }
 );
