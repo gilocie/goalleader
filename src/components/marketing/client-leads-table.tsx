@@ -13,6 +13,9 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
+import { AddLeadDialog } from './add-lead-dialog';
+import { Button } from '../ui/button';
+import { PlusCircle } from 'lucide-react';
 
 type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Lost';
 
@@ -44,47 +47,69 @@ const statusStyles: Record<LeadStatus, string> = {
 }
 
 export function ClientLeadsTable() {
-  const [leads] = useState<Lead[]>(initialLeads);
+  const [leads, setLeads] = useState<Lead[]>(initialLeads);
+  const [isAddLeadOpen, setAddLeadOpen] = useState(false);
+
+  const handleAddLead = (data: Omit<Lead, 'id' | 'status'>) => {
+    const newLead: Lead = {
+      ...data,
+      id: `lead-${Date.now()}`,
+      status: 'New',
+    };
+    setLeads(prev => [newLead, ...prev]);
+    setAddLeadOpen(false);
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Client Leads</CardTitle>
-        <CardDescription>Manage promotional materials and leads.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Client Leads</CardTitle>
+            <CardDescription>Manage promotional materials and leads.</CardDescription>
+          </div>
+          <Button onClick={() => setAddLeadOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Lead
+          </Button>
+        </CardHeader>
+        <CardContent>
             <ScrollArea className="h-[400px] w-full border rounded-md">
-            <Table>
-                <TableHeader>
-                <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Status</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
-                {leads.map((lead) => (
-                    <TableRow key={lead.id}>
-                    <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
-                    <TableCell className="whitespace-nowrap">{lead.company}</TableCell>
-                    <TableCell>
-                        <div className="text-sm whitespace-nowrap">{lead.email}</div>
-                        <div className="text-xs text-muted-foreground whitespace-nowrap">{lead.phone}</div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">{lead.service}</TableCell>
-                    <TableCell>
-                        <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
-                    </TableCell>
-                    </TableRow>
-                ))}
-                </TableBody>
-            </Table>
+              <Table>
+                  <TableHeader>
+                  <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Company</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Service</TableHead>
+                      <TableHead>Status</TableHead>
+                  </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                  {leads.map((lead) => (
+                      <TableRow key={lead.id}>
+                      <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
+                      <TableCell className="whitespace-nowrap">{lead.company}</TableCell>
+                      <TableCell>
+                          <div className="text-sm whitespace-nowrap">{lead.email}</div>
+                          <div className="text-xs text-muted-foreground whitespace-nowrap">{lead.phone}</div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{lead.service}</TableCell>
+                      <TableCell>
+                          <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
+                      </TableCell>
+                      </TableRow>
+                  ))}
+                  </TableBody>
+              </Table>
             </ScrollArea>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      <AddLeadDialog 
+        isOpen={isAddLeadOpen}
+        onOpenChange={setAddLeadOpen}
+        onAddLead={handleAddLead}
+      />
+    </>
   );
 }
