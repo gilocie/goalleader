@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -97,7 +96,7 @@ export function ClientLeadsTable() {
                 </SelectContent>
             </Select>
         </div>
-        <div className="overflow-x-auto">
+        <div className="relative w-full overflow-auto">
         <Table>
           <TableHeader>
               <TableRow>
