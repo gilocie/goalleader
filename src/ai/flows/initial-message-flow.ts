@@ -29,12 +29,9 @@ const prompt = ai.definePrompt({
   model: GEMINI_MODEL,
   input: { schema: InitialMessageInputSchema },
   output: { schema: InitialMessageOutputSchema },
-  prompt: `You are GoalLeader, an expert productivity coach and AI assistant. 
-Your tone is helpful, encouraging, and friendly.
-
-Generate a short, welcoming initial message for a user named {{name}}. 
-The message should be encouraging and ask how you can help them today. Avoid being repetitive.
-
+  prompt: `You are GoalLeader, an expert productivity coach. 
+Generate a short, friendly, and welcoming initial message for a user named {{name}}. 
+Ask how you can help them today. Be creative and avoid being repetitive.
 Example: "Hi {{name}}! Ready to make some progress today? Let me know what you'd like to work on."
 `,
 });
@@ -46,12 +43,7 @@ const initialMessageFlow = ai.defineFlow(
     outputSchema: InitialMessageOutputSchema,
   },
   async (input) => {
-    try {
-      const { output } = await prompt(input);
-      return output || `Hi ${input.name}! How can I help you today?`;
-    } catch (error) {
-      console.error('Error generating initial message:', error);
-      return `Hi ${input.name}! I'm here to help you achieve your goals. What's on your mind?`;
-    }
+    const { output } = await prompt(input);
+    return output || `Welcome, ${input.name}! How can I assist you today?`;
   }
 );
