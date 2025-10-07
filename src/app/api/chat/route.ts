@@ -1,7 +1,6 @@
 
 import { NextResponse } from 'next/server';
 import { runChat, testChatSetup, ChatInput } from '@/ai/flows/chat-flow';
-import { testConnection } from '@/ai/genkit';
 
 export async function POST(req: Request) {
   console.log('=== API /api/chat POST called ===');
@@ -59,10 +58,6 @@ export async function GET() {
   console.log('=== API /api/chat GET called (debug endpoint) ===');
   
   try {
-    // Test connection
-    const connectionTest = await testConnection();
-    console.log('Connection test result:', connectionTest);
-    
     // Test chat setup
     const chatTest = await testChatSetup();
     console.log('Chat test result:', chatTest);
@@ -78,7 +73,6 @@ export async function GET() {
         nodeEnv: process.env.NODE_ENV,
       },
       tests: {
-        connection: connectionTest,
         chat: chatTest,
       }
     };
