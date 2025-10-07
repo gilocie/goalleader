@@ -19,6 +19,7 @@ import { clientLeadsForCombobox } from '@/lib/client-leads';
 import type { Suggestion } from '@/types/marketing';
 import { useToast } from '@/hooks/use-toast';
 import { Send } from 'lucide-react';
+import { Switch } from '../ui/switch';
 
 interface SendContentDialogProps {
   isOpen: boolean;
@@ -32,17 +33,19 @@ export function SendContentDialog({
   selectedContent,
 }: SendContentDialogProps) {
   const [recipients, setRecipients] = useState<string[]>([]);
+  const [sendToAll, setSendToAll] = useState(false);
   const { toast } = useToast();
 
   const handleSend = () => {
+    const finalRecipients = sendToAll ? clientLeadsForCombobox.map(c => c.label) : recipients;
     // In a real app, this would trigger an email or other notification service.
     console.log({
       content: selectedContent.map(c => c.blogTitle),
-      recipients: recipients,
+      recipients: finalRecipients,
     });
     toast({
         title: "Content Sent!",
-        description: `Your selected marketing materials have been sent to ${recipients.length} client(s).`,
+        description: `Your selected marketing materials have been sent to ${finalRecipients.length} client(s).`,
     });
     onOpenChange(false);
   };
@@ -50,6 +53,7 @@ export function SendContentDialog({
   const handleDialogChange = (open: boolean) => {
     if (!open) {
         setRecipients([]);
+        setSendToAll(false);
     }
     onOpenChange(open);
   }
@@ -73,6 +77,12 @@ export function SendContentDialog({
                     </ul>
                 </ScrollArea>
             </div>
+
+            <div className="flex items-center space-x-2">
+                <Switch id="send-to-all" checked={sendToAll} onCheckedChange={setSendToAll} />
+                <Label htmlFor="send-to-all">Send to all clients</Label>
+            </div>
+
             <div className="space-y-2">
                 <Label>Recipients</Label>
                 <MultiSelectCombobox 
@@ -80,6 +90,7 @@ export function SendContentDialog({
                     selected={recipients}
                     onChange={setRecipients}
                     placeholder="Select clients..."
+                    disabled={sendToAll}
                 />
             </div>
         </div>
@@ -92,10 +103,10 @@ export function SendContentDialog({
           </DialogClose>
           <Button
             onClick={handleSend}
-            disabled={recipients.length === 0}
+            disabled={!sendToAll && recipients.length === 0}
           >
             <Send className="mr-2 h-4 w-4" />
-            Send to {recipients.length} client(s)
+            Send to {sendToAll ? clientLeadsForCombobox.length : recipients.length} client(s)
           </Button>
         </DialogFooter>
       </DialogContent>

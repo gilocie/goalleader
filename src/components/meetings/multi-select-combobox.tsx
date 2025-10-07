@@ -32,6 +32,7 @@ interface MultiSelectComboboxProps {
   onChange: (selected: string[]) => void;
   className?: string;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export function MultiSelectCombobox({
@@ -40,6 +41,7 @@ export function MultiSelectCombobox({
   onChange,
   className,
   placeholder = 'Select options...',
+  disabled = false,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -70,6 +72,7 @@ export function MultiSelectCombobox({
           role="combobox"
           aria-expanded={open}
           className={cn('w-full justify-between h-auto', className)}
+          disabled={disabled}
         >
           <div className="flex gap-1 flex-wrap">
             {selected.length > 0 ? (
