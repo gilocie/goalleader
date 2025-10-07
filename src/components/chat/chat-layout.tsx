@@ -3,9 +3,11 @@
 
 import { ChatContactList } from './chat-contact-list';
 import { ChatMessages } from './chat-messages';
+import { ChatUserProfile } from './chat-user-profile';
 import { useChat } from '@/context/chat-context';
 import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
+import { useSidebar } from '../layout/sidebar';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -25,13 +27,22 @@ export function ChatLayout({
   onDeleteMessage,
 }: ChatLayoutProps) {
   const { self } = useChat();
+  const { open: isSidebarOpen } = useSidebar();
   
+  // Determine grid columns based on sidebar state. This is a simple example.
+  // You might need a more robust way to handle different screen sizes.
+  const gridColsClass = isSidebarOpen ? 'lg:grid-cols-12' : 'lg:grid-cols-10';
+
   return (
-    <div className="grid grid-cols-10 h-full w-full">
+    <div className={cn("grid h-full w-full", gridColsClass)}>
+      {/* Contact List */}
       <div
         className={cn(
           'border-r',
-          selectedContact ? 'hidden' : 'block col-span-10'
+          // On mobile, hide if a contact is selected.
+          // On desktop, always show and define column span.
+          selectedContact ? 'hidden lg:block' : 'col-span-full lg:col-span-auto',
+           isSidebarOpen ? 'lg:col-span-3' : 'lg:col-span-3'
         )}
       >
         <ChatContactList
@@ -41,8 +52,12 @@ export function ChatLayout({
         />
       </div>
 
-      {selectedContact && self && (
-        <div className="col-span-10">
+      {/* Main Chat Area */}
+      {selectedContact && self ? (
+         <div className={cn(
+            "col-span-full lg:col-span-auto",
+            isSidebarOpen ? 'lg:col-span-6' : 'lg:col-span-4'
+        )}>
           <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
@@ -51,7 +66,22 @@ export function ChatLayout({
             onDeleteMessage={onDeleteMessage}
           />
         </div>
+      ) : (
+        <div className="hidden lg:flex col-span-7 flex-col items-center justify-center bg-muted/30">
+            <p className="text-muted-foreground">Select a contact to start chatting</p>
+        </div>
       )}
+
+      {/* Profile Panel */}
+       {selectedContact && (
+        <div className={cn(
+            "hidden border-l",
+            "lg:block",
+             isSidebarOpen ? 'lg:col-span-3' : 'lg:col-span-3'
+        )}>
+          <ChatUserProfile contact={selectedContact} />
+        </div>
+       )}
     </div>
   );
 }
