@@ -8,7 +8,6 @@ import { Sidebar, SidebarProvider, useSidebar } from './sidebar';
 import { Header } from './header';
 import { Footer } from '../dashboard/footer';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { TimeTracker } from '../dashboard/time-tracker';
 import { ReportsProvider } from '@/context/reports-context';
 import { cn } from '@/lib/utils';
 import { NotificationProvider } from '@/context/notification-context';
@@ -42,7 +41,6 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
             <main className="flex-1 flex flex-col">{children}</main>
             {!isChatPage && !isMeetingPage && <Footer />}
           </div>
-          {isMobile && isActive && <TimeTracker isMobileFooter={true} />}
         </div>
       </div>
     );

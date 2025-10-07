@@ -107,6 +107,9 @@ export function Header() {
             <TimeTracker layout="inline" />
           </div>
         )}
+        <div className="md:hidden">
+            <TimeTracker layout="inline" />
+        </div>
       </div>
       
        <ChatDropdown>
