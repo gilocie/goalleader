@@ -8,9 +8,6 @@ import { useChat } from '@/context/chat-context';
 import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '../layout/sidebar';
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
-import { User } from 'lucide-react';
-import { Button } from '../ui/button';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -19,6 +16,8 @@ interface ChatLayoutProps {
   onSelectContact: (contact: Contact | null) => void;
   onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
   onDeleteMessage: (messageId: string) => void;
+  isProfileOpen: boolean;
+  onToggleProfile: () => void;
 }
 
 export function ChatLayout({
@@ -28,21 +27,26 @@ export function ChatLayout({
   onSelectContact,
   onSendMessage,
   onDeleteMessage,
+  isProfileOpen,
+  onToggleProfile,
 }: ChatLayoutProps) {
   const { self } = useChat();
-  const { open: isSidebarOpen } = useSidebar();
-  
-  const gridColsClass = isSidebarOpen ? 'lg:grid-cols-[3fr,7fr]' : 'lg:grid-cols-[1fr,4fr]';
+
+  const getGridCols = () => {
+    if (isProfileOpen) {
+      return 'grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)_minmax(280px,1fr)]';
+    }
+    return 'grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)]';
+  }
 
   return (
-    <div className={cn("grid h-full w-full", gridColsClass)}>
+    <div className={cn("grid h-full w-full transition-all duration-300", getGridCols())}>
       {/* Contact List */}
       <div
         className={cn(
           'border-r bg-background h-full flex flex-col',
-          // On mobile, hide if a contact is selected.
-          // On desktop, always show and define column span.
-          selectedContact ? 'hidden lg:flex' : 'col-span-full'
+          selectedContact && !isProfileOpen ? 'hidden lg:flex' : '',
+          !selectedContact && !isProfileOpen ? 'col-span-full lg:col-span-1' : '',
         )}
       >
         <ChatContactList
@@ -54,29 +58,26 @@ export function ChatLayout({
 
       {/* Main Chat Area */}
       {selectedContact && self ? (
-         <div className="col-span-full lg:col-span-1 flex flex-col h-full">
+         <div className="flex flex-col h-full overflow-hidden">
            <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
             onExitChat={() => onSelectContact(null)}
             onSendMessage={onSendMessage}
             onDeleteMessage={onDeleteMessage}
-          >
-            <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <User className="h-4 w-4" />
-                    </Button>
-                </SheetTrigger>
-                <SheetContent className="p-0">
-                    <ChatUserProfile contact={selectedContact} />
-                </SheetContent>
-            </Sheet>
-          </ChatMessages>
+            onToggleProfile={onToggleProfile}
+          />
         </div>
       ) : (
         <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30 h-full">
             <p className="text-muted-foreground text-lg">Select a contact to start chatting</p>
+        </div>
+      )}
+
+      {/* Profile Panel */}
+      {selectedContact && isProfileOpen && (
+        <div className="hidden lg:flex flex-col h-full border-l bg-background">
+          <ChatUserProfile contact={selectedContact} />
         </div>
       )}
     </div>

@@ -1,12 +1,14 @@
 
 'use client';
 
+import { useState } from 'react';
 import { ChatLayout } from '@/components/chat/chat-layout';
 import type { Contact, Message } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
 
 export function ChatPageContent() {
   const { contacts, messages, selectedContact, setSelectedContact, addMessage, deleteMessage, self } = useChat();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const contactMessages = selectedContact && self
     ? messages.filter(
@@ -24,6 +26,7 @@ export function ChatPageContent() {
 
   const handleSelectContact = (contact: Contact | null) => {
     setSelectedContact(contact);
+    setIsProfileOpen(false); // Close profile when switching contacts
   };
   
   const handleDeleteMessage = (messageId: string) => {
@@ -39,6 +42,8 @@ export function ChatPageContent() {
         onSelectContact={handleSelectContact}
         onSendMessage={handleSendMessage}
         onDeleteMessage={handleDeleteMessage}
+        isProfileOpen={isProfileOpen}
+        onToggleProfile={() => setIsProfileOpen(prev => !prev)}
       />
     </main>
   );

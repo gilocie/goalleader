@@ -1,3 +1,4 @@
+
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -96,10 +97,10 @@ interface ChatMessagesProps {
   onExitChat?: () => void;
   onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
   onDeleteMessage: (messageId: string) => void;
-  children?: React.ReactNode;
+  onToggleProfile: () => void;
 }
 
-export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, children }: ChatMessagesProps) {
+export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
   const { self, contacts } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
@@ -237,22 +238,24 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                   </Tooltip>
                   </TooltipProvider>
               )}
-            <div className="relative">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
-                <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
-              </Avatar>
-              <span
-                className={cn(
-                  'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
-                  selectedContact.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                )}
-              />
-            </div>
-            <div>
-              <p className="font-semibold">{selectedContact.name}</p>
-              <p className="text-xs text-muted-foreground">{selectedContact.status}</p>
-            </div>
+            <button className="flex items-center gap-3 text-left" onClick={onToggleProfile}>
+              <div className="relative">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
+                  <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <span
+                  className={cn(
+                    'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
+                    selectedContact.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                  )}
+                />
+              </div>
+              <div>
+                <p className="font-semibold">{selectedContact.name}</p>
+                <p className="text-xs text-muted-foreground">{selectedContact.status}</p>
+              </div>
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon" onClick={handleCallClick}>
@@ -261,7 +264,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             <Button variant="outline" size="icon" onClick={handleVideoClick}>
               <Video className="h-4 w-4" />
             </Button>
-            {children}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
