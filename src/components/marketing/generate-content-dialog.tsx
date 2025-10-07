@@ -93,14 +93,16 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-4xl h-auto max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-4">
-          <DialogTitle>Generate Marketing Content</DialogTitle>
-          <DialogDescription>
-            Enter a topic or product, and GoalLeader will create a set of marketing materials for you.
-          </DialogDescription>
-        </DialogHeader>
+        {!generatedContent && (
+            <DialogHeader className="p-6 pb-4">
+            <DialogTitle>Generate Marketing Content</DialogTitle>
+            <DialogDescription>
+                Enter a topic or product, and GoalLeader will create a set of marketing materials for you.
+            </DialogDescription>
+            </DialogHeader>
+        )}
 
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden px-6">
+        <div className={cn("flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden px-6", !generatedContent && "pb-6")}>
           {/* Form Side (always visible) or Top on mobile */}
           <div className={cn(
             "flex flex-col gap-4 md:order-1",
@@ -162,7 +164,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
                   <TabsTrigger value="suggestion-2">Suggestion 3</TabsTrigger>
                 </TabsList>
                 <div className="flex-1 overflow-hidden mt-4">
-                    <ScrollArea className="h-full pr-4">
+                    <ScrollArea className="h-[450px] pr-4">
                         {generatedContent.suggestions.map((suggestion, index) => (
                         <TabsContent key={index} value={`suggestion-${index}`} className="mt-0 space-y-4">
                             <Card>
@@ -201,7 +203,7 @@ export function GenerateContentDialog({ isOpen, onOpenChange, onApprove }: Gener
           </div>
         </div>
 
-        <DialogFooter className="p-6 pt-4 border-t">
+        <DialogFooter className="p-6 pt-4 border-t flex-row justify-end gap-2">
             <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
             </DialogClose>
