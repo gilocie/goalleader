@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -10,10 +11,11 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, MoreHorizontal, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Trash2, Send } from "lucide-react";
 import type { Suggestion } from "@/types/marketing";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { format } from 'date-fns';
+import { SendContentDialog } from './send-content-dialog';
 
 interface ApprovedContentActionsProps {
   content: Suggestion[];
@@ -21,10 +23,17 @@ interface ApprovedContentActionsProps {
 }
 
 export function ApprovedContentActions({ content, onContentDeleted }: ApprovedContentActionsProps) {
+  const [isSendDialogOpen, setSendDialogOpen] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<Suggestion[]>([]);
 
   const handleDelete = (titleToDelete: string) => {
     const updatedContent = content.filter(c => c.blogTitle !== titleToDelete);
     onContentDeleted(updatedContent);
+  };
+  
+  const handleSendClick = (item: Suggestion) => {
+    setSelectedContent([item]);
+    setSendDialogOpen(true);
   };
   
   // We can add a date property to the suggestion when it's approved.
@@ -45,9 +54,14 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
                         </CardHeader>
                         <CardContent className="flex-grow" />
                         <CardFooter className="flex justify-between">
-                            <Button variant="outline">
-                                <Eye className="mr-2 h-4 w-4" /> View
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button variant="outline">
+                                    <Eye className="mr-2 h-4 w-4" /> View
+                                </Button>
+                                <Button onClick={() => handleSendClick(item)}>
+                                    <Send className="mr-2 h-4 w-4" /> Send
+                                </Button>
+                            </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="icon">
@@ -74,6 +88,11 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
                 </div>
             )}
        </div>
+       <SendContentDialog 
+        isOpen={isSendDialogOpen}
+        onOpenChange={setSendDialogOpen}
+        selectedContent={selectedContent}
+       />
     </>
   );
 }
