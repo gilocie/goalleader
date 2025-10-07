@@ -135,7 +135,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       <div className={cn("transition-opacity", isSelf ? 'order-first' : 'order-last')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full opacity-0 group-hover:opacity-100">
+            <Button variant="default" size="icon" className="h-6 w-6 rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -255,12 +255,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 
                 <div
                   className={cn(
-                    'max-w-[70%] rounded-lg text-sm overflow-hidden group relative', // Added group and relative
+                    'max-w-[70%] rounded-lg text-sm overflow-hidden group relative border', 
                     message.senderId === self.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted',
-                    message.type !== 'image' && 'p-0',
-                    message.type === 'image' && 'border-2 border-border p-0.5'
+                      ? 'bg-primary text-primary-foreground border-primary-dark'
+                      : 'bg-muted border-border',
+                    message.type !== 'image' && 'p-0 border-0',
+                    message.type === 'image' && 'p-0.5'
                   )}
                 >
                   {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
