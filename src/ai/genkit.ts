@@ -7,6 +7,7 @@
 import 'dotenv/config';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 export const ai = genkit({
   plugins: [
@@ -14,12 +15,12 @@ export const ai = genkit({
       apiKey: process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY,
     }),
   ],
+  model: GEMINI_MODEL, // Add a default model
 });
 
 export async function testConnection() {
   try {
     const { output } = await ai.generate({
-      model: 'googleai/gemini-1.5-flash',
       prompt: 'Say "Hello, World!"',
     });
     const resultText = output?.text;

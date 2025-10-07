@@ -14,6 +14,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { GEMINI_MODEL } from '@/lib/ai-models';
 
 // --------------------------
 // Schemas
@@ -49,6 +50,7 @@ export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 // --------------------------
 const conversationalPrompt = ai.definePrompt({
   name: 'conversationalChatPrompt',
+  model: GEMINI_MODEL,
   input: { schema: ChatInputSchema },
   output: { schema: ChatOutputSchema },
   system: `
