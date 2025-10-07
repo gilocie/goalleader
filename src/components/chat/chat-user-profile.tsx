@@ -19,13 +19,15 @@ export function ChatUserProfile({ contact }: ChatUserProfileProps) {
 
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
-      <CardHeader className="items-center text-center p-6 border-b flex-shrink-0">
-        <Avatar className="h-20 w-20 mb-4">
+      <CardHeader className="flex-row items-center gap-4 p-4 border-b flex-shrink-0">
+        <Avatar className="h-12 w-12">
           <AvatarImage src={avatar?.imageUrl} alt={contact.name} data-ai-hint={avatar?.imageHint} />
           <AvatarFallback>{contact.name.slice(0, 2)}</AvatarFallback>
         </Avatar>
-        <p className="font-semibold text-lg">{contact.name}</p>
-        <p className="text-sm text-muted-foreground">{contact.role}</p>
+        <div className="flex-1">
+          <p className="font-semibold text-lg">{contact.name}</p>
+          <p className="text-sm text-muted-foreground">{contact.role}</p>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 overflow-hidden">
         <ScrollArea className="h-full p-4">
