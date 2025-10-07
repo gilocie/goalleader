@@ -38,11 +38,11 @@ type Lead = {
 };
 
 const initialLeads: Lead[] = [
-  { id: 'lead-1', name: 'Sophia Davis', company: 'Innovate Inc.', email: 'sophia.davis@innovate.com', phone: '+1-202-555-0182', service: 'UX/UI Design', status: 'New' },
-  { id: 'lead-2', name: 'Liam Martinez', company: 'Solutions Co.', email: 'liam.martinez@solutions.co', phone: '+1-310-555-0134', service: 'Backend Dev', status: 'Contacted' },
-  { id: 'lead-3', name: 'Olivia Garcia', company: 'Quantum Tech', email: 'olivia.garcia@quantum.tech', phone: '+1-415-555-0199', service: 'Frontend Dev', status: 'Qualified' },
-  { id: 'lead-4', name: 'Noah Rodriguez', company: 'Synergy Corp', email: 'noah.rodriguez@synergy.com', phone: '+1-212-555-0155', service: 'QA Testing', status: 'New' },
-  { id: 'lead-5', name: 'Emma Wilson', company: 'Apex Enterprises', email: 'emma.wilson@apex.com', phone: '+1-773-555-0112', service: 'Cloud Services', status: 'Lost' },
+  { id: 'lead-1', name: 'Sophia Davis', company: 'Innovate Inc.', email: 'sophia.davis@innovate.com', phone: '+265 999 123 456', service: 'UX/UI Design', status: 'New' },
+  { id: 'lead-2', name: 'Liam Martinez', company: 'Solutions Co.', email: 'liam.martinez@solutions.co', phone: '+265 888 234 567', service: 'Backend Dev', status: 'Contacted' },
+  { id: 'lead-3', name: 'Olivia Garcia', company: 'Quantum Tech', email: 'olivia.garcia@quantum.tech', phone: '+265 995 345 678', service: 'Frontend Dev', status: 'Qualified' },
+  { id: 'lead-4', name: 'Noah Rodriguez', company: 'Synergy Corp', email: 'noah.rodriguez@synergy.com', phone: '+265 884 456 789', service: 'QA Testing', status: 'New' },
+  { id: 'lead-5', name: 'Emma Wilson', company: 'Apex Enterprises', email: 'emma.wilson@apex.com', phone: '+265 991 567 890', service: 'Cloud Services', status: 'Lost' },
 ];
 
 const statusStyles: Record<LeadStatus, string> = {
