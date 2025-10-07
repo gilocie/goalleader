@@ -5,7 +5,7 @@
 import { Card, CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X, Reply, Forward } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X, Reply, Forward, Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -182,7 +182,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     const hasAttachment = message.type === 'image' || message.type === 'file' || message.type === 'audio';
 
     return (
-      <div className={cn("transition-opacity", message.type === 'text' ? 'opacity-0 group-hover:opacity-100' : 'opacity-100')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-primary text-primary-foreground hover:bg-primary/80">
@@ -215,7 +214,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
     );
   };
   
@@ -305,7 +303,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     </Avatar>
                     )}
 
-                    {message.senderId === self.id && message.type === 'text' && (
+                    {message.senderId === self.id && (
                         <div className="self-center">
                             <MessageActions message={message} />
                         </div>
@@ -328,17 +326,28 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                             <p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p>
                         </div>
                     )}
-                    {message.type === 'image' && message.imageUrls ? (
-                         <div className="p-2 relative group/image-grid">
+                    {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
+                         <div className="p-1">
                              <div className="grid grid-cols-2 gap-1">
-                                {message.imageUrls.map((url, index) => (
-                                    <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-24 h-24 block cursor-pointer overflow-hidden rounded-md">
-                                        <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
-                                    </button>
-                                ))}
-                            </div>
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover/image-grid:opacity-100 transition-opacity">
-                                <MessageActions message={message} />
+                                {message.imageUrls.slice(0, 4).map((url, index) => {
+                                    const remainingImages = message.imageUrls!.length - 4;
+                                    if (index === 3 && remainingImages > 0) {
+                                        return (
+                                            <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-24 h-24 block cursor-pointer overflow-hidden rounded-md group/more">
+                                                <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover transition-all group-hover/more:brightness-50" />
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white">
+                                                    <Plus className="h-6 w-6" />
+                                                    <span className="text-xl font-bold">{remainingImages}</span>
+                                                </div>
+                                            </button>
+                                        )
+                                    }
+                                    return (
+                                        <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-24 h-24 block cursor-pointer overflow-hidden rounded-md">
+                                            <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
+                                        </button>
+                                    )
+                                })}
                             </div>
                          </div>
                     ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
@@ -358,7 +367,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     ) : null}
                     
                     {message.content && (
-                         <div className={cn("p-3 text-primary", message.type === 'image' && message.content ? 'pt-1' : '')}>
+                         <div className={cn("p-3", message.type !== 'image' && (message.senderId === self.id ? 'text-white' : 'text-primary-foreground'))}>
                            <p className="whitespace-pre-wrap">{message.content}</p>
                         </div>
                     )}
