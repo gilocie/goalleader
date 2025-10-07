@@ -375,7 +375,7 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
                         <p className="truncate">{message.content || message.type}</p>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onCancelReply}>
+                <Button variant="destructive" size="icon" className="h-6 w-6" onClick={onCancelReply}>
                     <X className="h-4 w-4" />
                 </Button>
             </div>
@@ -425,5 +425,7 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
     </>
   );
 }
+
+    
 
     
