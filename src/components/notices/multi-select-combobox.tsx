@@ -18,7 +18,6 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  PopoverPortal,
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 
@@ -98,62 +97,60 @@ export function MultiSelectCombobox({
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverPortal>
-        <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] p-0 max-h-[280px] overflow-hidden"
-          side="bottom"
-          align="start"
-          onOpenAutoFocus={(e) => e.preventDefault()}
-        >
-          <Command shouldFilter={false}>
-            <CommandInput 
-              placeholder="Search..." 
-              className="h-9" 
-              value={searchValue}
-              onValueChange={setSearchValue}
-            />
-            <CommandList>
-              <CommandEmpty>No options found.</CommandEmpty>
-              <CommandGroup>
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0 max-h-[280px] overflow-hidden"
+        side="bottom"
+        align="start"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <Command shouldFilter={false}>
+          <CommandInput 
+            placeholder="Search..." 
+            className="h-9" 
+            value={searchValue}
+            onValueChange={setSearchValue}
+          />
+          <CommandList>
+            <CommandEmpty>No options found.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                value="select-all"
+                onSelect={handleSelectAll}
+                className="cursor-pointer"
+              >
+                <Check
+                  className={cn(
+                    'mr-2 h-4 w-4',
+                    selected.length === options.length ? 'opacity-100' : 'opacity-0'
+                  )}
+                />
+                {selected.length === options.length ? 'Unselect all' : 'Select all'}
+              </CommandItem>
+              <CommandSeparator />
+              {options
+                .filter(option => 
+                  option.label.toLowerCase().includes(searchValue.toLowerCase())
+                )
+                .map((option) => (
                 <CommandItem
-                  value="select-all"
-                  onSelect={handleSelectAll}
+                  key={option.value}
+                  value={option.value}
+                  onSelect={handleSelect}
                   className="cursor-pointer"
                 >
                   <Check
                     className={cn(
                       'mr-2 h-4 w-4',
-                      selected.length === options.length ? 'opacity-100' : 'opacity-0'
+                      selected.includes(option.value) ? 'opacity-100' : 'opacity-0'
                     )}
                   />
-                  {selected.length === options.length ? 'Unselect all' : 'Select all'}
+                  {option.label}
                 </CommandItem>
-                <CommandSeparator />
-                {options
-                  .filter(option => 
-                    option.label.toLowerCase().includes(searchValue.toLowerCase())
-                  )
-                  .map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    onSelect={handleSelect}
-                    className="cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        selected.includes(option.value) ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </PopoverPortal>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
     </Popover>
   );
 }
