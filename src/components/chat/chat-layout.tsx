@@ -8,6 +8,9 @@ import { useChat } from '@/context/chat-context';
 import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '../layout/sidebar';
+import { Sheet, SheetContent } from '../ui/sheet';
+import { useIsMobileOrTablet } from '@/hooks/use-mobile';
+
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -31,9 +34,10 @@ export function ChatLayout({
   onToggleProfile,
 }: ChatLayoutProps) {
   const { self } = useChat();
+  const isMobileOrTablet = useIsMobileOrTablet();
 
   const getGridCols = () => {
-    if (isProfileOpen) {
+    if (isProfileOpen && !isMobileOrTablet) {
       return 'lg:grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)_minmax(280px,1fr)]';
     }
     return 'lg:grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)]';
@@ -57,7 +61,7 @@ export function ChatLayout({
 
       {/* Main Chat Area */}
       {selectedContact && self ? (
-         <div className={cn("flex-col h-full overflow-hidden", selectedContact ? 'flex col-span-full' : 'hidden')}>
+         <div className={cn("flex-col h-full overflow-hidden", selectedContact ? 'flex col-span-full lg:col-span-1' : 'hidden')}>
            <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
@@ -74,10 +78,19 @@ export function ChatLayout({
       )}
 
       {/* Profile Panel */}
-      {selectedContact && isProfileOpen && (
+      {selectedContact && isProfileOpen && !isMobileOrTablet && (
         <div className="hidden lg:flex flex-col h-full border-l bg-background">
           <ChatUserProfile contact={selectedContact} />
         </div>
+      )}
+
+      {/* Profile Sheet for mobile/tablet */}
+      {selectedContact && isMobileOrTablet && (
+         <Sheet open={isProfileOpen} onOpenChange={onToggleProfile}>
+            <SheetContent className="p-0 w-full max-w-sm">
+                <ChatUserProfile contact={selectedContact} />
+            </SheetContent>
+         </Sheet>
       )}
     </div>
   );
