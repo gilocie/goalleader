@@ -46,14 +46,14 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
             {content.length > 0 ? (
                 content.map((item, index) => (
                     <Card key={index} className="flex flex-col">
-                        <CardHeader>
-                            <CardTitle className="text-lg line-clamp-2">{item.blogTitle}</CardTitle>
+                        <CardHeader className='p-4'>
+                            <CardTitle className="text-lg line-clamp-2 text-primary">{item.blogTitle}</CardTitle>
                             <CardDescription>
                                 Approved on: {format(approvedDate, 'PPP')}
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="flex-grow" />
-                        <CardFooter className="flex justify-between">
+                        <CardContent className="flex-grow p-4" />
+                        <CardFooter className="flex justify-between p-4 pt-0">
                             <div className="flex gap-2">
                                 <Button variant="outline">
                                     <Eye className="mr-2 h-4 w-4" /> View
