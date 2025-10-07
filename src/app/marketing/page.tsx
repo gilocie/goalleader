@@ -75,16 +75,11 @@ export default function MarketingPage() {
                     <CardTitle>GoalLeader Content</CardTitle>
                     <CardDescription>Let GoalLeader help your sales team create compelling marketing content.</CardDescription>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                     <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50 border">
-                        <Logo className="h-12 w-12 text-primary" />
-                        <h3 className="font-semibold">Generate Marketing Content</h3>
-                        <p className="text-muted-foreground max-w-md">
-                            Effortlessly create blog posts, social media updates, and email newsletters.
-                        </p>
+                  <CardContent className="space-y-6">
+                    <div className="flex justify-start">
                         <Button onClick={() => setGenerateDialogOpen(true)}>
                             <Bot className="mr-2 h-4 w-4" />
-                            Use GoalLeader
+                            Use GoalLeader to Generate Content
                         </Button>
                     </div>
                     <ApprovedContentActions content={approvedContent} onContentDeleted={handleContentDeleted} />
