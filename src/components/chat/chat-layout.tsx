@@ -8,6 +8,9 @@ import { useChat } from '@/context/chat-context';
 import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '../layout/sidebar';
+import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { User } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -52,13 +55,24 @@ export function ChatLayout({
       {/* Main Chat Area */}
       {selectedContact && self ? (
          <div className="col-span-full lg:col-span-1 flex flex-col">
-          <ChatMessages
+           <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
             onExitChat={() => onSelectContact(null)}
             onSendMessage={onSendMessage}
             onDeleteMessage={onDeleteMessage}
-          />
+          >
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <User className="h-4 w-4" />
+                    </Button>
+                </SheetTrigger>
+                <SheetContent className="p-0">
+                    <ChatUserProfile contact={selectedContact} />
+                </SheetContent>
+            </Sheet>
+          </ChatMessages>
         </div>
       ) : (
         <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30">

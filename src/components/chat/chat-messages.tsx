@@ -2,10 +2,10 @@
 
 'use client';
 
-import { Card, CardHeader } from '@/components/ui/card';
+import { CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X, Reply, Forward, Plus, User } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X, Reply, Forward, Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -26,8 +26,6 @@ import { useChat } from '@/context/chat-context';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
-import { ChatUserProfile } from './chat-user-profile';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -98,9 +96,10 @@ interface ChatMessagesProps {
   onExitChat?: () => void;
   onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
   onDeleteMessage: (messageId: string) => void;
+  children?: React.ReactNode;
 }
 
-export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage }: ChatMessagesProps) {
+export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, children }: ChatMessagesProps) {
   const { self, contacts } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
@@ -136,7 +135,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         } else if (action === 'forward') {
             setForwardMessage(message);
         } else if (action === 'download') {
-            const urls = message.imageUrls || (message.imageUrl ? [message.imageUrl] : []) || (message.audioUrl ? [message.audioUrl] : []) || (message.fileUrl ? [message.fileUrl] : []);
+            const urls = message.imageUrls || (message.audioUrl ? [message.audioUrl] : []) || (message.fileUrl ? [message.fileUrl] : []);
             if (urls.length > 0) {
                 urls.forEach((url, index) => {
                      const a = document.createElement('a');
@@ -186,7 +185,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full group-hover:opacity-100 opacity-0 transition-opacity">
+            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -262,16 +261,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             <Button variant="outline" size="icon" onClick={handleVideoClick}>
               <Video className="h-4 w-4" />
             </Button>
-            <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <User className="h-4 w-4" />
-                    </Button>
-                </SheetTrigger>
-                <SheetContent className="p-0">
-                    <ChatUserProfile contact={selectedContact} />
-                </SheetContent>
-            </Sheet>
+            {children}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -296,121 +286,119 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </DropdownMenu>
           </div>
         </CardHeader>
-        <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full p-4">
-            <div className="space-y-4">
-                {messages.map((message) => {
-                const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
-                return (
-                    <div
-                        key={message.id}
-                        className={cn(
-                        'flex items-end gap-2 group',
-                        message.senderId === self.id ? 'justify-end' : 'justify-start'
-                        )}
-                    >
-                        {message.senderId !== self.id && (
-                        <Avatar className="h-8 w-8 self-end">
-                            <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
-                            <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
-                        </Avatar>
-                        )}
+        <ScrollArea className="flex-1 p-4">
+          <div className="space-y-4">
+              {messages.map((message) => {
+              const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
+              return (
+                  <div
+                      key={message.id}
+                      className={cn(
+                      'flex items-end gap-2 group',
+                      message.senderId === self.id ? 'justify-end' : 'justify-start'
+                      )}
+                  >
+                      {message.senderId !== self.id && (
+                      <Avatar className="h-8 w-8 self-end">
+                          <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} data-ai-hint={contactAvatar?.imageHint} />
+                          <AvatarFallback>{selectedContact.name.slice(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      )}
 
-                        <div
-                            className={cn(
-                                'flex items-center gap-1',
-                                message.senderId === self.id ? 'flex-row-reverse' : 'flex-row'
-                            )}
-                        >
-                            <div className="self-center">
-                                <MessageActions message={message} />
-                            </div>
+                      <div
+                          className={cn(
+                              'flex items-center gap-1',
+                              message.senderId === self.id ? 'flex-row-reverse' : 'flex-row'
+                          )}
+                      >
+                          <div className="self-center">
+                              <MessageActions message={message} />
+                          </div>
 
-                            <div
-                                className={cn(
-                                    'max-w-[70%] rounded-lg text-sm overflow-hidden relative', 
-                                    message.senderId === self.id
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-muted'
-                                )}
-                            >
-                                {originalMessage && (
-                                    <div className={cn(
-                                        "p-2 text-xs border-b",
-                                        message.senderId === self.id ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50'
-                                    )}>
-                                        <p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p>
-                                        <p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p>
-                                    </div>
-                                )}
-                                {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
-                                    <div className="p-1">
-                                        <div className="grid grid-cols-2 gap-1">
-                                            {message.imageUrls.slice(0, 4).map((url, index) => {
-                                                const remainingImages = message.imageUrls!.length - 4;
-                                                if (index === 3 && remainingImages > 0) {
-                                                    return (
-                                                        <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-32 h-32 block cursor-pointer overflow-hidden rounded-md group/more">
-                                                            <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover transition-all group-hover/more:brightness-50" />
-                                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white">
-                                                                <Plus className="h-6 w-6" />
-                                                                <span className="text-xl font-bold">{remainingImages}</span>
-                                                            </div>
-                                                        </button>
-                                                    )
-                                                }
-                                                return (
-                                                    <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-32 h-32 block cursor-pointer overflow-hidden rounded-md">
-                                                        <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                        {message.content && (
-                                            <div className="p-3 pt-2">
-                                                <p className="whitespace-pre-wrap">{message.content}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
-                                    <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
-                                ) : message.type === 'file' && message.fileName && message.fileUrl ? (
-                                    <div className="p-3">
-                                        <div className="flex items-center gap-3">
-                                        <FileIcon className="h-8 w-8" />
-                                        <div className="flex-1">
-                                            <p className="font-medium truncate">{message.fileName}</p>
-                                        </div>
-                                        <a href={message.fileUrl} download={message.fileName}>
-                                            <Download className="h-5 w-5" />
-                                        </a>
-                                        </div>
-                                    </div>
-                                ) : null}
-                                
-                                {message.content && message.type === 'text' && (
-                                    <div className="p-3">
-                                    <p className="whitespace-pre-wrap">{message.content}</p>
-                                    </div>
-                                )}
-                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                                    <span>{message.timestamp}</span>
-                                    {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
-                                </div>
-                            </div>
-                        </div>
+                          <div
+                              className={cn(
+                                  'max-w-[70%] rounded-lg text-sm overflow-hidden relative', 
+                                  message.senderId === self.id
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted'
+                              )}
+                          >
+                              {originalMessage && (
+                                  <div className={cn(
+                                      "p-2 text-xs border-b",
+                                      message.senderId === self.id ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50'
+                                  )}>
+                                      <p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p>
+                                      <p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p>
+                                  </div>
+                              )}
+                              {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
+                                  <div className="p-1">
+                                      <div className="grid grid-cols-2 gap-1">
+                                          {message.imageUrls.slice(0, 4).map((url, index) => {
+                                              const remainingImages = message.imageUrls!.length - 4;
+                                              if (index === 3 && remainingImages > 0) {
+                                                  return (
+                                                      <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-32 h-32 block cursor-pointer overflow-hidden rounded-md group/more">
+                                                          <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover transition-all group-hover/more:brightness-50" />
+                                                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white">
+                                                              <Plus className="h-6 w-6" />
+                                                              <span className="text-xl font-bold">{remainingImages}</span>
+                                                          </div>
+                                                      </button>
+                                                  )
+                                              }
+                                              return (
+                                                  <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-32 h-32 block cursor-pointer overflow-hidden rounded-md">
+                                                      <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
+                                                  </button>
+                                              )
+                                          })}
+                                      </div>
+                                      {message.content && (
+                                          <div className="p-3 pt-2">
+                                              <p className="whitespace-pre-wrap">{message.content}</p>
+                                          </div>
+                                      )}
+                                  </div>
+                              ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
+                                  <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
+                              ) : message.type === 'file' && message.fileName && message.fileUrl ? (
+                                  <div className="p-3">
+                                      <div className="flex items-center gap-3">
+                                      <FileIcon className="h-8 w-8" />
+                                      <div className="flex-1">
+                                          <p className="font-medium truncate">{message.fileName}</p>
+                                      </div>
+                                      <a href={message.fileUrl} download={message.fileName}>
+                                          <Download className="h-5 w-5" />
+                                      </a>
+                                      </div>
+                                  </div>
+                              ) : null}
+                              
+                              {message.content && message.type === 'text' && (
+                                  <div className="p-3">
+                                  <p className="whitespace-pre-wrap">{message.content}</p>
+                                  </div>
+                              )}
+                              <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                                  <span>{message.timestamp}</span>
+                                  {message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}
+                              </div>
+                          </div>
+                      </div>
 
-                        {message.senderId === self.id && (
-                        <Avatar className="h-8 w-8 self-end">
-                            <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
-                            <AvatarFallback>U</AvatarFallback>
-                        </Avatar>
-                        )}
-                    </div>
-                )})}
-            </div>
-            </ScrollArea>
-        </div>
+                      {message.senderId === self.id && (
+                      <Avatar className="h-8 w-8 self-end">
+                          <AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={selfAvatar?.imageHint} />
+                          <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                      )}
+                  </div>
+              )})}
+          </div>
+        </ScrollArea>
         <div className="p-4 border-t flex-shrink-0">
           <ChatInput
             onSendMessage={handleSendMessageWithContext}
