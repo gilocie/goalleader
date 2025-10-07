@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -23,8 +22,8 @@ export default function MarketingPage() {
 
   return (
     <AppLayout>
-      <main className="flex-grow p-4 md:p-8 overflow-x-hidden">
-        <Card>
+      <main className="flex-grow p-4 md:p-8">
+        <Card className="overflow-x-hidden">
           <CardHeader>
             <CardTitle>Marketing Hub</CardTitle>
             <CardDescription>
@@ -38,7 +37,8 @@ export default function MarketingPage() {
                 <TabsTrigger value="content">Use GoalLeader</TabsTrigger>
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
               </TabsList>
-              <TabsContent value="leads" className="overflow-x-hidden">
+              {/* THE ONLY CHANGE IS HERE: removed className="overflow-x-hidden" */}
+              <TabsContent value="leads">
                 <ClientLeadsTable />
               </TabsContent>
               <TabsContent value="content">
