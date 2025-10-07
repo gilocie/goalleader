@@ -259,7 +259,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     message.senderId === self.id
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted',
-                     message.type === 'image' && 'p-1 border border-border bg-card-foreground/10'
+                     message.type === 'image' && 'p-1 border border-border bg-primary'
                   )}
                 >
                    <div className={cn(message.type === 'image' && 'relative w-64 h-48 block cursor-pointer')}>
@@ -286,7 +286,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                   {message.content && (
                     <div className={cn(
                         "p-3",
-                        message.type === 'image' && "text-primary-foreground"
+                        message.type === 'image' && "text-primary"
                     )}>
                       <p className="whitespace-pre-wrap">{message.content}</p>
                     </div>
