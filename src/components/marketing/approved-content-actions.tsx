@@ -45,7 +45,24 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
             {content.length > 0 ? (
                 content.map((item, index) => (
-                    <Card key={index} className="flex flex-col p-4 shadow-md hover:shadow-lg transition-shadow">
+                    <Card key={index} className="flex flex-col p-4 shadow-md hover:shadow-lg transition-shadow relative">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem
+                                    className="text-destructive"
+                                    onClick={() => handleDelete(item.blogTitle)}
+                                >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <CardHeader className='p-4'>
                             <CardTitle className="text-lg line-clamp-2 text-primary">{item.blogTitle}</CardTitle>
                             <CardDescription>
@@ -62,23 +79,6 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
                                     <Send className="mr-2 h-4 w-4" /> Send
                                 </Button>
                             </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="hover:bg-primary hover:text-primary-foreground">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                    <DropdownMenuItem
-                                        className="text-destructive"
-                                        onClick={() => handleDelete(item.blogTitle)}
-                                    >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
                         </CardFooter>
                     </Card>
                 ))
