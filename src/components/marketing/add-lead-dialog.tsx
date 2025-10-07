@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import type { Lead } from '@/lib/client-leads';
 
 const leadSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -32,7 +33,7 @@ type LeadFormValues = z.infer<typeof leadSchema>;
 interface AddLeadDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onAddLead: (data: LeadFormValues) => void;
+  onAddLead: (data: Lead) => void;
 }
 
 export function AddLeadDialog({ isOpen, onOpenChange, onAddLead }: AddLeadDialogProps) {

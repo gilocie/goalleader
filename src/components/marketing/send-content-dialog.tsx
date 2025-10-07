@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { MultiSelectCombobox } from '@/components/meetings/multi-select-combobox';
 import { Label } from '../ui/label';
 import { ScrollArea } from '../ui/scroll-area';
-import { allUsers } from '@/lib/users';
+import { clientLeadsForCombobox } from '@/lib/client-leads';
 import type { Suggestion } from '@/types/marketing';
 import { useToast } from '@/hooks/use-toast';
 import { Send } from 'lucide-react';
@@ -76,7 +76,7 @@ export function SendContentDialog({
             <div className="space-y-2">
                 <Label>Recipients</Label>
                 <MultiSelectCombobox 
-                    options={allUsers}
+                    options={clientLeadsForCombobox}
                     selected={recipients}
                     onChange={setRecipients}
                     placeholder="Select clients..."
