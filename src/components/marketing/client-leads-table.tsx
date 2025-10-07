@@ -13,19 +13,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, MoreHorizontal, Mail, Phone } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Mail, Phone, User } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddLeadDialog } from './add-lead-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
 
 const initialLeads = [
-  { name: 'Sophia Davis', company: 'Innovate Inc.', email: 'sophia@innovate.com', phone: '+1-202-555-0182', service: 'UX/UI Design', status: 'New' },
-  { name: 'Liam Martinez', company: 'Quantum Solutions', email: 'liam@quantum.com', phone: '+1-305-555-0121', service: 'Frontend Dev', status: 'Contacted' },
-  { name: 'Charlotte Rodriguez', company: 'Apex Enterprises', email: 'charlotte@apex.com', phone: '+1-415-555-0156', service: 'Backend Dev', status: 'Qualified' },
-  { name: 'Noah Garcia', company: 'Synergy Corp', email: 'noah@synergy.com', phone: '+1-212-555-0199', service: 'QA Testing', status: 'Proposal Sent' },
-  { name: 'Amelia Hernandez', company: 'Stellar Systems', email: 'amelia@stellar.com', phone: '+1-773-555-0112', service: 'Cloud Services', status: 'Negotiation' },
-  { name: 'Oliver Wilson', company: 'Pinnacle Group', email: 'oliver@pinnacle.com', phone: '+1-650-555-0143', service: 'UX/UI Design', status: 'New' },
+  { name: 'Sophia Davis', company: 'Innovate Inc.', email: 'sophia@innovate.com', phone: '+265 99 123 4567', service: 'UX/UI Design', status: 'New' },
+  { name: 'Liam Martinez', company: 'Quantum Solutions', email: 'liam@quantum.com', phone: '+265 88 234 5678', service: 'Frontend Dev', status: 'Contacted' },
+  { name: 'Charlotte Rodriguez', company: 'Apex Enterprises', email: 'charlotte@apex.com', phone: '+265 99 345 6789', service: 'Backend Dev', status: 'Qualified' },
+  { name: 'Noah Garcia', company: 'Synergy Corp', email: 'noah@synergy.com', phone: '+265 88 456 7890', service: 'QA Testing', status: 'Proposal Sent' },
+  { name: 'Amelia Hernandez', company: 'Stellar Systems', email: 'amelia@stellar.com', phone: '+265 99 567 8901', service: 'Cloud Services', status: 'Negotiation' },
+  { name: 'Oliver Wilson', company: 'Pinnacle Group', email: 'oliver@pinnacle.com', phone: '+265 88 678 9012', service: 'UX/UI Design', status: 'New' },
 ];
 
 export function ClientLeadsGrid() {
@@ -58,14 +58,17 @@ export function ClientLeadsGrid() {
 
         <CardContent>
           <ScrollArea className="h-[450px] w-full p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
               {leads.map((lead, index) => (
                 <Card key={index} className="flex flex-col bg-primary text-primary-foreground rounded-lg shadow-lg hover:shadow-xl transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                        <div>
-                            <CardTitle className="text-xl">{lead.name}</CardTitle>
-                            <CardDescription className="text-primary-foreground/80">{lead.company}</CardDescription>
+                        <div className='flex items-center gap-3'>
+                            <User className="h-6 w-6 text-primary-foreground/80" />
+                            <div>
+                                <CardTitle className="text-xl">{lead.name}</CardTitle>
+                                <CardDescription className="text-primary-foreground/80">{lead.company}</CardDescription>
+                            </div>
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
