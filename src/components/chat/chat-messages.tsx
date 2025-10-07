@@ -182,7 +182,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     const hasAttachment = message.type === 'image' || message.type === 'file' || message.type === 'audio';
 
     return (
-      <div className="transition-opacity opacity-0 group-hover:opacity-100">
+      <div className={cn("transition-opacity", message.type === 'text' ? 'opacity-0 group-hover:opacity-100' : 'opacity-100')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full">
@@ -305,7 +305,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     </Avatar>
                     )}
 
-                    {message.senderId === self.id && <MessageActions message={message} />}
+                    {message.senderId === self.id && message.type === 'text' && <MessageActions message={message} />}
 
                     <div
                     className={cn(
@@ -325,13 +325,16 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                         </div>
                     )}
                     {message.type === 'image' && message.imageUrls ? (
-                         <div className="p-2">
+                         <div className="p-2 relative group/image-grid">
                              <div className="grid grid-cols-2 gap-1">
                                 {message.imageUrls.map((url, index) => (
-                                    <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-full block cursor-pointer overflow-hidden rounded-md">
+                                    <button key={index} onClick={() => handleImageClick(url)} className="relative aspect-square w-24 h-24 block cursor-pointer overflow-hidden rounded-md">
                                         <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className="object-cover" />
                                     </button>
                                 ))}
+                            </div>
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover/image-grid:opacity-100 transition-opacity">
+                                <MessageActions message={message} />
                             </div>
                          </div>
                     ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
@@ -351,7 +354,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     ) : null}
                     
                     {message.content && (
-                         <div className={cn("p-3", message.type === 'image' && message.senderId === self.id ? 'text-primary-foreground' : (message.type === 'image' ? 'text-primary' : ''))}>
+                         <div className={cn("p-3", message.type === 'image' && message.content ? 'pt-1' : '')}>
                            <p className="whitespace-pre-wrap">{message.content}</p>
                         </div>
                     )}
