@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -10,19 +11,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AddLeadDialog } from './add-lead-dialog';
 import { ScrollArea } from '../ui/scroll-area';
 
 type LeadStatus = 'New' | 'Contacted' | 'Qualified' | 'Lost';
@@ -55,105 +46,45 @@ const statusStyles: Record<LeadStatus, string> = {
 }
 
 export function ClientLeadsTable() {
-  const [leads, setLeads] = useState<Lead[]>(initialLeads);
-  const [isAddLeadOpen, setAddLeadOpen] = useState(false);
-
-  const handleAddLead = (newLead: Omit<Lead, 'id' | 'status'>) => {
-    const leadToAdd: Lead = {
-      ...newLead,
-      id: `lead-${Date.now()}`,
-      status: 'New',
-    };
-    setLeads([leadToAdd, ...leads]);
-    setAddLeadOpen(false);
-  }
+  const [leads] = useState<Lead[]>(initialLeads);
 
   return (
-    <>
     <Card>
-      <CardHeader className='flex flex-row items-center justify-between'>
-        <div>
-            <CardTitle>Client Leads</CardTitle>
-            <CardDescription>Manage promotional materials and leads.</CardDescription>
-        </div>
-        <Button onClick={() => setAddLeadOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Lead
-        </Button>
+      <CardHeader>
+        <CardTitle>Client Leads</CardTitle>
+        <CardDescription>Manage promotional materials and leads.</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-2 mb-4">
-            <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search leads..." className="w-full pl-8" />
-            </div>
-            <Select>
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="contacted">Contacted</SelectItem>
-                    <SelectItem value="qualified">Qualified</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
-                </SelectContent>
-            </Select>
-        </div>
-        <ScrollArea className="h-[400px] w-full">
-            <Table>
+        <ScrollArea className="h-[400px] w-full border rounded-md">
+          <Table>
             <TableHeader>
-                <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>
-                        <span className="sr-only">Actions</span>
-                    </TableHead>
-                </TableRow>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Company</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Service</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
-                {leads.map((lead) => (
+              {leads.map((lead) => (
                 <TableRow key={lead.id}>
-                    <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
-                    <TableCell className="whitespace-nowrap">{lead.company}</TableCell>
-                    <TableCell>
-                        <div className="text-sm whitespace-nowrap">{lead.email}</div>
-                        <div className="text-xs text-muted-foreground whitespace-nowrap">{lead.phone}</div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">{lead.service}</TableCell>
-                    <TableCell>
-                        <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Send Email</DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Contacted</DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Qualified</DropdownMenuItem>
-                        </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
+                  <TableCell className="whitespace-nowrap">{lead.company}</TableCell>
+                  <TableCell>
+                    <div className="text-sm whitespace-nowrap">{lead.email}</div>
+                    <div className="text-xs text-muted-foreground whitespace-nowrap">{lead.phone}</div>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap">{lead.service}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
+                  </TableCell>
                 </TableRow>
-                ))}
+              ))}
             </TableBody>
-            </Table>
+          </Table>
         </ScrollArea>
       </CardContent>
     </Card>
-    <AddLeadDialog 
-        isOpen={isAddLeadOpen}
-        onOpenChange={setAddLeadOpen}
-        onAddLead={handleAddLead}
-    />
-    </>
   );
 }
