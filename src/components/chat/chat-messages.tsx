@@ -200,17 +200,17 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
               )}
               <div
                 className={cn(
-                  'max-w-[70%] rounded-lg p-0 text-sm',
+                  'max-w-[70%] rounded-lg text-sm overflow-hidden',
                   message.senderId === self.id
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted rounded-bl-none',
-                  message.type === 'text' && 'p-3',
+                  message.type !== 'image' && 'p-0',
                 )}
               >
                 {message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
                     <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
                 ) : message.type === 'image' && message.imageUrl ? (
-                    <div className="relative w-64 h-48 rounded-lg overflow-hidden">
+                    <div className="relative w-64 h-48">
                         <Image src={message.imageUrl} alt="attached image" layout="fill" className="object-cover" />
                     </div>
                 ) : message.type === 'file' && message.fileName && message.fileUrl ? (
@@ -226,7 +226,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                       </div>
                     </div>
                 ) : (
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <p className="whitespace-pre-wrap p-3">{message.content}</p>
                 )}
                  <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 p-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
                     <span>{message.timestamp}</span>

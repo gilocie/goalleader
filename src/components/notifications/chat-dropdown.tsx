@@ -6,14 +6,14 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuLabel,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuItem
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { useChat } from "@/context/chat-context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { DropdownMenuItem } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { Contact } from "@/types/chat";
