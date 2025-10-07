@@ -29,13 +29,15 @@ import { Input } from '../ui/input';
 interface SendContentDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  selectedContent: Suggestion[];
+  selectedContent: Suggestion | null;
+  onSchedule: (updatedContent: Suggestion) => void;
 }
 
 export function SendContentDialog({
   isOpen,
   onOpenChange,
   selectedContent,
+  onSchedule,
 }: SendContentDialogProps) {
   const [recipients, setRecipients] = useState<string[]>([]);
   const [sendToAll, setSendToAll] = useState(false);
@@ -45,22 +47,38 @@ export function SendContentDialog({
   const { toast } = useToast();
 
   const handleSend = () => {
-    const finalRecipients = sendToAll ? clientLeadsForCombobox.map(c => c.label) : recipients;
-    // In a real app, this would trigger an email or other notification service.
-    console.log({
-      content: selectedContent.map(c => c.blogTitle),
-      recipients: finalRecipients,
-      scheduled: schedule ? `${format(date!, 'PPP')} at ${time}` : 'Now',
-    });
+    if (!selectedContent) return;
 
-    const description = schedule
-      ? `Your content has been scheduled to be sent to ${finalRecipients.length} client(s) on ${format(date!, 'PPP')} at ${time}.`
-      : `Your selected marketing materials have been sent to ${finalRecipients.length} client(s).`;
+    const finalRecipients = sendToAll ? clientLeadsForCombobox.map(c => c.value) : recipients;
+    
+    if (schedule && date) {
+        const [hours, minutes] = time.split(':').map(Number);
+        const scheduledDate = new Date(date);
+        scheduledDate.setHours(hours, minutes);
 
-    toast({
-        title: schedule ? "Content Scheduled!" : "Content Sent!",
-        description,
-    });
+        onSchedule({
+            ...selectedContent,
+            scheduledAt: scheduledDate.toISOString(),
+            recipients: finalRecipients,
+        });
+
+        toast({
+            title: "Content Scheduled!",
+            description: `Your content has been scheduled to be sent to ${finalRecipients.length} client(s) on ${format(scheduledDate, 'PPP')} at ${time}.`
+        });
+
+    } else {
+        console.log({
+            content: selectedContent.blogTitle,
+            recipients: finalRecipients,
+            scheduled: 'Now',
+        });
+        toast({
+            title: "Content Sent!",
+            description: `Your selected marketing materials have been sent to ${finalRecipients.length} client(s).`,
+        });
+    }
+
     onOpenChange(false);
   };
   
@@ -90,7 +108,7 @@ export function SendContentDialog({
                 <Label>Selected Content</Label>
                 <div className="h-24 rounded-md border p-2">
                     <ul className="list-disc pl-5 text-sm text-muted-foreground">
-                        {selectedContent.map(c => <li key={c.blogTitle}>{c.blogTitle}</li>)}
+                        {selectedContent && <li>{selectedContent.blogTitle}</li>}
                     </ul>
                 </div>
             </div>

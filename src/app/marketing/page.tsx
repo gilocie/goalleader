@@ -29,15 +29,13 @@ export default function MarketingPage() {
   }, []);
 
   const handleApproveContent = (content: Suggestion) => {
-    setApprovedContent(prev => {
-      const newContent = [content, ...prev];
-      try {
-        localStorage.setItem('approvedMarketingContent', JSON.stringify(newContent));
-      } catch (error) {
-        console.error("Failed to save approved content to localStorage", error);
-      }
-      return newContent;
-    });
+    const newContent = [content, ...approvedContent];
+    try {
+      localStorage.setItem('approvedMarketingContent', JSON.stringify(newContent));
+      setApprovedContent(newContent);
+    } catch (error) {
+      console.error("Failed to save approved content to localStorage", error);
+    }
   };
 
   const handleContentDeleted = (updatedContent: Suggestion[]) => {
@@ -47,6 +45,18 @@ export default function MarketingPage() {
       } catch (error) {
         console.error("Failed to save approved content to localStorage", error);
       }
+  }
+
+  const handleContentUpdated = (updatedContent: Suggestion) => {
+    const newContent = approvedContent.map(c => 
+      c.blogTitle === updatedContent.blogTitle ? updatedContent : c
+    );
+    setApprovedContent(newContent);
+    try {
+        localStorage.setItem('approvedMarketingContent', JSON.stringify(newContent));
+    } catch (error) {
+        console.error("Failed to update approved content in localStorage", error);
+    }
   }
 
   return (
@@ -82,7 +92,11 @@ export default function MarketingPage() {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <ApprovedContentActions content={approvedContent} onContentDeleted={handleContentDeleted} />
+                    <ApprovedContentActions 
+                      content={approvedContent} 
+                      onContentDeleted={handleContentDeleted}
+                      onContentUpdated={handleContentUpdated}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>
