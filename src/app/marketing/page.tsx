@@ -52,7 +52,7 @@ export default function MarketingPage() {
                         <Logo className="h-12 w-12 text-primary" />
                         <h3 className="font-semibold">Generate Marketing Content</h3>
                         <p className="text-muted-foreground max-w-md">
-                            Create engaging blog posts, social media updates, and email newsletters effortlessly. Our AI will help you craft the perfect message.
+                            Effortlessly create blog posts, social media updates, and email newsletters with our AI.
                         </p>
                         <Button onClick={() => setGenerateDialogOpen(true)}>
                             <Bot className="mr-2 h-4 w-4" />
