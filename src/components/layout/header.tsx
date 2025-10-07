@@ -59,7 +59,7 @@ export function Header() {
       <Sheet>
         <SheetTrigger asChild>
           <Button
-            variant="outline"
+            variant="default"
             size="icon"
             className="shrink-0 md:hidden"
           >
