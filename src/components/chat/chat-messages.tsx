@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardHeader } from '@/components/ui/card';
@@ -122,6 +123,36 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     setSelectedImageUrl(imageUrl);
     setImageViewerOpen(true);
   };
+  
+    const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
+        if (action === 'download') {
+            const url = message.imageUrl || message.audioUrl || message.fileUrl;
+            if (url) {
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = message.fileName || `download-${message.id}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                toast({
+                    title: "Downloading...",
+                    description: "Your file has started downloading.",
+                });
+            } else {
+                 toast({
+                    variant: 'destructive',
+                    title: "Download failed",
+                    description: "No downloadable content found for this message.",
+                });
+            }
+        } else {
+            toast({
+                title: `Action: ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+                description: `This feature is not yet implemented.`,
+            });
+        }
+    };
+
 
   if (!self) {
     return null; // Or a loading state
@@ -140,16 +171,16 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align={isSelf ? "end" : "start"}>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAction('reply', message)}>
               <Reply className="mr-2 h-4 w-4" />
               <span>Reply</span>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleAction('forward', message)}>
               <Forward className="mr-2 h-4 w-4" />
               <span>Forward</span>
             </DropdownMenuItem>
             {hasAttachment && (
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAction('download', message)}>
                 <Download className="mr-2 h-4 w-4" />
                 <span>Download</span>
               </DropdownMenuItem>
@@ -259,7 +290,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     message.senderId === self.id
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted',
-                     message.type === 'image' && 'p-1 border bg-primary'
+                     message.type === 'image' && 'p-1 border border-border bg-primary'
                   )}
                 >
                    <div className={cn(message.type === 'image' && 'relative w-64 h-48 block cursor-pointer')}>
