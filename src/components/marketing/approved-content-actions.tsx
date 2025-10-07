@@ -48,7 +48,7 @@ export function ApprovedContentActions({ content, onContentDeleted }: ApprovedCo
                     <Card key={index} className="flex flex-col p-4 shadow-md hover:shadow-lg transition-shadow relative">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="absolute top-2 right-2 hover:bg-primary hover:text-primary-foreground">
+                                <Button variant="default" size="icon" className="absolute top-2 right-2 h-8 w-8">
                                     <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
