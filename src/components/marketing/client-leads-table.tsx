@@ -32,15 +32,17 @@ type Lead = {
   name: string;
   company: string;
   email: string;
+  phone: string;
+  service: string;
   status: LeadStatus;
 };
 
 const initialLeads: Lead[] = [
-  { id: 'lead-1', name: 'Sophia Davis', company: 'Innovate Inc.', email: 'sophia.davis@innovate.com', status: 'New' },
-  { id: 'lead-2', name: 'Liam Martinez', company: 'Solutions Co.', email: 'liam.martinez@solutions.co', status: 'Contacted' },
-  { id: 'lead-3', name: 'Olivia Garcia', company: 'Quantum Tech', email: 'olivia.garcia@quantum.tech', status: 'Qualified' },
-  { id: 'lead-4', name: 'Noah Rodriguez', company: 'Synergy Corp', email: 'noah.rodriguez@synergy.com', status: 'New' },
-  { id: 'lead-5', name: 'Emma Wilson', company: 'Apex Enterprises', email: 'emma.wilson@apex.com', status: 'Lost' },
+  { id: 'lead-1', name: 'Sophia Davis', company: 'Innovate Inc.', email: 'sophia.davis@innovate.com', phone: '+1-202-555-0182', service: 'UX/UI Design', status: 'New' },
+  { id: 'lead-2', name: 'Liam Martinez', company: 'Solutions Co.', email: 'liam.martinez@solutions.co', phone: '+1-310-555-0134', service: 'Backend Dev', status: 'Contacted' },
+  { id: 'lead-3', name: 'Olivia Garcia', company: 'Quantum Tech', email: 'olivia.garcia@quantum.tech', phone: '+1-415-555-0199', service: 'Frontend Dev', status: 'Qualified' },
+  { id: 'lead-4', name: 'Noah Rodriguez', company: 'Synergy Corp', email: 'noah.rodriguez@synergy.com', phone: '+1-212-555-0155', service: 'QA Testing', status: 'New' },
+  { id: 'lead-5', name: 'Emma Wilson', company: 'Apex Enterprises', email: 'emma.wilson@apex.com', phone: '+1-773-555-0112', service: 'Cloud Services', status: 'Lost' },
 ];
 
 const statusStyles: Record<LeadStatus, string> = {
@@ -100,7 +102,8 @@ export function ClientLeadsTable() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Company</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Service</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
@@ -112,7 +115,11 @@ export function ClientLeadsTable() {
               <TableRow key={lead.id}>
                 <TableCell className="font-medium">{lead.name}</TableCell>
                 <TableCell>{lead.company}</TableCell>
-                <TableCell>{lead.email}</TableCell>
+                <TableCell>
+                    <div className="text-sm">{lead.email}</div>
+                    <div className="text-xs text-muted-foreground">{lead.phone}</div>
+                </TableCell>
+                <TableCell>{lead.service}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={statusStyles[lead.status]}>{lead.status}</Badge>
                 </TableCell>
