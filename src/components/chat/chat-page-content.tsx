@@ -34,7 +34,7 @@ export function ChatPageContent() {
   }
 
   return (
-    <div className="flex-1 w-full overflow-hidden md:max-h-[490px]">
+    <div className="flex-1 w-full overflow-hidden md:max-h-[360px]">
       <ChatLayout
         contacts={contacts}
         messages={contactMessages}
