@@ -95,6 +95,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         return;
     }
     
+    if (content.toLowerCase().includes('voice chat')) {
+        setTimeout(() => {
+            const caller = allContacts.find(c => c.id === recipientId);
+            if (caller) {
+                setIncomingVoiceCallFrom(caller);
+            }
+        }, 2000);
+        return;
+    }
+    
     setTimeout(() => {
         setIsTyping(true);
         // Mark as delivered
