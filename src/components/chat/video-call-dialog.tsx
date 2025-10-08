@@ -130,7 +130,11 @@ const DraggableFrame = ({
        {isMain && callStatus !== 'connected' && (
         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-40">
           <p className="text-2xl font-semibold tracking-wide capitalize">
-            {callStatus}
+            {callStatus === 'connecting'
+              ? 'Calling...'
+              : callStatus === 'ringing'
+              ? 'Ringing...'
+              : 'Connecting...'}
           </p>
         </div>
       )}
@@ -280,33 +284,32 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   // ---- Camera and mic setup ----
   useEffect(() => {
-    if (!isOpen) {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-      return;
-    }
-
     const getMedia = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true
-        });
-        streamRef.current = stream;
-      } catch {
-        toast({
-          variant: 'destructive',
-          title: 'Media Access Denied',
-          description: 'Please allow camera and microphone access.'
-        });
-        onClose();
+      if (isOpen) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+          });
+          streamRef.current = stream;
+        } catch {
+          toast({
+            variant: 'destructive',
+            title: 'Media Access Denied',
+            description: 'Please allow camera and microphone access.'
+          });
+          onClose();
+        }
       }
     };
 
     getMedia();
 
     return () => {
-      streamRef.current?.getTracks().forEach((track) => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
     };
   }, [isOpen, onClose, toast]);
 
