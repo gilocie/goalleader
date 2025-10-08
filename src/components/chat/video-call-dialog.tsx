@@ -80,8 +80,8 @@ const DraggableFrame = ({
   };
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
+    if (videoRef.current) {
+        videoRef.current.srcObject = stream;
     }
   }, [stream, videoRef]);
 
@@ -237,21 +237,21 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [callStatus, setCallStatus] = useState<'connecting' | 'ringing' | 'connected'>('connecting');
 
 
-  const [selfFrame, setSelfFrame] = useState<DraggableState>({
+  const [mainFrame, setMainFrame] = useState<DraggableState>({
     position: { x: 0, y: 0 },
     size: { width: 640, height: 480 },
     isDragging: false
   });
 
-  const [contactFrame, setContactFrame] = useState<DraggableState>({
-    position: { x: 20, y: 20 },
+  const [pipFrame, setPipFrame] = useState<DraggableState>({
+    position: { x: 0, y: 0 },
     size: { width: 192, height: 144 },
     isDragging: false
   });
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null); // We don't have a stream for contact, so this won't be used for video
+  const contactVideoRef = useRef<HTMLVideoElement>(null); 
   const streamRef = useRef<MediaStream | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -321,32 +321,34 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     useEffect(() => {
     const container = videoContainerRef.current;
     if (container) {
-      const centerMainFrame = () => {
+      const centerFrames = () => {
         const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
         
-        setSelfFrame(prev => ({
+        setMainFrame(prev => ({
           ...prev,
           position: {
             x: (containerWidth - prev.size.width) / 2,
             y: (containerHeight - prev.size.height) / 2
           }
         }));
-
-        // Attach PiP to top left of main frame
-        setContactFrame(prev => ({
-          ...prev,
-          position: {
-            x: (containerWidth - selfFrame.size.width) / 2,
-            y: (containerHeight - selfFrame.size.height) / 2
-          }
-        }))
       };
 
-      centerMainFrame();
-      window.addEventListener('resize', centerMainFrame);
-      return () => window.removeEventListener('resize', centerMainFrame);
+      centerFrames();
+      window.addEventListener('resize', centerFrames);
+      return () => window.removeEventListener('resize', centerFrames);
     }
-  }, [selfFrame.size, isOpen]);
+  }, [mainFrame.size, isOpen]);
+
+  useEffect(() => {
+      setPipFrame(prev => ({
+          ...prev,
+          position: {
+              x: mainFrame.position.x,
+              y: mainFrame.position.y
+          }
+      }))
+  }, [mainFrame.position]);
+
 
   const toggleMic = () => {
     streamRef.current?.getAudioTracks().forEach((track) => {
@@ -362,11 +364,11 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   // ---- Drag setup ----
   const handleDragStart = (
     e: React.MouseEvent<HTMLDivElement>,
-    target: 'self' | 'contact'
+    target: 'main' | 'pip'
   ) => {
     e.preventDefault();
-    const frameState = target === 'self' ? selfFrame : contactFrame;
-    const setFrame = target === 'self' ? setSelfFrame : setContactFrame;
+    const frameState = target === 'main' ? mainFrame : pipFrame;
+    const setFrame = target === 'main' ? setMainFrame : setPipFrame;
     setFrame((p) => ({ ...p, isDragging: true }));
     dragOffsetRef.current = {
       x: e.clientX - frameState.position.x,
@@ -376,24 +378,24 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const handleDrag = useCallback(
     (e: MouseEvent) => {
-      if (!selfFrame.isDragging && !contactFrame.isDragging) return;
+      if (!mainFrame.isDragging && !pipFrame.isDragging) return;
       const containerRect = videoContainerRef.current?.getBoundingClientRect();
       if (!containerRect) return;
-      const isSelfDragging = selfFrame.isDragging;
-      const targetFrame = isSelfDragging ? selfFrame : contactFrame;
-      const setTargetFrame = isSelfDragging ? setSelfFrame : setContactFrame;
+      const isMainDragging = mainFrame.isDragging;
+      const targetFrame = isMainDragging ? mainFrame : pipFrame;
+      const setTargetFrame = isMainDragging ? setMainFrame : setPipFrame;
       let newX = e.clientX - dragOffsetRef.current.x;
       let newY = e.clientY - dragOffsetRef.current.y;
       newX = Math.max(0, Math.min(newX, containerRect.width - targetFrame.size.width));
       newY = Math.max(0, Math.min(newY, containerRect.height - targetFrame.size.height));
       setTargetFrame((p) => ({ ...p, position: { x: newX, y: newY } }));
     },
-    [selfFrame, contactFrame]
+    [mainFrame, pipFrame]
   );
 
   const handleDragEnd = useCallback(() => {
-    setSelfFrame((p) => ({ ...p, isDragging: false }));
-    setContactFrame((p) => ({ ...p, isDragging: false }));
+    setMainFrame((p) => ({ ...p, isDragging: false }));
+    setPipFrame((p) => ({ ...p, isDragging: false }));
   }, []);
 
   useEffect(() => {
@@ -428,8 +430,8 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   }, []);
 
   // ---- Zoom ----
-  const handleZoom = (target: 'self' | 'contact', dir: 'in' | 'out') => {
-    const setFrame = target === 'self' ? setSelfFrame : setContactFrame;
+  const handleZoom = (target: 'main' | 'pip', dir: 'in' | 'out') => {
+    const setFrame = target === 'main' ? setMainFrame : setPipFrame;
     setFrame((p) => {
       const aspect = p.size.width / p.size.height;
       const delta = dir === 'in' ? 50 : -50;
@@ -439,8 +441,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     });
   };
 
-  const mainViewTarget = mainView === 'self' ? 'self' : 'contact';
-  const pipViewTarget = mainView === 'self' ? 'contact' : 'self';
   const mainControls = {
     toggleMic,
     isMuted,
@@ -479,7 +479,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           >
             {/* Main */}
             <DraggableFrame
-              frameState={mainView === 'self' ? selfFrame : contactFrame}
+              frameState={mainFrame}
               videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
               avatar={mainView === 'self' ? selfAvatar : contactAvatar}
               name={
@@ -488,8 +488,8 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               isMain={true}
               stream={mainView === 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
-              onDragStart={(e) => handleDragStart(e, mainViewTarget)}
-              onZoom={(dir) => handleZoom(mainViewTarget, dir)}
+              onDragStart={(e) => handleDragStart(e, 'main')}
+              onZoom={(dir) => handleZoom('main', dir)}
               mainControls={mainControls}
               isSelf={mainView === 'self'}
               callStatus={callStatus}
@@ -497,7 +497,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
             {/* PiP */}
             <DraggableFrame
-              frameState={mainView === 'self' ? contactFrame : selfFrame}
+              frameState={pipFrame}
               videoRef={mainView === 'self' ? contactVideoRef : selfVideoRef}
               avatar={mainView === 'self' ? contactAvatar : selfAvatar}
               name={
@@ -506,7 +506,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               isMain={false}
               stream={mainView !== 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
-              onDragStart={(e) => handleDragStart(e, pipViewTarget)}
+              onDragStart={(e) => handleDragStart(e, 'pip')}
               onSwap={handleSwapViews}
               isSelf={mainView !== 'self'}
               callStatus={callStatus}
