@@ -219,8 +219,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           </div>
         </CardHeader>
 
-        <div className="flex-1 overflow-auto">
-          <ScrollArea className="h-full">
+        <ScrollArea className="flex-1 overflow-auto">
             <div className="space-y-4 p-4">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
@@ -270,8 +269,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 })
               )}
             </div>
-          </ScrollArea>
-        </div>
+        </ScrollArea>
 
         <div className="p-4 border-t flex-shrink-0 bg-card">
           <ChatInput
@@ -301,3 +299,4 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
