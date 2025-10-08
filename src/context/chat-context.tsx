@@ -56,7 +56,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
   const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
   
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[2]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
   
@@ -139,7 +139,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const addSystemMessage = useCallback((content: string, contactId: string) => {
     if (!self) return;
     const systemMessage: Message = {
-        id: `sys-${Date.now()}`,
+        id: `sys-${Date.now()}-${contactId}`,
         senderId: self.id,
         recipientId: contactId,
         content,

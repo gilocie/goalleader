@@ -10,6 +10,7 @@ import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
+import { Logo } from '../icons';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -59,9 +60,9 @@ export function ChatLayout({
       </div>
 
       {/* Main Chat Area */}
-      {selectedContact && self ? (
-         <div className={cn("overflow-hidden h-full", !isMobileOrTablet || (isMobileOrTablet && selectedContact) ? 'flex flex-col' : 'hidden')}>
-           <ChatMessages
+      <div className={cn("overflow-hidden h-full", !isMobileOrTablet || (isMobileOrTablet && selectedContact) ? 'flex flex-col' : 'hidden lg:flex')}>
+        {selectedContact && self ? (
+          <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
             onExitChat={() => onSelectContact(null)}
@@ -69,12 +70,13 @@ export function ChatLayout({
             onDeleteMessage={onDeleteMessage}
             onToggleProfile={onToggleProfile}
           />
-        </div>
-      ) : (
-        <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30 h-full">
+        ) : (
+          <div className="flex-col items-center justify-center bg-muted/30 h-full hidden lg:flex">
+            <Logo className="h-20 w-20 text-primary/20 mb-4" />
             <p className="text-muted-foreground text-lg">Select a contact to start chatting</p>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Profile Panel */}
       {selectedContact && isProfileOpen && !isMobileOrTablet && (
