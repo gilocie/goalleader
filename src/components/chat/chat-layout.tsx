@@ -38,10 +38,7 @@ export function ChatLayout({
     if (isProfileOpen && !isMobileOrTablet) {
       return 'lg:grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)_minmax(280px,1fr)]';
     }
-     if (selectedContact) {
-      return 'grid-cols-1 lg:grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)]';
-    }
-    return 'grid-cols-1';
+    return 'grid-cols-1 lg:grid-cols-[minmax(280px,1.2fr)_minmax(0,3fr)]';
   }
 
   return (
@@ -50,8 +47,7 @@ export function ChatLayout({
       <div
         className={cn(
           'border-r bg-background overflow-hidden h-full',
-          selectedContact && isMobileOrTablet ? 'hidden' : 'flex flex-col',
-          !selectedContact && 'col-span-full'
+          selectedContact && isMobileOrTablet ? 'hidden' : 'flex flex-col'
         )}
       >
         <ChatContactList
@@ -63,7 +59,7 @@ export function ChatLayout({
 
       {/* Main Chat Area */}
       {selectedContact && self ? (
-         <div className={cn("overflow-hidden h-full", selectedContact ? 'flex col-span-full' : 'hidden')}>
+         <div className={cn("overflow-hidden h-full", !isMobileOrTablet || (isMobileOrTablet && selectedContact) ? 'flex flex-col' : 'hidden')}>
            <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
