@@ -26,10 +26,10 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       {/* Fixed Header */}
-      <CardHeader className="p-4 border-b flex-shrink-0">
+      <CardHeader className={cn("p-4 pl-5 border-b flex-shrink-0")}>
         <div className="flex items-center gap-4">
           <CardTitle className="text-xl">Chats</CardTitle>
-          <div className="relative flex-1">
+          <div className="relative flex-1 md:max-w-[200px]">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search..." className="w-full pl-8" />
           </div>
