@@ -5,6 +5,9 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Video, VideoOff, Phone, ScreenShare, X } from 'lucide-react';
@@ -137,6 +140,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 gap-0 bg-gray-900 text-white border-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Video Call with {contact.name}</DialogTitle>
+          <DialogDescription>A video call interface.</DialogDescription>
+        </DialogHeader>
         <div className="flex-1 relative overflow-hidden bg-gray-800">
             {/* Contact Video (Main) */}
              <div className="w-full h-full flex items-center justify-center">
