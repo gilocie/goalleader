@@ -217,8 +217,8 @@ const DraggableFrame = ({
         </div>
       )}
 
-      {callStatus === 'connected' && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
+      {isMain && callStatus === 'connected' && (
+        <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
           <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
           <span>{formatTime(elapsedTime)}</span>
         </div>
@@ -559,7 +559,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           id="video-call-dialog-content"
-          className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-transparent shadow-none"
+          className="max-w-full h-screen w-screen p-0 gap-0 border-0 sm:rounded-none flex flex-col bg-transparent shadow-none"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Video Call with {contact.name}</DialogTitle>
