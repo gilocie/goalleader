@@ -130,11 +130,7 @@ const DraggableFrame = ({
        {isMain && callStatus !== 'connected' && (
         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-40">
           <p className="text-2xl font-semibold tracking-wide capitalize">
-            {callStatus === 'connecting'
-              ? 'Calling...'
-              : callStatus === 'ringing'
-              ? 'Ringing...'
-              : 'Connecting...'}
+            {callStatus}
           </p>
         </div>
       )}
@@ -165,8 +161,8 @@ const DraggableFrame = ({
             variant="secondary"
             size="icon"
             className={cn(
-              'rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90',
-              mainControls.isMuted && 'bg-destructive text-destructive-foreground'
+              'rounded-full h-14 w-14',
+              mainControls.isMuted ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'
             )}
           >
             {mainControls.isMuted ? <MicOff /> : <Mic />}
@@ -176,8 +172,8 @@ const DraggableFrame = ({
             variant="secondary"
             size="icon"
             className={cn(
-              'rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90',
-              mainControls.isSpeakerMuted && 'bg-destructive text-destructive-foreground'
+              'rounded-full h-14 w-14',
+              mainControls.isSpeakerMuted ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'
             )}
           >
             {mainControls.isSpeakerMuted ? <VolumeX /> : <Volume2 />}
@@ -246,7 +242,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   const { toast } = useToast();
-  const { self } = useChat();
+  const { self, acceptedCallContact } = useChat();
 
   const selfAvatar = self
     ? PlaceHolderImages.find((img) => img.id === self.id)
@@ -256,15 +252,21 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   // ---- Call Status Simulation ----
   useEffect(() => {
     if (isOpen) {
-      setCallStatus('connecting');
-      const t1 = setTimeout(() => setCallStatus('ringing'), 2000);
-      const t2 = setTimeout(() => setCallStatus('connected'), 5000);
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-      };
+      if (acceptedCallContact) {
+        setCallStatus('connecting');
+        const t1 = setTimeout(() => setCallStatus('connected'), 2500); // Faster connection after accept
+         return () => clearTimeout(t1);
+      } else {
+        setCallStatus('connecting');
+        const t1 = setTimeout(() => setCallStatus('ringing'), 2000);
+        const t2 = setTimeout(() => setCallStatus('connected'), 5000);
+        return () => {
+          clearTimeout(t1);
+          clearTimeout(t2);
+        };
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, acceptedCallContact]);
 
   // ---- Elapsed time ----
   useEffect(() => {

@@ -62,7 +62,7 @@ export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, conta
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md bg-transparent text-white border-0 shadow-none p-0 overflow-hidden">
-        <video ref={videoRef} autoPlay muted playsInline className="absolute top-0 left-0 w-full h-full object-cover blur-lg scale-110" />
+        <video ref={videoRef} autoPlay muted playsInline className="absolute top-0 left-0 w-full h-full object-cover blur-md scale-110" />
         <div className="absolute inset-0 bg-black/50" />
         
         <div className="relative flex flex-col items-center justify-center p-8 space-y-6 h-full">
