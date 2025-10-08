@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -233,13 +234,13 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isMuted, setIsMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mainView, setMainView] = useState<'self' | 'contact'>('self');
+  const [mainView, setMainView] = useState<'self' | 'contact'>('contact');
   const [callStatus, setCallStatus] = useState<'connecting' | 'ringing' | 'connected'>('connecting');
 
 
   const [mainFrame, setMainFrame] = useState<DraggableState>({
     position: { x: 0, y: 0 },
-    size: { width: 640, height: 480 },
+    size: { width: 640, height: 430 },
     isDragging: false
   });
 
@@ -251,7 +252,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null); 
+  const contactVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -334,10 +335,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
         setMainFrame(prev => ({
           ...prev,
-          size: { width: newWidth, height: newHeight },
+          size: { width: newWidth, height: 430 },
           position: {
             x: (containerWidth - newWidth) / 2,
-            y: (containerHeight - newHeight) / 2
+            y: (containerHeight - 430) / 2
           }
         }));
       };
@@ -492,35 +493,36 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           >
             {/* Main */}
             <DraggableFrame
-              frameState={mainView === 'self' ? mainFrame : pipFrame}
-              videoRef={selfVideoRef}
-              avatar={selfAvatar}
-              name={self?.name || 'You'}
-              isMain={mainView === 'self'}
-              stream={streamRef.current}
+              frameState={mainFrame}
+              videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
+              avatar={mainView === 'self' ? selfAvatar : contactAvatar}
+              name={
+                mainView === 'self' ? self?.name || 'You' : contact.name
+              }
+              isMain={true}
+              stream={mainView === 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, 'main')}
               onZoom={(dir) => handleZoom('main', dir)}
-              mainControls={mainView === 'self' ? mainControls : undefined}
-              onSwap={mainView !== 'self' ? handleSwapViews : undefined}
-              isSelf={true}
+              mainControls={mainControls}
+              isSelf={mainView === 'self'}
               callStatus={callStatus}
             />
 
             {/* PiP */}
             <DraggableFrame
-              frameState={mainView === 'contact' ? mainFrame : pipFrame}
-              videoRef={contactVideoRef}
-              avatar={contactAvatar}
-              name={contact.name}
-              isMain={mainView === 'contact'}
-              stream={null} // No stream for contact
+              frameState={pipFrame}
+              videoRef={mainView === 'self' ? contactVideoRef : selfVideoRef}
+              avatar={mainView === 'self' ? contactAvatar : selfAvatar}
+              name={
+                mainView === 'self' ? contact.name : self?.name || 'You'
+              }
+              isMain={false}
+              stream={mainView !== 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, 'pip')}
-              onZoom={(dir) => handleZoom('pip', dir)}
-              mainControls={mainView === 'contact' ? mainControls : undefined}
-              onSwap={mainView !== 'contact' ? handleSwapViews : undefined}
-              isSelf={false}
+              onSwap={handleSwapViews}
+              isSelf={mainView !== 'self'}
               callStatus={callStatus}
             />
           </div>
