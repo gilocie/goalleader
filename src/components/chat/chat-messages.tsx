@@ -115,10 +115,14 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [isReceivingCall, setIsReceivingCall] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const handleCallClick = () => { startCall(selectedContact) };
-  const handleVideoClick = () => startCall(selectedContact);
+  const handleVideoClick = () => {
+    setIsReceivingCall(false);
+    startCall(selectedContact);
+  };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
   const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
     if (action === 'reply') { setReplyTo(message); } 
@@ -317,7 +321,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         onClose={() => declineCall()}
         onDecline={() => declineCall()}
         contact={incomingCallFrom}
-        onAccept={acceptCall}
+        onAccept={() => {
+            setIsReceivingCall(true);
+            acceptCall();
+        }}
       />
       {(isVideoCallOpen || acceptedCallContact) && (
         <VideoCallDialog
@@ -326,8 +333,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             endCall(acceptedCallContact?.id || selectedContact.id);
             setIsVideoCallOpen(false);
             setAcceptedCallContact(null);
+            setIsReceivingCall(false);
           }}
           contact={acceptedCallContact || selectedContact}
+          isReceivingCall={isReceivingCall}
         />
       )}
     </>

@@ -186,9 +186,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [self, selectedContact]);
 
   const startCall = useCallback((contact: Contact) => {
-    addSystemMessage('Outgoing video call', contact.id);
     setAcceptedCallContact(contact);
-  }, [addSystemMessage]);
+  }, []);
 
   const endCall = useCallback((contactId: string) => {
         addSystemMessage(`Video call ended`, contactId);
