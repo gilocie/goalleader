@@ -559,7 +559,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           id="video-call-dialog-content"
-          className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-gray-900 shadow-none"
+          className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-transparent shadow-none"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Video Call with {contact.name}</DialogTitle>
