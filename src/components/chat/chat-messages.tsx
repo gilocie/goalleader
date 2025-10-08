@@ -23,7 +23,7 @@ import {
 import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
 import { CallingDialog } from './calling-dialog';
@@ -112,6 +112,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const handleCallClick = () => { startCall(selectedContact) };
   const handleVideoClick = () => { toast({ title: "Starting video call...", description: `Starting a video call with ${selectedContact.name}.` }); };
@@ -127,6 +128,15 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     setReplyTo(null);
   };
   
+    useEffect(() => {
+    if (scrollAreaRef.current) {
+        const viewport = scrollAreaRef.current.querySelector('div');
+        if (viewport) {
+            viewport.scrollTop = viewport.scrollHeight;
+        }
+    }
+  }, [messages]);
+
   if (!self) {
     return null;
   }
@@ -219,7 +229,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           </div>
         </CardHeader>
 
-        <ScrollArea className="flex-1 overflow-auto">
+        <ScrollArea className="flex-1 overflow-auto" ref={scrollAreaRef}>
             <div className="space-y-4 p-4">
               {messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
@@ -299,4 +309,3 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
-
