@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -132,8 +133,13 @@ const DraggableFrame = ({
 
        {isMain && callStatus !== 'connected' && (
         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-40">
-          <Loader2 className="h-8 w-8 animate-spin mb-4" />
-          <p className="text-xl font-semibold capitalize">{callStatus}...</p>
+          <p className="text-2xl font-semibold tracking-wide capitalize">
+            {callStatus === 'connecting'
+              ? 'Calling...'
+              : callStatus === 'ringing'
+              ? 'Ringing...'
+              : 'Connecting...'}
+          </p>
         </div>
       )}
 
@@ -216,7 +222,7 @@ const DraggableFrame = ({
         </div>
       )}
 
-      {isMain && callStatus === 'connected' && (
+       {isMain && callStatus === 'connected' && (
         <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
           <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
           <span>{formatTime(elapsedTime)}</span>
@@ -558,7 +564,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           id="video-call-dialog-content"
-          className="max-w-full h-screen w-screen p-0 gap-0 border-0 sm:rounded-none flex flex-col bg-transparent shadow-none"
+          className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-transparent shadow-none"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Video Call with {contact.name}</DialogTitle>
