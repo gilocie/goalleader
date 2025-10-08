@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, Phone, ScreenShare, X, ArrowLeft, Volume2, Maximize, Minimize, Expand } from 'lucide-react';
+import { Mic, MicOff, Phone, ScreenShare, X, ArrowLeft, Volume2, Maximize, Minimize, Expand } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
@@ -103,15 +103,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       streamRef.current.getAudioTracks().forEach(track => {
         track.enabled = !track.enabled;
         setIsMuted(!track.enabled);
-      });
-    }
-  };
-
-  const toggleVideo = () => {
-    if (streamRef.current) {
-      streamRef.current.getVideoTracks().forEach(track => {
-        track.enabled = !track.enabled;
-        setIsVideoOff(!track.enabled);
       });
     }
   };
@@ -287,9 +278,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4">
                 <Button onClick={toggleMic} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30", isMuted && 'bg-destructive text-destructive-foreground')}>
                     {isMuted ? <MicOff /> : <Mic />}
-                </Button>
-                <Button onClick={toggleVideo} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30", isVideoOff && 'bg-destructive text-destructive-foreground')}>
-                    {isVideoOff ? <VideoOff /> : <Video />}
                 </Button>
                  <Button variant="secondary" size="icon" className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30">
                     <Volume2 />
