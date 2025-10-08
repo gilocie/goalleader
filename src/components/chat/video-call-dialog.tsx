@@ -29,6 +29,12 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+
+  // Draggable state for PiP
+  const [position, setPosition] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const pipRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef({ x: 0, y: 0 });
   
   const selfVideoRef = useRef<HTMLVideoElement>(null);
   const contactVideoRef = useRef<HTMLVideoElement>(null);
@@ -67,8 +73,9 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
         streamRef.current = stream;
         setHasPermission(true);
         
-        // Both refs will use the same stream for this simulation
+        // Self video in the smaller PiP window
         if (selfVideoRef.current) selfVideoRef.current.srcObject = stream;
+        // Contact video (simulated with same stream) in the main window
         if (contactVideoRef.current) contactVideoRef.current.srcObject = stream;
 
       } catch (err) {
@@ -115,6 +122,52 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // --- Drag and Drop Logic ---
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (pipRef.current) {
+      setIsDragging(true);
+      const rect = pipRef.current.getBoundingClientRect();
+      offsetRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      };
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging && pipRef.current) {
+        const parentRect = pipRef.current.parentElement?.getBoundingClientRect();
+        if (!parentRect) return;
+
+      let newX = e.clientX - offsetRef.current.x - parentRect.left;
+      let newY = e.clientY - offsetRef.current.y - parentRect.top;
+
+      // Constrain within parent bounds
+      newX = Math.max(0, Math.min(newX, parentRect.width - pipRef.current.offsetWidth));
+      newY = Math.max(0, Math.min(newY, parentRect.height - pipRef.current.offsetHeight));
+
+      setPosition({ x: newX, y: newY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    } else {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -125,7 +178,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
         </DialogHeader>
         <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
             {/* Contact Video (Main) */}
-            <video ref={contactVideoRef} autoPlay className="w-full h-full object-cover" />
+            <video ref={contactVideoRef} autoPlay className="h-full object-contain" />
             <div className="absolute inset-0 bg-black/10" />
 
             {/* Header controls */}
@@ -139,8 +192,13 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
                 </div>
             </div>
 
-            {/* Self Video (Picture-in-picture) */}
-            <div className="absolute bottom-24 sm:bottom-28 right-4 w-32 h-48 sm:w-40 sm:h-56 bg-black rounded-lg overflow-hidden border-2 border-white/20 shadow-lg">
+            {/* Self Video (Picture-in-picture) - Draggable */}
+            <div
+                ref={pipRef}
+                className="absolute w-32 h-48 sm:w-40 sm:h-56 bg-black rounded-lg overflow-hidden border-2 border-white/20 shadow-lg cursor-move"
+                style={{ top: `${position.y}px`, left: `${position.x}px` }}
+                onMouseDown={handleMouseDown}
+            >
                 {isVideoOff ? (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-800">
                         <Avatar className="w-16 h-16">
@@ -153,6 +211,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
                 ) : (
                     <video ref={selfVideoRef} autoPlay muted className="w-full h-full object-cover scale-x-[-1]" />
                 )}
+                 <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                    <span>{formatTime(elapsedTime)}</span>
+                </div>
             </div>
              {/* Controls */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4">
