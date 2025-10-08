@@ -134,7 +134,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full transition-opacity">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -217,7 +217,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                         {message.senderId !== self.id && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} /><AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar> )}
                         
                         <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden relative', message.senderId === self.id ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                            <div className={cn("absolute top-0 z-10", message.senderId === self.id ? 'left-2' : 'right-2')}><MessageActions message={message} /></div>
+                            <div className={cn("absolute top-0 z-10", message.senderId === self.id ? 'right-0' : 'right-0')}><MessageActions message={message} /></div>
                             {originalMessage && ( <div className={cn("p-2 text-xs border-b", message.senderId === self.id ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
                             {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
                                 <div className="p-1">
