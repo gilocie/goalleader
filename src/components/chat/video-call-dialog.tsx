@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, Phone, ScreenShare, X } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Phone, ScreenShare, X, ArrowLeft, Volume2 } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
@@ -27,13 +27,12 @@ interface VideoCallDialogProps {
 export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
   
   const selfVideoRef = useRef<HTMLVideoElement>(null);
   const contactVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const screenStreamRef = useRef<MediaStream | null>(null);
 
   const { toast } = useToast();
   const { self } = useChat();
@@ -42,13 +41,22 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isOpen) {
+        setElapsedTime(0);
+        timer = setInterval(() => {
+            setElapsedTime(prev => prev + 1);
+        }, 1000);
+    }
+    return () => {
+        if(timer) clearInterval(timer);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) {
-      // Stop all tracks when dialog closes
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (screenStreamRef.current) {
-        screenStreamRef.current.getTracks().forEach(track => track.stop());
       }
       return;
     }
@@ -58,13 +66,11 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         streamRef.current = stream;
         setHasPermission(true);
-        if (selfVideoRef.current) {
-          selfVideoRef.current.srcObject = stream;
-        }
-        // In a real app, you'd use a WebRTC connection to get the contact's stream
-        if (contactVideoRef.current) {
-          contactVideoRef.current.srcObject = stream; // Simulate contact video with self video for now
-        }
+        
+        // Both refs will use the same stream for this simulation
+        if (selfVideoRef.current) selfVideoRef.current.srcObject = stream;
+        if (contactVideoRef.current) contactVideoRef.current.srcObject = stream;
+
       } catch (err) {
         console.error("Failed to get media", err);
         setHasPermission(false);
@@ -81,9 +87,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (screenStreamRef.current) {
-        screenStreamRef.current.getTracks().forEach(track => track.stop());
       }
     }
   }, [isOpen, onClose, toast]);
@@ -105,97 +108,68 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       });
     }
   };
-  
-  const toggleScreenShare = async () => {
-    if (isScreenSharing) {
-        // Stop screen sharing - logic to switch back to camera
-        if (screenStreamRef.current) {
-            screenStreamRef.current.getTracks().forEach(track => track.stop());
-            screenStreamRef.current = null;
-        }
-        if (selfVideoRef.current && streamRef.current) {
-            selfVideoRef.current.srcObject = streamRef.current;
-        }
-        setIsScreenSharing(false);
-    } else {
-        // Start screen sharing
-        try {
-            const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-            screenStreamRef.current = screenStream;
-            if (selfVideoRef.current) {
-                selfVideoRef.current.srcObject = screenStream;
-            }
-            setIsScreenSharing(true);
-            screenStream.getVideoTracks()[0].onended = () => {
-                toggleScreenShare(); // Revert back to camera when user stops sharing from browser UI
-            };
-        } catch (err) {
-            console.error("Screen share failed", err);
-            toast({ variant: 'destructive', title: 'Could not share screen.' });
-        }
-    }
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 gap-0 bg-gray-900 text-white border-0">
+      <DialogContent className="max-w-full h-screen w-screen p-0 gap-0 bg-gray-900 text-white border-0 sm:rounded-lg sm:max-w-4xl sm:h-[80vh] flex flex-col">
         <DialogHeader className="sr-only">
           <DialogTitle>Video Call with {contact.name}</DialogTitle>
           <DialogDescription>A video call interface.</DialogDescription>
         </DialogHeader>
-        <div className="flex-1 relative overflow-hidden bg-gray-800">
+        <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
             {/* Contact Video (Main) */}
-             <div className="w-full h-full flex items-center justify-center">
-                {/* This is a simulation. In a real app, this would be the contact's stream */}
-                <div className="w-full h-full flex items-center justify-center bg-black">
-                     <Avatar className="w-32 h-32">
-                        <AvatarImage src={contactAvatar?.imageUrl} />
-                        <AvatarFallback className="text-4xl">
-                            {contact.name.slice(0, 2)}
-                        </AvatarFallback>
-                    </Avatar>
+            <video ref={contactVideoRef} autoPlay className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/10" />
+
+            {/* Header controls */}
+            <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+                <Button onClick={onClose} variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50 rounded-full">
+                    <ArrowLeft />
+                </Button>
+                <div className="flex items-center gap-2 bg-black/30 text-white text-sm font-medium px-3 py-1.5 rounded-full">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                    <span>{formatTime(elapsedTime)}</span>
                 </div>
-                 <div className="absolute bottom-4 left-4 text-sm bg-black/50 px-2 py-1 rounded-md">{contact.name}</div>
             </div>
-            
+
             {/* Self Video (Picture-in-picture) */}
-            <div className="absolute top-4 right-4 w-48 h-32 bg-black rounded-lg overflow-hidden border-2 border-white/20">
+            <div className="absolute bottom-24 sm:bottom-28 right-4 w-32 h-48 sm:w-40 sm:h-56 bg-black rounded-lg overflow-hidden border-2 border-white/20 shadow-lg">
                 {isVideoOff ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-700">
-                        <Avatar className="w-12 h-12">
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-800">
+                        <Avatar className="w-16 h-16">
                             <AvatarImage src={selfAvatar?.imageUrl} />
-                            <AvatarFallback className="text-lg">
+                            <AvatarFallback className="text-xl">
                                 {self?.name.slice(0, 2)}
                             </AvatarFallback>
                         </Avatar>
-                        <p className="text-xs text-muted-foreground">Cam Off</p>
                     </div>
                 ) : (
                     <video ref={selfVideoRef} autoPlay muted className="w-full h-full object-cover scale-x-[-1]" />
                 )}
-                 <div className="absolute bottom-1 left-1 text-xs bg-black/50 px-1 py-0.5 rounded-md">You</div>
+            </div>
+             {/* Controls */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4">
+                <Button onClick={toggleMic} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14", isMuted && 'bg-destructive text-destructive-foreground')}>
+                    {isMuted ? <MicOff /> : <Mic />}
+                </Button>
+                <Button onClick={toggleVideo} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14", isVideoOff && 'bg-destructive text-destructive-foreground')}>
+                    {isVideoOff ? <VideoOff /> : <Video />}
+                </Button>
+                 <Button variant="secondary" size="icon" className="rounded-full h-14 w-14">
+                    <Volume2 />
+                </Button>
+                <Button onClick={onClose} variant="destructive" size="icon" className="rounded-full h-14 w-14">
+                    <Phone className="transform -scale-x-100" />
+                </Button>
             </div>
         </div>
-
-        {/* Controls */}
-        <div className="bg-gray-800/80 backdrop-blur-sm p-4 flex justify-center items-center gap-4">
-             <Button onClick={toggleMic} variant={isMuted ? "destructive" : "secondary"} size="icon" className="rounded-full h-12 w-12">
-                {isMuted ? <MicOff /> : <Mic />}
-            </Button>
-             <Button onClick={toggleVideo} variant={isVideoOff ? "destructive" : "secondary"} size="icon" className="rounded-full h-12 w-12">
-                {isVideoOff ? <VideoOff /> : <Video />}
-            </Button>
-            <Button onClick={toggleScreenShare} variant={isScreenSharing ? "default" : "secondary"} size="icon" className="rounded-full h-12 w-12">
-                <ScreenShare />
-            </Button>
-            <Button onClick={onClose} variant="destructive" size="icon" className="rounded-full h-14 w-14 mx-4">
-                <Phone className="transform -scale-x-100" />
-            </Button>
-        </div>
-         <Button onClick={onClose} variant="ghost" size="icon" className="absolute top-4 right-4 text-white hover:bg-white/10 rounded-full">
-            <X />
-        </Button>
       </DialogContent>
     </Dialog>
   );
