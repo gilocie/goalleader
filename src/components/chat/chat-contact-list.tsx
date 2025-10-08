@@ -25,11 +25,11 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
     <Card className="h-full flex flex-col rounded-none border-none">
       {/* Fixed Header */}
       <CardHeader className="p-4 border-b flex-shrink-0 flex-row items-center justify-between">
+        <CardTitle className="text-xl">Chats</CardTitle>
         <div className="relative w-2/3">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search..." className="w-full pl-8" />
         </div>
-        <CardTitle className="text-xl">Chats</CardTitle>
       </CardHeader>
 
       {/* Scrollable Contact List */}
@@ -62,14 +62,14 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                         />
                       </div>
                       <div className="flex-1 truncate">
-                        <p className="font-semibold text-sm">{contact.name}</p>
+                        <p className={cn("font-semibold text-sm", isSelected && 'text-white')}>{contact.name}</p>
                         <div className={cn("flex items-center gap-1 text-xs truncate", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                             <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" isSelf={false}/>
-                            <span>{contact.lastMessage}</span>
+                            <span className={cn(isSelected && 'text-white')}>{contact.lastMessage}</span>
                         </div>
                       </div>
                       <div className={cn("flex flex-col items-end text-xs space-y-1", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
-                        <span>{contact.lastMessageTime}</span>
+                        <span className={cn(isSelected && 'text-white')}>{contact.lastMessageTime}</span>
                         {contact.unreadCount && contact.unreadCount > 0 && (
                             <Badge className={cn(
                                 "h-5 w-5 p-0 flex items-center justify-center",
