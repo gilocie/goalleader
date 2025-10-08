@@ -38,184 +38,6 @@ interface DraggableState {
 
 type CallStatus = 'connecting' | 'ringing' | 'connected';
 
-// ---------- Draggable Frame ----------
-const DraggableFrame = ({
-  frameState,
-  videoRef,
-  avatar,
-  name,
-  isSelf,
-  isMain,
-  isStreamReady,
-  elapsedTime,
-  callStatus,
-  onDragStart,
-  onSwap,
-  onZoom,
-  mainControls
-}: {
-  frameState: DraggableState;
-  videoRef: React.RefObject<HTMLVideoElement>;
-  avatar?: { imageUrl?: string; imageHint?: string };
-  name: string;
-  isSelf: boolean;
-  isMain: boolean;
-  isStreamReady: boolean;
-  elapsedTime: number;
-  callStatus: CallStatus;
-  onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
-  onSwap?: () => void;
-  onZoom?: (direction: 'in' | 'out') => void;
-  mainControls?: {
-    toggleMic: () => void;
-    isMuted: boolean;
-    onClose: () => void;
-    toggleFullscreen: () => void;
-    isFullscreen: boolean;
-  };
-}) => {
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs
-      .toString()
-      .padStart(2, '0')}`;
-  };
-
-  const getStatusText = () => {
-    if (callStatus === 'connected') {
-      return formatTime(elapsedTime);
-    }
-    return callStatus.charAt(0).toUpperCase() + callStatus.slice(1) + '...';
-  }
-
-  return (
-    <div
-      className={cn(
-        'absolute bg-black rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl group transition-all duration-300 ease-in-out',
-        isMain && mainControls?.isFullscreen && 'fullscreen-main'
-      )}
-      style={{
-        top: `${frameState.position.y}px`,
-        left: `${frameState.position.x}px`,
-        width: `${frameState.size.width}px`,
-        height: `${frameState.size.height}px`
-      }}
-    >
-      <div
-        className="absolute top-0 left-0 right-0 h-8 cursor-move bg-black/50 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
-        onMouseDown={onDragStart}
-      />
-
-      <div className="w-full h-full flex items-center justify-center bg-gray-800">
-        {isSelf && isStreamReady ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-            style={{ transform: 'scaleX(-1)' }}
-          />
-        ) : (
-          <Avatar className={cn(isMain ? 'w-32 h-32' : 'w-20 h-20')}>
-            <AvatarImage
-              src={avatar?.imageUrl}
-              data-ai-hint={avatar?.imageHint}
-            />
-            <AvatarFallback className="text-4xl">
-              {name.slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-        )}
-      </div>
-
-      <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-1 rounded z-10">
-        {name}
-      </div>
-
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-30 flex gap-2">
-        {onSwap && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full bg-black/50 text-white"
-            onClick={onSwap}
-          >
-            <Expand className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
-      {isMain && mainControls && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Button
-            onClick={mainControls.toggleMic}
-            variant="secondary"
-            size="icon"
-            className={cn(
-              'rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30',
-              mainControls.isMuted && 'bg-destructive text-destructive-foreground'
-            )}
-          >
-            {mainControls.isMuted ? <MicOff /> : <Mic />}
-          </Button>
-          <Button
-            variant="secondary"
-            size="icon"
-            className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
-          >
-            <Volume2 />
-          </Button>
-          <Button
-            onClick={mainControls.onClose}
-            variant="destructive"
-            size="icon"
-            className="rounded-full h-14 w-14"
-          >
-            <Phone className="transform -scale-x-100" />
-          </Button>
-          <Button
-            onClick={mainControls.toggleFullscreen}
-            variant="secondary"
-            size="icon"
-            className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
-          >
-            {mainControls.isFullscreen ? <Minimize /> : <Maximize />}
-          </Button>
-          {onZoom && (
-            <>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
-                onClick={() => onZoom('out')}
-              >
-                <ZoomOut />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
-                onClick={() => onZoom('in')}
-              >
-                <ZoomIn />
-              </Button>
-            </>
-          )}
-        </div>
-      )}
-
-      {isMain && callStatus === 'connected' && (
-         <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
-          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-          <span>{getStatusText()}</span>
-        </div>
-      )}
-    </div>
-  );
-};
-
 // ---------- Main Dialog ----------
 interface VideoCallDialogProps {
   isOpen: boolean;
@@ -227,27 +49,11 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isMuted, setIsMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mainView, setMainView] = useState<'self' | 'contact'>('self');
   const [isStreamReady, setIsStreamReady] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>('connecting');
 
-  const [selfFrame, setSelfFrame] = useState<DraggableState>({
-    position: { x: 0, y: 0 }, // Will be centered on mount
-    size: { width: 640, height: 480 },
-    isDragging: false
-  });
-
-  const [contactFrame, setContactFrame] = useState<DraggableState>({
-    position: { x: 0, y: 0 }, // Will be attached to main frame
-    size: { width: 192, height: 144 },
-    isDragging: false
-  });
-  
-  const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   const { toast } = useToast();
   const { self } = useChat();
@@ -279,18 +85,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       };
     }
   }, [isOpen]);
-
-  // ---- Set Initial Frame Positions ----
-  useEffect(() => {
-    if (videoContainerRef.current) {
-      const containerRect = videoContainerRef.current.getBoundingClientRect();
-      const mainX = (containerRect.width - selfFrame.size.width) / 2;
-      const mainY = (containerRect.height - selfFrame.size.height) / 2;
-      setSelfFrame(f => ({ ...f, position: { x: mainX, y: mainY } }));
-      setContactFrame(f => ({ ...f, position: { x: mainX + 20, y: mainY + 20 } }));
-    }
-  }, [selfFrame.size.height, selfFrame.size.width]);
-
 
   // ---- Camera and mic setup ----
   useEffect(() => {
@@ -342,68 +136,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     });
   };
 
-  const handleSwapViews = () => {
-    const currentSelf = selfFrame;
-    const currentContact = contactFrame;
-    setSelfFrame((prev) => ({
-      ...prev,
-      position: currentContact.position,
-      size: currentContact.size
-    }));
-    setContactFrame((prev) => ({
-      ...prev,
-      position: currentSelf.position,
-      size: currentSelf.size
-    }));
-    setMainView((v) => (v === 'self' ? 'contact' : 'self'));
-  };
-
-  // ---- Drag setup ----
-  const handleDragStart = (
-    e: React.MouseEvent<HTMLDivElement>,
-    target: 'self' | 'contact'
-  ) => {
-    e.preventDefault();
-    const frameState = target === 'self' ? selfFrame : contactFrame;
-    const setFrame = target === 'self' ? setSelfFrame : setContactFrame;
-    setFrame((p) => ({ ...p, isDragging: true }));
-    dragOffsetRef.current = {
-      x: e.clientX - frameState.position.x,
-      y: e.clientY - frameState.position.y
-    };
-  };
-
-  const handleDrag = useCallback(
-    (e: MouseEvent) => {
-      if (!selfFrame.isDragging && !contactFrame.isDragging) return;
-      const containerRect = videoContainerRef.current?.getBoundingClientRect();
-      if (!containerRect) return;
-      const isSelfDragging = selfFrame.isDragging;
-      const targetFrame = isSelfDragging ? selfFrame : contactFrame;
-      const setTargetFrame = isSelfDragging ? setSelfFrame : setContactFrame;
-      let newX = e.clientX - dragOffsetRef.current.x;
-      let newY = e.clientY - dragOffsetRef.current.y;
-      newX = Math.max(0, Math.min(newX, containerRect.width - targetFrame.size.width));
-      newY = Math.max(0, Math.min(newY, containerRect.height - targetFrame.size.height));
-      setTargetFrame((p) => ({ ...p, position: { x: newX, y: newY } }));
-    },
-    [selfFrame, contactFrame]
-  );
-
-  const handleDragEnd = useCallback(() => {
-    setSelfFrame((p) => ({ ...p, isDragging: false }));
-    setContactFrame((p) => ({ ...p, isDragging: false }));
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleDrag);
-    window.addEventListener('mouseup', handleDragEnd);
-    return () => {
-      window.removeEventListener('mousemove', handleDrag);
-      window.removeEventListener('mouseup', handleDragEnd);
-    };
-  }, [handleDrag, handleDragEnd]);
-
   // ---- Fullscreen ----
   const toggleFullscreen = async () => {
     const container = document.getElementById('video-call-dialog-content');
@@ -425,46 +157,28 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
-
-  // ---- Zoom ----
-  const handleZoom = (target: 'self' | 'contact', dir: 'in' | 'out') => {
-    const setFrame = target === 'self' ? setSelfFrame : setContactFrame;
-    setFrame((p) => {
-      const aspect = p.size.width / p.size.height;
-      const delta = dir === 'in' ? 50 : -50;
-      const newWidth = Math.max(150, Math.min(1280, p.size.width + delta));
-      const newHeight = newWidth / aspect;
-      return { ...p, size: { width: newWidth, height: newHeight } };
-    });
+  
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}`;
   };
 
-  const mainViewTarget = mainView === 'self' ? 'self' : 'contact';
-  const pipViewTarget = mainView === 'self' ? 'contact' : 'self';
-  const mainControls = {
-    toggleMic,
-    isMuted,
-    onClose,
-    toggleFullscreen,
-    isFullscreen
-  };
+  const getStatusText = () => {
+    if (callStatus === 'connected') {
+      return formatTime(elapsedTime);
+    }
+    return callStatus.charAt(0).toUpperCase() + callStatus.slice(1) + '...';
+  }
 
   return (
     <>
-      <style jsx global>{`
-        .fullscreen-main {
-          top: 0 !important;
-          left: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
-          border: none !important;
-          border-radius: 0 !important;
-        }
-      `}</style>
-
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           id="video-call-dialog-content"
-          className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-transparent shadow-none"
+          className="max-w-3xl h-[600px] p-0 gap-0 text-white border-0 sm:rounded-lg flex flex-col bg-gray-800 shadow-2xl"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Video Call with {contact.name}</DialogTitle>
@@ -472,51 +186,70 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           </DialogHeader>
 
           <div
-            ref={videoContainerRef}
             id="video-call-container"
             className="flex-1 relative overflow-hidden"
           >
-            {callStatus !== 'connected' && (
-              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-50 gap-4">
-                  <Loader2 className="w-10 h-10 animate-spin" />
-                  <p className="text-xl font-semibold">{callStatus.charAt(0).toUpperCase() + callStatus.slice(1)}...</p>
-              </div>
-            )}
-            
-            {/* Main */}
-            <DraggableFrame
-              frameState={mainView === 'self' ? selfFrame : contactFrame}
-              videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
-              avatar={mainView === 'self' ? selfAvatar : contactAvatar}
-              name={
-                mainView === 'self' ? self?.name || 'You' : contact.name
-              }
-              isSelf={mainView === 'self'}
-              isMain={true}
-              isStreamReady={isStreamReady}
-              elapsedTime={elapsedTime}
-              callStatus={callStatus}
-              onDragStart={(e) => handleDragStart(e, mainViewTarget)}
-              onZoom={(dir) => handleZoom(mainViewTarget, dir)}
-              mainControls={mainControls}
-            />
+            {/* Main Video Area (Contact) */}
+            <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                {callStatus !== 'connected' ? (
+                     <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="w-8 h-8 animate-spin" />
+                        <p className="text-xl font-semibold">{getStatusText()}</p>
+                    </div>
+                ) : (
+                    <Avatar className="w-40 h-40">
+                        <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
+                        <AvatarFallback className="text-5xl">{contact.name.slice(0, 2)}</AvatarFallback>
+                    </Avatar>
+                )}
+            </div>
 
-            {/* PiP */}
-            <DraggableFrame
-              frameState={mainView === 'self' ? contactFrame : selfFrame}
-              videoRef={mainView === 'self' ? contactVideoRef : selfVideoRef}
-              avatar={mainView === 'self' ? contactAvatar : selfAvatar}
-              name={
-                mainView === 'self' ? contact.name : self?.name || 'You'
-              }
-              isSelf={mainView !== 'self'}
-              isMain={false}
-              isStreamReady={isStreamReady}
-              elapsedTime={elapsedTime}
-              callStatus={callStatus}
-              onDragStart={(e) => handleDragStart(e, pipViewTarget)}
-              onSwap={handleSwapViews}
-            />
+            {/* Self Video (Circular) */}
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg">
+                <video
+                    ref={selfVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                    style={{ transform: 'scaleX(-1)' }}
+                />
+            </div>
+
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-center">
+                 <p className="text-sm font-semibold [text-shadow:0_1px_2px_var(--tw-shadow-color)] shadow-black/50">{self?.name}</p>
+            </div>
+            
+            {/* Contact Info (Top) */}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-center">
+                <Avatar className="w-16 h-16">
+                    <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
+                    <AvatarFallback>{contact.name.slice(0, 2)}</AvatarFallback>
+                </Avatar>
+                <p className="font-semibold text-lg [text-shadow:0_1px_2px_var(--tw-shadow-color)] shadow-black/50">{contact.name}</p>
+            </div>
+
+            {/* Timer */}
+            {callStatus === 'connected' && (
+                <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
+                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                    <span>{formatTime(elapsedTime)}</span>
+                </div>
+            )}
+
+             {/* Controls */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4 z-30">
+              <Button onClick={toggleMic} variant="secondary" size="icon" className={cn("rounded-full h-12 w-12 bg-white/10 text-white hover:bg-white/20", isMuted && 'bg-destructive text-destructive-foreground')}>
+                {isMuted ? <MicOff className="h-5 w-5"/> : <Mic className="h-5 w-5"/>}
+              </Button>
+              <Button onClick={onClose} variant="destructive" size="icon" className="rounded-full h-14 w-14">
+                <Phone className="transform -scale-x-100 h-6 w-6" />
+              </Button>
+              <Button onClick={toggleFullscreen} variant="secondary" size="icon" className="rounded-full h-12 w-12 bg-white/10 text-white hover:bg-white/20">
+                {isFullscreen ? <Minimize className="h-5 w-5"/> : <Maximize className="h-5 w-5"/>}
+              </Button>
+            </div>
+
           </div>
         </DialogContent>
       </Dialog>
