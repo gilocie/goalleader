@@ -29,6 +29,7 @@ import { ForwardMessageDialog } from './forward-message-dialog';
 import { CallingDialog } from './calling-dialog';
 import { IncomingCallDialog } from './incoming-call-dialog';
 import { useRouter } from 'next/navigation';
+import { VideoCallDialog } from './video-call-dialog';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -114,14 +115,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const handleCallClick = () => { startCall(selectedContact) };
-  const handleVideoClick = () => {
-    toast({ title: "Starting video call...", description: `Creating a meeting with ${selectedContact.name}.` });
-    const meetingId = `chat-${self?.id}-${selectedContact.id}-${Date.now()}`.substring(0, 30);
-    router.push(`/meetings/${meetingId}/lobby`);
-  };
+  const handleVideoClick = () => setIsVideoCallOpen(true);
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
   const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
     if (action === 'reply') { setReplyTo(message); } 
@@ -314,6 +312,13 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         contact={incomingCallFrom}
         onAccept={acceptCall}
       />
+      {isVideoCallOpen && (
+        <VideoCallDialog
+          isOpen={isVideoCallOpen}
+          onClose={() => setIsVideoCallOpen(false)}
+          contact={selectedContact}
+        />
+      )}
     </>
   );
 }
