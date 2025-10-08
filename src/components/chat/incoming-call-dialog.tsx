@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -13,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Phone, PhoneOff } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useRouter } from 'next/navigation';
+import { useChat } from '@/context/chat-context';
 
 interface IncomingCallDialogProps {
   isOpen: boolean;
@@ -22,7 +23,7 @@ interface IncomingCallDialogProps {
 }
 
 export function IncomingCallDialog({ isOpen, onClose, contact }: IncomingCallDialogProps) {
-  const router = useRouter();
+  const { setActiveCallWith } = useChat();
 
   if (!contact) return null;
 
@@ -30,7 +31,7 @@ export function IncomingCallDialog({ isOpen, onClose, contact }: IncomingCallDia
   
   const handleAccept = () => {
     onClose();
-    router.push(`/meetings/sample-meeting-${contact.id.split('-')[2]}/lobby`);
+    setActiveCallWith(contact);
   };
 
   const handleDecline = () => {

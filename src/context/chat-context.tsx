@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
@@ -37,6 +38,8 @@ interface ChatContextType {
   isTyping: boolean;
   incomingCallFrom: Contact | null;
   setIncomingCallFrom: Dispatch<SetStateAction<Contact | null>>;
+  activeCallWith: Contact | null;
+  setActiveCallWith: Dispatch<SetStateAction<Contact | null>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -46,6 +49,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [messages, setMessages] = useState<Message[]>(messagesData);
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
+  const [activeCallWith, setActiveCallWith] = useState<Contact | null>(null);
   
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
   const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
@@ -195,6 +199,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     isTyping,
     incomingCallFrom,
     setIncomingCallFrom,
+    activeCallWith,
+    setActiveCallWith,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

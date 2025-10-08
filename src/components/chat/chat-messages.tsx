@@ -103,18 +103,17 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, setIncomingCallFrom } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, setIncomingCallFrom, activeCallWith, setActiveCallWith } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-  const [isCalling, setIsCalling] = useState(false);
   
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   
-  const handleCallClick = () => { setIsCalling(true); };
+  const handleCallClick = () => { setActiveCallWith(selectedContact) };
   const handleVideoClick = () => { toast({ title: "Starting video call...", description: `Starting a video call with ${selectedContact.name}.` }); };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
   const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
@@ -285,11 +284,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         
       <Dialog open={isImageViewerOpen} onOpenChange={setImageViewerOpen}></Dialog>
       {forwardMessage && (<ForwardMessageDialog isOpen={!!forwardMessage} onOpenChange={() => setForwardMessage(null)} message={forwardMessage} contacts={contacts} />)}
-      {isCalling && (
+      {activeCallWith && (
         <CallingDialog
-          isOpen={isCalling}
-          onClose={() => setIsCalling(false)}
-          contact={selectedContact}
+          isOpen={!!activeCallWith}
+          onClose={() => setActiveCallWith(null)}
+          contact={activeCallWith}
         />
       )}
       <IncomingCallDialog
