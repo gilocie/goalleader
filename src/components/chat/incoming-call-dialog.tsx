@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -67,7 +66,7 @@ export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, conta
                 <Button
                 variant="destructive"
                 size="icon"
-                className="w-14 h-14 rounded-full"
+                className="w-14 h-14 rounded-full animate-pulse-strong"
                 onClick={handleDecline}
                 >
                 <PhoneOff className="h-6 w-6" />
@@ -77,7 +76,7 @@ export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, conta
              <div className="flex flex-col items-center gap-2">
                 <Button
                 size="icon"
-                className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600"
+                className="w-14 h-14 rounded-full bg-green-500 hover:bg-green-600 animate-pulse-strong"
                 onClick={handleAccept}
                 >
                 <Phone className="h-6 w-6" />
