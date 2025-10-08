@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -163,7 +164,7 @@ const DraggableFrame = ({
             variant="secondary"
             size="icon"
             className={cn(
-              'rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30',
+              'rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90',
               mainControls.isMuted && 'bg-destructive text-destructive-foreground'
             )}
           >
@@ -173,7 +174,7 @@ const DraggableFrame = ({
             onClick={mainControls.toggleSpeakerMute}
             variant="secondary"
             size="icon"
-            className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
+            className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {mainControls.isSpeakerMuted ? <VolumeX /> : <Volume2 />}
           </Button>
@@ -189,7 +190,7 @@ const DraggableFrame = ({
             onClick={mainControls.toggleFullscreen}
             variant="secondary"
             size="icon"
-            className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
+            className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {mainControls.isFullscreen ? <Minimize /> : <Maximize />}
           </Button>
@@ -198,7 +199,7 @@ const DraggableFrame = ({
               <Button
                 variant="secondary"
                 size="icon"
-                className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
+                className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => onZoom('out')}
               >
                 <ZoomOut />
@@ -206,7 +207,7 @@ const DraggableFrame = ({
               <Button
                 variant="secondary"
                 size="icon"
-                className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
+                className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => onZoom('in')}
               >
                 <ZoomIn />
@@ -244,7 +245,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const [mainFrame, setMainFrame] = useState<DraggableState>({
     position: { x: 0, y: 0 },
-    size: { width: 640, height: 360 },
+    size: { width: 640, height: 350 },
     isDragging: false
   });
 
@@ -339,10 +340,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
         setMainFrame(prev => ({
           ...prev,
-          size: { width: newWidth, height: 360 },
+          size: { width: newWidth, height: 350 },
           position: {
             x: (containerWidth - newWidth) / 2,
-            y: (containerHeight - 360) / 2
+            y: (containerHeight - 350) / 2
           }
         }));
       };
