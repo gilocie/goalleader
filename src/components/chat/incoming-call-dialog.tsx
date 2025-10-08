@@ -20,18 +20,18 @@ interface IncomingCallDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onDecline: () => void;
+  onAccept: () => void;
   contact: Contact | null;
 }
 
-export function IncomingCallDialog({ isOpen, onClose, onDecline, contact }: IncomingCallDialogProps) {
-  const { acceptCall } = useChat();
+export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, contact }: IncomingCallDialogProps) {
 
   if (!contact) return null;
 
   const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
   
   const handleAccept = () => {
-    acceptCall();
+    onAccept();
   };
 
   const handleDecline = () => {

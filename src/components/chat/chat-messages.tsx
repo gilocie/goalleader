@@ -103,7 +103,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, activeCallWith, startCall, endCall, declineCall } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, activeCallWith, startCall, endCall, acceptCall, declineCall } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
@@ -219,7 +219,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           </div>
         </CardHeader>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto">
           <ScrollArea className="h-full">
             <div className="space-y-4 p-4">
               {messages.length === 0 ? (
@@ -294,8 +294,9 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       <IncomingCallDialog
         isOpen={!!incomingCallFrom}
         onClose={() => declineCall()}
-        onDecline={() => declineCall()}
+        onDecline={() => declineCall}
         contact={incomingCallFrom}
+        onAccept={acceptCall}
       />
     </>
   );
