@@ -26,7 +26,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       {/* Fixed Header */}
-      <CardHeader className={cn("p-4 border-b flex-shrink-0", !isSidebarOpen && 'pl-8')}>
+      <CardHeader className={cn("p-4 border-b flex-shrink-0", !isSidebarOpen ? "pl-8" : "pl-8")}>
         <div className="flex items-center gap-4">
           <CardTitle className="text-xl">Chats</CardTitle>
           <div className="relative flex-1">
