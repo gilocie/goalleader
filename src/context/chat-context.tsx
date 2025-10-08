@@ -75,7 +75,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     };
     setMessages(prev => [...prev, newMessage]);
 
-    if (content.toLowerCase().includes('call me')) {
+    if (content.toLowerCase().includes('call me') || content.toLowerCase().includes('video chat')) {
         setTimeout(() => {
             const caller = allContacts.find(c => c.id === recipientId);
             if (caller) {
@@ -185,8 +185,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [self, selectedContact]);
 
   const startCall = useCallback((contact: Contact) => {
+    addSystemMessage('Outgoing video call', contact.id);
     setActiveCallWith(contact);
-  }, []);
+  }, [addSystemMessage]);
 
   const endCall = useCallback((duration: number) => {
     if (activeCallWith) {
@@ -195,21 +196,22 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             const secs = seconds % 60;
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         };
-        addSystemMessage(`Call ended, duration: ${formatDuration(duration)}`, activeCallWith.id);
+        addSystemMessage(`Video call ended, duration: ${formatDuration(duration)}`, activeCallWith.id);
         setActiveCallWith(null);
     }
   }, [activeCallWith, addSystemMessage]);
 
   const acceptCall = useCallback(() => {
     if (incomingCallFrom) {
+        addSystemMessage(`Video call with ${incomingCallFrom.name} started`, incomingCallFrom.id);
         setActiveCallWith(incomingCallFrom);
         setIncomingCallFrom(null);
     }
-  }, [incomingCallFrom]);
+  }, [incomingCallFrom, addSystemMessage]);
 
   const declineCall = useCallback(() => {
     if (incomingCallFrom) {
-        addSystemMessage(`Missed call from ${incomingCallFrom.name}`, incomingCallFrom.id);
+        addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id);
         setIncomingCallFrom(null);
     }
   }, [incomingCallFrom, addSystemMessage]);

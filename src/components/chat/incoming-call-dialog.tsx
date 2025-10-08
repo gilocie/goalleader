@@ -44,7 +44,7 @@ export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, conta
         <DialogHeader className="sr-only">
           <DialogTitle>Incoming Call</DialogTitle>
           <DialogDescription>
-            Incoming call from {contact.name}. You can accept or decline.
+            Incoming video call from {contact.name}. You can accept or decline.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center p-8 space-y-6">
@@ -59,7 +59,7 @@ export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, conta
 
           <div className="text-center space-y-1">
             <h2 className="text-2xl font-bold">{contact.name}</h2>
-            <p className="text-gray-400">Incoming Call...</p>
+            <p className="text-gray-400">Incoming Video Call...</p>
           </div>
 
           <div className="flex items-center space-x-6 pt-4">

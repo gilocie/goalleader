@@ -5,7 +5,7 @@
 import { CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
 import { useRef, useState, useEffect } from 'react';
@@ -250,7 +250,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     if (message.isSystem) {
                       return (
                         <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-                          <Phone size={14} />
+                          <VideoIcon size={14} />
                           <span>{message.content}</span>
                         </div>
                       )
@@ -296,7 +296,15 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         </div>
       </div>
         
-      <Dialog open={isImageViewerOpen} onOpenChange={setImageViewerOpen}></Dialog>
+      <Dialog open={isImageViewerOpen} onOpenChange={setImageViewerOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Image Viewer</DialogTitle>
+            <DialogDescription>Viewing attached image.</DialogDescription>
+          </DialogHeader>
+          {selectedImageUrl && <Image src={selectedImageUrl} alt="Full screen image" layout="responsive" width={1920} height={1080} className="object-contain max-h-[80vh]" />}
+        </DialogContent>
+      </Dialog>
       {forwardMessage && (<ForwardMessageDialog isOpen={!!forwardMessage} onOpenChange={() => setForwardMessage(null)} message={forwardMessage} contacts={contacts} />)}
       {activeCallWith && (
         <CallingDialog

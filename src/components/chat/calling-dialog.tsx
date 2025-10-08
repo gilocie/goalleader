@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Phone, Video, VideoOff } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useChat } from '@/context/chat-context';
 
 interface CallingDialogProps {
   isOpen: boolean;
@@ -71,7 +71,7 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
     <Dialog open={isOpen} onOpenChange={() => handleEndCall()}>
       <DialogContent className="sm:max-w-md bg-gray-800 text-white border-0">
         <DialogHeader className="sr-only">
-          <DialogTitle>Outgoing Call</DialogTitle>
+          <DialogTitle>Outgoing Video Call</DialogTitle>
           <DialogDescription>
             Calling {contact.name}. You can mute, turn on video, or hang up.
           </DialogDescription>
@@ -86,7 +86,7 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
             </Avatar>
             <div className="absolute -bottom-2 -right-2 bg-gray-800 rounded-full p-1">
                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center animate-pulse">
-                    <Phone className="h-4 w-4 text-white" />
+                    <Video className="h-4 w-4 text-white" />
                 </div>
             </div>
           </div>
