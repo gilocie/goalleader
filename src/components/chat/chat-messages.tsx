@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -219,7 +220,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                         
                         {isSelf && <MessageActions message={message} />}
 
-                        <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden relative', isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                        <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden', isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                             {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
                             {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
                                 <div className="p-1">
