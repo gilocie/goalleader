@@ -18,8 +18,6 @@ import {
   Maximize,
   Minimize,
   Expand,
-  ZoomIn,
-  ZoomOut,
   Loader2,
   VolumeX,
 } from 'lucide-react';
@@ -48,7 +46,6 @@ const DraggableFrame = ({
   elapsedTime,
   onDragStart,
   onSwap,
-  onZoom,
   mainControls,
   isSelf,
   callStatus,
@@ -62,7 +59,6 @@ const DraggableFrame = ({
   elapsedTime: number;
   onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSwap?: () => void;
-  onZoom?: (direction: 'in' | 'out') => void;
   mainControls?: {
     toggleMic: () => void;
     isMuted: boolean;
@@ -179,7 +175,10 @@ const DraggableFrame = ({
             onClick={mainControls.toggleSpeakerMute}
             variant="secondary"
             size="icon"
-            className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
+            className={cn(
+              'rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90',
+              mainControls.isSpeakerMuted && 'bg-destructive text-destructive-foreground'
+            )}
           >
             {mainControls.isSpeakerMuted ? <VolumeX /> : <Volume2 />}
           </Button>
@@ -199,26 +198,6 @@ const DraggableFrame = ({
           >
             {mainControls.isFullscreen ? <Minimize /> : <Maximize />}
           </Button>
-          {onZoom && (
-            <>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={() => onZoom('out')}
-              >
-                <ZoomOut />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={() => onZoom('in')}
-              >
-                <ZoomIn />
-              </Button>
-            </>
-          )}
         </div>
       )}
 
@@ -250,7 +229,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const [mainFrame, setMainFrame] = useState<DraggableState>({
     position: { x: 0, y: 0 },
-    size: { width: 640, height: 350 },
+    size: { width: 640, height: 340 },
     isDragging: false
   });
 
@@ -345,10 +324,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
         setMainFrame(prev => ({
           ...prev,
-          size: { width: newWidth, height: 350 },
+          size: { width: newWidth, height: 340 },
           position: {
             x: (containerWidth - newWidth) / 2,
-            y: (containerHeight - 350) / 2
+            y: (containerHeight - 340) / 2
           }
         }));
       };
@@ -463,18 +442,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  // ---- Zoom ----
-  const handleZoom = (target: 'main' | 'pip', dir: 'in' | 'out') => {
-    const setFrame = target === 'main' ? setMainFrame : setPipFrame;
-    setFrame((p) => {
-      const aspect = p.size.width / p.size.height;
-      const delta = dir === 'in' ? 50 : -50;
-      const newWidth = Math.max(150, Math.min(1280, p.size.width + delta));
-      const newHeight = newWidth / aspect;
-      return { ...p, size: { width: newWidth, height: newHeight } };
-    });
-  };
-
   const mainControls = {
     toggleMic,
     isMuted,
@@ -496,7 +463,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       stream={streamRef.current}
       elapsedTime={elapsedTime}
       onDragStart={(e) => handleDragStart(e, 'main')}
-      onZoom={(dir) => handleZoom('main', dir)}
       mainControls={mainControls}
       callStatus={callStatus}
     />
@@ -511,7 +477,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       stream={null} // No stream for contact
       elapsedTime={elapsedTime}
       onDragStart={(e) => handleDragStart(e, 'main')}
-      onZoom={(dir) => handleZoom('main', dir)}
       mainControls={mainControls}
       callStatus={callStatus}
     />
