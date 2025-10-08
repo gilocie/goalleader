@@ -35,17 +35,17 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mainView, setMainView] = useState<'contact' | 'self'>('contact');
+  const [mainView, setMainView] = useState<'self' | 'contact'>('self');
 
   const [selfFrame, setSelfFrame] = useState<DraggableState>({
-    position: { x: 20, y: 20 },
-    size: { width: 192, height: 144 }, // 4:3 aspect ratio
+    position: { x: 100, y: 100 },
+    size: { width: 640, height: 480 },
     isDragging: false,
   });
 
   const [contactFrame, setContactFrame] = useState<DraggableState>({
-    position: { x: 250, y: 100 },
-    size: { width: 640, height: 480 },
+    position: { x: 20, y: 20 },
+    size: { width: 192, height: 144 },
     isDragging: false,
   });
 
@@ -84,7 +84,8 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         streamRef.current = stream;
         if (selfVideoRef.current) selfVideoRef.current.srcObject = stream;
-        if (contactVideoRef.current) contactVideoRef.current.srcObject = stream; // Mock: using self stream for contact
+        // Mocking contact video with self stream
+        if (contactVideoRef.current) contactVideoRef.current.srcObject = stream;
       } catch (err) {
         toast({ variant: "destructive", title: "Media Access Denied", description: "Please allow camera and microphone access." });
         onClose();
@@ -188,7 +189,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const DraggableFrame = ({
       frameState,
-      setFrameState,
       videoRef,
       avatar,
       name,
@@ -199,7 +199,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       onZoom,
     }: {
       frameState: DraggableState;
-      setFrameState: React.Dispatch<React.SetStateAction<DraggableState>>;
       videoRef: React.RefObject<HTMLVideoElement>;
       avatar?: { imageUrl?: string, imageHint?: string};
       name: string;
@@ -258,8 +257,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   
   const mainFrameState = mainView === 'self' ? selfFrame : contactFrame;
   const setMainFrameState = mainView === 'self' ? setSelfFrame : setContactFrame;
-  const pipFrameState = mainView === 'self' ? contactFrame : selfFrame;
-  const setPipFrameState = mainView === 'self' ? setContactFrame : setSelfFrame;
   
   const handleZoom = (direction: 'in' | 'out') => {
     setMainFrameState(prev => ({
@@ -281,11 +278,11 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
         <div ref={videoContainerRef} id="video-call-container" className="flex-1 relative overflow-hidden bg-gray-900">
           <DraggableFrame
-            frameState={mainView === 'contact' ? contactFrame : selfFrame}
-            setFrameState={mainView === 'contact' ? setContactFrame : setSelfFrame}
-            videoRef={mainView === 'contact' ? contactVideoRef : selfVideoRef}
-            avatar={mainView === 'contact' ? contactAvatar : selfAvatar}
-            name={mainView === 'contact' ? contact.name : (self?.name || 'You')}
+            frameState={mainView === 'self' ? selfFrame : contactFrame}
+            setFrameState={mainView === 'self' ? setSelfFrame : setContactFrame}
+            videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
+            avatar={mainView === 'self' ? selfAvatar : contactAvatar}
+            name={mainView === 'self' ? (self?.name || 'You') : contact.name}
             isSelf={mainView === 'self'}
             isMain={true}
             onDragStart={(e) => handleDragStart(e, mainView)}
@@ -303,7 +300,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
             onSwap={handleSwapViews}
           />
           
-          {/* Main Controls - Attached to the main draggable frame */}
           <div 
             className="absolute flex justify-center items-center gap-4 z-30"
             style={{
