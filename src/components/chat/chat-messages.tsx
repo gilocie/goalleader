@@ -3,7 +3,7 @@
 import { CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, File as FileIcon, Download, MoreHorizontal, X, Reply, Forward, Plus } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -18,14 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
 
-// AudioPlayer component remains the same...
 interface AudioPlayerProps {
     audioUrl: string;
     duration: number;
@@ -110,14 +109,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   
-  // ... (all your handler functions like handleCallClick, handleAction, etc. remain here)
   const handleCallClick = () => { toast({ title: "Calling...", description: `Starting a call with ${selectedContact.name}.` }); };
   const handleVideoClick = () => { toast({ title: "Starting video call...", description: `Starting a video call with ${selectedContact.name}.` }); };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
   const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
     if (action === 'reply') { setReplyTo(message); } 
     else if (action === 'forward') { setForwardMessage(message); }
-    // ... download logic
   };
   const handleSendMessageWithContext = (content: string, type: 'text' | 'audio' | 'image' | 'file', data: any = {}) => {
     const messageData = { ...data };
@@ -127,7 +124,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   };
   
   if (!self) {
-    return null; // Or a loading state
+    return null;
   }
   
   const MessageActions = ({ message }: { message: Message }) => {
@@ -165,14 +162,14 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
   return (
     <>
-      <div className="flex flex-col h-full bg-card rounded-none border-none">
+      <div className="flex flex-col h-full w-full bg-card">
         <CardHeader className="flex flex-row items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
               {onExitChat && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10 lg:hidden ml-4 bg-primary text-primary-foreground hover:bg-primary/90">
+                      <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10 lg:hidden bg-primary text-primary-foreground hover:bg-primary/90">
                         <ArrowLeft className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
@@ -208,6 +205,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </DropdownMenu>
           </div>
         </CardHeader>
+
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="space-y-4 p-4">
@@ -226,7 +224,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                       {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                                   </div>
                               ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? ( <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={message.senderId === self.id} /></div>
-                              ) : message.type === 'file' && message.fileName && message.fileUrl ? ( <div className="p-3"><div className="flex items-center gap-3"><FileIcon className="h-8 w-8" /><div className="flex-1"><p className="font-medium truncate">{message.fileName}</p></div><a href={message.fileUrl} download={message.fileName}><Download className="h-5 w-5" /></a></div></div>
+                              ) : message.type === 'file' && message.fileName && message.fileUrl ? ( <div className="p-3"><div className="flex items-center gap-3"><div className="h-8 w-8" /><div className="flex-1"><p className="font-medium truncate">{message.fileName}</p></div><a href={message.fileUrl} download={message.fileName}><Download className="h-5 w-5" /></a></div></div>
                               ) : null}
                               {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                               <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", message.senderId === self.id ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp}</span>{message.senderId === self.id && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
@@ -238,7 +236,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </div>
           </ScrollArea>
         </div>
-        <div className="p-4 border-t flex-shrink-0">
+
+        <div className="p-4 border-t flex-shrink-0 bg-card">
           <ChatInput
             onSendMessage={handleSendMessageWithContext}
             replyTo={replyTo}
@@ -247,8 +246,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         </div>
       </div>
         
-      {/* Dialogs remain unchanged */}
-      <Dialog open={isImageViewerOpen} onOpenChange={setImageViewerOpen}>{/* ... */}</Dialog>
+      <Dialog open={isImageViewerOpen} onOpenChange={setImageViewerOpen}></Dialog>
       {forwardMessage && (<ForwardMessageDialog isOpen={!!forwardMessage} onOpenChange={() => setForwardMessage(null)} message={forwardMessage} contacts={contacts} />)}
     </>
   );

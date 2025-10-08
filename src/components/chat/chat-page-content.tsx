@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -26,7 +25,7 @@ export function ChatPageContent() {
 
   const handleSelectContact = (contact: Contact | null) => {
     setSelectedContact(contact);
-    setIsProfileOpen(false); // Close profile when switching contacts
+    setIsProfileOpen(false);
   };
   
   const handleDeleteMessage = (messageId: string) => {
@@ -34,7 +33,7 @@ export function ChatPageContent() {
   }
 
   return (
-    <main className="flex-1 overflow-hidden h-full">
+    <div className="h-full w-full overflow-hidden">
       <ChatLayout
         contacts={contacts}
         messages={contactMessages}
@@ -45,6 +44,6 @@ export function ChatPageContent() {
         isProfileOpen={isProfileOpen}
         onToggleProfile={() => setIsProfileOpen(prev => !prev)}
       />
-    </main>
+    </div>
   );
 }

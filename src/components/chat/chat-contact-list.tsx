@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +20,7 @@ interface ChatContactListProps {
 export function ChatContactList({ contacts, onSelectContact, selectedContactId }: ChatContactListProps) {
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
+      {/* Fixed Header */}
       <CardHeader className="p-4 border-b flex-shrink-0">
         <CardTitle className="text-xl mb-4 pl-4">Chats</CardTitle>
         <div className="relative">
@@ -28,6 +28,8 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
           <Input placeholder="Search..." className="w-full pl-8" />
         </div>
       </CardHeader>
+
+      {/* Scrollable Contact List */}
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-4 space-y-3">

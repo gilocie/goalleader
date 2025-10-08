@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ChatContactList } from './chat-contact-list';
@@ -44,11 +43,11 @@ export function ChatLayout({
   }
 
   return (
-    <div className={cn("grid h-full w-full transition-all duration-300", getGridCols())}>
+    <div className={cn("grid h-full w-full overflow-hidden transition-all duration-300", getGridCols())}>
       {/* Contact List */}
       <div
         className={cn(
-          'border-r bg-background h-full flex-col',
+          'border-r bg-background overflow-hidden',
           selectedContact && isMobileOrTablet ? 'hidden' : 'flex col-span-full lg:col-span-1',
         )}
       >
@@ -61,7 +60,7 @@ export function ChatLayout({
 
       {/* Main Chat Area */}
       {selectedContact && self ? (
-         <div className={cn("flex-col h-full overflow-hidden", selectedContact ? 'flex col-span-full lg:col-span-1' : 'hidden')}>
+         <div className={cn("overflow-hidden", selectedContact ? 'flex col-span-full lg:col-span-1' : 'hidden')}>
            <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
@@ -72,14 +71,14 @@ export function ChatLayout({
           />
         </div>
       ) : (
-        <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30 h-full">
+        <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30">
             <p className="text-muted-foreground text-lg">Select a contact to start chatting</p>
         </div>
       )}
 
       {/* Profile Panel */}
       {selectedContact && isProfileOpen && !isMobileOrTablet && (
-        <div className="hidden lg:flex flex-col h-full border-l bg-background">
+        <div className="hidden lg:flex flex-col border-l bg-background overflow-hidden">
           <ChatUserProfile contact={selectedContact} />
         </div>
       )}
