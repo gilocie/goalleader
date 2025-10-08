@@ -134,7 +134,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full transition-opacity">
+          <Button variant="default" size="icon" className="h-6 w-6 rounded-full transition-opacity bg-primary text-primary-foreground hover:bg-primary/90">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
