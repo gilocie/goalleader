@@ -192,7 +192,16 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
               </div>
               <div>
                 <p className="font-semibold">{selectedContact.name}</p>
-                <p className="text-xs text-muted-foreground">{selectedContact.status}</p>
+                {isTyping ? (
+                    <div className="flex items-center gap-1 text-xs text-primary">
+                        <span>typing</span>
+                        <span className="animate-bounce delay-75">.</span>
+                        <span className="animate-bounce delay-150">.</span>
+                        <span className="animate-bounce delay-200">.</span>
+                    </div>
+                ) : (
+                    <p className="text-xs text-muted-foreground">{selectedContact.status}</p>
+                )}
               </div>
             </button>
           </div>
@@ -261,20 +270,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                   )
                 })
               )}
-               {isTyping && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={PlaceHolderImages.find(p => p.id === 'janice-wallberg-p3')?.imageUrl} />
-                        <AvatarFallback>JW</AvatarFallback>
-                      </Avatar>
-                      <div className="flex items-center gap-1">
-                        <span>Jane is typing</span>
-                        <span className="animate-bounce delay-75">.</span>
-                        <span className="animate-bounce delay-150">.</span>
-                        <span className="animate-bounce delay-200">.</span>
-                      </div>
-                    </div>
-                )}
             </div>
           </ScrollArea>
         </div>
