@@ -37,9 +37,11 @@ interface ChatContextType {
   forwardMessage: (message: Message, recipientIds: string[]) => void;
   isTyping: boolean;
   incomingCallFrom: Contact | null;
-  setIncomingCallFrom: Dispatch<SetStateAction<Contact | null>>;
   activeCallWith: Contact | null;
-  setActiveCallWith: Dispatch<SetStateAction<Contact | null>>;
+  startCall: (contact: Contact) => void;
+  endCall: (duration: number) => void;
+  acceptCall: () => void;
+  declineCall: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -134,6 +136,21 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   }, [self, allContacts, selectedContact]);
 
+  const addSystemMessage = useCallback((content: string, contactId: string) => {
+    if (!self) return;
+    const systemMessage: Message = {
+      id: `sys-${Date.now()}`,
+      senderId: 'system',
+      recipientId: contactId, // To associate with the correct chat
+      content,
+      timestamp: format(new Date(), 'p'),
+      type: 'text',
+      isSystem: true,
+    };
+     // Add to both sides of conversation for simplicity in demo
+    setMessages(prev => [...prev, {...systemMessage, recipientId: self.id, senderId: contactId}, {...systemMessage, recipientId: contactId, senderId: self.id}]);
+  }, [self]);
+
   const deleteMessage = useCallback((messageId: string) => {
     setMessages(prev => prev.filter(m => m.id !== messageId));
   }, []);
@@ -167,6 +184,36 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         }, index * 100); // Stagger sending
     });
   }, [self, selectedContact]);
+
+  const startCall = useCallback((contact: Contact) => {
+    setActiveCallWith(contact);
+  }, []);
+
+  const endCall = useCallback((duration: number) => {
+    if (activeCallWith) {
+        const formatDuration = (seconds: number) => {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        };
+        addSystemMessage(`Call ended, duration: ${formatDuration(duration)}`, activeCallWith.id);
+        setActiveCallWith(null);
+    }
+  }, [activeCallWith, addSystemMessage]);
+
+  const acceptCall = useCallback(() => {
+    if (incomingCallFrom) {
+        setActiveCallWith(incomingCallFrom);
+        setIncomingCallFrom(null);
+    }
+  }, [incomingCallFrom]);
+
+  const declineCall = useCallback(() => {
+    if (incomingCallFrom) {
+        addSystemMessage(`Missed call from ${incomingCallFrom.name}`, incomingCallFrom.id);
+        setIncomingCallFrom(null);
+    }
+  }, [incomingCallFrom, addSystemMessage]);
   
   // Effect to mark messages as read when a chat is opened
   useEffect(() => {
@@ -198,9 +245,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     forwardMessage,
     isTyping,
     incomingCallFrom,
-    setIncomingCallFrom,
     activeCallWith,
-    setActiveCallWith,
+    startCall,
+    endCall,
+    acceptCall,
+    declineCall,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

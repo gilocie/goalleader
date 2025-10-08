@@ -103,7 +103,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, setIncomingCallFrom, activeCallWith, setActiveCallWith } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, activeCallWith, startCall, endCall, declineCall } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
@@ -113,7 +113,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   
-  const handleCallClick = () => { setActiveCallWith(selectedContact) };
+  const handleCallClick = () => { startCall(selectedContact) };
   const handleVideoClick = () => { toast({ title: "Starting video call...", description: `Starting a video call with ${selectedContact.name}.` }); };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
   const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
@@ -287,13 +287,14 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       {activeCallWith && (
         <CallingDialog
           isOpen={!!activeCallWith}
-          onClose={() => setActiveCallWith(null)}
+          onClose={(duration: number) => endCall(duration)}
           contact={activeCallWith}
         />
       )}
       <IncomingCallDialog
         isOpen={!!incomingCallFrom}
-        onClose={() => setIncomingCallFrom(null)}
+        onClose={() => declineCall()}
+        onDecline={() => declineCall()}
         contact={incomingCallFrom}
       />
     </>

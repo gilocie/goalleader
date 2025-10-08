@@ -19,23 +19,23 @@ import { useChat } from '@/context/chat-context';
 interface IncomingCallDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onDecline: () => void;
   contact: Contact | null;
 }
 
-export function IncomingCallDialog({ isOpen, onClose, contact }: IncomingCallDialogProps) {
-  const { setActiveCallWith } = useChat();
+export function IncomingCallDialog({ isOpen, onClose, onDecline, contact }: IncomingCallDialogProps) {
+  const { acceptCall } = useChat();
 
   if (!contact) return null;
 
   const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
   
   const handleAccept = () => {
-    onClose();
-    setActiveCallWith(contact);
+    acceptCall();
   };
 
   const handleDecline = () => {
-    onClose();
+    onDecline();
   };
 
   return (

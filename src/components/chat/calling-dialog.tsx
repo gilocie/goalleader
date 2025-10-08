@@ -14,10 +14,11 @@ import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Phone, Video, VideoOff } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useChat } from '@/context/chat-context';
 
 interface CallingDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (duration: number) => void;
   contact: Contact;
 }
 
@@ -31,7 +32,7 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
 
   useEffect(() => {
     let statusTimer: NodeJS.Timeout;
-    let durationTimer: NodeJS.Timeout;
+    let durationTimer: NodeJS.Timeout | undefined;
 
     if (isOpen) {
       setCallStatus('Ringing...');
@@ -50,9 +51,15 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
 
     return () => {
       clearTimeout(statusTimer);
-      clearInterval(durationTimer);
+      if (durationTimer) {
+        clearInterval(durationTimer);
+      }
     };
   }, [isOpen]);
+
+  const handleEndCall = () => {
+    onClose(callDuration);
+  }
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -61,7 +68,7 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => handleEndCall()}>
       <DialogContent className="sm:max-w-md bg-gray-800 text-white border-0">
         <DialogHeader className="sr-only">
           <DialogTitle>Outgoing Call</DialogTitle>
@@ -112,7 +119,7 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
               variant="destructive"
               size="icon"
               className="w-14 h-14 rounded-full"
-              onClick={onClose}
+              onClick={handleEndCall}
             >
               <Phone className="h-6 w-6 transform -scale-x-100" />
             </Button>
