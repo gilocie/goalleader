@@ -18,7 +18,8 @@ import {
   Minimize,
   Expand,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Loader2
 } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -48,6 +49,7 @@ const DraggableFrame = ({
   onZoom,
   mainControls,
   isSelf,
+  callStatus
 }: {
   frameState: DraggableState;
   videoRef: React.RefObject<HTMLVideoElement>;
@@ -67,6 +69,7 @@ const DraggableFrame = ({
     isFullscreen: boolean;
   };
   isSelf: boolean;
+  callStatus: 'connecting' | 'ringing' | 'connected';
 }) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -124,9 +127,18 @@ const DraggableFrame = ({
         )}
       </div>
 
-      {!isSelf && (<div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-1 rounded z-10">
-        {name}
-      </div>)}
+       {isMain && callStatus !== 'connected' && (
+        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-40">
+          <Loader2 className="h-8 w-8 animate-spin mb-4" />
+          <p className="text-xl font-semibold capitalize">{callStatus}...</p>
+        </div>
+      )}
+
+      {!isSelf && (
+        <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-1 rounded z-10">
+            {name}
+        </div>
+      )}
 
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-30 flex gap-2">
         {onSwap && (
@@ -200,10 +212,12 @@ const DraggableFrame = ({
         </div>
       )}
 
-      <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
-        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-        <span>{formatTime(elapsedTime)}</span>
-      </div>
+      {callStatus === 'connected' && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
+          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+          <span>{formatTime(elapsedTime)}</span>
+        </div>
+      )}
     </div>
   );
 };
@@ -219,23 +233,25 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isMuted, setIsMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mainView, setMainView] = useState<'self' | 'contact'>('contact');
+  const [mainView, setMainView] = useState<'self' | 'contact'>('self');
+  const [callStatus, setCallStatus] = useState<'connecting' | 'ringing' | 'connected'>('connecting');
+
 
   const [selfFrame, setSelfFrame] = useState<DraggableState>({
-    position: { x: 20, y: 20 },
-    size: { width: 192, height: 144 },
-    isDragging: false,
+    position: { x: 0, y: 0 },
+    size: { width: 640, height: 480 },
+    isDragging: false
   });
 
   const [contactFrame, setContactFrame] = useState<DraggableState>({
-    position: { x: 100, y: 100 },
-    size: { width: 640, height: 360 },
-    isDragging: false,
+    position: { x: 20, y: 20 },
+    size: { width: 192, height: 144 },
+    isDragging: false
   });
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null);
+  const contactVideoRef = useRef<HTMLVideoElement>(null); // We don't have a stream for contact, so this won't be used for video
   const streamRef = useRef<MediaStream | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -247,15 +263,28 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     : undefined;
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
 
+  // ---- Call Status Simulation ----
+  useEffect(() => {
+    if (isOpen) {
+      setCallStatus('connecting');
+      const t1 = setTimeout(() => setCallStatus('ringing'), 2000);
+      const t2 = setTimeout(() => setCallStatus('connected'), 5000);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    }
+  }, [isOpen]);
+
   // ---- Elapsed time ----
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isOpen) {
+    if (isOpen && callStatus === 'connected') {
       setElapsedTime(0);
       timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
     }
     return () => clearInterval(timer);
-  }, [isOpen]);
+  }, [isOpen, callStatus]);
 
   // ---- Camera and mic setup ----
   useEffect(() => {
@@ -289,13 +318,13 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     };
   }, [isOpen, onClose, toast]);
 
-  useEffect(() => {
+    useEffect(() => {
     const container = videoContainerRef.current;
     if (container) {
       const centerMainFrame = () => {
         const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
         
-        setContactFrame(prev => ({
+        setSelfFrame(prev => ({
           ...prev,
           position: {
             x: (containerWidth - prev.size.width) / 2,
@@ -303,11 +332,12 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           }
         }));
 
-        setSelfFrame(prev => ({
+        // Attach PiP to top left of main frame
+        setContactFrame(prev => ({
           ...prev,
           position: {
-            x: (containerWidth - contactFrame.size.width) / 2,
-            y: (containerHeight - contactFrame.size.height) / 2
+            x: (containerWidth - selfFrame.size.width) / 2,
+            y: (containerHeight - selfFrame.size.height) / 2
           }
         }))
       };
@@ -316,7 +346,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       window.addEventListener('resize', centerMainFrame);
       return () => window.removeEventListener('resize', centerMainFrame);
     }
-  }, [contactFrame.size, isOpen]);
+  }, [selfFrame.size, isOpen]);
 
   const toggleMic = () => {
     streamRef.current?.getAudioTracks().forEach((track) => {
@@ -326,18 +356,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   };
 
   const handleSwapViews = () => {
-    const currentSelf = selfFrame;
-    const currentContact = contactFrame;
-    setSelfFrame((prev) => ({
-      ...prev,
-      position: currentContact.position,
-      size: currentContact.size
-    }));
-    setContactFrame((prev) => ({
-      ...prev,
-      position: currentSelf.position,
-      size: currentSelf.size
-    }));
     setMainView((v) => (v === 'self' ? 'contact' : 'self'));
   };
 
@@ -447,7 +465,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           id="video-call-dialog-content"
-          className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-transparent shadow-none"
+          className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-gray-900 shadow-none"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Video Call with {contact.name}</DialogTitle>
@@ -457,14 +475,16 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           <div
             ref={videoContainerRef}
             id="video-call-container"
-            className="flex-1 relative overflow-hidden bg-gray-900/80"
+            className="flex-1 relative overflow-hidden"
           >
             {/* Main */}
             <DraggableFrame
               frameState={mainView === 'self' ? selfFrame : contactFrame}
               videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
               avatar={mainView === 'self' ? selfAvatar : contactAvatar}
-              name={contact.name}
+              name={
+                mainView === 'self' ? self?.name || 'You' : contact.name
+              }
               isMain={true}
               stream={mainView === 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
@@ -472,6 +492,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               onZoom={(dir) => handleZoom(mainViewTarget, dir)}
               mainControls={mainControls}
               isSelf={mainView === 'self'}
+              callStatus={callStatus}
             />
 
             {/* PiP */}
@@ -479,13 +500,16 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               frameState={mainView === 'self' ? contactFrame : selfFrame}
               videoRef={mainView === 'self' ? contactVideoRef : selfVideoRef}
               avatar={mainView === 'self' ? contactAvatar : selfAvatar}
-              name={self?.name || 'You'}
+              name={
+                mainView === 'self' ? contact.name : self?.name || 'You'
+              }
               isMain={false}
               stream={mainView !== 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, pipViewTarget)}
               onSwap={handleSwapViews}
               isSelf={mainView !== 'self'}
+              callStatus={callStatus}
             />
           </div>
         </DialogContent>
