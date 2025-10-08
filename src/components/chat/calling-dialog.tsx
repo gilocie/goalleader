@@ -5,6 +5,9 @@ import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -37,6 +40,12 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md bg-gray-800 text-white border-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Outgoing Call</DialogTitle>
+          <DialogDescription>
+            Calling {contact.name}. You can mute, turn on video, or hang up.
+          </DialogDescription>
+        </DialogHeader>
         <div className="flex flex-col items-center justify-center p-8 space-y-6">
           <div className="relative">
             <Avatar className="h-32 w-32 border-4 border-gray-600">
