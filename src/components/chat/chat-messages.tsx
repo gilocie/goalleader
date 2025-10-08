@@ -109,6 +109,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [isCalling, setIsCalling] = useState(false);
+  const [isTyping, setIsTyping] = useState(true);
 
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
@@ -213,34 +214,67 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         <div className="flex-1 overflow-hidden">
           <ScrollArea className="h-full">
             <div className="space-y-4 p-4">
-              {messages.map((message) => {
-                const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
-                const isSelf = message.senderId === self.id;
-                return (
-                    <div key={message.id} className={cn('flex items-end gap-2 group', isSelf ? 'justify-end' : 'justify-start')}>
-                        {!isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} /><AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar> )}
-                        
-                        {isSelf && <MessageActions message={message} />}
+              {messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                    No messages yet. Start the conversation!
+                </div>
+              ) : (
+                messages.map((message) => {
+                  const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
+                  const isSelf = message.senderId === self.id;
+                  const sender = contacts.find(c => c.id === message.senderId) || self;
+                  const senderAvatar = PlaceHolderImages.find(p => p.id === sender.id);
 
-                        <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden', isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                            {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
-                            {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
-                                <div className="p-1">
-                                    <div className="grid grid-cols-2 gap-1">{message.imageUrls.slice(0, 4).map((url, index) => { const remainingImages = message.imageUrls!.length - 4; const showMore = index === 3 && remainingImages > 0; return ( <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square w-36 h-36 block cursor-pointer overflow-hidden rounded-md group/more", showMore && "bg-black")}> <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} /> {showMore && ( <div className="absolute inset-0 flex items-center justify-center text-white"><Plus className="h-6 w-6" /><span className="text-xl font-bold">{remainingImages}</span></div> )} </button> ) })}</div>
-                                    {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
-                                </div>
-                            ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? ( <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={isSelf} /></div>
-                            ) : message.type === 'file' && message.fileName && message.fileUrl ? ( <div className="p-3"><div className="flex items-center gap-3"><div className="h-8 w-8" /><div className="flex-1"><p className="font-medium truncate">{message.fileName}</p></div><a href={message.fileUrl} download={message.fileName}><Download className="h-5 w-5" /></a></div></div>
-                            ) : null}
-                            {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
-                            <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
-                        </div>
+                  if (message.isSystem) {
+                    return (
+                      <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+                        <Phone size={14} />
+                        <span>{message.content}</span>
+                      </div>
+                    )
+                  }
 
-                        {!isSelf && <MessageActions message={message} />}
+                  return (
+                      <div key={message.id} className={cn('flex items-end gap-2 group', isSelf ? 'justify-end' : 'justify-start')}>
+                          {!isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} /><AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar> )}
+                          
+                          {isSelf && <MessageActions message={message} />}
 
-                        {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" /><AvatarFallback>U</AvatarFallback></Avatar> )}
+                          <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden', isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                              {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
+                              {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
+                                  <div className="p-1">
+                                      <div className="grid grid-cols-2 gap-1">{message.imageUrls.slice(0, 4).map((url, index) => { const remainingImages = message.imageUrls!.length - 4; const showMore = index === 3 && remainingImages > 0; return ( <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square w-36 h-36 block cursor-pointer overflow-hidden rounded-md group/more", showMore && "bg-black")}> <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} /> {showMore && ( <div className="absolute inset-0 flex items-center justify-center text-white"><Plus className="h-6 w-6" /><span className="text-xl font-bold">{remainingImages}</span></div> )} </button> ) })}</div>
+                                      {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
+                                  </div>
+                              ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? ( <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={isSelf} /></div>
+                              ) : message.type === 'file' && message.fileName && message.fileUrl ? ( <div className="p-3"><div className="flex items-center gap-3"><div className="h-8 w-8" /><div className="flex-1"><p className="font-medium truncate">{message.fileName}</p></div><a href={message.fileUrl} download={message.fileName}><Download className="h-5 w-5" /></a></div></div>
+                              ) : null}
+                              {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
+                              <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
+                          </div>
+
+                          {!isSelf && <MessageActions message={message} />}
+
+                          {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" /><AvatarFallback>U</AvatarFallback></Avatar> )}
+                      </div>
+                  )
+                })
+              )}
+               {isTyping && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={PlaceHolderImages.find(p => p.id === 'janice-wallberg-p3')?.imageUrl} />
+                        <AvatarFallback>JW</AvatarFallback>
+                      </Avatar>
+                      <div className="flex items-center gap-1">
+                        <span>Jane is typing</span>
+                        <span className="animate-bounce delay-75">.</span>
+                        <span className="animate-bounce delay-150">.</span>
+                        <span className="animate-bounce delay-200">.</span>
+                      </div>
                     </div>
-                )})}
+                )}
             </div>
           </ScrollArea>
         </div>
