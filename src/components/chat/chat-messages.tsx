@@ -26,7 +26,6 @@ import { useChat } from '@/context/chat-context';
 import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
-import { CallingDialog } from './calling-dialog';
 import { IncomingCallDialog } from './incoming-call-dialog';
 import { useRouter } from 'next/navigation';
 import { VideoCallDialog } from './video-call-dialog';
@@ -105,7 +104,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, activeCallWith, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
@@ -119,7 +118,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const handleCallClick = () => { startCall(selectedContact) };
-  const handleVideoClick = () => setIsVideoCallOpen(true);
+  const handleVideoClick = () => startCall(selectedContact);
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
   const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
     if (action === 'reply') { setReplyTo(message); } 
@@ -312,13 +311,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         </DialogContent>
       </Dialog>
       {forwardMessage && (<ForwardMessageDialog isOpen={!!forwardMessage} onOpenChange={() => setForwardMessage(null)} message={forwardMessage} contacts={contacts} />)}
-      {activeCallWith && !acceptedCallContact && (
-        <CallingDialog
-          isOpen={!!activeCallWith}
-          onClose={(duration: number) => endCall(duration)}
-          contact={activeCallWith}
-        />
-      )}
+
       <IncomingCallDialog
         isOpen={!!incomingCallFrom}
         onClose={() => declineCall()}
@@ -330,6 +323,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         <VideoCallDialog
           isOpen={isVideoCallOpen || !!acceptedCallContact}
           onClose={() => {
+            endCall(acceptedCallContact?.id || selectedContact.id);
             setIsVideoCallOpen(false);
             setAcceptedCallContact(null);
           }}

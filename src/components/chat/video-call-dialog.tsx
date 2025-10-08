@@ -35,14 +35,18 @@ interface DraggableState {
   isDragging: boolean;
 }
 
+type CallStatus = 'connecting' | 'ringing' | 'connected';
+
 // ---------- Draggable Frame ----------
 const DraggableFrame = ({
   frameState,
   videoRef,
   avatar,
   name,
+  isSelf,
   isMain,
-  stream,
+  isStreamReady,
+  callStatus,
   elapsedTime,
   onDragStart,
   onSwap,
@@ -53,8 +57,10 @@ const DraggableFrame = ({
   videoRef: React.RefObject<HTMLVideoElement>;
   avatar?: { imageUrl?: string; imageHint?: string };
   name: string;
+  isSelf: boolean;
   isMain: boolean;
-  stream: MediaStream | null,
+  isStreamReady: boolean;
+  callStatus: CallStatus;
   elapsedTime: number;
   onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSwap?: () => void;
@@ -75,12 +81,12 @@ const DraggableFrame = ({
       .padStart(2, '0')}`;
   };
 
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
+  const getStatusText = () => {
+    if (callStatus === 'connected') {
+      return formatTime(elapsedTime);
     }
-  }, [stream, videoRef]);
-
+    return callStatus.charAt(0).toUpperCase() + callStatus.slice(1) + '...';
+  }
 
   return (
     <div
@@ -101,12 +107,12 @@ const DraggableFrame = ({
       />
 
       <div className="w-full h-full flex items-center justify-center bg-gray-800">
-        {stream ? (
+        {isSelf && isStreamReady ? (
           <video
             ref={videoRef}
             autoPlay
             playsInline
-            muted // Mute self view to prevent feedback
+            muted
             className="w-full h-full object-cover"
             style={{ transform: 'scaleX(-1)' }}
           />
@@ -200,8 +206,8 @@ const DraggableFrame = ({
       )}
 
       <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
-        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-        <span>{formatTime(elapsedTime)}</span>
+        {callStatus === 'connected' && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>}
+        <span>{getStatusText()}</span>
       </div>
     </div>
   );
@@ -219,6 +225,9 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mainView, setMainView] = useState<'self' | 'contact'>('self');
+  const [isStreamReady, setIsStreamReady] = useState(false);
+  const [callStatus, setCallStatus] = useState<CallStatus>('connecting');
+
 
   const [selfFrame, setSelfFrame] = useState<DraggableState>({
     position: { x: 100, y: 100 },
@@ -234,7 +243,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null); // We don't have a stream for contact, so this won't be used for video
+  const contactVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -246,14 +255,27 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     : undefined;
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
 
-  // ---- Elapsed time ----
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
+  // ---- Call State Simulation ----
+    useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
     if (isOpen) {
+      setCallStatus('connecting');
       setElapsedTime(0);
-      timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
+
+      const connectingTimer = setTimeout(() => {
+        setCallStatus('ringing');
+        const ringingTimer = setTimeout(() => {
+          setCallStatus('connected');
+          timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
+        }, 3000); // Ring for 3 seconds
+        return () => clearTimeout(ringingTimer);
+      }, 2000); // Connect for 2 seconds
+
+      return () => {
+        clearTimeout(connectingTimer);
+        if (timer) clearInterval(timer);
+      };
     }
-    return () => clearInterval(timer);
   }, [isOpen]);
 
   // ---- Camera and mic setup ----
@@ -261,6 +283,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     if (!isOpen) {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
+      setIsStreamReady(false);
       return;
     }
 
@@ -271,6 +294,16 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           audio: true
         });
         streamRef.current = stream;
+
+        const assignStream = () => {
+          if (selfVideoRef.current) {
+            selfVideoRef.current.srcObject = stream;
+            setIsStreamReady(true);
+          } else {
+            setTimeout(assignStream, 200);
+          }
+        };
+        assignStream();
       } catch {
         toast({
           variant: 'destructive',
@@ -437,8 +470,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               name={
                 mainView === 'self' ? self?.name || 'You' : contact.name
               }
+              isSelf={mainView === 'self'}
               isMain={true}
-              stream={mainView === 'self' ? streamRef.current : null}
+              isStreamReady={isStreamReady}
+              callStatus={callStatus}
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, mainViewTarget)}
               onZoom={(dir) => handleZoom(mainViewTarget, dir)}
@@ -453,8 +488,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               name={
                 mainView === 'self' ? contact.name : self?.name || 'You'
               }
+              isSelf={mainView !== 'self'}
               isMain={false}
-              stream={mainView !== 'self' ? streamRef.current : null}
+              isStreamReady={isStreamReady}
+              callStatus={callStatus}
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, pipViewTarget)}
               onSwap={handleSwapViews}

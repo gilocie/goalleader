@@ -37,9 +37,8 @@ interface ChatContextType {
   forwardMessage: (message: Message, recipientIds: string[]) => void;
   isTyping: boolean;
   incomingCallFrom: Contact | null;
-  activeCallWith: Contact | null;
   startCall: (contact: Contact) => void;
-  endCall: (duration: number) => void;
+  endCall: (contactId: string) => void;
   acceptCall: () => void;
   declineCall: () => void;
   acceptedCallContact: Contact | null;
@@ -53,7 +52,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [messages, setMessages] = useState<Message[]>(messagesData);
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
-  const [activeCallWith, setActiveCallWith] = useState<Contact | null>(null);
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
   
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
@@ -189,20 +187,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const startCall = useCallback((contact: Contact) => {
     addSystemMessage('Outgoing video call', contact.id);
-    setActiveCallWith(contact);
+    setAcceptedCallContact(contact);
   }, [addSystemMessage]);
 
-  const endCall = useCallback((duration: number) => {
-    if (activeCallWith) {
-        const formatDuration = (seconds: number) => {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        };
-        addSystemMessage(`Video call ended, duration: ${formatDuration(duration)}`, activeCallWith.id);
-        setActiveCallWith(null);
-    }
-  }, [activeCallWith, addSystemMessage]);
+  const endCall = useCallback((contactId: string) => {
+        addSystemMessage(`Video call ended`, contactId);
+        setAcceptedCallContact(null);
+  }, [addSystemMessage]);
 
   const acceptCall = useCallback(() => {
     if (incomingCallFrom) {
@@ -249,7 +240,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     forwardMessage,
     isTyping,
     incomingCallFrom,
-    activeCallWith,
     startCall,
     endCall,
     acceptCall,
