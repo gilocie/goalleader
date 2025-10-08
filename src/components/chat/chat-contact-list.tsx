@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -23,6 +23,17 @@ interface ChatContactListProps {
 
 export function ChatContactList({ contacts, onSelectContact, selectedContactId }: ChatContactListProps) {
   const { open: isSidebarOpen } = useSidebar();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredContacts = useMemo(() => {
+    if (!searchTerm) {
+      return contacts;
+    }
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [contacts, searchTerm]);
+
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       {/* Fixed Header */}
@@ -31,7 +42,12 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
           <CardTitle className="text-xl">Chats</CardTitle>
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search..." className="w-full pl-8" />
+            <Input 
+              placeholder="Search..." 
+              className="w-full pl-8" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
       </CardHeader>
@@ -40,7 +56,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
           <div className="p-2">
-            {contacts.map((contact, index) => {
+            {filteredContacts.map((contact, index) => {
               const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
               const isSelected = selectedContactId === contact.id;
               return (
@@ -69,7 +85,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                         <p className={cn("font-semibold text-sm", isSelected && 'text-white')}>{contact.name}</p>
                         <div className={cn("flex items-center gap-1 text-xs truncate", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                             <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" isSelf={false}/>
-                            <span className={cn("md:text-white", isSelected && 'text-white')}>{contact.lastMessage}</span>
+                            <span className={cn("truncate", isSelected && 'text-white')}>{contact.lastMessage}</span>
                         </div>
                       </div>
                       <div className={cn("flex flex-col items-end text-xs space-y-1", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
@@ -85,7 +101,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                       </div>
                     </div>
                   </div>
-                  {index < contacts.length - 1 && <Separator className="my-1" />}
+                  {index < filteredContacts.length - 1 && <Separator className="my-1" />}
                 </React.Fragment>
               );
             })}
