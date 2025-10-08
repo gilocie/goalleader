@@ -147,7 +147,15 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
         <div className="flex-1 relative overflow-hidden bg-gray-800">
             {/* Contact Video (Main) */}
              <div className="w-full h-full flex items-center justify-center">
-                 <video ref={contactVideoRef} autoPlay className="w-full h-full object-cover scale-x-[-1]" />
+                {/* This is a simulation. In a real app, this would be the contact's stream */}
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                     <Avatar className="w-32 h-32">
+                        <AvatarImage src={contactAvatar?.imageUrl} />
+                        <AvatarFallback className="text-4xl">
+                            {contact.name.slice(0, 2)}
+                        </AvatarFallback>
+                    </Avatar>
+                </div>
                  <div className="absolute bottom-4 left-4 text-sm bg-black/50 px-2 py-1 rounded-md">{contact.name}</div>
             </div>
             
