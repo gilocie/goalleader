@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,9 +22,9 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       {/* Fixed Header */}
-      <CardHeader className="p-4 border-b flex-shrink-0">
-        <CardTitle className="text-xl mb-4 pl-4">Chats</CardTitle>
-        <div className="relative">
+      <CardHeader className="p-4 border-b flex-shrink-0 flex-row items-center justify-between">
+        <CardTitle className="text-xl">Chats</CardTitle>
+        <div className="relative w-2/3">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search..." className="w-full pl-8" />
         </div>
@@ -36,15 +37,15 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
             {contacts.map((contact) => {
               const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
               return (
-                <Card
+                <div
                   key={contact.id}
                   className={cn(
-                    'cursor-pointer transition-all hover:shadow-lg shadow-md',
+                    'cursor-pointer transition-all hover:bg-accent/50 rounded-lg p-3',
                     selectedContactId === contact.id && 'bg-accent'
                   )}
                   onClick={() => onSelectContact(contact)}
                 >
-                  <div className="flex items-center gap-3 p-3">
+                  <div className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={avatar?.imageUrl} alt={contact.name} data-ai-hint={avatar?.imageHint} />
@@ -73,7 +74,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                       )}
                     </div>
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>

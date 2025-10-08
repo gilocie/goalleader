@@ -6,10 +6,8 @@ import { ChatUserProfile } from './chat-user-profile';
 import { useChat } from '@/context/chat-context';
 import type { Contact, Message } from '@/types/chat';
 import { cn } from '@/lib/utils';
-import { useSidebar } from '../layout/sidebar';
 import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
-
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -47,7 +45,7 @@ export function ChatLayout({
       {/* Contact List */}
       <div
         className={cn(
-          'border-r bg-background overflow-hidden',
+          'border-r bg-background overflow-hidden h-full',
           selectedContact && isMobileOrTablet ? 'hidden' : 'flex col-span-full lg:col-span-1',
         )}
       >
@@ -60,7 +58,7 @@ export function ChatLayout({
 
       {/* Main Chat Area */}
       {selectedContact && self ? (
-         <div className={cn("overflow-hidden", selectedContact ? 'flex col-span-full lg:col-span-1' : 'hidden')}>
+         <div className={cn("overflow-hidden h-full", selectedContact ? 'flex col-span-full lg:col-span-1' : 'hidden')}>
            <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
@@ -78,7 +76,7 @@ export function ChatLayout({
 
       {/* Profile Panel */}
       {selectedContact && isProfileOpen && !isMobileOrTablet && (
-        <div className="hidden lg:flex flex-col border-l bg-background overflow-hidden">
+        <div className="hidden lg:flex flex-col h-full border-l bg-background overflow-hidden">
           <ChatUserProfile contact={selectedContact} />
         </div>
       )}
