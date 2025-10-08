@@ -10,7 +10,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Video, VideoOff, Phone, ScreenShare, X, ArrowLeft, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Phone, ScreenShare, X, ArrowLeft, Volume2, Maximize, Minimize } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
@@ -29,6 +29,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Draggable state for PiP
   const [position, setPosition] = useState({ x: 20, y: 20 });
@@ -153,6 +154,37 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const handleMouseUp = () => {
     setIsDragging(false);
   };
+  
+  const toggleFullscreen = async () => {
+    const container = document.getElementById('video-call-dialog-content');
+    if (!container) return;
+  
+    try {
+      if (!document.fullscreenElement) {
+        await container.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (error) {
+      console.error('Error toggling fullscreen:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Fullscreen Error',
+        description: 'Could not enter fullscreen mode.',
+      });
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   useEffect(() => {
     if (isDragging) {
@@ -171,39 +203,28 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-full h-screen w-screen p-0 gap-0 bg-gray-900 text-white border-0 sm:rounded-lg sm:max-w-4xl sm:h-[80vh] flex flex-col">
+      <DialogContent id="video-call-dialog-content" className="max-w-full h-screen w-screen p-0 gap-0 bg-gray-900 text-white border-0 sm:rounded-none flex flex-col data-[state=open]:sm:zoom-in-100">
         <DialogHeader className="sr-only">
           <DialogTitle>Video Call with {contact.name}</DialogTitle>
           <DialogDescription>A video call interface.</DialogDescription>
         </DialogHeader>
         <div className="flex-1 relative overflow-hidden bg-black flex items-center justify-center">
             {/* Contact Video (Main) */}
-            <video ref={contactVideoRef} autoPlay className="h-full object-contain" />
+            <video ref={contactVideoRef} autoPlay className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-black/10" />
-
-            {/* Header controls */}
-            <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-                <Button onClick={onClose} variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50 rounded-full">
-                    <ArrowLeft />
-                </Button>
-                <div className="flex items-center gap-2 bg-black/30 text-white text-sm font-medium px-3 py-1.5 rounded-full">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-                    <span>{formatTime(elapsedTime)}</span>
-                </div>
-            </div>
 
             {/* Self Video (Picture-in-picture) - Draggable */}
             <div
                 ref={pipRef}
-                className="absolute w-32 h-48 sm:w-40 sm:h-56 bg-black rounded-lg overflow-hidden border-2 border-white/20 shadow-lg cursor-move"
+                className="absolute w-40 sm:w-48 h-56 sm:h-64 bg-black rounded-lg overflow-hidden border-2 border-white/20 shadow-lg cursor-move"
                 style={{ top: `${position.y}px`, left: `${position.x}px` }}
                 onMouseDown={handleMouseDown}
             >
                 {isVideoOff ? (
                     <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-800">
-                        <Avatar className="w-16 h-16">
+                        <Avatar className="w-20 h-20">
                             <AvatarImage src={selfAvatar?.imageUrl} />
-                            <AvatarFallback className="text-xl">
+                            <AvatarFallback className="text-2xl">
                                 {self?.name.slice(0, 2)}
                             </AvatarFallback>
                         </Avatar>
@@ -211,24 +232,27 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
                 ) : (
                     <video ref={selfVideoRef} autoPlay muted className="w-full h-full object-cover scale-x-[-1]" />
                 )}
-                 <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+                 <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
                     <div className="w-2 h-2 rounded-full bg-red-500"></div>
                     <span>{formatTime(elapsedTime)}</span>
                 </div>
             </div>
              {/* Controls */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4">
-                <Button onClick={toggleMic} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14", isMuted && 'bg-destructive text-destructive-foreground')}>
+                <Button onClick={toggleMic} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30", isMuted && 'bg-destructive text-destructive-foreground')}>
                     {isMuted ? <MicOff /> : <Mic />}
                 </Button>
-                <Button onClick={toggleVideo} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14", isVideoOff && 'bg-destructive text-destructive-foreground')}>
+                <Button onClick={toggleVideo} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30", isVideoOff && 'bg-destructive text-destructive-foreground')}>
                     {isVideoOff ? <VideoOff /> : <Video />}
                 </Button>
-                 <Button variant="secondary" size="icon" className="rounded-full h-14 w-14">
+                 <Button variant="secondary" size="icon" className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30">
                     <Volume2 />
                 </Button>
                 <Button onClick={onClose} variant="destructive" size="icon" className="rounded-full h-14 w-14">
                     <Phone className="transform -scale-x-100" />
+                </Button>
+                 <Button onClick={toggleFullscreen} variant="secondary" size="icon" className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30">
+                    {isFullscreen ? <Minimize /> : <Maximize />}
                 </Button>
             </div>
         </div>
