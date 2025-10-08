@@ -17,10 +17,6 @@ import {
   Volume2,
   Maximize,
   Minimize,
-  Expand,
-  ZoomIn,
-  ZoomOut,
-  Loader2,
 } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -30,13 +26,8 @@ import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
 
 // ---------- Types ----------
-interface DraggableState {
-  position: { x: number; y: number };
-  size: { width: number; height: number };
-  isDragging: boolean;
-}
-
 type CallStatus = 'connecting' | 'ringing' | 'connected';
+
 
 // ---------- Main Dialog ----------
 interface VideoCallDialogProps {
@@ -51,7 +42,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isStreamReady, setIsStreamReady] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>('connecting');
-
+  
   const selfVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -136,6 +127,21 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     });
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}`;
+  };
+
+  const getStatusText = () => {
+    if (callStatus === 'connected') {
+      return formatTime(elapsedTime);
+    }
+    return callStatus.charAt(0).toUpperCase() + callStatus.slice(1) + '...';
+  }
+  
   // ---- Fullscreen ----
   const toggleFullscreen = async () => {
     const container = document.getElementById('video-call-dialog-content');
@@ -157,76 +163,54 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
-  
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs
-      .toString()
-      .padStart(2, '0')}`;
-  };
-
-  const getStatusText = () => {
-    if (callStatus === 'connected') {
-      return formatTime(elapsedTime);
-    }
-    return callStatus.charAt(0).toUpperCase() + callStatus.slice(1) + '...';
-  }
 
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent
           id="video-call-dialog-content"
-          className="max-w-3xl h-[600px] p-0 gap-0 text-white border-0 sm:rounded-lg flex flex-col bg-gray-800 shadow-2xl"
+          className="max-w-full h-screen w-screen p-0 gap-0 bg-gray-900 text-white border-0 sm:rounded-none flex flex-col data-[state=open]:sm:zoom-in-100"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>Video Call with {contact.name}</DialogTitle>
             <DialogDescription>Video call interface</DialogDescription>
           </DialogHeader>
-
-          <div
-            id="video-call-container"
-            className="flex-1 relative overflow-hidden"
-          >
-            {/* Main Video Area (Contact) */}
-            <div className="w-full h-full flex items-center justify-center bg-gray-900">
-                {callStatus !== 'connected' ? (
-                     <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="w-8 h-8 animate-spin" />
-                        <p className="text-xl font-semibold">{getStatusText()}</p>
-                    </div>
-                ) : (
-                    <Avatar className="w-40 h-40">
-                        <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
-                        <AvatarFallback className="text-5xl">{contact.name.slice(0, 2)}</AvatarFallback>
-                    </Avatar>
-                )}
-            </div>
-
-            {/* Self Video (Circular) */}
-            <div className="absolute bottom-6 left-6 w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg">
-                <video
-                    ref={selfVideoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                    style={{ transform: 'scaleX(-1)' }}
-                />
-            </div>
-
-            <div className="absolute bottom-1 left-12 text-center">
-                 <p className="text-sm font-semibold [text-shadow:0_1px_2px_var(--tw-shadow-color)] shadow-black/50">{self?.name}</p>
-            </div>
+          <div id="video-call-container" className="flex-1 relative overflow-hidden">
             
-            {/* Contact Info (Top) */}
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-center">
-                <Avatar className="w-16 h-16">
-                    <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
-                    <AvatarFallback>{contact.name.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-                <p className="font-semibold text-lg [text-shadow:0_1px_2px_var(--tw-shadow-color)] shadow-black/50">{contact.name}</p>
+            {/* Main Video Area (Contact) */}
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-800/50">
+              <Avatar className="w-40 h-40">
+                <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
+                <AvatarFallback className="text-5xl">{contact.name.slice(0, 2)}</AvatarFallback>
+              </Avatar>
+              <p className="font-semibold text-2xl mt-4">{contact.name}</p>
+              {callStatus !== 'connected' && (
+                <p className="text-lg text-white/70">{getStatusText()}</p>
+              )}
+            </div>
+
+            {/* Self Video (PiP) */}
+            <div className="absolute bottom-6 left-6 w-48 h-36 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg">
+              {isStreamReady ? (
+                  <video
+                      ref={selfVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                      style={{ transform: 'scaleX(-1)' }}
+                  />
+              ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                      <Avatar className="w-16 h-16">
+                          <AvatarImage src={selfAvatar?.imageUrl} />
+                          <AvatarFallback>{self?.name.slice(0,2)}</AvatarFallback>
+                      </Avatar>
+                  </div>
+              )}
+              <div className="absolute bottom-1 left-1 text-white text-xs bg-black/50 px-1.5 py-0.5 rounded">
+                {self?.name}
+              </div>
             </div>
 
             {/* Timer */}
@@ -236,20 +220,22 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
                     <span>{formatTime(elapsedTime)}</span>
                 </div>
             )}
-
-             {/* Controls */}
+            
+            {/* Controls */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4 z-30">
-              <Button onClick={toggleMic} variant="secondary" size="icon" className={cn("rounded-full h-12 w-12 bg-white/10 text-white hover:bg-white/20", isMuted && 'bg-destructive text-destructive-foreground')}>
-                {isMuted ? <MicOff className="h-5 w-5"/> : <Mic className="h-5 w-5"/>}
+              <Button onClick={toggleMic} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30", isMuted && 'bg-destructive text-destructive-foreground')}>
+                {isMuted ? <MicOff /> : <Mic />}
+              </Button>
+              <Button variant="secondary" size="icon" className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30">
+                <Volume2 />
               </Button>
               <Button onClick={onClose} variant="destructive" size="icon" className="rounded-full h-14 w-14">
-                <Phone className="transform -scale-x-100 h-6 w-6" />
+                <Phone className="transform -scale-x-100" />
               </Button>
-              <Button onClick={toggleFullscreen} variant="secondary" size="icon" className="rounded-full h-12 w-12 bg-white/10 text-white hover:bg-white/20">
-                {isFullscreen ? <Minimize className="h-5 w-5"/> : <Maximize className="h-5 w-5"/>}
+              <Button onClick={toggleFullscreen} variant="secondary" size="icon" className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30">
+                {isFullscreen ? <Minimize /> : <Maximize />}
               </Button>
             </div>
-
           </div>
         </DialogContent>
       </Dialog>
