@@ -25,6 +25,7 @@ import {
   LayoutGrid,
   X,
   Circle,
+  ChevronLeft,
 } from 'lucide-react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -179,7 +180,9 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [layout, setLayout] = useState<'speaker' | 'grid'>('speaker');
-  const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
+  const [mainParticipantId, setMainParticipantId] = useState(participants.find(p => p.role === 'Organizer')?.id || participants[0].id);
+
+  const [isChatPanelOpen, setIsChatPanelOpen] = useState(true);
   const [speakerVolume, setSpeakerVolume] = useState(60);
   const [isRecording, setIsRecording] = useState(false);
 
@@ -405,21 +408,14 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     const handleFullscreenChange = () => {
       const isCurrentlyFullscreen = !!document.fullscreenElement;
       setIsFullscreen(isCurrentlyFullscreen);
-      if (isCurrentlyFullscreen) {
-        setLayout('grid');
-      } else {
-        setLayout('speaker');
-      }
     };
 
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  const mainSpeaker = participants.find(p => p.role === 'Organizer');
-  const otherParticipants = participants.filter(p => p.role !== 'Organizer' && p.role !== 'You' && p.role !== 'Assistant').slice(0, 2);
-  const selfParticipant = participants.find(p => p.role === 'You');
-  const aiParticipant = participants.find(p => p.role === 'Assistant');
+  const mainParticipant = participants.find(p => p.id === mainParticipantId);
+  const otherParticipants = participants.filter(p => p.id !== mainParticipantId);
 
   const VolumeControl = () => (
      <Popover>
@@ -450,91 +446,88 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
       </PopoverContent>
     </Popover>
   );
-  
-  const ParticipantGrid = ({ participants }: { participants: (typeof initialParticipants) }) => (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4 h-full auto-rows-fr">
-        {participants.map(p => {
-            const avatar = PlaceHolderImages.find(img => img.id === p.id);
-            const isSelf = p.role === 'You';
-            const showVideo = isSelf ? !isVideoOff : p.isVideoOn;
 
-            return (
-                <Card key={p.id} className="relative aspect-video overflow-hidden bg-black flex items-center justify-center">
-                    {showVideo ? (
-                         isSelf ? (
-                            <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                         ) : (
-                            <Image src={avatar?.imageUrl || ''} alt={p.name} layout="fill" className="object-cover" data-ai-hint={avatar?.imageHint}/>
-                         )
-                    ) : (
-                         <Avatar className="h-16 w-16">
-                            {avatar && <AvatarImage src={avatar?.imageUrl} />}
-                            <AvatarFallback className="text-xl bg-muted">{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                    )}
-                    <div className="absolute bottom-1 left-1 flex items-center gap-1">
-                        <Badge variant="secondary" className="text-xs bg-black/70 text-white px-1 py-0.5">{p.name}</Badge>
-                    </div>
-                    <div className="absolute top-1 right-1 p-1 bg-black/70 rounded-full">
-                        {p.isMuted ? <MicOff className="h-3 w-3 text-red-400" /> : <Mic className="h-3 w-3 text-green-400" />}
-                    </div>
-                </Card>
-            )
-        })}
+  const ParticipantCard = ({ participant, isMain }: { participant: (typeof participants)[0], isMain?: boolean }) => {
+    const avatar = PlaceHolderImages.find(p => p.id === participant.id);
+    const isSelf = participant.role === 'You';
+    const isAi = participant.role === 'Assistant';
+    const showVideo = isSelf ? !isVideoOff : participant.isVideoOn;
+
+    return (
+      <Card
+        className={cn(
+          "relative aspect-video overflow-hidden bg-black flex items-center justify-center border-2",
+          participant.isSpeaking && !isMain ? 'border-primary' : 'border-transparent',
+          !isMain && "cursor-pointer hover:border-blue-500"
+        )}
+        onClick={() => !isMain && setMainParticipantId(participant.id)}
+      >
+        {isScreenSharing && isMain ? (
+          <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
+        ) : (
+          <>
+            {showVideo && !isAi ? (
+              isSelf ? (
+                <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" autoPlay muted playsInline />
+              ) : (
+                <Image src={avatar?.imageUrl || ''} alt={participant.name} layout="fill" className="object-cover" data-ai-hint={avatar?.imageHint}/>
+              )
+            ) : (
+              isAi ? (
+                 <div className="h-full w-full flex items-center justify-center bg-background">
+                    <Bot className="h-16 w-16 text-primary" />
+                 </div>
+              ) : (
+                <Avatar className={cn("h-16 w-16", isMain && "h-40 w-40")}>
+                  {avatar && <AvatarImage src={avatar?.imageUrl} />}
+                  <AvatarFallback className="text-xl bg-muted">{participant.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
+                </Avatar>
+              )
+            )}
+          </>
+        )}
+        
+        <div className="absolute bottom-1 left-1 flex items-center gap-1">
+          <Badge variant="secondary" className="text-xs bg-black/70 text-white px-2 py-0.5">{isSelf ? 'You' : participant.name}</Badge>
+        </div>
+        <div className="absolute top-1 right-1 p-1 bg-black/70 rounded-full">
+          {participant.isMuted ? <MicOff className="h-3 w-3 text-red-400" /> : <Mic className="h-3 w-3 text-green-400" />}
+        </div>
+        {isMain && (
+           <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/30 text-white text-sm font-medium px-3 py-1.5 rounded-full">
+                <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                <span>{formatTime(elapsedTime)}</span>
+            </div>
+        )}
+      </Card>
+    )
+  }
+
+  const ParticipantGrid = ({ participants }: { participants: (typeof initialParticipants) }) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-4 h-full auto-rows-fr">
+      {participants.map(p => <ParticipantCard key={p.id} participant={p} />)}
     </div>
-);
+  );
 
   return (
     <div id="video-call-container" className="h-screen max-h-screen bg-background flex flex-col overflow-hidden">
-      {/* Header */}
-      {!isFullscreen && (
-        <div className="flex-shrink-0 flex items-center justify-between border-b p-4">
-          <div className="flex items-center gap-2">
-            <Users size={20} />
-            <span className="font-medium">People attending the call</span>
-            <Badge>{participants.length}</Badge>
-          </div>
-          <Button variant="outline" size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="mr-2 h-4 w-4" />
-            Add person to the call
-          </Button>
-        </div>
-      )}
-
-      {/* Main Content Area */}
-      <div className={cn('flex-1 grid overflow-hidden min-h-0', !isFullscreen ? 'grid-cols-1 lg:grid-cols-10' : 'grid-cols-1')}>
+      <div className={cn('flex-1 grid overflow-hidden min-h-0', 'grid-cols-10')}>
+        
         {/* Video Area */}
-        <div className={cn('flex flex-col relative bg-muted', !isFullscreen ? 'lg:col-span-7' : 'col-span-1')}>
+        <div className={cn('flex flex-col relative bg-muted', 'col-span-10 lg:col-span-7', isChatPanelOpen ? 'lg:col-span-7' : 'lg:col-span-10')}>
+           <div className="absolute top-4 left-4 z-10">
+                <Button onClick={() => router.back()} variant="ghost" size="icon" className="text-white bg-black/30 hover:bg-black/50 rounded-full">
+                    <ChevronLeft />
+                </Button>
+           </div>
           <div className="flex-1 relative overflow-hidden h-full min-h-0">
-            {isScreenSharing ? (
-              <div className="relative w-full h-full bg-black">
-                <video ref={screenShareRef} className="w-full h-full object-contain" autoPlay />
-                <div className="absolute top-4 right-4 w-48 h-32 bg-black rounded-lg overflow-hidden border-2 border-white/20">
-                  <video ref={videoRef} className="w-full h-full object-cover" autoPlay muted playsInline />
-                  {isVideoOff && selfParticipant && (
-                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
-                        <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : layout === 'grid' ? (
+             {layout === 'grid' || isFullscreen ? (
               <ParticipantGrid participants={participants} />
             ) : (
-              <>
-                <video ref={videoRef} className={cn("w-full h-full object-cover", isVideoOff && "hidden")} autoPlay muted playsInline />
-                {isVideoOff && selfParticipant && (
-                  <div className="absolute inset-0 bg-black flex items-center justify-center">
-                    <Avatar className="h-40 w-40">
-                      <AvatarImage src={PlaceHolderImages.find(p => p.id === selfParticipant.id)?.imageUrl} />
-                      <AvatarFallback>{selfParticipant.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  </div>
-                )}
-              </>
+              mainParticipant && <ParticipantCard participant={mainParticipant} isMain />
             )}
             
             {!hasCameraPermission && !isVideoOff && layout === 'speaker' && !isScreenSharing && (
@@ -546,70 +539,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                 </Alert>
               </div>
             )}
-
-            {layout === 'speaker' && !isFullscreen && (
-              <>
-                <div className="absolute top-5 left-5 flex items-center gap-3 z-10">
-                  {mainSpeaker && (
-                    <Card className="overflow-hidden relative min-w-[150px] bg-black/30 text-white border-none shadow-lg">
-                      <Image src={PlaceHolderImages.find(img => img.id === mainSpeaker.id)?.imageUrl || ''} alt={mainSpeaker.name} layout='fill' className="object-cover opacity-50" data-ai-hint="man professional office"/>
-                      <div className="relative p-2 flex items-center gap-2">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={PlaceHolderImages.find(p => p.id === mainSpeaker.id)?.imageUrl} />
-                          <AvatarFallback>{mainSpeaker.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-semibold text-xs">{mainSpeaker.name}</p>
-                          <p className="text-xs opacity-80">{mainSpeaker.role}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  )}
-                  <div className="bg-black/30 backdrop-blur-sm text-white px-3 py-1.5 rounded-full flex items-center gap-2 text-sm">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                    </span>
-                    <span>{formatTime(elapsedTime)}</span>
-                  </div>
-                </div>
-
-                <div className="absolute top-5 right-5 space-y-3 z-10">
-                  {otherParticipants.map((p) => {
-                    const avatar = PlaceHolderImages.find(img => img.id === p.id);
-                    return (
-                      <div key={p.id} className="relative">
-                        <Avatar className="h-14 w-14 border-2 border-white/50 shadow-lg">
-                          <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint} />
-                          <AvatarFallback>{p.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="absolute -bottom-1 -right-1 p-1 bg-black/50 rounded-full">
-                          {p.isMuted ? <MicOff className="h-3 w-3 text-red-500" /> : <Mic className="h-3 w-3 text-green-500" />}
-                        </div>
-                      </div>
-                    )
-                  })}
-                  {aiParticipant && (
-                    <div className="relative">
-                      <Avatar className="h-14 w-14 border-2 border-primary shadow-lg">
-                        <div className="h-full w-full flex items-center justify-center bg-background">
-                          <Bot className="h-7 w-7 text-primary" />
-                        </div>
-                      </Avatar>
-                      <div className="absolute -bottom-1 -right-1 p-1 bg-black/50 rounded-full">
-                        <MicOff className="h-3 w-3 text-red-500" />
-                      </div>
-                    </div>
-                  )}
-                  {participants.length > 4 && (
-                    <Button variant="outline" size="sm" className="w-14 h-14 rounded-full bg-background/80 backdrop-blur-sm border-dashed">
-                      +{participants.length - 3}
-                    </Button>
-                  )}
-                </div>
-              </>
-            )}
-
+            
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center p-2 bg-black/60 backdrop-blur-sm rounded-full gap-2 z-50">
               <TooltipProvider>
                  <Tooltip>
@@ -676,35 +606,28 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                     </TooltipTrigger>
                     <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}</TooltipContent>
                 </Tooltip>
-                <Tooltip>
+                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11">
-                            <Settings className="h-5 w-5" />
+                        <Button onClick={() => setIsChatPanelOpen(p => !p)} variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full h-11 w-11 lg:hidden">
+                           <MessageSquare className="h-5 w-5" />
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent>Settings</TooltipContent>
+                    <TooltipContent>Chat</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
           </div>
-          <div className="p-4 bg-gradient-to-t from-black/50 to-transparent pointer-events-none z-10 flex-shrink-0">
-              <div className="flex items-center gap-2">
-                  <div className="w-12 h-5 bg-primary rounded-md flex items-center justify-center text-xs text-primary-foreground font-bold">Now</div>
-                  <p className="text-sm text-white [text-shadow:0_1px_2px_var(--tw-shadow-color)] shadow-black/50">Your resume is quite impressive. Did you just finish Oxford and now you just...</p>
-              </div>
-          </div>
         </div>
 
-        {/* Chat Panel */}
-        {!isFullscreen && (
-          <div className={cn('bg-muted/50 border-l flex flex-col', 'lg:col-span-3', isChatPanelOpen ? 'col-span-1' : 'hidden lg:flex')}>
+        {/* Sidebar */}
+        <div className={cn('bg-muted/50 border-l flex-col', 'lg:col-span-3', isChatPanelOpen ? 'flex' : 'hidden')}>
             <div className="flex-shrink-0 border-b">
               <div className="grid grid-cols-2 text-center">
                 <button
                   onClick={() => setActiveTab('participants')}
                   className={cn("p-3 font-medium text-sm", activeTab === 'participants' && "bg-background border-b-2 border-primary text-primary")}
                 >
-                  Participants
+                  Participants ({participants.length})
                 </button>
                 <button
                   onClick={() => setActiveTab('messages')}
@@ -764,49 +687,8 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                   )}
                 </div>
               ) : (
-                <div className="p-4 space-y-4">
-                  {participants.map(p => {
-                    const avatar = PlaceHolderImages.find(img => img.id === p.id);
-                    if (p.role === 'Assistant') {
-                      return (
-                        <div key={p.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border-2 border-primary">
-                              <div className="h-full w-full flex items-center justify-center bg-background">
-                                <Bot className="h-5 w-5 text-primary" />
-                              </div>
-                            </Avatar>
-                            <div>
-                              <p className="font-semibold">{p.name}</p>
-                              <p className="text-xs text-muted-foreground">{p.role}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted-foreground">
-                            <Mic className={cn("h-4 w-4", p.isMuted && 'text-destructive')} />
-                            <Video className="h-4 w-4 text-destructive" />
-                          </div>
-                        </div>
-                      )
-                    }
-                    return (
-                      <div key={p.id} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={avatar?.imageUrl} data-ai-hint={avatar?.imageHint}/>
-                            <AvatarFallback>{p.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold">{p.name === 'Mia J.' ? 'You' : p.name}</p>
-                            <p className="text-xs text-muted-foreground">{p.role}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mic className={cn("h-4 w-4", p.isSpeaking ? 'text-primary' : (p.isMuted && 'text-destructive') )} />
-                          <Video className={cn("h-4 w-4", !p.isVideoOn && "text-destructive")} />
-                        </div>
-                      </div>
-                    )
-                  })}
+                <div className="p-2 space-y-2">
+                    {layout === 'speaker' && otherParticipants.map(p => <ParticipantCard key={p.id} participant={p} />)}
                 </div>
               )}
             </ScrollArea>
@@ -820,23 +702,8 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                 </div>
               </div>
             )}
-          </div>
-        )}
+        </div>
       </div>
-
-       <div className="absolute bottom-4 right-4 z-50 flex flex-col gap-2 lg:hidden">
-          <Button
-            onClick={() => setIsChatPanelOpen(p => !p)}
-            className="bg-black/40 hover:bg-black/60 text-white rounded-full"
-            size="icon"
-          >
-            {isChatPanelOpen ? <X className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
-          </Button>
-      </div>
-
-      <footer className="bg-muted/30 border-t px-4 py-2 text-center text-xs text-muted-foreground lg:hidden">
-        <p>GoalLeader • {meeting.title}</p>
-      </footer>
     </div>
   );
 }
