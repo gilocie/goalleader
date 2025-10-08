@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -20,7 +19,8 @@ import {
   Expand,
   ZoomIn,
   ZoomOut,
-  Loader2
+  Loader2,
+  VolumeX,
 } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -50,14 +50,14 @@ const DraggableFrame = ({
   onZoom,
   mainControls,
   isSelf,
-  callStatus
+  callStatus,
 }: {
   frameState: DraggableState;
   videoRef: React.RefObject<HTMLVideoElement>;
   avatar?: { imageUrl?: string; imageHint?: string };
   name: string;
   isMain: boolean;
-  stream: MediaStream | null,
+  stream: MediaStream | null;
   elapsedTime: number;
   onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSwap?: () => void;
@@ -68,6 +68,8 @@ const DraggableFrame = ({
     onClose: () => void;
     toggleFullscreen: () => void;
     isFullscreen: boolean;
+    toggleSpeakerMute: () => void;
+    isSpeakerMuted: boolean;
   };
   isSelf: boolean;
   callStatus: 'connecting' | 'ringing' | 'connected';
@@ -168,11 +170,12 @@ const DraggableFrame = ({
             {mainControls.isMuted ? <MicOff /> : <Mic />}
           </Button>
           <Button
+            onClick={mainControls.toggleSpeakerMute}
             variant="secondary"
             size="icon"
             className="rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30"
           >
-            <Volume2 />
+            {mainControls.isSpeakerMuted ? <VolumeX /> : <Volume2 />}
           </Button>
           <Button
             onClick={mainControls.onClose}
@@ -232,15 +235,16 @@ interface VideoCallDialogProps {
 
 export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogProps) {
   const [isMuted, setIsMuted] = useState(false);
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mainView, setMainView] = useState<'self' | 'contact'>('contact');
+  const [mainView, setMainView] = useState<'self' | 'contact'>('self');
   const [callStatus, setCallStatus] = useState<'connecting' | 'ringing' | 'connected'>('connecting');
 
 
   const [mainFrame, setMainFrame] = useState<DraggableState>({
     position: { x: 0, y: 0 },
-    size: { width: 640, height: 430 },
+    size: { width: 640, height: 360 },
     isDragging: false
   });
 
@@ -252,7 +256,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null);
+  const contactVideoRef = useRef<HTMLVideoElement>(null); // We don't have a stream for contact, so this won't be used for video
   const streamRef = useRef<MediaStream | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -335,10 +339,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
         setMainFrame(prev => ({
           ...prev,
-          size: { width: newWidth, height: 430 },
+          size: { width: newWidth, height: 360 },
           position: {
             x: (containerWidth - newWidth) / 2,
-            y: (containerHeight - 430) / 2
+            y: (containerHeight - 360) / 2
           }
         }));
       };
@@ -366,6 +370,10 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       setIsMuted(!track.enabled);
     });
   };
+
+  const toggleSpeakerMute = () => {
+    setIsSpeakerMuted(prev => !prev);
+  }
 
   const handleSwapViews = () => {
     setMainView((v) => (v === 'self' ? 'contact' : 'self'));
@@ -460,7 +468,9 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     isMuted,
     onClose,
     toggleFullscreen,
-    isFullscreen
+    isFullscreen,
+    toggleSpeakerMute,
+    isSpeakerMuted,
   };
 
   return (
@@ -493,35 +503,37 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           >
             {/* Main */}
             <DraggableFrame
-              frameState={mainFrame}
+              frameState={mainView === 'self' ? mainFrame : pipFrame}
               videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
               avatar={mainView === 'self' ? selfAvatar : contactAvatar}
               name={
                 mainView === 'self' ? self?.name || 'You' : contact.name
               }
-              isMain={true}
+              isMain={mainView === 'self'}
               stream={mainView === 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, 'main')}
               onZoom={(dir) => handleZoom('main', dir)}
-              mainControls={mainControls}
+              mainControls={mainView === 'self' ? mainControls : undefined}
+              onSwap={mainView !== 'self' ? handleSwapViews : undefined}
               isSelf={mainView === 'self'}
               callStatus={callStatus}
             />
 
             {/* PiP */}
             <DraggableFrame
-              frameState={pipFrame}
+              frameState={mainView === 'self' ? pipFrame : mainFrame}
               videoRef={mainView === 'self' ? contactVideoRef : selfVideoRef}
               avatar={mainView === 'self' ? contactAvatar : selfAvatar}
               name={
                 mainView === 'self' ? contact.name : self?.name || 'You'
               }
-              isMain={false}
+              isMain={mainView !== 'self'}
               stream={mainView !== 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, 'pip')}
-              onSwap={handleSwapViews}
+              onSwap={mainView === 'self' ? handleSwapViews : undefined}
+              mainControls={mainView !== 'self' ? mainControls : undefined}
               isSelf={mainView !== 'self'}
               callStatus={callStatus}
             />
