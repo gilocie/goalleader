@@ -15,7 +15,7 @@ const teamMembers: Contact[] = [
     { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const, lastMessage: 'The mockups are ready for review.', lastMessageTime: '1h', lastMessageReadStatus: 'read' },
     { id: 'chiyanjano-mkandawire-m5', name: 'Chiyanjano Mkandawire', role: 'Consultant', status: 'last seen yesterday at 11:15 PM', lastMessage: 'I have a question about the new feature.', lastMessageTime: '3h', lastMessageReadStatus: 'delivered' },
     { id: 'wezi-chisale-m6', name: 'Wezi Chisale', role: 'Consultant', status: 'online' as const, lastMessage: 'The staging server is updated.', lastMessageTime: '10m', unreadCount: 0, lastMessageReadStatus: 'read' },
-    { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'last seen 2 days ago', lastMessage: 'Meeting at 3 PM.', lastMessageTime: '4h', lastMessageReadStatus: 'sent' },
+    { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'last seen 2 days ago', lastMessage: 'All set for the demo.', lastMessageTime: '4h', lastMessageReadStatus: 'sent' },
     { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const, lastMessage: 'The data analysis is complete.', lastMessageTime: '30m', lastMessageReadStatus: 'read' },
     { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const, lastMessage: 'All set for the demo.', lastMessageTime: '15m', lastMessageReadStatus: 'read' },
 ];
@@ -42,6 +42,8 @@ interface ChatContextType {
   endCall: (duration: number) => void;
   acceptCall: () => void;
   declineCall: () => void;
+  acceptedCallContact: Contact | null;
+  setAcceptedCallContact: Dispatch<SetStateAction<Contact | null>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -52,6 +54,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   const [activeCallWith, setActiveCallWith] = useState<Contact | null>(null);
+  const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
   
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
   const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
@@ -204,7 +207,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const acceptCall = useCallback(() => {
     if (incomingCallFrom) {
         addSystemMessage(`Video call with ${incomingCallFrom.name} started`, incomingCallFrom.id);
-        setActiveCallWith(incomingCallFrom);
+        setAcceptedCallContact(incomingCallFrom);
         setIncomingCallFrom(null);
     }
   }, [incomingCallFrom, addSystemMessage]);
@@ -251,6 +254,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     endCall,
     acceptCall,
     declineCall,
+    acceptedCallContact,
+    setAcceptedCallContact
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
@@ -263,5 +268,3 @@ export const useChat = () => {
   }
   return context;
 };
-
-    

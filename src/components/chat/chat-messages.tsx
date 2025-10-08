@@ -105,7 +105,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, activeCallWith, startCall, endCall, acceptCall, declineCall } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, activeCallWith, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
@@ -131,6 +131,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     onSendMessage(content, type, messageData);
     setReplyTo(null);
   };
+
+  useEffect(() => {
+    if (acceptedCallContact) {
+      setIsVideoCallOpen(true);
+    }
+  }, [acceptedCallContact]);
   
     useEffect(() => {
     if (scrollAreaRef.current) {
@@ -306,7 +312,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         </DialogContent>
       </Dialog>
       {forwardMessage && (<ForwardMessageDialog isOpen={!!forwardMessage} onOpenChange={() => setForwardMessage(null)} message={forwardMessage} contacts={contacts} />)}
-      {activeCallWith && (
+      {activeCallWith && !acceptedCallContact && (
         <CallingDialog
           isOpen={!!activeCallWith}
           onClose={(duration: number) => endCall(duration)}
@@ -320,11 +326,14 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         contact={incomingCallFrom}
         onAccept={acceptCall}
       />
-      {isVideoCallOpen && (
+      {(isVideoCallOpen || acceptedCallContact) && (
         <VideoCallDialog
-          isOpen={isVideoCallOpen}
-          onClose={() => setIsVideoCallOpen(false)}
-          contact={selectedContact}
+          isOpen={isVideoCallOpen || !!acceptedCallContact}
+          onClose={() => {
+            setIsVideoCallOpen(false);
+            setAcceptedCallContact(null);
+          }}
+          contact={acceptedCallContact || selectedContact}
         />
       )}
     </>
