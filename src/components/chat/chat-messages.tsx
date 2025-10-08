@@ -27,6 +27,7 @@ import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
 import { CallingDialog } from './calling-dialog';
+import { IncomingCallDialog } from './incoming-call-dialog';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -102,15 +103,14 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, setIncomingCallFrom } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [isCalling, setIsCalling] = useState(false);
-  const [isTyping, setIsTyping] = useState(true);
-
+  
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   
@@ -292,6 +292,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           contact={selectedContact}
         />
       )}
+      <IncomingCallDialog
+        isOpen={!!incomingCallFrom}
+        onClose={() => setIncomingCallFrom(null)}
+        contact={incomingCallFrom}
+      />
     </>
   );
 }

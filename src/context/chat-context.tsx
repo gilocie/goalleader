@@ -20,12 +20,8 @@ const teamMembers: Contact[] = [
 ];
 
 const messagesData: Message[] = [
-    { id: 'msg1', senderId: 'frank-mhango-m2', recipientId: USER_ID, content: "Hey! Just wanted to check in on the progress for the new auth flow.", timestamp: "10:00 AM", type: 'text' },
-    { id: 'msg2', senderId: USER_ID, recipientId: 'frank-mhango-m2', content: "Hey Frank, things are going well. I've finished the main logic and am now working on the UI.", timestamp: "10:01 AM", readStatus: 'read', type: 'text' },
-    { id: 'msg3', senderId: 'frank-mhango-m2', recipientId: USER_ID, content: "Great to hear! Let me know if you run into any blockers.", timestamp: "10:02 AM", type: 'text' },
-    { id: 'msg4', senderId: USER_ID, recipientId: 'frank-mhango-m2', content: "Will do. I might have a question about the token handling later today.", timestamp: "10:03 AM", readStatus: 'delivered', type: 'text' },
-    { id: 'msg5', senderId: 'frank-mhango-m2', recipientId: USER_ID, content: "Sure, feel free to ping me anytime.", timestamp: "10:04 AM", type: 'text' },
-    { id: 'msg6', senderId: USER_ID, recipientId: 'frank-mhango-m2', content: "Thanks!", timestamp: "10:05 AM", readStatus: 'sent', type: 'text' },
+    { id: 'msg1', senderId: 'denis-maluwasa-m3', recipientId: USER_ID, content: "Hey! Just wanted to check in on the progress for the new auth flow.", timestamp: "10:00 AM", type: 'text' },
+    { id: 'msg2', senderId: USER_ID, recipientId: 'denis-maluwasa-m3', content: "Hey Denis, things are going well. I've finished the main logic and am now working on the UI.", timestamp: "10:01 AM", readStatus: 'read', type: 'text' },
 ];
 
 interface ChatContextType {
@@ -38,6 +34,9 @@ interface ChatContextType {
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
   deleteMessage: (messageId: string) => void;
   forwardMessage: (message: Message, recipientIds: string[]) => void;
+  isTyping: boolean;
+  incomingCallFrom: Contact | null;
+  setIncomingCallFrom: Dispatch<SetStateAction<Contact | null>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -45,13 +44,15 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [allContacts, setAllContacts] = useState<Contact[]>(teamMembers);
   const [messages, setMessages] = useState<Message[]>(messagesData);
+  const [isTyping, setIsTyping] = useState(false);
+  const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
-  const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
   
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[1]);
 
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
+  const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
 
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self) return;
@@ -66,52 +67,65 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       ...data
     };
     setMessages(prev => [...prev, newMessage]);
+
+    if (content.toLowerCase().includes('call me')) {
+        setTimeout(() => {
+            const caller = allContacts.find(c => c.id === recipientId);
+            if (caller) {
+                setIncomingCallFrom(caller);
+            }
+        }, 2000);
+        return;
+    }
     
-    // Simulate recipient receiving and replying
     setTimeout(() => {
+        setIsTyping(true);
         // Mark as delivered
         setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'delivered'} : m));
         setAllContacts(prev => prev.map(c => c.id === self.id ? {...c, lastMessageReadStatus: 'delivered'} : c));
 
-        // Simulate a reply from the recipient
-        const recipient = allContacts.find(c => c.id === recipientId);
-        if (recipient) {
-            let replyContent = `Thanks for the message! I've received: "${content.substring(0, 20)}..."`;
-            if (type === 'image') replyContent = "Cool image!";
-            if (type === 'file') replyContent = `Got the file: ${data.fileName}`;
-            if (type === 'audio') replyContent = `Heard your voice note.`;
+        setTimeout(() => {
+             // Simulate a reply from the recipient
+            const recipient = allContacts.find(c => c.id === recipientId);
+            if (recipient) {
+                let replyContent = `Thanks for the message! I've received: "${content.substring(0, 20)}..."`;
+                if (type === 'image') replyContent = "Cool image!";
+                if (type === 'file') replyContent = `Got the file: ${data.fileName}`;
+                if (type === 'audio') replyContent = `Heard your voice note.`;
 
 
-            const replyMessage: Message = {
-                id: `msg${Date.now() + 1}-${Math.random()}`,
-                senderId: recipientId,
-                recipientId: self.id,
-                content: replyContent,
-                timestamp: format(new Date(), 'p'),
-                type: 'text'
-            };
-            setMessages(prev => [...prev, replyMessage]);
-            
-            // Update contact list with new message and unread count
-            setAllContacts(prev => prev.map(c => 
-                c.id === recipientId 
-                ? {
-                    ...c, 
-                    lastMessage: replyMessage.content, 
-                    lastMessageTime: format(new Date(), 'p'),
-                    unreadCount: (selectedContact?.id !== c.id) ? (c.unreadCount || 0) + 1 : c.unreadCount
-                  } 
-                : c
-            ));
-        }
+                const replyMessage: Message = {
+                    id: `msg${Date.now() + 1}-${Math.random()}`,
+                    senderId: recipientId,
+                    recipientId: self.id,
+                    content: replyContent,
+                    timestamp: format(new Date(), 'p'),
+                    type: 'text'
+                };
+                setMessages(prev => [...prev, replyMessage]);
+                setIsTyping(false);
+                
+                // Update contact list with new message and unread count
+                setAllContacts(prev => prev.map(c => 
+                    c.id === recipientId 
+                    ? {
+                        ...c, 
+                        lastMessage: replyMessage.content, 
+                        lastMessageTime: format(new Date(), 'p'),
+                        unreadCount: (selectedContact?.id !== c.id) ? (c.unreadCount || 0) + 1 : c.unreadCount
+                    } 
+                    : c
+                ));
+            }
 
-    }, 2000);
+            // After 3 seconds, simulate that the recipient read the message
+            setTimeout(() => {
+                setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'read'} : m));
+                setAllContacts(prev => prev.map(c => c.id === self.id ? {...c, lastMessageReadStatus: 'read'} : c));
+            }, 1000);
 
-    // After 3 seconds, simulate that the recipient read the message
-    setTimeout(() => {
-      setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'read'} : m));
-      setAllContacts(prev => prev.map(c => c.id === self.id ? {...c, lastMessageReadStatus: 'read'} : c));
-    }, 3000);
+        }, 2000 + Math.random() * 2000); // random typing delay
+    }, 1000);
 
   }, [self, allContacts, selectedContact]);
 
@@ -169,7 +183,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     self,
-    contacts: allContacts.filter(c => c.id !== USER_ID),
+    contacts,
     messages,
     unreadMessagesCount,
     selectedContact,
@@ -177,6 +191,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     addMessage,
     deleteMessage,
     forwardMessage,
+    isTyping,
+    incomingCallFrom,
+    setIncomingCallFrom,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
