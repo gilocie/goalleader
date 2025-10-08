@@ -21,7 +21,6 @@ export interface Message {
     type: 'text' | 'audio' | 'image' | 'file';
     audioUrl?: string;
     audioDuration?: number;
-    imageUrl?: string;
     imageUrls?: string[];
     fileName?: string;
     fileUrl?: string;

@@ -40,6 +40,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import type { Message } from '@/types/chat';
 
 const initialParticipants = [
   {
@@ -100,42 +101,56 @@ const initialParticipants = [
   },
 ];
 
-const messages = [
+const initialMessages: Omit<Message, 'recipientId'>[] = [
   {
     id: 'm1',
     senderId: 'john-isner-p1',
     content: 'Welcome everyone, we will start the interview soon.',
+    timestamp: '10:00 AM',
+    type: 'text',
   },
   {
     id: 'm2',
     senderId: 'janice-wallberg-p3',
     content: 'Happy to be here John. 😊',
+    timestamp: '10:01 AM',
+    type: 'text',
   },
   {
     id: 'm3',
     senderId: 'camille-valdez-p4',
     content: 'My name is Janice. Welcome Jane!',
-  }, { id: 'm4', senderId: 'mia-jones-p2', content: 'Hey all!' },
+    timestamp: '10:02 AM',
+    type: 'text',
+  }, { id: 'm4', senderId: 'mia-jones-p2', content: 'Hey all!', timestamp: '10:03 AM', type: 'text' },
   {
     id: 'm5',
     senderId: 'john-isner-p1',
     content: 'Are we all here? Can we start the interview?',
+    timestamp: '10:04 AM',
+    type: 'text',
   },
   {
     id: 'm6',
     senderId: 'mia-jones-p2',
     content: 'I think we need to wait for your other team mates as well. 😊',
+    timestamp: '10:05 AM',
+    type: 'text',
   },
   {
     id: 'm7',
     senderId: 'janice-wallberg-p3',
     content: 'We can wait until everybody is present and then start. 👍',
+    timestamp: '10:06 AM',
+    type: 'text',
   },
   {
     id: 'm8',
     senderId: 'john-isner-p1',
     content: 'John started a call now',
+    timestamp: '10:07 AM',
     isSystem: true,
+    type: 'text',
   },
 ];
 
@@ -159,6 +174,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     }
     return p;
   }));
+  const [messages, setMessages] = useState<Omit<Message, 'recipientId'>[]>(initialMessages);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -701,31 +717,37 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
             <ScrollArea className="flex-1 min-h-0">
               {activeTab === 'messages' ? (
                 <div className="p-4 space-y-4">
-                  {messages.map((msg) => {
-                    const sender = participants.find(p => p.id === msg.senderId);
-                    const isYou = sender?.role === 'You';
-                    const senderAvatar = PlaceHolderImages.find(p => p.id === msg.senderId);
-                    if (msg.isSystem) {
+                  {messages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                      No messages yet.
+                    </div>
+                  ) : (
+                    messages.map((msg) => {
+                      const sender = participants.find(p => p.id === msg.senderId);
+                      const isYou = sender?.role === 'You';
+                      const senderAvatar = PlaceHolderImages.find(p => p.id === msg.senderId);
+                      if (msg.isSystem) {
+                        return (
+                          <div key={msg.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
+                            <Phone size={14} />
+                            <span>{msg.content}</span>
+                          </div>
+                        )
+                      }
                       return (
-                        <div key={msg.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-                          <Phone size={14} />
-                          <span>{msg.content}</span>
+                        <div key={msg.id} className={cn("flex items-start gap-2", isYou && "flex-row-reverse")}>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={senderAvatar?.imageUrl} />
+                            <AvatarFallback>{sender?.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
+                          </Avatar>
+                          <div className={cn("max-w-[80%] rounded-lg px-3 py-2 space-y-1", isYou ? 'bg-primary text-primary-foreground' : 'bg-background')}>
+                            <p className="font-semibold text-xs">{isYou ? 'You' : sender?.name}</p>
+                            <p className="text-sm">{msg.content}</p>
+                          </div>
                         </div>
                       )
-                    }
-                    return (
-                      <div key={msg.id} className={cn("flex items-start gap-2", isYou && "flex-row-reverse")}>
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={senderAvatar?.imageUrl} />
-                          <AvatarFallback>{sender?.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <div className={cn("max-w-[80%] rounded-lg px-3 py-2 space-y-1", isYou ? 'bg-primary text-primary-foreground' : 'bg-background')}>
-                          <p className="font-semibold text-xs">{isYou ? 'You' : sender?.name}</p>
-                          <p className="text-sm">{msg.content}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
+                    })
+                  )}
                   {isTyping && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Avatar className="h-8 w-8">
@@ -818,4 +840,3 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
     </div>
   );
 }
-
