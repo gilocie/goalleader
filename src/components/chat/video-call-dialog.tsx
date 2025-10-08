@@ -25,11 +25,8 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
 
-// ---------- Types ----------
 type CallStatus = 'connecting' | 'ringing' | 'connected';
 
-
-// ---------- Main Dialog ----------
 interface VideoCallDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -40,9 +37,9 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isMuted, setIsMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isStreamReady, setIsStreamReady] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>('connecting');
-  
+  const [isStreamReady, setIsStreamReady] = useState(false);
+
   const selfVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -90,7 +87,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
-          audio: true
+          audio: true,
         });
         streamRef.current = stream;
 
@@ -107,7 +104,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
         toast({
           variant: 'destructive',
           title: 'Media Access Denied',
-          description: 'Please allow camera and microphone access.'
+          description: 'Please allow camera and microphone access.',
         });
         onClose();
       }
@@ -135,25 +132,20 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       .padStart(2, '0')}`;
   };
 
-  const getStatusText = () => {
-    if (callStatus === 'connected') {
-      return formatTime(elapsedTime);
-    }
-    return callStatus.charAt(0).toUpperCase() + callStatus.slice(1) + '...';
-  }
-  
-  // ---- Fullscreen ----
   const toggleFullscreen = async () => {
     const container = document.getElementById('video-call-dialog-content');
     if (!container) return;
     try {
-      if (!document.fullscreenElement) await container.requestFullscreen();
-      else await document.exitFullscreen();
-    } catch {
+      if (!document.fullscreenElement) {
+        await container.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Fullscreen Error',
-        description: 'Could not enter fullscreen mode.'
+        description: 'Could not enter fullscreen mode.',
       });
     }
   };
@@ -165,64 +157,79 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   }, []);
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent
-          id="video-call-dialog-content"
-          className="max-w-full h-screen w-screen p-0 gap-0 bg-gray-900 text-white border-0 sm:rounded-none flex flex-col data-[state=open]:sm:zoom-in-100"
-        >
-          <DialogHeader className="sr-only">
-            <DialogTitle>Video Call with {contact.name}</DialogTitle>
-            <DialogDescription>Video call interface</DialogDescription>
-          </DialogHeader>
-          <div id="video-call-container" className="flex-1 relative overflow-hidden">
-            
-            {/* Main Video Area (Contact) */}
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-800/50">
-              <Avatar className="w-40 h-40">
-                <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
-                <AvatarFallback className="text-5xl">{contact.name.slice(0, 2)}</AvatarFallback>
-              </Avatar>
-              <p className="font-semibold text-2xl mt-4">{contact.name}</p>
-              {callStatus !== 'connected' && (
-                <p className="text-lg text-white/70">{getStatusText()}</p>
-              )}
-            </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent
+        id="video-call-dialog-content"
+        className="max-w-full h-screen w-screen p-0 gap-0 bg-gray-900 text-white border-0 sm:rounded-none flex flex-col data-[state=open]:sm:zoom-in-100"
+      >
+        <DialogHeader className="sr-only">
+          <DialogTitle>Video Call with {contact.name}</DialogTitle>
+          <DialogDescription>Video call interface</DialogDescription>
+        </DialogHeader>
 
-            {/* Self Video (PiP) */}
-            <div className="absolute bottom-6 left-6 w-48 h-36 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg">
-              {isStreamReady ? (
-                  <video
-                      ref={selfVideoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-full object-cover"
-                      style={{ transform: 'scaleX(-1)' }}
-                  />
-              ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                      <Avatar className="w-16 h-16">
-                          <AvatarImage src={selfAvatar?.imageUrl} />
-                          <AvatarFallback>{self?.name.slice(0,2)}</AvatarFallback>
-                      </Avatar>
-                  </div>
-              )}
-              <div className="absolute bottom-1 left-1 text-white text-xs bg-black/50 px-1.5 py-0.5 rounded">
-                {self?.name}
-              </div>
-            </div>
-
-            {/* Timer */}
-            {callStatus === 'connected' && (
-                <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
-                    <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                    <span>{formatTime(elapsedTime)}</span>
+        <div id="video-call-container" className="flex-1 relative flex items-center justify-center">
+            {/* Main view container */}
+            <div className="relative w-[80vw] max-w-4xl aspect-video bg-black rounded-lg shadow-2xl">
+                {/* Contact's View */}
+                <div className="w-full h-full flex flex-col items-center justify-center">
+                    {callStatus !== 'connected' ? (
+                        <div className="text-center space-y-2">
+                             <Avatar className="w-40 h-40">
+                                <AvatarImage
+                                src={contactAvatar?.imageUrl}
+                                data-ai-hint={contactAvatar?.imageHint}
+                                />
+                                <AvatarFallback className="text-5xl">{contact.name.slice(0, 2)}</AvatarFallback>
+                            </Avatar>
+                            <p className="font-semibold text-2xl mt-4">{contact.name}</p>
+                            <p className="text-lg text-white/70 capitalize">{callStatus}...</p>
+                        </div>
+                    ) : (
+                         <Avatar className="w-40 h-40">
+                            <AvatarImage
+                            src={contactAvatar?.imageUrl}
+                            data-ai-hint={contactAvatar?.imageHint}
+                            />
+                            <AvatarFallback className="text-5xl">{contact.name.slice(0, 2)}</AvatarFallback>
+                        </Avatar>
+                    )}
                 </div>
-            )}
-            
+
+                {/* Self View (PiP) */}
+                <div className="absolute top-4 left-4 w-48 h-36 rounded-lg overflow-hidden border-2 border-white/20 shadow-lg bg-gray-800">
+                    {isStreamReady ? (
+                        <video
+                            ref={selfVideoRef}
+                            autoPlay
+                            playsInline
+                            muted
+                            className="w-full h-full object-cover"
+                            style={{ transform: 'scaleX(-1)' }}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                             <Avatar className="w-16 h-16">
+                                <AvatarImage src={selfAvatar?.imageUrl} />
+                                <AvatarFallback>{self?.name.slice(0,2)}</AvatarFallback>
+                            </Avatar>
+                        </div>
+                    )}
+                     <div className="absolute bottom-1 left-1 text-white text-xs bg-black/50 px-1.5 py-0.5 rounded">
+                        You
+                    </div>
+                </div>
+
+                {/* Timer */}
+                 {callStatus === 'connected' && (
+                    <div className="absolute top-4 right-4 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+                        <span>{formatTime(elapsedTime)}</span>
+                    </div>
+                )}
+            </div>
+
             {/* Controls */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4 z-30">
+             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4 z-30">
               <Button onClick={toggleMic} variant="secondary" size="icon" className={cn("rounded-full h-14 w-14 bg-white/20 text-white hover:bg-white/30", isMuted && 'bg-destructive text-destructive-foreground')}>
                 {isMuted ? <MicOff /> : <Mic />}
               </Button>
@@ -236,9 +243,13 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
                 {isFullscreen ? <Minimize /> : <Maximize />}
               </Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+
+             {/* Dark overlay for pre-connected states */}
+             {callStatus !== 'connected' && (
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[-1]"></div>
+            )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
