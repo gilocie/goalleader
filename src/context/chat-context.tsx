@@ -138,17 +138,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const addSystemMessage = useCallback((content: string, contactId: string) => {
     if (!self) return;
-    const systemMessage: Message = {
-      id: `sys-${Date.now()}`,
-      senderId: 'system',
-      recipientId: contactId, // To associate with the correct chat
-      content,
-      timestamp: format(new Date(), 'p'),
-      type: 'text',
-      isSystem: true,
+    const baseSystemMessage: Omit<Message, 'id' | 'recipientId'> = {
+        senderId: 'system',
+        content,
+        timestamp: format(new Date(), 'p'),
+        type: 'text',
+        isSystem: true,
     };
-     // Add to both sides of conversation for simplicity in demo
-    setMessages(prev => [...prev, {...systemMessage, recipientId: self.id, senderId: contactId}, {...systemMessage, recipientId: contactId, senderId: self.id}]);
+    
+    // Add to both sides of conversation for simplicity in demo
+    setMessages(prev => [
+        ...prev, 
+        {...baseSystemMessage, id: `sys-${Date.now()}-a`, recipientId: self.id, senderId: contactId },
+        {...baseSystemMessage, id: `sys-${Date.now()}-b`, recipientId: contactId, senderId: self.id }
+    ]);
   }, [self]);
 
   const deleteMessage = useCallback((messageId: string) => {
@@ -262,3 +265,5 @@ export const useChat = () => {
   }
   return context;
 };
+
+    
