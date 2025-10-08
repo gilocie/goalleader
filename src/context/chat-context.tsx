@@ -48,11 +48,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
+  const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[1]);
 
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
-  const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
+  
 
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self) return;
