@@ -266,9 +266,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     const senderAvatar = PlaceHolderImages.find(p => p.id === sender.id);
 
                     if (message.isSystem) {
+                      const isVideo = message.content.includes('video');
                       return (
                         <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-                          <VideoIcon size={14} />
+                          {isVideo ? <VideoIcon size={14} /> : <Phone size={14} />}
                           <span>{message.content} - {message.timestamp}</span>
                         </div>
                       )

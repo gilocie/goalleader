@@ -25,6 +25,7 @@ interface VoiceCallDialogProps {
 
 export function VoiceCallDialog({ isOpen, onClose, contact }: VoiceCallDialogProps) {
   const [isMuted, setIsMuted] = useState(false);
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [callStatus, setCallStatus] = useState<'calling' | 'ringing' | 'connected'>('calling');
 
@@ -91,6 +92,8 @@ export function VoiceCallDialog({ isOpen, onClose, contact }: VoiceCallDialogPro
       setIsMuted(!track.enabled);
     });
   };
+  
+  const toggleSpeakerMute = () => setIsSpeakerMuted(prev => !prev);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -145,11 +148,15 @@ export function VoiceCallDialog({ isOpen, onClose, contact }: VoiceCallDialogPro
               <Phone className="h-7 w-7 transform -scale-x-100" />
             </Button>
             <Button
+              onClick={toggleSpeakerMute}
               variant="secondary"
               size="icon"
-              className="rounded-full h-16 w-16 bg-white/10 text-white hover:bg-white/20"
+              className={cn(
+                'rounded-full h-16 w-16 bg-white/10 text-white hover:bg-white/20',
+                isSpeakerMuted && 'bg-destructive text-destructive-foreground'
+              )}
             >
-              <Volume2 className="h-7 w-7" />
+              {isSpeakerMuted ? <VolumeX className="h-7 w-7" /> : <Volume2 className="h-7 w-7" />}
             </Button>
           </div>
         </div>
