@@ -25,11 +25,11 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
     <Card className="h-full flex flex-col rounded-none border-none">
       {/* Fixed Header */}
       <CardHeader className="p-4 border-b flex-shrink-0 flex-row items-center justify-between">
-        <CardTitle className="text-xl">Chats</CardTitle>
         <div className="relative w-2/3">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search..." className="w-full pl-8" />
         </div>
+        <CardTitle className="text-xl">Chats</CardTitle>
       </CardHeader>
 
       {/* Scrollable Contact List */}
