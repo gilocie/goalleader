@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -33,7 +34,7 @@ export function ChatPageContent() {
   }
 
   return (
-    <div className="flex-1 w-full overflow-hidden h-[calc(100vh-150px)]">
+    <div className="flex-1 w-full overflow-hidden md:max-h-[400px]">
       <ChatLayout
         contacts={contacts}
         messages={contactMessages}
