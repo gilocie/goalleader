@@ -41,9 +41,8 @@ const DraggableFrame = ({
   videoRef,
   avatar,
   name,
-  isSelf,
   isMain,
-  isStreamReady,
+  stream,
   elapsedTime,
   onDragStart,
   onSwap,
@@ -54,9 +53,8 @@ const DraggableFrame = ({
   videoRef: React.RefObject<HTMLVideoElement>;
   avatar?: { imageUrl?: string; imageHint?: string };
   name: string;
-  isSelf: boolean;
   isMain: boolean;
-  isStreamReady: boolean;
+  stream: MediaStream | null,
   elapsedTime: number;
   onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSwap?: () => void;
@@ -77,6 +75,13 @@ const DraggableFrame = ({
       .padStart(2, '0')}`;
   };
 
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream, videoRef]);
+
+
   return (
     <div
       className={cn(
@@ -96,12 +101,12 @@ const DraggableFrame = ({
       />
 
       <div className="w-full h-full flex items-center justify-center bg-gray-800">
-        {isSelf && isStreamReady ? (
+        {stream ? (
           <video
             ref={videoRef}
             autoPlay
             playsInline
-            muted
+            muted // Mute self view to prevent feedback
             className="w-full h-full object-cover"
             style={{ transform: 'scaleX(-1)' }}
           />
@@ -214,7 +219,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mainView, setMainView] = useState<'self' | 'contact'>('self');
-  const [isStreamReady, setIsStreamReady] = useState(false);
 
   const [selfFrame, setSelfFrame] = useState<DraggableState>({
     position: { x: 100, y: 100 },
@@ -230,7 +234,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null);
+  const contactVideoRef = useRef<HTMLVideoElement>(null); // We don't have a stream for contact, so this won't be used for video
   const streamRef = useRef<MediaStream | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -257,7 +261,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     if (!isOpen) {
       streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
-      setIsStreamReady(false);
       return;
     }
 
@@ -268,16 +271,6 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           audio: true
         });
         streamRef.current = stream;
-
-        const assignStream = () => {
-          if (selfVideoRef.current) {
-            selfVideoRef.current.srcObject = stream;
-            setIsStreamReady(true);
-          } else {
-            setTimeout(assignStream, 200);
-          }
-        };
-        assignStream();
       } catch {
         toast({
           variant: 'destructive',
@@ -436,36 +429,35 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
             id="video-call-container"
             className="flex-1 relative overflow-hidden"
           >
-            {/* Self Frame */}
+            {/* Main */}
             <DraggableFrame
-              frameState={selfFrame}
-              videoRef={selfVideoRef}
-              avatar={selfAvatar}
-              name={self?.name || 'You'}
-              isSelf={true}
-              isMain={mainView === 'self'}
-              isStreamReady={isStreamReady}
+              frameState={mainView === 'self' ? selfFrame : contactFrame}
+              videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
+              avatar={mainView === 'self' ? selfAvatar : contactAvatar}
+              name={
+                mainView === 'self' ? self?.name || 'You' : contact.name
+              }
+              isMain={true}
+              stream={mainView === 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
-              onDragStart={(e) => handleDragStart(e, 'self')}
-              onSwap={mainView !== 'self' ? handleSwapViews : undefined}
-              onZoom={mainView === 'self' ? (dir) => handleZoom('self', dir) : undefined}
-              mainControls={mainView === 'self' ? mainControls : undefined}
+              onDragStart={(e) => handleDragStart(e, mainViewTarget)}
+              onZoom={(dir) => handleZoom(mainViewTarget, dir)}
+              mainControls={mainControls}
             />
 
-            {/* Contact Frame */}
+            {/* PiP */}
             <DraggableFrame
-              frameState={contactFrame}
-              videoRef={contactVideoRef}
-              avatar={contactAvatar}
-              name={contact.name}
-              isSelf={false}
-              isMain={mainView === 'contact'}
-              isStreamReady={isStreamReady}
+              frameState={mainView === 'self' ? contactFrame : selfFrame}
+              videoRef={mainView === 'self' ? contactVideoRef : selfVideoRef}
+              avatar={mainView === 'self' ? contactAvatar : selfAvatar}
+              name={
+                mainView === 'self' ? contact.name : self?.name || 'You'
+              }
+              isMain={false}
+              stream={mainView !== 'self' ? streamRef.current : null}
               elapsedTime={elapsedTime}
-              onDragStart={(e) => handleDragStart(e, 'contact')}
-              onSwap={mainView !== 'contact' ? handleSwapViews : undefined}
-              onZoom={mainView === 'contact' ? (dir) => handleZoom('contact', dir) : undefined}
-              mainControls={mainView === 'contact' ? mainControls : undefined}
+              onDragStart={(e) => handleDragStart(e, pipViewTarget)}
+              onSwap={handleSwapViews}
             />
           </div>
         </DialogContent>
