@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ChatContactList } from './chat-contact-list';
@@ -70,7 +71,7 @@ export function ChatLayout({
           />
         </div>
       ) : (
-        <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30">
+        <div className="hidden lg:flex flex-col items-center justify-center bg-muted/30 h-full">
             <p className="text-muted-foreground text-lg">Select a contact to start chatting</p>
         </div>
       )}

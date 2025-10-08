@@ -56,7 +56,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
   const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
   
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[1]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(contacts[2]);
 
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
   
@@ -138,20 +138,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const addSystemMessage = useCallback((content: string, contactId: string) => {
     if (!self) return;
-    const baseSystemMessage: Omit<Message, 'id' | 'recipientId'> = {
-        senderId: 'system',
+    const systemMessage: Message = {
+        id: `sys-${Date.now()}`,
+        senderId: self.id,
+        recipientId: contactId,
         content,
         timestamp: format(new Date(), 'p'),
         type: 'text',
         isSystem: true,
     };
-    
-    // Add to both sides of conversation for simplicity in demo
-    setMessages(prev => [
-        ...prev, 
-        {...baseSystemMessage, id: `sys-${Date.now()}-a`, recipientId: self.id, senderId: contactId },
-        {...baseSystemMessage, id: `sys-${Date.now()}-b`, recipientId: contactId, senderId: self.id }
-    ]);
+    setMessages(prev => [...prev, systemMessage]);
   }, [self]);
 
   const deleteMessage = useCallback((messageId: string) => {

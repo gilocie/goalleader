@@ -294,7 +294,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       <IncomingCallDialog
         isOpen={!!incomingCallFrom}
         onClose={() => declineCall()}
-        onDecline={() => declineCall}
+        onDecline={() => declineCall()}
         contact={incomingCallFrom}
         onAccept={acceptCall}
       />
