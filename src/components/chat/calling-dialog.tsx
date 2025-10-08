@@ -25,17 +25,40 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(true);
   const [callStatus, setCallStatus] = useState('Ringing...');
+  const [callDuration, setCallDuration] = useState(0);
 
   const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
 
   useEffect(() => {
+    let statusTimer: NodeJS.Timeout;
+    let durationTimer: NodeJS.Timeout;
+
     if (isOpen) {
-      const timer = setTimeout(() => {
+      setCallStatus('Ringing...');
+      setCallDuration(0);
+
+      statusTimer = setTimeout(() => {
         setCallStatus('Connecting...');
+        statusTimer = setTimeout(() => {
+          setCallStatus('Connected');
+          durationTimer = setInterval(() => {
+            setCallDuration(prev => prev + 1);
+          }, 1000);
+        }, 2000);
       }, 3000);
-      return () => clearTimeout(timer);
     }
+
+    return () => {
+      clearTimeout(statusTimer);
+      clearInterval(durationTimer);
+    };
   }, [isOpen]);
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -63,7 +86,9 @@ export function CallingDialog({ isOpen, onClose, contact }: CallingDialogProps) 
 
           <div className="text-center space-y-1">
             <h2 className="text-2xl font-bold">{contact.name}</h2>
-            <p className="text-gray-400">{callStatus}</p>
+            <p className="text-gray-400">
+              {callStatus === 'Connected' ? formatDuration(callDuration) : callStatus}
+            </p>
           </div>
 
           <div className="flex items-center space-x-4 pt-4">
