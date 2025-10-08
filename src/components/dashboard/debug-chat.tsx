@@ -157,7 +157,10 @@ export function DashboardChat() {
                             : 'bg-muted'
                         )}
                         >
-                        <div className="prose prose-sm max-w-none prose-p:my-0 prose-headings:my-2 prose-blockquote:my-2">
+                        <div className={cn(
+                            "prose prose-sm max-w-none prose-p:my-0 prose-headings:my-2 prose-blockquote:my-2",
+                            message.role === 'user' && "prose-strong:text-primary-foreground prose-p:text-primary-foreground prose-a:text-primary-foreground prose-blockquote:text-primary-foreground prose-li:text-primary-foreground prose-ol:text-primary-foreground prose-ul:text-primary-foreground"
+                        )}>
                             <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
                         </div>
