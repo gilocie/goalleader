@@ -26,6 +26,7 @@ import { useChat } from '@/context/chat-context';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
+import { CallingDialog } from './calling-dialog';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -107,11 +108,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const { toast } = useToast();
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [isCalling, setIsCalling] = useState(false);
 
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   
-  const handleCallClick = () => { toast({ title: "Calling...", description: `Starting a call with ${selectedContact.name}.` }); };
+  const handleCallClick = () => { setIsCalling(true); };
   const handleVideoClick = () => { toast({ title: "Starting video call...", description: `Starting a video call with ${selectedContact.name}.` }); };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
   const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
@@ -254,6 +256,13 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         
       <Dialog open={isImageViewerOpen} onOpenChange={setImageViewerOpen}></Dialog>
       {forwardMessage && (<ForwardMessageDialog isOpen={!!forwardMessage} onOpenChange={() => setForwardMessage(null)} message={forwardMessage} contacts={contacts} />)}
+      {isCalling && (
+        <CallingDialog
+          isOpen={isCalling}
+          onClose={() => setIsCalling(false)}
+          contact={selectedContact}
+        />
+      )}
     </>
   );
 }
