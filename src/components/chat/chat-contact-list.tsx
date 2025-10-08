@@ -36,12 +36,13 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
           <div className="p-4 space-y-3">
             {contacts.map((contact) => {
               const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
+              const isSelected = selectedContactId === contact.id;
               return (
                 <div
                   key={contact.id}
                   className={cn(
-                    'cursor-pointer transition-all hover:bg-accent/50 rounded-lg p-3',
-                    selectedContactId === contact.id && 'bg-accent'
+                    'cursor-pointer transition-all hover:bg-accent/50 rounded-lg p-3 group',
+                    isSelected && 'bg-primary text-primary-foreground'
                   )}
                   onClick={() => onSelectContact(contact)}
                 >
@@ -60,15 +61,18 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                     </div>
                     <div className="flex-1 truncate">
                       <p className="font-semibold text-sm">{contact.name}</p>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-                          <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" />
+                      <div className={cn("flex items-center gap-1 text-xs truncate", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                          <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" isSelf={false}/>
                           <span>{contact.lastMessage}</span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end text-xs text-muted-foreground space-y-1">
+                    <div className={cn("flex flex-col items-end text-xs space-y-1", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                       <span>{contact.lastMessageTime}</span>
                       {contact.unreadCount && contact.unreadCount > 0 && (
-                          <Badge className="bg-primary text-primary-foreground h-5 w-5 p-0 flex items-center justify-center">
+                          <Badge className={cn(
+                              "h-5 w-5 p-0 flex items-center justify-center",
+                              isSelected ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
+                          )}>
                               {contact.unreadCount}
                           </Badge>
                       )}
