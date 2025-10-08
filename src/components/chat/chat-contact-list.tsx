@@ -13,6 +13,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ReadIndicator } from './read-indicator';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
+import { useSidebar } from '../layout/sidebar';
 
 interface ChatContactListProps {
   contacts: Contact[];
@@ -21,10 +22,11 @@ interface ChatContactListProps {
 }
 
 export function ChatContactList({ contacts, onSelectContact, selectedContactId }: ChatContactListProps) {
+  const { open: isSidebarOpen } = useSidebar();
   return (
     <Card className="h-full flex flex-col rounded-none border-none">
       {/* Fixed Header */}
-      <CardHeader className="p-4 border-b flex-shrink-0 flex flex-row items-center justify-end gap-4">
+      <CardHeader className={cn("p-4 border-b flex-shrink-0 flex flex-row items-center gap-4", isSidebarOpen ? 'justify-end' : 'justify-start')}>
         <CardTitle className="text-xl">Chats</CardTitle>
         <div className="relative w-full max-w-[500px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
