@@ -653,7 +653,7 @@ export function VideoCallUI({ meeting, initialIsMuted = false, initialIsVideoOff
                         return (
                           <div key={msg.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
                             <Phone size={14} />
-                            <span>{msg.content}</span>
+                            <span>{msg.content} - {msg.timestamp}</span>
                           </div>
                         )
                       }

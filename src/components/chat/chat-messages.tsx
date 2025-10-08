@@ -256,7 +256,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                       return (
                         <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
                           <VideoIcon size={14} />
-                          <span>{message.content}</span>
+                          <span>{message.content} - {message.timestamp}</span>
                         </div>
                       )
                     }
