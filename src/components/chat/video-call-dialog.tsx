@@ -19,7 +19,8 @@ import {
   Minimize,
   Expand,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Loader2,
 } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -46,8 +47,8 @@ const DraggableFrame = ({
   isSelf,
   isMain,
   isStreamReady,
-  callStatus,
   elapsedTime,
+  callStatus,
   onDragStart,
   onSwap,
   onZoom,
@@ -60,8 +61,8 @@ const DraggableFrame = ({
   isSelf: boolean;
   isMain: boolean;
   isStreamReady: boolean;
-  callStatus: CallStatus;
   elapsedTime: number;
+  callStatus: CallStatus;
   onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSwap?: () => void;
   onZoom?: (direction: 'in' | 'out') => void;
@@ -205,10 +206,12 @@ const DraggableFrame = ({
         </div>
       )}
 
-      <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
-        {callStatus === 'connected' && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>}
-        <span>{getStatusText()}</span>
-      </div>
+      {isMain && callStatus === 'connected' && (
+         <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
+          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+          <span>{getStatusText()}</span>
+        </div>
+      )}
     </div>
   );
 };
@@ -228,19 +231,18 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isStreamReady, setIsStreamReady] = useState(false);
   const [callStatus, setCallStatus] = useState<CallStatus>('connecting');
 
-
   const [selfFrame, setSelfFrame] = useState<DraggableState>({
-    position: { x: 100, y: 100 },
+    position: { x: 0, y: 0 }, // Will be centered on mount
     size: { width: 640, height: 480 },
     isDragging: false
   });
 
   const [contactFrame, setContactFrame] = useState<DraggableState>({
-    position: { x: 20, y: 20 },
+    position: { x: 0, y: 0 }, // Will be attached to main frame
     size: { width: 192, height: 144 },
     isDragging: false
   });
-
+  
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
   const contactVideoRef = useRef<HTMLVideoElement>(null);
@@ -256,7 +258,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
 
   // ---- Call State Simulation ----
-    useEffect(() => {
+  useEffect(() => {
     let timer: NodeJS.Timeout | undefined;
     if (isOpen) {
       setCallStatus('connecting');
@@ -277,6 +279,18 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       };
     }
   }, [isOpen]);
+
+  // ---- Set Initial Frame Positions ----
+  useEffect(() => {
+    if (videoContainerRef.current) {
+      const containerRect = videoContainerRef.current.getBoundingClientRect();
+      const mainX = (containerRect.width - selfFrame.size.width) / 2;
+      const mainY = (containerRect.height - selfFrame.size.height) / 2;
+      setSelfFrame(f => ({ ...f, position: { x: mainX, y: mainY } }));
+      setContactFrame(f => ({ ...f, position: { x: mainX + 20, y: mainY + 20 } }));
+    }
+  }, [selfFrame.size.height, selfFrame.size.width]);
+
 
   // ---- Camera and mic setup ----
   useEffect(() => {
@@ -462,6 +476,13 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
             id="video-call-container"
             className="flex-1 relative overflow-hidden"
           >
+            {callStatus !== 'connected' && (
+              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-50 gap-4">
+                  <Loader2 className="w-10 h-10 animate-spin" />
+                  <p className="text-xl font-semibold">{callStatus.charAt(0).toUpperCase() + callStatus.slice(1)}...</p>
+              </div>
+            )}
+            
             {/* Main */}
             <DraggableFrame
               frameState={mainView === 'self' ? selfFrame : contactFrame}
@@ -473,8 +494,8 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               isSelf={mainView === 'self'}
               isMain={true}
               isStreamReady={isStreamReady}
-              callStatus={callStatus}
               elapsedTime={elapsedTime}
+              callStatus={callStatus}
               onDragStart={(e) => handleDragStart(e, mainViewTarget)}
               onZoom={(dir) => handleZoom(mainViewTarget, dir)}
               mainControls={mainControls}
@@ -491,8 +512,8 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               isSelf={mainView !== 'self'}
               isMain={false}
               isStreamReady={isStreamReady}
-              callStatus={callStatus}
               elapsedTime={elapsedTime}
+              callStatus={callStatus}
               onDragStart={(e) => handleDragStart(e, pipViewTarget)}
               onSwap={handleSwapViews}
             />
