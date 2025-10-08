@@ -137,29 +137,29 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 gap-0 bg-gray-900 text-white border-0">
-        <div className="flex-1 grid grid-cols-2 relative overflow-hidden">
-            {/* Contact Video */}
-            <div className="relative bg-gray-800 flex items-center justify-center">
+        <div className="flex-1 relative overflow-hidden bg-gray-800">
+            {/* Contact Video (Main) */}
+             <div className="w-full h-full flex items-center justify-center">
                  <video ref={contactVideoRef} autoPlay className="w-full h-full object-cover scale-x-[-1]" />
                  <div className="absolute bottom-4 left-4 text-sm bg-black/50 px-2 py-1 rounded-md">{contact.name}</div>
             </div>
             
-            {/* Self Video */}
-            <div className="relative bg-gray-800 flex items-center justify-center border-l-2 border-gray-700">
+            {/* Self Video (Picture-in-picture) */}
+            <div className="absolute top-4 right-4 w-48 h-32 bg-black rounded-lg overflow-hidden border-2 border-white/20">
                 {isVideoOff ? (
-                    <div className="flex flex-col items-center gap-2">
-                        <Avatar className="w-24 h-24">
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-700">
+                        <Avatar className="w-12 h-12">
                             <AvatarImage src={selfAvatar?.imageUrl} />
-                            <AvatarFallback className="text-3xl">
+                            <AvatarFallback className="text-lg">
                                 {self?.name.slice(0, 2)}
                             </AvatarFallback>
                         </Avatar>
-                        <p className="text-muted-foreground">Camera is off</p>
+                        <p className="text-xs text-muted-foreground">Cam Off</p>
                     </div>
                 ) : (
                     <video ref={selfVideoRef} autoPlay muted className="w-full h-full object-cover scale-x-[-1]" />
                 )}
-                 <div className="absolute bottom-4 left-4 text-sm bg-black/50 px-2 py-1 rounded-md">You</div>
+                 <div className="absolute bottom-1 left-1 text-xs bg-black/50 px-1 py-0.5 rounded-md">You</div>
             </div>
         </div>
 
