@@ -43,6 +43,13 @@ interface ChatContextType {
   declineCall: () => void;
   acceptedCallContact: Contact | null;
   setAcceptedCallContact: Dispatch<SetStateAction<Contact | null>>;
+  incomingVoiceCallFrom: Contact | null;
+  startVoiceCall: (contact: Contact) => void;
+  endVoiceCall: (contactId: string) => void;
+  acceptVoiceCall: () => void;
+  declineVoiceCall: () => void;
+  acceptedVoiceCallContact: Contact | null;
+  setAcceptedVoiceCallContact: Dispatch<SetStateAction<Contact | null>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -53,6 +60,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
+  const [incomingVoiceCallFrom, setIncomingVoiceCallFrom] = useState<Contact | null>(null);
+  const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
   
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
   const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
@@ -137,13 +146,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   }, [self, allContacts, selectedContact]);
 
-  const addSystemMessage = useCallback((content: string, contactId: string) => {
+  const addSystemMessage = useCallback((content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self) return;
     const systemMessage: Message = {
         id: `sys-${Date.now()}-${contactId}`,
         senderId: self.id,
         recipientId: contactId,
-        content,
+        content: content,
         timestamp: format(new Date(), 'p'),
         type: 'text',
         isSystem: true,
@@ -190,13 +199,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const endCall = useCallback((contactId: string) => {
-        addSystemMessage(`Video call ended`, contactId);
+        addSystemMessage(`Video call ended`, contactId, 'video');
         setAcceptedCallContact(null);
   }, [addSystemMessage]);
 
   const acceptCall = useCallback(() => {
     if (incomingCallFrom) {
-        addSystemMessage(`Video call with ${incomingCallFrom.name} started`, incomingCallFrom.id);
+        addSystemMessage(`Video call with ${incomingCallFrom.name} started`, incomingCallFrom.id, 'video');
         setAcceptedCallContact(incomingCallFrom);
         setIncomingCallFrom(null);
     }
@@ -204,10 +213,34 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const declineCall = useCallback(() => {
     if (incomingCallFrom) {
-        addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id);
+        addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id, 'video');
         setIncomingCallFrom(null);
     }
   }, [incomingCallFrom, addSystemMessage]);
+
+  const startVoiceCall = useCallback((contact: Contact) => {
+    setAcceptedVoiceCallContact(contact);
+  }, []);
+  
+  const endVoiceCall = useCallback((contactId: string) => {
+    addSystemMessage(`Voice call ended`, contactId, 'voice');
+    setAcceptedVoiceCallContact(null);
+  }, [addSystemMessage]);
+  
+  const acceptVoiceCall = useCallback(() => {
+    if (incomingVoiceCallFrom) {
+      addSystemMessage(`Voice call with ${incomingVoiceCallFrom.name} started`, incomingVoiceCallFrom.id, 'voice');
+      setAcceptedVoiceCallContact(incomingVoiceCallFrom);
+      setIncomingVoiceCallFrom(null);
+    }
+  }, [incomingVoiceCallFrom, addSystemMessage]);
+  
+  const declineVoiceCall = useCallback(() => {
+    if (incomingVoiceCallFrom) {
+      addSystemMessage(`Missed voice call from ${incomingVoiceCallFrom.name}`, incomingVoiceCallFrom.id, 'voice');
+      setIncomingVoiceCallFrom(null);
+    }
+  }, [incomingVoiceCallFrom, addSystemMessage]);
   
   // Effect to mark messages as read when a chat is opened
   useEffect(() => {
@@ -244,7 +277,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     acceptCall,
     declineCall,
     acceptedCallContact,
-    setAcceptedCallContact
+    setAcceptedCallContact,
+    incomingVoiceCallFrom,
+    startVoiceCall,
+    endVoiceCall,
+    acceptVoiceCall,
+    declineVoiceCall,
+    acceptedVoiceCallContact,
+    setAcceptedVoiceCallContact,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

@@ -29,6 +29,8 @@ import { ForwardMessageDialog } from './forward-message-dialog';
 import { IncomingCallDialog } from './incoming-call-dialog';
 import { useRouter } from 'next/navigation';
 import { VideoCallDialog } from './video-call-dialog';
+import { IncomingVoiceCallDialog } from './incoming-voice-call-dialog';
+import { VoiceCallDialog } from './voice-call-dialog';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -104,7 +106,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
@@ -116,9 +118,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isReceivingCall, setIsReceivingCall] = useState(false);
+  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
-  const handleCallClick = () => { startCall(selectedContact) };
+  const handleCallClick = () => { startVoiceCall(selectedContact) };
   const handleVideoClick = () => {
     setIsReceivingCall(false);
     startCall(selectedContact);
@@ -140,6 +143,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       setIsVideoCallOpen(true);
     }
   }, [acceptedCallContact]);
+
+  useEffect(() => {
+    if (acceptedVoiceCallContact) {
+      setIsVoiceCallOpen(true);
+    }
+  }, [acceptedVoiceCallContact]);
   
     useEffect(() => {
     if (scrollAreaRef.current) {
@@ -326,6 +335,13 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             acceptCall();
         }}
       />
+      <IncomingVoiceCallDialog 
+        isOpen={!!incomingVoiceCallFrom}
+        onClose={() => declineVoiceCall()}
+        onDecline={() => declineVoiceCall()}
+        onAccept={() => acceptVoiceCall()}
+        contact={incomingVoiceCallFrom}
+      />
       {(isVideoCallOpen || acceptedCallContact) && (
         <VideoCallDialog
           isOpen={isVideoCallOpen || !!acceptedCallContact}
@@ -339,6 +355,17 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           isReceivingCall={isReceivingCall}
         />
       )}
+       {(isVoiceCallOpen || acceptedVoiceCallContact) && (
+        <VoiceCallDialog
+            isOpen={isVoiceCallOpen || !!acceptedVoiceCallContact}
+            onClose={() => {
+                endVoiceCall(acceptedVoiceCallContact?.id || selectedContact.id);
+                setIsVoiceCallOpen(false);
+                setAcceptedVoiceCallContact(null);
+            }}
+            contact={acceptedVoiceCallContact || selectedContact}
+        />
+       )}
     </>
   );
 }
