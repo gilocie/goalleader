@@ -74,7 +74,7 @@ const DraggableFrame = ({
       .padStart(2, '0')}`;
   };
 
-  const showVideo = isSelf ? isStreamReady && isVideoOn : isVideoOn;
+  const showVideo = (isSelf && isStreamReady) || (!isSelf && isVideoOn);
 
   return (
     <div
@@ -101,7 +101,7 @@ const DraggableFrame = ({
             ref={videoRef}
             autoPlay
             playsInline
-            muted={isSelf} // Only self video should be muted by default
+            muted={isSelf}
             className="w-full h-full object-cover"
             style={{ transform: isSelf ? 'scaleX(-1)' : 'none' }}
           />
@@ -185,12 +185,18 @@ const DraggableFrame = ({
 };
 
 // ---------- Main Dialog ----------
+interface VideoCallDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  contact: Contact;
+}
+
 export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mainView, setMainView] = useState<'self' | 'contact'>('contact');
+  const [mainView, setMainView] = useState<'self' | 'contact'>('self');
   const [isStreamReady, setIsStreamReady] = useState(false);
 
   const [selfFrame, setSelfFrame] = useState<DraggableState>({
@@ -462,7 +468,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               avatar={mainView === 'self' ? selfAvatar : contactAvatar}
               name={mainView === 'self' ? self?.name || 'You' : contact.name}
               isSelf={mainView === 'self'}
-              isVideoOn={mainView === 'self' ? !isVideoOff : true}
+              isVideoOn={mainView === 'self' ? !isVideoOff : false}
               isMain={true}
               isStreamReady={isStreamReady}
               elapsedTime={elapsedTime}
@@ -477,7 +483,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
               avatar={mainView === 'self' ? contactAvatar : selfAvatar}
               name={mainView === 'self' ? contact.name : self?.name || 'You'}
               isSelf={mainView !== 'self'}
-              isVideoOn={mainView !== 'self' ? !isVideoOff : true}
+              isVideoOn={mainView !== 'self' ? !isVideoOff : false}
               isMain={false}
               isStreamReady={isStreamReady}
               elapsedTime={elapsedTime}
