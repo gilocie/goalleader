@@ -239,7 +239,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mainView, setMainView] = useState<'self' | 'contact'>('self');
+  const [mainView, setMainView] = useState<'self' | 'contact'>('contact');
   const [callStatus, setCallStatus] = useState<'connecting' | 'ringing' | 'connected'>('connecting');
 
 
@@ -257,7 +257,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null); // We don't have a stream for contact, so this won't be used for video
+  const contactVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
@@ -432,17 +432,23 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   // ---- Fullscreen ----
   const toggleFullscreen = async () => {
-    const container = document.getElementById('video-call-dialog-content');
-    if (!container) return;
+    const container = document.documentElement; // Target the whole document
     try {
-      if (!document.fullscreenElement) await container.requestFullscreen();
-      else await document.exitFullscreen();
-    } catch {
-      toast({
-        variant: 'destructive',
-        title: 'Fullscreen Error',
-        description: 'Could not enter fullscreen mode.'
-      });
+        if (!document.fullscreenElement) {
+            if (container.requestFullscreen) {
+                await container.requestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                await document.exitFullscreen();
+            }
+        }
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Fullscreen Error",
+            description: "Could not enter fullscreen mode.",
+        });
     }
   };
 
@@ -474,6 +480,69 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     isSpeakerMuted,
   };
 
+  const MainViewComponent = mainView === 'self' ? (
+    <DraggableFrame
+      frameState={mainFrame}
+      videoRef={selfVideoRef}
+      avatar={selfAvatar}
+      name={self?.name || 'You'}
+      isMain={true}
+      isSelf={true}
+      stream={streamRef.current}
+      elapsedTime={elapsedTime}
+      onDragStart={(e) => handleDragStart(e, 'main')}
+      onZoom={(dir) => handleZoom('main', dir)}
+      mainControls={mainControls}
+      callStatus={callStatus}
+    />
+  ) : (
+    <DraggableFrame
+      frameState={mainFrame}
+      videoRef={contactVideoRef}
+      avatar={contactAvatar}
+      name={contact.name}
+      isMain={true}
+      isSelf={false}
+      stream={null} // No stream for contact
+      elapsedTime={elapsedTime}
+      onDragStart={(e) => handleDragStart(e, 'main')}
+      onZoom={(dir) => handleZoom('main', dir)}
+      mainControls={mainControls}
+      callStatus={callStatus}
+    />
+  );
+
+  const PipViewComponent = mainView === 'self' ? (
+    <DraggableFrame
+      frameState={pipFrame}
+      videoRef={contactVideoRef}
+      avatar={contactAvatar}
+      name={contact.name}
+      isMain={false}
+      isSelf={false}
+      stream={null}
+      elapsedTime={elapsedTime}
+      onDragStart={(e) => handleDragStart(e, 'pip')}
+      onSwap={handleSwapViews}
+      callStatus={callStatus}
+    />
+  ) : (
+    <DraggableFrame
+      frameState={pipFrame}
+      videoRef={selfVideoRef}
+      avatar={selfAvatar}
+      name={self?.name || 'You'}
+      isMain={false}
+      isSelf={true}
+      stream={streamRef.current}
+      elapsedTime={elapsedTime}
+      onDragStart={(e) => handleDragStart(e, 'pip')}
+      onSwap={handleSwapViews}
+      callStatus={callStatus}
+    />
+  );
+
+
   return (
     <>
       <style jsx global>{`
@@ -502,42 +571,8 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
             id="video-call-container"
             className="flex-1 relative overflow-hidden"
           >
-            {/* Main */}
-            <DraggableFrame
-              frameState={mainView === 'self' ? mainFrame : pipFrame}
-              videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
-              avatar={mainView === 'self' ? selfAvatar : contactAvatar}
-              name={
-                mainView === 'self' ? self?.name || 'You' : contact.name
-              }
-              isMain={mainView === 'self'}
-              stream={mainView === 'self' ? streamRef.current : null}
-              elapsedTime={elapsedTime}
-              onDragStart={(e) => handleDragStart(e, 'main')}
-              onZoom={(dir) => handleZoom('main', dir)}
-              mainControls={mainView === 'self' ? mainControls : undefined}
-              onSwap={mainView !== 'self' ? handleSwapViews : undefined}
-              isSelf={mainView === 'self'}
-              callStatus={callStatus}
-            />
-
-            {/* PiP */}
-            <DraggableFrame
-              frameState={mainView === 'self' ? pipFrame : mainFrame}
-              videoRef={mainView === 'self' ? contactVideoRef : selfVideoRef}
-              avatar={mainView === 'self' ? contactAvatar : selfAvatar}
-              name={
-                mainView === 'self' ? contact.name : self?.name || 'You'
-              }
-              isMain={mainView !== 'self'}
-              stream={mainView !== 'self' ? streamRef.current : null}
-              elapsedTime={elapsedTime}
-              onDragStart={(e) => handleDragStart(e, 'pip')}
-              onSwap={mainView === 'self' ? handleSwapViews : undefined}
-              mainControls={mainView !== 'self' ? mainControls : undefined}
-              isSelf={mainView !== 'self'}
-              callStatus={callStatus}
-            />
+            {MainViewComponent}
+            {PipViewComponent}
           </div>
         </DialogContent>
       </Dialog>
