@@ -75,8 +75,14 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
         streamRef.current = stream;
         setHasPermission(true);
         
-        if (selfVideoRef.current) selfVideoRef.current.srcObject = stream;
-        if (contactVideoRef.current) contactVideoRef.current.srcObject = stream;
+        if (selfVideoRef.current) {
+            selfVideoRef.current.srcObject = stream;
+        }
+        if (contactVideoRef.current) {
+            // In a real app this would be a remote stream
+            // For demo, we use the same local stream
+            contactVideoRef.current.srcObject = stream;
+        }
 
       } catch (err) {
         console.error("Failed to get media", err);
@@ -198,27 +204,33 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
   const pipIsSelf = mainView === 'contact';
 
   const MainView = () => {
+    const mainVideoRef = mainIsSelf ? selfVideoRef : contactVideoRef;
+    const isMainVideoOff = mainIsSelf && isVideoOff;
+    const mainAvatar = mainIsSelf ? selfAvatar : contactAvatar;
+    const mainName = mainIsSelf ? self?.name : contact.name;
+    const mainAvatarFallback = mainIsSelf ? self?.name.slice(0, 2) : contact.name.slice(0, 2);
+
     return (
-      <div className="h-full w-full object-cover flex items-center justify-center">
-        {mainIsSelf ? (
-          isVideoOff ? (
-            <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-800">
-                <Avatar className="w-40 h-40">
-                    <AvatarImage src={selfAvatar?.imageUrl} />
-                    <AvatarFallback className="text-4xl">{self?.name.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-            </div>
-          ) : (
-            <video ref={selfVideoRef} autoPlay muted className="w-full h-full object-cover scale-x-[-1]" />
-          )
+      <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-800">
+        {isMainVideoOff ? (
+            <Avatar className="w-40 h-40">
+                <AvatarImage src={mainAvatar?.imageUrl} />
+                <AvatarFallback className="text-4xl">{mainAvatarFallback}</AvatarFallback>
+            </Avatar>
         ) : (
-           <video ref={contactVideoRef} autoPlay className="w-full h-full object-cover" />
+            <video ref={mainVideoRef} autoPlay muted={mainIsSelf} playsInline className="w-full h-full object-cover" style={{ transform: mainIsSelf ? 'scaleX(-1)' : 'none' }} />
         )}
       </div>
     );
   };
 
   const PipView = () => {
+    const pipVideoRef = pipIsSelf ? selfVideoRef : contactVideoRef;
+    const isPipVideoOff = pipIsSelf && isVideoOff;
+    const pipAvatar = pipIsSelf ? selfAvatar : contactAvatar;
+    const pipName = pipIsSelf ? self?.name : contact.name;
+    const pipAvatarFallback = pipIsSelf ? self?.name.slice(0, 2) : contact.name.slice(0, 2);
+
     return (
       <div 
         ref={pipRef}
@@ -227,17 +239,13 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       >
         <div className="absolute inset-0 cursor-move" onMouseDown={handleMouseDown} />
         <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gray-800">
-          {pipIsSelf ? (
-             isVideoOff ? (
-                <Avatar className="w-20 h-20">
-                    <AvatarImage src={selfAvatar?.imageUrl} />
-                    <AvatarFallback className="text-2xl">{self?.name.slice(0, 2)}</AvatarFallback>
-                </Avatar>
-             ) : (
-                <video ref={selfVideoRef} autoPlay muted className="w-full h-full object-cover scale-x-[-1]" />
-             )
+          {isPipVideoOff ? (
+             <Avatar className="w-20 h-20">
+                <AvatarImage src={pipAvatar?.imageUrl} />
+                <AvatarFallback className="text-2xl">{pipAvatarFallback}</AvatarFallback>
+            </Avatar>
           ) : (
-             <video ref={contactVideoRef} autoPlay muted className="w-full h-full object-cover" />
+             <video ref={pipVideoRef} autoPlay muted={pipIsSelf} playsInline className="w-full h-full object-cover" style={{ transform: pipIsSelf ? 'scaleX(-1)' : 'none' }} />
           )}
         </div>
          <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
@@ -294,3 +302,5 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     </Dialog>
   );
 }
+
+    
