@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -16,18 +15,20 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useChat } from '@/context/chat-context';
 
 interface VoiceCallDialogProps {
   isOpen: boolean;
   onClose: () => void;
   contact: Contact;
+  isReceivingCall?: boolean;
 }
 
-export function VoiceCallDialog({ isOpen, onClose, contact }: VoiceCallDialogProps) {
+export function VoiceCallDialog({ isOpen, onClose, contact, isReceivingCall }: VoiceCallDialogProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [callStatus, setCallStatus] = useState<'calling' | 'ringing' | 'connected'>('calling');
+  const [callStatus, setCallStatus] = useState<'calling' | 'ringing' | 'connected' | 'connecting'>('calling');
 
   const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
@@ -37,15 +38,22 @@ export function VoiceCallDialog({ isOpen, onClose, contact }: VoiceCallDialogPro
   // Call Status Simulation
   useEffect(() => {
     if (isOpen) {
-      setCallStatus('calling');
-      const t1 = setTimeout(() => setCallStatus('ringing'), 2000);
-      const t2 = setTimeout(() => setCallStatus('connected'), 5000);
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-      };
+      if (isReceivingCall) {
+        setCallStatus('connecting');
+        const t1 = setTimeout(() => setCallStatus('connected'), 2000);
+        return () => clearTimeout(t1);
+      } else {
+        setCallStatus('calling');
+        const t1 = setTimeout(() => setCallStatus('ringing'), 2000);
+        const t2 = setTimeout(() => setCallStatus('connected'), 5000);
+        return () => {
+          clearTimeout(t1);
+          clearTimeout(t2);
+        };
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, isReceivingCall]);
+
 
   // Elapsed time
   useEffect(() => {

@@ -119,6 +119,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isReceivingCall, setIsReceivingCall] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
+  const [isReceivingVoiceCall, setIsReceivingVoiceCall] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
   const handleCallClick = () => { startVoiceCall(selectedContact) };
@@ -267,9 +268,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
                     if (message.isSystem) {
                       const isVideo = message.content.includes('video');
+                      const isVoice = message.content.includes('voice');
                       return (
                         <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-                          {isVideo ? <VideoIcon size={14} /> : <Phone size={14} />}
+                          {isVoice ? <Phone size={14} /> : <VideoIcon size={14} />}
                           <span>{message.content} - {message.timestamp}</span>
                         </div>
                       )
@@ -340,7 +342,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         isOpen={!!incomingVoiceCallFrom}
         onClose={() => declineVoiceCall()}
         onDecline={() => declineVoiceCall()}
-        onAccept={() => acceptVoiceCall()}
+        onAccept={() => {
+          setIsReceivingVoiceCall(true);
+          acceptVoiceCall();
+        }}
         contact={incomingVoiceCallFrom}
       />
       {(isVideoCallOpen || acceptedCallContact) && (
@@ -363,8 +368,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 endVoiceCall(acceptedVoiceCallContact?.id || selectedContact.id);
                 setIsVoiceCallOpen(false);
                 setAcceptedVoiceCallContact(null);
+                setIsReceivingVoiceCall(false);
             }}
             contact={acceptedVoiceCallContact || selectedContact}
+            isReceivingCall={isReceivingVoiceCall}
         />
        )}
     </>

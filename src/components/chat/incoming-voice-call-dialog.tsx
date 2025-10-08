@@ -30,7 +30,7 @@ export function IncomingVoiceCallDialog({ isOpen, onClose, onDecline, onAccept, 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md bg-gray-800 text-white border-0 shadow-2xl">
-        <DialogHeader className="items-center text-center">
+        <DialogHeader className="sr-only">
           <DialogTitle className="text-2xl">Incoming Voice Call</DialogTitle>
           <DialogDescription className="text-gray-300">
             {contact.name} is calling you.
@@ -48,7 +48,7 @@ export function IncomingVoiceCallDialog({ isOpen, onClose, onDecline, onAccept, 
 
           <div className="text-center space-y-1">
             <h2 className="text-2xl font-bold">{contact.name}</h2>
-            <p className="text-gray-300">Ringing...</p>
+            <p className="text-gray-300">Incoming call...</p>
           </div>
 
           <div className="flex items-center space-x-6 pt-4">
