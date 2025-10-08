@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ChatContactList } from './chat-contact-list';
@@ -46,7 +47,7 @@ export function ChatLayout({
       <div
         className={cn(
           'border-r bg-background overflow-hidden h-full',
-          selectedContact && isMobileOrTablet ? 'hidden' : 'flex col-span-full lg:col-span-1',
+          selectedContact && isMobileOrTablet ? 'hidden' : 'flex col-span-full',
         )}
       >
         <ChatContactList
@@ -58,7 +59,7 @@ export function ChatLayout({
 
       {/* Main Chat Area */}
       {selectedContact && self ? (
-         <div className={cn("overflow-hidden h-full", selectedContact ? 'flex col-span-full lg:col-span-1' : 'hidden')}>
+         <div className={cn("overflow-hidden h-full", selectedContact ? 'flex col-span-full' : 'hidden')}>
            <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
