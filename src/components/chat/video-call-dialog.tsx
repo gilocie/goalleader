@@ -324,11 +324,20 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       const centerFrames = () => {
         const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
         
+        let newWidth = Math.min(containerWidth * 0.7, 800);
+        let newHeight = newWidth * (9/16);
+
+        if (newHeight > containerHeight * 0.8) {
+            newHeight = containerHeight * 0.8;
+            newWidth = newHeight * (16/9);
+        }
+
         setMainFrame(prev => ({
           ...prev,
+          size: { width: newWidth, height: newHeight },
           position: {
-            x: (containerWidth - prev.size.width) / 2,
-            y: (containerHeight - prev.size.height) / 2
+            x: (containerWidth - newWidth) / 2,
+            y: (containerHeight - newHeight) / 2
           }
         }));
       };
@@ -337,7 +346,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
       window.addEventListener('resize', centerFrames);
       return () => window.removeEventListener('resize', centerFrames);
     }
-  }, [mainFrame.size, isOpen]);
+  }, [isOpen]);
 
   useEffect(() => {
       setPipFrame(prev => ({
@@ -367,8 +376,9 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
     target: 'main' | 'pip'
   ) => {
     e.preventDefault();
-    const frameState = target === 'main' ? mainFrame : pipFrame;
-    const setFrame = target === 'main' ? setMainFrame : setPipFrame;
+    const isMain = target === 'main';
+    const frameState = isMain ? mainFrame : pipFrame;
+    const setFrame = isMain ? setMainFrame : setPipFrame;
     setFrame((p) => ({ ...p, isDragging: true }));
     dragOffsetRef.current = {
       x: e.clientX - frameState.position.x,
@@ -378,12 +388,15 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
 
   const handleDrag = useCallback(
     (e: MouseEvent) => {
-      if (!mainFrame.isDragging && !pipFrame.isDragging) return;
+      const isMainDragging = mainFrame.isDragging;
+      const isPipDragging = pipFrame.isDragging;
+      if (!isMainDragging && !isPipDragging) return;
       const containerRect = videoContainerRef.current?.getBoundingClientRect();
       if (!containerRect) return;
-      const isMainDragging = mainFrame.isDragging;
-      const targetFrame = isMainDragging ? mainFrame : pipFrame;
-      const setTargetFrame = isMainDragging ? setMainFrame : setPipFrame;
+      
+      const isMain = isMainDragging;
+      const targetFrame = isMain ? mainFrame : pipFrame;
+      const setTargetFrame = isMain ? setMainFrame : setPipFrame;
       let newX = e.clientX - dragOffsetRef.current.x;
       let newY = e.clientY - dragOffsetRef.current.y;
       newX = Math.max(0, Math.min(newX, containerRect.width - targetFrame.size.width));
@@ -479,36 +492,35 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
           >
             {/* Main */}
             <DraggableFrame
-              frameState={mainFrame}
-              videoRef={mainView === 'self' ? selfVideoRef : contactVideoRef}
-              avatar={mainView === 'self' ? selfAvatar : contactAvatar}
-              name={
-                mainView === 'self' ? self?.name || 'You' : contact.name
-              }
-              isMain={true}
-              stream={mainView === 'self' ? streamRef.current : null}
+              frameState={mainView === 'self' ? mainFrame : pipFrame}
+              videoRef={selfVideoRef}
+              avatar={selfAvatar}
+              name={self?.name || 'You'}
+              isMain={mainView === 'self'}
+              stream={streamRef.current}
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, 'main')}
               onZoom={(dir) => handleZoom('main', dir)}
-              mainControls={mainControls}
-              isSelf={mainView === 'self'}
+              mainControls={mainView === 'self' ? mainControls : undefined}
+              onSwap={mainView !== 'self' ? handleSwapViews : undefined}
+              isSelf={true}
               callStatus={callStatus}
             />
 
             {/* PiP */}
             <DraggableFrame
-              frameState={pipFrame}
-              videoRef={mainView === 'self' ? contactVideoRef : selfVideoRef}
-              avatar={mainView === 'self' ? contactAvatar : selfAvatar}
-              name={
-                mainView === 'self' ? contact.name : self?.name || 'You'
-              }
-              isMain={false}
-              stream={mainView !== 'self' ? streamRef.current : null}
+              frameState={mainView === 'contact' ? mainFrame : pipFrame}
+              videoRef={contactVideoRef}
+              avatar={contactAvatar}
+              name={contact.name}
+              isMain={mainView === 'contact'}
+              stream={null} // No stream for contact
               elapsedTime={elapsedTime}
               onDragStart={(e) => handleDragStart(e, 'pip')}
-              onSwap={handleSwapViews}
-              isSelf={mainView !== 'self'}
+              onZoom={(dir) => handleZoom('pip', dir)}
+              mainControls={mainView === 'contact' ? mainControls : undefined}
+              onSwap={mainView !== 'contact' ? handleSwapViews : undefined}
+              isSelf={false}
               callStatus={callStatus}
             />
           </div>
