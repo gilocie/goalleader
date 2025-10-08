@@ -165,23 +165,14 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
   return (
     <>
-      {/* 
-        This is the main container.
-        - `flex flex-col`: Stacks children vertically (header, content, footer).
-        - `h-full`: Makes it fill the height of its parent container.
-          This is CRITICAL. The parent in `ChatPage.tsx` must have a defined height
-          (e.g., `h-screen` or `h-[calc(100vh-5rem)]`) for this to work.
-      */}
-      <div className="flex flex-col rounded-none border-none bg-card h-full">
-        {/* === 1. FIXED HEADER === */}
-        {/* `flex-shrink-0` prevents this header from shrinking. It stays a fixed height. */}
+      <div className="flex flex-col h-full bg-card rounded-none border-none">
         <CardHeader className="flex flex-row items-center justify-between p-4 border-b flex-shrink-0">
           <div className="flex items-center gap-3">
               {onExitChat && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10 lg:hidden">
+                      <Button variant="ghost" size="icon" onClick={onExitChat} className="z-10 lg:hidden ml-4 bg-primary text-primary-foreground hover:bg-primary/90">
                         <ArrowLeft className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
@@ -217,17 +208,9 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </DropdownMenu>
           </div>
         </CardHeader>
-
-        {/* === 2. SCROLLABLE CONTENT AREA === */}
-        {/*
-          - `flex-1`: This is the magic. It makes this div grow to fill ALL available space between the header and footer.
-          - `overflow-hidden`: This contains the scrollbar within this area, preventing the whole page from scrolling.
-        */}
         <div className="flex-1 overflow-hidden">
-          {/* `h-full` makes the ScrollArea component fill its parent (the `flex-1` div above). */}
           <ScrollArea className="h-full">
             <div className="space-y-4 p-4">
-              {/* Message mapping logic remains the same */}
               {messages.map((message) => {
                 const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
                 return (
@@ -255,9 +238,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </div>
           </ScrollArea>
         </div>
-        
-        {/* === 3. FIXED FOOTER === */}
-        {/* `flex-shrink-0` prevents this footer from shrinking. It stays a fixed height at the bottom. */}
         <div className="p-4 border-t flex-shrink-0">
           <ChatInput
             onSendMessage={handleSendMessageWithContext}
