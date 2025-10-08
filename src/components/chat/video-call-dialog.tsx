@@ -205,7 +205,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
             </div>
 
             {/* Self Video (Circular) */}
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg">
+            <div className="absolute bottom-6 left-6 w-32 h-32 rounded-full overflow-hidden border-4 border-white/20 shadow-lg">
                 <video
                     ref={selfVideoRef}
                     autoPlay
@@ -216,7 +216,7 @@ export function VideoCallDialog({ isOpen, onClose, contact }: VideoCallDialogPro
                 />
             </div>
 
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 text-center">
+            <div className="absolute bottom-1 left-12 text-center">
                  <p className="text-sm font-semibold [text-shadow:0_1px_2px_var(--tw-shadow-color)] shadow-black/50">{self?.name}</p>
             </div>
             
