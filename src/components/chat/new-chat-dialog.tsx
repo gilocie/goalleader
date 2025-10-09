@@ -81,7 +81,7 @@ export function NewChatDialog({
             <ScrollArea className="h-full">
                 <div className={cn(
                     "px-6 py-2",
-                    layout === 'list' ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
+                    layout === 'list' ? 'grid grid-cols-2 gap-x-2' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
                 )}>
                 {filteredMembers.map((member, index) => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
@@ -129,7 +129,7 @@ export function NewChatDialog({
                         )
                     }
                     return (
-                        <div key={member.id} className="relative">
+                        <React.Fragment key={member.id}>
                             <div
                                 className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted"
                                 onClick={() => onStartChat(contact)}
@@ -159,8 +159,8 @@ export function NewChatDialog({
                                     <User className="h-4 w-4 text-muted-foreground" />
                                 </Button>
                             </div>
-                             {index % 2 === 0 && <Separator orientation="vertical" className="absolute right-0 top-0 h-full" />}
-                        </div>
+                           {index % 2 === 1 && index < filteredMembers.length - 1 && <Separator className="col-span-2 my-1" />}
+                        </React.Fragment>
                     );
                 })}
                  {filteredMembers.length === 0 && (
