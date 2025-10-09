@@ -292,13 +292,14 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && recordingState === 'recording') {
-        mediaRecorderRef.current.onstop = () => {
+        mediaRecorderRef.current.onstop = async () => {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            
             const reader = new FileReader();
             reader.readAsDataURL(audioBlob);
             reader.onloadend = () => {
                 const base64Audio = reader.result as string;
-                onSendMessage('Voice Note', 'audio', { audioUrl: base64Audio, duration: recordingTime });
+                onSendMessage('Voice Note', 'audio', { audioUrl: base64Audio, audioDuration: recordingTime });
             };
             
             if (recordingIntervalRef.current) {
@@ -315,7 +316,7 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
 
   const cancelRecording = useCallback(() => {
     if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.onstop = null; // Important: remove the onstop handler
+        mediaRecorderRef.current.onstop = null;
         mediaRecorderRef.current.stop();
     }
     if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
@@ -426,4 +427,4 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
       />
     </>
   );
-} 
+}
