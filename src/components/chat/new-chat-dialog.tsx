@@ -44,7 +44,7 @@ export function NewChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl h-[570px] flex flex-col p-0">
+      <DialogContent className="sm:max-w-3xl h-[562px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
@@ -99,7 +99,7 @@ export function NewChatDialog({
                         return (
                              <Card
                                 key={member.id}
-                                className="flex flex-col items-center text-center p-3 pt-10 cursor-pointer hover:bg-muted relative"
+                                className="flex flex-col items-center text-center p-2 pt-8 cursor-pointer hover:bg-muted relative"
                                 onClick={() => onStartChat(contact)}
                             >
                                 <Button
@@ -118,7 +118,7 @@ export function NewChatDialog({
                                     member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
                                   )} />
                                 
-                                <Avatar className="h-12 w-12 mb-2">
+                                <Avatar className="h-10 w-10 mb-2">
                                     <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
                                     <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
