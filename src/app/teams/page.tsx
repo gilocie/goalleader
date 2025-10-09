@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -20,63 +20,63 @@ const allTeamMembers = [
   {
     id: 'patrick-achitabwino-m1',
     name: 'Patrick Achitabwino (You)',
-    role: 'Team Leader',
+    role: 'Team Leader' as const,
     status: 'online' as const,
     department: 'Customer Service'
   },
   {
     id: 'frank-mhango-m2',
     name: 'Frank Mhango',
-    role: 'Consultant',
+    role: 'Consultant' as const,
     status: 'offline' as const,
     department: 'Customer Service'
   },
   {
     id: 'denis-maluwasa-m3',
     name: 'Denis Maluwasa',
-    role: 'Consultant',
+    role: 'Consultant' as const,
     status: 'online' as const,
     department: 'Customer Service'
   },
   {
     id: 'gift-banda-m4',
     name: 'Gift Banda',
-    role: 'Frontend Developer',
+    role: 'Frontend Developer' as const,
     status: 'online' as const,
     department: 'Engineering'
   },
   {
     id: 'chiyanjano-mkandawire-m5',
     name: 'Chiyanjano Mkandawire',
-    role: 'Backend Developer',
+    role: 'Backend Developer' as const,
     status: 'offline' as const,
     department: 'Engineering'
   },
-  {
+   {
     id: 'wezi-chisale-m6',
     name: 'Wezi Chisale',
-    role: 'Marketing Specialist',
+    role: 'Marketing Specialist' as const,
     status: 'online' as const,
     department: 'Marketing'
   },
   {
     id: 'charity-moyo-m7',
     name: 'Charity Moyo',
-    role: 'Content Creator',
+    role: 'Content Creator' as const,
     status: 'offline' as const,
     department: 'Marketing'
   },
-  {
+   {
     id: 'fumbani-mwenefumbo-m8',
     name: 'Fumbani Mwenefumbo',
-    role: 'IT Support',
+    role: 'IT Support' as const,
     status: 'online' as const,
     department: 'ICT'
   },
   {
     id: 'rose-kabudula-m9',
     name: 'Rose Kabudula',
-    role: 'Admin',
+    role: 'Admin' as const,
     status: 'online' as const,
     department: 'ICT'
   },
@@ -88,13 +88,48 @@ function TeamsPageContent() {
   const [isCreateTeamOpen, setCreateTeamOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState<(typeof allTeamMembers)>([]);
 
+  useEffect(() => {
+    try {
+      const storedTeamMemberIds = localStorage.getItem('teamMembers');
+      if (storedTeamMemberIds) {
+        const memberIds = JSON.parse(storedTeamMemberIds);
+        const savedTeam = allTeamMembers.filter(member => memberIds.includes(member.id));
+        setTeamMembers(savedTeam);
+      }
+    } catch (error) {
+      console.error("Failed to load team from localStorage", error);
+    }
+  }, []);
+
   const handleTeamCreated = (selectedMemberIds: string[]) => {
-    const newTeam = allTeamMembers.filter(member => selectedMemberIds.includes(member.id));
-    setTeamMembers(newTeam);
+    try {
+      localStorage.setItem('teamMembers', JSON.stringify(selectedMemberIds));
+      const newTeam = allTeamMembers.filter(member => selectedMemberIds.includes(member.id));
+      setTeamMembers(newTeam);
+    } catch (error) {
+       console.error("Failed to save team to localStorage", error);
+    }
     setCreateTeamOpen(false);
   };
 
   const membersForDialog = allTeamMembers.filter(member => member.id !== user.id && (user.role === 'Admin' || member.department === user.department));
+
+  const shouldRenderPage = user.role === 'Admin' || user.role === 'Team Leader';
+
+  if (!shouldRenderPage) {
+    return (
+        <main className="flex-grow p-4 md:p-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Access Denied</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>You do not have permission to view this page.</p>
+                </CardContent>
+            </Card>
+        </main>
+    );
+  }
 
   return (
     <main className="flex-grow p-4 md:p-8">
