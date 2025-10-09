@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -15,23 +16,25 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Contact } from '@/types/chat';
+import { useChat } from '@/context/chat-context';
 
 interface NewChatDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  allMembers: Contact[];
   onStartChat: (contact: Contact) => void;
 }
 
 export function NewChatDialog({
   isOpen,
   onOpenChange,
-  allMembers,
   onStartChat,
 }: NewChatDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { allContacts, self } = useChat();
 
-  const filteredMembers = allMembers.filter(member =>
+  const membersToShow = allContacts.filter(member => member.id !== self?.id);
+
+  const filteredMembers = membersToShow.filter(member =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 

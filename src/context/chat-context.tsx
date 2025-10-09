@@ -65,12 +65,30 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
   
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
-  const contacts = useMemo(() => allContacts.filter(c => c.id !== USER_ID), [allContacts]);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set());
 
-  const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
+  useEffect(() => {
+    // Initialize active chats based on existing messages
+    const initialChatIds = new Set<string>();
+    messages.forEach(msg => {
+      if (msg.senderId !== USER_ID) initialChatIds.add(msg.senderId);
+      if (msg.recipientId !== USER_ID) initialChatIds.add(msg.recipientId);
+    });
+    setActiveChatIds(initialChatIds);
+  }, [messages]);
+
+  const contacts = useMemo(() => {
+    const contactList = allContacts.filter(c => c.id !== USER_ID && activeChatIds.has(c.id));
+    // If a contact is selected but has no messages yet, add them to the list.
+    if (selectedContact && !contactList.some(c => c.id === selectedContact.id)) {
+        return [selectedContact, ...contactList];
+    }
+    return contactList;
+  }, [allContacts, activeChatIds, selectedContact]);
   
+  const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self) return;
@@ -85,6 +103,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       ...data
     };
     setMessages(prev => [...prev, newMessage]);
+    setActiveChatIds(prev => new Set(prev).add(recipientId));
+
 
     if (content.toLowerCase().includes('call me') || content.toLowerCase().includes('video chat')) {
         setTimeout(() => {
@@ -267,6 +287,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setAllContacts(prev => prev.map(c => 
             c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c
         ));
+        // Ensure the new chat is active
+        setActiveChatIds(prev => new Set(prev).add(selectedContact.id));
     }
   }, [selectedContact, self?.id]);
 
