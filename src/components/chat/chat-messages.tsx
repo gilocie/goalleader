@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -300,7 +299,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div>
-                            <Button variant="outline" size="icon" onClick={handleCallClick}><Phone className="h-4 w-4" /></Button>
+                            <Button variant="outline" size="icon" onClick={handleCallClick} disabled={!isChatEstablished}><Phone className="h-4 w-4" /></Button>
                         </div>
                     </TooltipTrigger>
                     {!isChatEstablished && <TooltipContent>Reply to message to enable calls</TooltipContent>}
@@ -308,7 +307,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <Tooltip>
                     <TooltipTrigger asChild>
                        <div>
-                         <Button variant="outline" size="icon" onClick={handleVideoClick}><Video className="h-4 w-4" /></Button>
+                         <Button variant="outline" size="icon" onClick={handleVideoClick} disabled={!isChatEstablished}><Video className="h-4 w-4" /></Button>
                        </div>
                     </TooltipTrigger>
                     {!isChatEstablished && <TooltipContent>Reply to message to enable calls</TooltipContent>}
@@ -341,8 +340,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     const senderAvatar = PlaceHolderImages.find(p => p.id === sender.id);
 
                     if (message.isSystem) {
-                      const isVideo = message.content.toLowerCase().includes('video');
-                      const isVoice = message.content.toLowerCase().includes('voice');
+                      const isVideo = message.callType === 'video';
+                      const isVoice = message.callType === 'voice';
                       return (
                         <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
                           {isVoice ? <Phone size={14} /> : <VideoIcon size={14} />}
@@ -373,7 +372,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
                             {!isSelf && <MessageActions message={message} />}
 
-                            {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" /><AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar> )}
+                            {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={user.name} /><AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar> )}
                         </div>
                     )
                   })
@@ -473,3 +472,5 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
+    
