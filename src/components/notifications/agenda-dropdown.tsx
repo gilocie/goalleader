@@ -52,7 +52,7 @@ export function AgendaDropdown({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
                 {children}
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[300px] p-0" align="end">
+            <DropdownMenuContent className="w-[300px] max-h-[480px] flex flex-col p-0" align="end">
                 <DropdownMenuLabel className="p-3">
                     <span className="font-semibold">Task Calendar</span>
                 </DropdownMenuLabel>
@@ -73,11 +73,11 @@ export function AgendaDropdown({ children }: { children: React.ReactNode }) {
                     }}
                 />
                 <DropdownMenuSeparator />
-                <div className="p-2">
+                <div className="p-2 flex-1 flex flex-col min-h-0">
                     <h4 className="px-2 py-1 text-sm font-semibold">
                         Tasks for {selectedDate ? format(selectedDate, 'PPP') : 'selected date'}
                     </h4>
-                    <ScrollArea className="h-40">
+                    <ScrollArea className="h-24">
                          <div className="p-2 space-y-2">
                             {tasksForSelectedDay.length > 0 ? (
                                 tasksForSelectedDay.map(task => (
