@@ -5,10 +5,12 @@ import { useState } from 'react';
 import { ChatLayout } from '@/components/chat/chat-layout';
 import type { Contact, Message } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
+import { NewChatDialog } from './new-chat-dialog';
 
 export function ChatPageContent() {
   const { contacts, messages, selectedContact, setSelectedContact, addMessage, deleteMessage, self } = useChat();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
   const contactMessages = selectedContact && self
     ? messages.filter(
@@ -32,6 +34,11 @@ export function ChatPageContent() {
   const handleDeleteMessage = (messageId: string) => {
     deleteMessage(messageId);
   }
+  
+  const handleStartChat = (contact: Contact) => {
+    handleSelectContact(contact);
+    setIsNewChatOpen(false);
+  }
 
   return (
     <div className="flex-1 w-full overflow-hidden max-h-[390px] lg:max-h-[490px]">
@@ -45,6 +52,11 @@ export function ChatPageContent() {
         isProfileOpen={isProfileOpen}
         onToggleProfile={() => setIsProfileOpen(prev => !prev)}
       />
+       <NewChatDialog 
+        isOpen={isNewChatOpen}
+        onOpenChange={setIsNewChatOpen}
+        onStartChat={handleStartChat}
+    />
     </div>
   );
 }
