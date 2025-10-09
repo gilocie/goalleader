@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Camera, PlusCircle, Trash2, LifeBuoy } from 'lucide-react';
+import { Camera, PlusCircle, Trash2, LifeBuoy, Users } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/context/theme-provider';
@@ -17,6 +17,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUser } from '@/context/user-context';
 import type { UserRole } from '@/context/user-context';
+import { SwitchProfileDialog } from '@/components/profile/switch-profile-dialog';
+import { allTeamMembers } from '@/lib/users';
 
 type Kpi = {
   id: number;
@@ -43,6 +45,7 @@ function ProfileTabContent() {
     const [name, setName] = useState(user.name);
     const [selectedDepartment, setSelectedDepartment] = useState(user.department);
     const [selectedRole, setSelectedRole] = useState(user.role);
+    const [isSwitchProfileOpen, setIsSwitchProfileOpen] = useState(false);
     
     useEffect(() => {
         setName(user.name);
@@ -86,7 +89,22 @@ function ProfileTabContent() {
         return `KPI #${index + 1}`;
     }
 
+    const handleProfileSwitch = (memberId: string) => {
+        const memberToSwitch = allTeamMembers.find(m => m.id === memberId);
+        if (memberToSwitch) {
+            saveUser({
+                id: memberToSwitch.id,
+                name: memberToSwitch.name.replace(' (You)', ''),
+                role: memberToSwitch.role,
+                department: memberToSwitch.department
+            });
+            window.location.reload(); // Reload to apply context changes everywhere
+        }
+        setIsSwitchProfileOpen(false);
+    }
+
     return (
+        <>
         <div className="grid gap-8 lg:grid-cols-3">
         {/* Left Column: Profile Picture and Details */}
         <div className="lg:col-span-1 space-y-8">
@@ -103,7 +121,13 @@ function ProfileTabContent() {
                 </div>
             </CardHeader>
             <CardContent className="text-center">
-              <CardTitle className="text-2xl">{name}</CardTitle>
+                <div className='flex items-center justify-center gap-2'>
+                    <CardTitle className="text-2xl">{name}</CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => setIsSwitchProfileOpen(true)}>
+                        <Users className='mr-2 h-4 w-4' />
+                        Switch Profile
+                    </Button>
+                </div>
             </CardContent>
           </Card>
 
@@ -228,6 +252,12 @@ function ProfileTabContent() {
           </div>
         </div>
       </div>
+      <SwitchProfileDialog 
+        isOpen={isSwitchProfileOpen}
+        onOpenChange={setIsSwitchProfileOpen}
+        onSwitchProfile={handleProfileSwitch}
+      />
+      </>
     );
 }
 
@@ -403,5 +433,3 @@ export function ProfilePageContent() {
     </main>
   );
 }
-
-    
