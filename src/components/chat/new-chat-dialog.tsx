@@ -44,7 +44,7 @@ export function NewChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl h-[470px] flex flex-col p-0">
+      <DialogContent className="sm:max-w-3xl h-[570px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
@@ -80,7 +80,7 @@ export function NewChatDialog({
             <ScrollArea className="h-full">
                 <div className={cn(
                     "px-6 py-2",
-                    layout === 'list' ? 'space-y-1' : 'grid grid-cols-2 gap-4'
+                    layout === 'list' ? 'space-y-1' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'
                 )}>
                 {filteredMembers.map(member => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
@@ -99,32 +99,31 @@ export function NewChatDialog({
                         return (
                              <Card
                                 key={member.id}
-                                className="flex flex-col items-center text-center p-3 cursor-pointer hover:bg-muted"
+                                className="flex flex-col items-center text-center p-3 pt-10 cursor-pointer hover:bg-muted relative"
                                 onClick={() => onStartChat(contact)}
                             >
-                                <div className="relative">
-                                    <Avatar className="h-12 w-12 mb-2">
-                                        <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
-                                        <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                    </Avatar>
-                                    <div className={cn(
-                                      'absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-background',
-                                      member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                                    )} />
-                                </div>
-                                <p className="text-sm font-semibold line-clamp-1">{memberName}</p>
-                                <p className="text-xs text-muted-foreground line-clamp-1">{member.role}</p>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-6 w-6 mt-1"
+                                    className="h-7 w-7 absolute top-2 left-2 text-muted-foreground hover:bg-primary/10 hover:text-primary"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         console.log(`View profile of ${member.name}`);
                                     }}
                                 >
-                                    <User className="h-4 w-4 text-muted-foreground" />
+                                    <User className="h-4 w-4" />
                                 </Button>
+                                 <div className={cn(
+                                    'absolute top-3 right-3 h-2.5 w-2.5 rounded-full border-2 border-background',
+                                    member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                  )} />
+                                
+                                <Avatar className="h-12 w-12 mb-2">
+                                    <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
+                                    <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-sm font-semibold line-clamp-1">{memberName}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-1">{member.role}</p>
                             </Card>
                         )
                     }
