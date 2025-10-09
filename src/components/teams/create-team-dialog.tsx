@@ -12,13 +12,19 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MultiSelectCombobox } from '@/components/meetings/multi-select-combobox';
 import { Label } from '../ui/label';
+import { ScrollArea } from '../ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Check } from 'lucide-react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { cn } from '@/lib/utils';
+import { Card } from '../ui/card';
 
 interface Member {
     id: string;
     name: string;
     department: string;
+    role: string;
 }
 
 interface CreateTeamDialogProps {
@@ -38,11 +44,6 @@ export function CreateTeamDialog({
 }: CreateTeamDialogProps) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   
-  const memberOptions = allMembers.map(member => ({
-    value: member.id,
-    label: member.name
-  }));
-
   const handleCreate = () => {
     onTeamCreate(selectedMembers);
   };
@@ -54,9 +55,17 @@ export function CreateTeamDialog({
     onOpenChange(open);
   }
 
+  const toggleMemberSelection = (memberId: string) => {
+    setSelectedMembers(prev => 
+      prev.includes(memberId) 
+        ? prev.filter(id => id !== memberId)
+        : [...prev, memberId]
+    );
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl flex flex-col h-[500px]">
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
           <DialogDescription>
@@ -64,14 +73,39 @@ export function CreateTeamDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-            <Label>Team Members</Label>
-            <MultiSelectCombobox
-                options={memberOptions}
-                selected={selectedMembers}
-                onChange={setSelectedMembers}
-                placeholder="Select team members..."
-            />
+        <div className="flex-1 overflow-hidden -mx-6 px-6">
+            <ScrollArea className="h-full">
+                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4">
+                    {allMembers.map(member => {
+                        const avatar = PlaceHolderImages.find(p => p.id === member.id);
+                        const isSelected = selectedMembers.includes(member.id);
+                        return (
+                            <Card 
+                                key={member.id} 
+                                className={cn(
+                                    "p-3 flex flex-col items-center justify-center text-center cursor-pointer transition-all border-2",
+                                    isSelected ? "border-primary bg-primary/5" : "hover:bg-muted"
+                                )}
+                                onClick={() => toggleMemberSelection(member.id)}
+                            >
+                                <div className="relative">
+                                    <Avatar className="h-16 w-16 mb-2">
+                                        <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} />
+                                        <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    </Avatar>
+                                    {isSelected && (
+                                        <div className="absolute top-0 right-0 h-5 w-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                                            <Check className="h-3 w-3" />
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-sm font-semibold line-clamp-2">{member.name}</p>
+                                <p className="text-xs text-muted-foreground">{member.role}</p>
+                            </Card>
+                        )
+                    })}
+                 </div>
+            </ScrollArea>
         </div>
         
         <DialogFooter>
@@ -91,4 +125,3 @@ export function CreateTeamDialog({
     </Dialog>
   );
 }
-
