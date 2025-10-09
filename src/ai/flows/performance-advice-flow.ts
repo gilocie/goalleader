@@ -42,7 +42,7 @@ export async function getPerformanceAdvice(input: PerformanceAdviceInput): Promi
 const prompt = ai.definePrompt({
   name: 'performanceAdvicePrompt',
   model: GEMINI_MODEL,
-  input: { schema: PerformanceAdviceInputSchema },
+  input: { schema: PerformanceAdviceInputSchema.extend({ isHighPerformer: z.boolean() }) },
   output: { schema: PerformanceAdviceOutputSchema },
   prompt: `You are GoalLeader, an AI performance coach partnering with a Team Leader. Your goal is to provide a humanized, detailed, and actionable summary about a staff member's performance. The staff member's name is {{staffName}}.
 
@@ -51,7 +51,7 @@ The company's Key Performance Indicator (KPI) for task completion is {{kpi}}%. {
 Address the Team Leader, {{teamLeaderName}}, directly and use a collaborative tone (e.g., "we should," "I suggest").
 
 {{#if completedTasks}}
-  {{#if (compare performance '>=' kpi)}}
+  {{#if isHighPerformer}}
     // HIGH PERFORMER
     Your 'title' should be "Excellent Momentum!".
     Your 'advice' for {{teamLeaderName}} should celebrate {{staffName}}'s achievements and identify what's working well. Suggest how we can build on this momentum. Propose recognizing their hard work.
@@ -99,7 +99,9 @@ const performanceAdviceFlow = ai.defineFlow(
     outputSchema: PerformanceAdviceOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const isHighPerformer = input.performance >= input.kpi;
+    const promptInput = { ...input, isHighPerformer };
+    const { output } = await prompt(promptInput);
     if (output) {
       return output;
     }
