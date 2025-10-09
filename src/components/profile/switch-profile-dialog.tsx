@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,12 @@ export function SwitchProfileDialog({
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedMember(currentUser.id);
+    }
+  }, [isOpen, currentUser]);
+
   const handleSwitch = () => {
     if (selectedMember) {
       onSwitchProfile(selectedMember);
@@ -50,14 +56,16 @@ export function SwitchProfileDialog({
 
   const handleDialogChange = (open: boolean) => {
     if (!open) {
-        setSelectedMember(currentUser.id);
         setSearchTerm('');
         setDepartmentFilter('all');
     }
     onOpenChange(open);
   }
 
-  const filteredMembers = allTeamMembers.filter(member => {
+  const filteredMembers = allTeamMembers.map(member => ({
+    ...member,
+    name: member.id === currentUser.id ? `${member.name.replace(' (You)', '')} (You)` : member.name.replace(' (You)', ''),
+  })).filter(member => {
     const nameMatch = member.name.toLowerCase().includes(searchTerm.toLowerCase());
     const departmentMatch = departmentFilter === 'all' || member.department === departmentFilter;
     return nameMatch && departmentMatch;
@@ -154,3 +162,5 @@ export function SwitchProfileDialog({
     </Dialog>
   );
 }
+
+    

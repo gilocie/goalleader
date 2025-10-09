@@ -36,13 +36,14 @@ const departments = Object.keys(departmentsAndRoles);
 
 function ProfileTabContent() {
     const { user, saveUser } = useUser();
-    const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
+    const userAvatar = PlaceHolderImages.find((img) => img.id === user.id);
     const [kpis, setKpis] = useState<Kpi[]>([
         { id: 1, value: '' },
         { id: 2, value: '' },
         { id: 3, value: '' },
     ]);
     const [name, setName] = useState(user.name);
+    const [email, setEmail] = useState('');
     const [selectedDepartment, setSelectedDepartment] = useState(user.department);
     const [selectedRole, setSelectedRole] = useState(user.role);
     const [isSwitchProfileOpen, setIsSwitchProfileOpen] = useState(false);
@@ -51,6 +52,7 @@ function ProfileTabContent() {
         setName(user.name);
         setSelectedDepartment(user.department);
         setSelectedRole(user.role);
+        setEmail(`${user.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`);
     }, [user]);
 
     const availableRoles = departmentsAndRoles[selectedDepartment as keyof typeof departmentsAndRoles] || [];
@@ -92,9 +94,10 @@ function ProfileTabContent() {
     const handleProfileSwitch = (memberId: string) => {
         const memberToSwitch = allTeamMembers.find(m => m.id === memberId);
         if (memberToSwitch) {
+             const newName = memberToSwitch.name.replace(' (You)', '').trim();
             saveUser({
                 id: memberToSwitch.id,
-                name: memberToSwitch.name.replace(' (You)', ''),
+                name: newName,
                 role: memberToSwitch.role,
                 department: memberToSwitch.department
             });
@@ -112,8 +115,8 @@ function ProfileTabContent() {
             <CardHeader className="items-center">
                 <div className="relative">
                     <Avatar className="h-32 w-32">
-                        <AvatarImage src={userAvatar?.imageUrl} alt="User" data-ai-hint={userAvatar?.imageHint} className="object-cover object-top" />
-                        <AvatarFallback className="text-4xl">PA</AvatarFallback>
+                        <AvatarImage src={userAvatar?.imageUrl} alt={user.name} data-ai-hint={userAvatar?.imageHint} className="object-cover object-top" />
+                        <AvatarFallback className="text-4xl">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                     <Button variant="outline" size="icon" className="absolute bottom-2 right-2 rounded-full bg-background/80 h-10 w-10">
                         <Camera className="h-5 w-5" />
@@ -139,7 +142,7 @@ function ProfileTabContent() {
             <CardContent className="space-y-4">
                 <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" defaultValue="patrick@goalleader.com" disabled />
+                    <Input id="email" value={email} disabled />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
@@ -200,7 +203,6 @@ function ProfileTabContent() {
                     id="job-description"
                     placeholder="Describe your role and responsibilities..."
                     className="h-24"
-                    defaultValue="As a Customer Service Consultant, I assist clients with their inquiries, provide support for our products, and ensure a high level of customer satisfaction."
                     />
                 </div>
             </CardContent>
@@ -220,13 +222,7 @@ function ProfileTabContent() {
                       id={`kpi-${kpi.id}`}
                       value={kpi.value}
                       onChange={(e) => handleKpiChange(kpi.id, e.target.value)}
-                      placeholder={`e.g., ${
-                        index === 0
-                          ? 'Achieve a 95% customer satisfaction score'
-                          : index === 1
-                          ? 'Reduce average response time to under 2 hours'
-                          : 'Define a new KPI...'
-                      }`}
+                      placeholder={`Define a KPI...`}
                     />
                     {kpis.length > 1 && (
                       <Button
@@ -433,3 +429,5 @@ export function ProfilePageContent() {
     </main>
   );
 }
+
+    
