@@ -9,11 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '../ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Search, LayoutGrid, List, User } from 'lucide-react';
+import { Check, Search, LayoutGrid, List, User } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Contact } from '@/types/chat';
 import { useUser } from '@/context/user-context';
@@ -82,7 +84,7 @@ export function NewChatDialog({
             <ScrollArea className="h-full">
                 <div className={cn(
                     "px-6 py-2",
-                    layout === 'list' ? 'grid grid-cols-2 gap-x-2' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
+                    layout === 'list' ? 'space-y-2' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
                 )}>
                 {filteredMembers.map((member, index) => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
@@ -131,36 +133,40 @@ export function NewChatDialog({
                     }
                     return (
                         <React.Fragment key={member.id}>
-                            <div
-                                className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted"
+                            <Card 
+                                className="p-2 cursor-pointer hover:bg-muted"
                                 onClick={() => onStartChat(contact)}
                             >
-                                <div className="relative">
-                                <Avatar>
-                                    <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
-                                    <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                </Avatar>
-                                <div className={cn(
-                                    'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
-                                    member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                                    )} />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="font-semibold">{memberName}</p>
-                                    <p className="text-sm text-muted-foreground">{member.role}</p>
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        console.log(`View profile of ${member.name}`);
-                                    }}
+                                <div
+                                    className="flex items-center gap-3"
                                 >
-                                    <User className="h-4 w-4 text-muted-foreground" />
-                                </Button>
-                            </div>
-                           {index % 2 === 1 && index < filteredMembers.length - 1 && <Separator className="col-span-2 my-1" />}
+                                    <div className="relative">
+                                    <Avatar>
+                                        <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
+                                        <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    </Avatar>
+                                    <div className={cn(
+                                        'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
+                                        member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                        )} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-semibold">{memberName}</p>
+                                        <p className="text-sm text-muted-foreground">{member.role}</p>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            console.log(`View profile of ${member.name}`);
+                                        }}
+                                    >
+                                        <User className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                </div>
+                            </Card>
+                           {index < filteredMembers.length - 1 && <Separator />}
                         </React.Fragment>
                     );
                 })}
