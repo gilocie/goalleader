@@ -51,9 +51,6 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
       <CardHeader className={cn("p-4 border-b flex-shrink-0", !isSidebarOpen ? "pl-8" : "pl-8")}>
         <div className="flex items-center gap-4">
           <CardTitle className="text-xl">Chats</CardTitle>
-           <Button variant="ghost" size="icon" onClick={() => setIsNewChatOpen(true)} className="h-8 w-8">
-              <Plus className="h-5 w-5" />
-            </Button>
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -63,6 +60,9 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <Button variant="default" size="icon" onClick={() => setIsNewChatOpen(true)} className="h-9 w-9 bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="h-5 w-5" />
+          </Button>
         </div>
       </CardHeader>
 
