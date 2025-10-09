@@ -22,7 +22,7 @@ export function MemberHeader({ name, role, status, avatarUrl, avatarHint }: Memb
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.back()}>
+        <Button variant="default" size="icon" onClick={() => router.back()}>
             <ChevronLeft className="h-5 w-5" />
         </Button>
         <div className="relative">
