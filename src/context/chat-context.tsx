@@ -63,32 +63,19 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Generate initial message data on the client side to avoid hydration issues
-    const messagesData: Message[] = [
-        { id: 'msg1', senderId: 'denis-maluwasa-m3', recipientId: USER_ID, content: 'I pushed the latest changes.', timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(), type: 'text', readStatus: 'sent' }
-    ];
-    setMessages(messagesData);
+    // On initial load, set empty messages and load active chat IDs from localStorage
+    setMessages([]);
     
-    // Initialize active chats based on messages
-    const initialChatIds = new Set<string>();
-    messagesData.forEach(msg => {
-        if (msg.senderId !== USER_ID) initialChatIds.add(msg.senderId);
-        if (msg.recipientId !== USER_ID) initialChatIds.add(msg.recipientId);
-    });
-
     try {
         const storedIds = localStorage.getItem('activeChatIds');
         if (storedIds) {
-            const storedSet = new Set(JSON.parse(storedIds));
-            // Combine initial with stored
-            initialChatIds.forEach(id => storedSet.add(id));
-            setActiveChatIds(storedSet);
+            setActiveChatIds(new Set(JSON.parse(storedIds)));
         } else {
-            setActiveChatIds(initialChatIds);
+            setActiveChatIds(new Set());
         }
     } catch (error) {
         console.error("Failed to load active chats from localStorage", error);
-        setActiveChatIds(initialChatIds);
+        setActiveChatIds(new Set());
     }
   }, []);
 
