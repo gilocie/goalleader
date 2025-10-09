@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -16,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, LayoutGrid, List } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Contact } from '@/types/chat';
-import { useChat } from '@/context/chat-context';
+import { useUser } from '@/context/user-context';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -34,7 +33,7 @@ export function NewChatDialog({
   onStartChat,
 }: NewChatDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const { self } = useChat();
+  const { user: self } = useUser();
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
 
   const membersToShow = allTeamMembers.filter(member => member.id !== self?.id);
@@ -86,12 +85,22 @@ export function NewChatDialog({
                 {filteredMembers.map(member => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
                     const memberName = member.name.replace(' (You)', '');
+                    
+                    const contact: Contact = {
+                        id: member.id,
+                        name: memberName,
+                        role: member.role,
+                        status: member.status,
+                        lastMessage: '',
+                        lastMessageTime: '',
+                    };
+
                     if (layout === 'grid') {
                         return (
                              <Card
                                 key={member.id}
                                 className="flex flex-col items-center text-center p-3 cursor-pointer hover:bg-muted"
-                                onClick={() => onStartChat(member)}
+                                onClick={() => onStartChat(contact)}
                             >
                                 <Avatar className="h-12 w-12 mb-2">
                                     <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
@@ -106,7 +115,7 @@ export function NewChatDialog({
                         <div
                             key={member.id}
                             className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted"
-                            onClick={() => onStartChat(member)}
+                            onClick={() => onStartChat(contact)}
                         >
                             <Avatar>
                                 <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
