@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
@@ -195,7 +194,7 @@ const ImagePreviewDialog = ({
              <div className="grid grid-cols-4 gap-2">
                 {images.map((image, index) => (
                     <div key={index} className="relative aspect-square w-full overflow-hidden rounded-md">
-                        <Image src={image.url} alt={`Image preview ${index + 1}`} layout="fill" objectFit="cover" />
+                        <Image src={image.url} alt={`Image preview ${index + 1}`} fill objectFit="cover" />
                     </div>
                 ))}
             </div>
@@ -295,9 +294,12 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
     if (mediaRecorderRef.current && recordingState === 'recording') {
         mediaRecorderRef.current.onstop = () => {
             const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            
-            onSendMessage(`Voice Note`, 'audio', { audioUrl: audioUrl, duration: recordingTime });
+            const reader = new FileReader();
+            reader.readAsDataURL(audioBlob);
+            reader.onloadend = () => {
+                const base64Audio = reader.result as string;
+                onSendMessage('Voice Note', 'audio', { audioUrl: base64Audio, duration: recordingTime });
+            };
             
             if (recordingIntervalRef.current) {
                 clearInterval(recordingIntervalRef.current);
@@ -313,7 +315,7 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
 
   const cancelRecording = useCallback(() => {
     if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.onstop = null;
+        mediaRecorderRef.current.onstop = null; // Important: remove the onstop handler
         mediaRecorderRef.current.stop();
     }
     if (recordingIntervalRef.current) clearInterval(recordingIntervalRef.current);
@@ -424,8 +426,4 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
       />
     </>
   );
-}
-
-    
-
-    
+} 
