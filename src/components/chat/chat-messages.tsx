@@ -33,6 +33,7 @@ import { IncomingVoiceCallDialog } from './incoming-voice-call-dialog';
 import { VoiceCallDialog } from './voice-call-dialog';
 import { format } from 'date-fns';
 import { ConfirmationDialog } from './confirmation-dialog';
+import { useUser } from '@/context/user-context';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -109,8 +110,9 @@ interface ChatMessagesProps {
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
   const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat } = useChat();
+  const { user } = useUser();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
-  const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
+  const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === user.id) : undefined;
   const { toast } = useToast();
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
@@ -340,7 +342,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
                             {!isSelf && <MessageActions message={message} />}
 
-                            {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" /><AvatarFallback>U</AvatarFallback></Avatar> )}
+                            {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" /><AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar> )}
                         </div>
                     )
                   })

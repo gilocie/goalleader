@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Check, CheckCheck, Clock } from 'lucide-react';
@@ -22,14 +23,14 @@ export function ReadIndicator({ status, className, isSelf = false }: ReadIndicat
   }
 
   switch (status) {
+    case 'request_sent':
+        return <Clock className={cn('h-4 w-4 text-muted-foreground', className)} />;
     case 'sent':
       return <Check className={cn('h-4 w-4 text-muted-foreground', className)} />;
     case 'delivered':
       return <CheckCheck className={cn('h-4 w-4 text-muted-foreground', className)} />;
     case 'read':
       return <CheckCheck className={cn('h-4 w-4', getReadColor(), className)} />;
-    case 'request_sent':
-        return <Clock className={cn('h-4 w-4 text-muted-foreground', className)} />;
     default:
       return null;
   }
