@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy } from 'lucide-react';
+import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useParams } from 'next/navigation';
 
@@ -29,6 +29,9 @@ import { useBranding } from '@/context/branding-context';
 import { Logo } from '../icons';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './sidebar';
+import { useAISuggestions } from '@/context/ai-suggestion-context';
+import { AgendaDropdown } from '../notifications/agenda-dropdown';
+import { LibraryDropdown } from '../notifications/library-dropdown';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -47,12 +50,15 @@ export function Header() {
   const { unreadMessagesCount } = useChat();
   const { branding } = useBranding();
   const { open } = useSidebar();
+  const { agendaItems, libraryItems } = useAISuggestions();
 
   const isMeetingPage = pathname.startsWith('/meetings/');
   const meetingId = isMeetingPage && typeof params.meetingId === 'string' ? params.meetingId : null;
   const meetingDetails = meetingId ? meetings[meetingId] : null;
 
   const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadAgendaCount = agendaItems.filter(item => !item.read).length;
+  const unreadLibraryCount = libraryItems.filter(item => !item.read).length;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
@@ -112,6 +118,30 @@ export function Header() {
         </div>
       </div>
       
+       <AgendaDropdown>
+            <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
+                <Calendar className="h-4 w-4" />
+                {unreadAgendaCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                        {unreadAgendaCount}
+                    </span>
+                )}
+                <span className="sr-only">Toggle Agenda</span>
+            </Button>
+        </AgendaDropdown>
+
+        <LibraryDropdown>
+            <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
+                <Library className="h-4 w-4" />
+                {unreadLibraryCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                        {unreadLibraryCount}
+                    </span>
+                )}
+                <span className="sr-only">Toggle Library</span>
+            </Button>
+        </LibraryDropdown>
+
        <ChatDropdown>
             <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
                 <MessageSquare className="h-4 w-4" />
