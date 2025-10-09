@@ -44,7 +44,7 @@ export function NewChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl h-[482px] flex flex-col p-0">
+      <DialogContent className="sm:max-w-4xl h-[462px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
@@ -80,7 +80,7 @@ export function NewChatDialog({
             <ScrollArea className="h-full">
                 <div className={cn(
                     "px-6 py-2",
-                    layout === 'list' ? 'space-y-1' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3'
+                    layout === 'list' ? 'space-y-1' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
                 )}>
                 {filteredMembers.map(member => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
