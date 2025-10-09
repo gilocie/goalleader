@@ -7,7 +7,7 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LayoutGrid, List, MessageSquare, Phone, Video, PlusCircle } from 'lucide-react';
+import { LayoutGrid, List, MessageSquare, Phone, Video, PlusCircle, Edit } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -98,14 +98,16 @@ function TeamsPageContent() {
           </div>
           <div className="flex items-center gap-2">
               <TooltipProvider>
-                   <Tooltip>
-                      <TooltipTrigger asChild>
-                          <Button>
-                              <PlusCircle className="mr-2 h-4 w-4" /> Create New Team
-                          </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Create a new team</TooltipContent>
-                  </Tooltip>
+                   {teamMembers.length > 0 && (
+                        <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button>
+                                <Edit className="mr-2 h-4 w-4" /> Edit Team
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit the team</TooltipContent>
+                        </Tooltip>
+                   )}
                   <Tooltip>
                       <TooltipTrigger asChild>
                           <Button variant="outline" size="icon" asChild>
