@@ -12,7 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, LayoutGrid, List } from 'lucide-react';
+import { Search, LayoutGrid, List, User } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Contact } from '@/types/chat';
 import { useUser } from '@/context/user-context';
@@ -102,12 +102,29 @@ export function NewChatDialog({
                                 className="flex flex-col items-center text-center p-3 cursor-pointer hover:bg-muted"
                                 onClick={() => onStartChat(contact)}
                             >
-                                <Avatar className="h-12 w-12 mb-2">
-                                    <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
-                                    <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                                </Avatar>
+                                <div className="relative">
+                                    <Avatar className="h-12 w-12 mb-2">
+                                        <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
+                                        <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    </Avatar>
+                                    <div className={cn(
+                                      'absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-background',
+                                      member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                    )} />
+                                </div>
                                 <p className="text-sm font-semibold line-clamp-1">{memberName}</p>
                                 <p className="text-xs text-muted-foreground line-clamp-1">{member.role}</p>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 mt-1"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log(`View profile of ${member.name}`);
+                                    }}
+                                >
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                </Button>
                             </Card>
                         )
                     }
@@ -117,14 +134,30 @@ export function NewChatDialog({
                             className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted"
                             onClick={() => onStartChat(contact)}
                         >
-                            <Avatar>
-                                <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
-                                <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                            </Avatar>
-                            <div>
+                            <div className="relative">
+                              <Avatar>
+                                  <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
+                                  <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                              </Avatar>
+                               <div className={cn(
+                                  'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
+                                  member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                )} />
+                            </div>
+                            <div className="flex-1">
                                 <p className="font-semibold">{memberName}</p>
                                 <p className="text-sm text-muted-foreground">{member.role}</p>
                             </div>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    console.log(`View profile of ${member.name}`);
+                                }}
+                            >
+                                <User className="h-4 w-4 text-muted-foreground" />
+                            </Button>
                         </div>
                     );
                 })}
