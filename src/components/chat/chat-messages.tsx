@@ -1,3 +1,5 @@
+
+
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -426,7 +428,9 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                         {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                                     </div>
                                 ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
-                                     <AudioPlayer audioUrl={message.audioUrl} audioDuration={message.audioDuration} isSelf={isSelf} />
+                                     <div className="p-2">
+                                        <AudioPlayer audioUrl={message.audioUrl} audioDuration={message.audioDuration} isSelf={isSelf} />
+                                     </div>
                                 ) : message.type === 'file' && message.fileName && message.fileUrl ? ( 
                                     <div className="p-2">
                                         <div className="flex items-center gap-3 p-2 rounded-lg bg-background border">
