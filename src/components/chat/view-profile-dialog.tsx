@@ -32,21 +32,21 @@ export function ViewProfileDialog({ isOpen, onOpenChange, member }: ViewProfileD
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader className="items-center text-center">
+        <DialogHeader className="items-center text-center pt-2">
           <div className="relative">
-            <Avatar className="h-24 w-24 mb-2">
+            <Avatar className="h-20 w-20">
                 <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} />
-                <AvatarFallback className="text-3xl">{member.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
+                <AvatarFallback className="text-2xl">{member.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
             </Avatar>
              <div className={cn(
-                'absolute bottom-1 right-1 block h-4 w-4 rounded-full border-4 border-background',
+                'absolute bottom-0 right-0 block h-3 w-3 rounded-full border-2 border-background',
                 member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
              )} />
           </div>
-          <DialogTitle className="text-2xl">{member.name}</DialogTitle>
+          <DialogTitle className="text-xl pt-2">{member.name}</DialogTitle>
           <DialogDescription>{member.role}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-3 py-2">
             <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-muted-foreground">Department</span>
                 <Badge variant="secondary">{member.department}</Badge>
@@ -64,7 +64,7 @@ export function ViewProfileDialog({ isOpen, onOpenChange, member }: ViewProfileD
                 <p className="text-sm bg-muted p-2 rounded-md">A passionate developer dedicated to building beautiful and functional user experiences.</p>
             </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="pt-2">
           <DialogClose asChild>
             <Button type="button" variant="outline" className="w-full">
               Close
