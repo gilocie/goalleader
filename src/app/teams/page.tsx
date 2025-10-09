@@ -54,7 +54,11 @@ function TeamsPageContent() {
     setCreateTeamOpen(false);
   };
 
-  const membersForDialog = allTeamMembers.filter(member => member.id !== user.id && (user.role === 'Admin' || member.department === user.department));
+  const membersForDialog = allTeamMembers.filter(member => {
+    if (member.id === user.id) return false; // Exclude self
+    if (user.role === 'Admin') return true; // Admin sees everyone
+    return member.department === user.department; // Team Leader sees their department
+  });
 
   const shouldRenderPage = user.role === 'Admin' || user.role === 'Team Leader';
 
