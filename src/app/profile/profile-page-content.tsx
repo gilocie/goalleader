@@ -14,11 +14,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/context/theme-provider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Kpi = {
   id: number;
   value: string;
 };
+
+const departments = ["Customer Service", "Engineering", "Marketing", "ICT"];
+const roles = ["Admin", "Consultant", "Team Leader"];
 
 function ProfileTabContent() {
     const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
@@ -104,13 +108,31 @@ function ProfileTabContent() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="department">Department</Label>
-                        <Input id="department" defaultValue="Customer Service" />
+                        <Select defaultValue="Customer Service">
+                          <SelectTrigger id="department">
+                            <SelectValue placeholder="Select department" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {departments.map((dept) => (
+                              <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                     </div>
                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>
-                        <Input id="role" defaultValue="Consultant" />
+                        <Select defaultValue="Consultant">
+                          <SelectTrigger id="role">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {roles.map((role) => (
+                              <SelectItem key={role} value={role}>{role}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                     </div>
                 </div>
                 <div className="space-y-2">
