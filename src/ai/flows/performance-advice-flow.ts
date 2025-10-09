@@ -42,7 +42,7 @@ export async function getPerformanceAdvice(input: PerformanceAdviceInput): Promi
 const prompt = ai.definePrompt({
   name: 'performanceAdvicePrompt',
   model: GEMINI_MODEL,
-  input: { schema: PerformanceAdviceInputSchema.extend({ isHighPerformer: z.boolean() }) },
+  input: { schema: PerformanceAdviceInputSchema.extend({ isHighPerformer: z.boolean(), performanceDifference: z.number() }) },
   output: { schema: PerformanceAdviceOutputSchema },
   prompt: `You are GoalLeader, an AI performance coach partnering with a Team Leader. Your goal is to provide a humanized, detailed, and actionable summary about a staff member's performance. The staff member's name is {{staffName}}.
 
@@ -65,7 +65,7 @@ Example for 'advice':
 "Hi {{teamLeaderName}}, I'm really impressed with {{staffName}}'s performance. Their dedication is clearly paying off, and they've built some great momentum.
 
 ### Key Achievements
-- Exceeded the KPI by {{math performance '-' kpi}}%.
+- Exceeded the KPI by {{performanceDifference}}%.
 - Consistently completed tasks ahead of schedule.
 
 ### Our Next Steps
@@ -85,7 +85,7 @@ Example for 'advice':
 "Hi {{teamLeaderName}}. I've reviewed {{staffName}}'s performance, and I see a great opportunity for us to provide some targeted coaching.
 
 ### Areas to Focus On
-- Currently {{math kpi '-' performance}}% below the team KPI.
+- Currently {{performanceDifference}}% below the team KPI.
 - Seems to struggle with tasks requiring cross-team collaboration.
 
 ### Recommended Action Plan
@@ -124,7 +124,8 @@ const performanceAdviceFlow = ai.defineFlow(
   },
   async (input) => {
     const isHighPerformer = input.performance >= input.kpi;
-    const promptInput = { ...input, isHighPerformer };
+    const performanceDifference = Math.abs(input.performance - input.kpi);
+    const promptInput = { ...input, isHighPerformer, performanceDifference };
     const { output } = await prompt(promptInput);
     if (output) {
       return output;
@@ -132,5 +133,6 @@ const performanceAdviceFlow = ai.defineFlow(
     throw new Error('No output from prompt');
   }
 );
+
 
 
