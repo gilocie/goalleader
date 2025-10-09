@@ -21,6 +21,7 @@ const TaskSchema = z.object({
 
 const PerformanceAdviceInputSchema = z.object({
   staffName: z.string().describe("The name of the staff member being reviewed."),
+  teamLeaderName: z.string().describe("The name of the Team Leader viewing the report."),
   completedTasks: z.array(TaskSchema).describe('The user\'s list of completed tasks for a given period.'),
   kpi: z.number().describe('The key performance indicator (KPI) for task completion, as a percentage.'),
   performance: z.number().describe('The user\'s current performance percentage.'),
@@ -48,7 +49,7 @@ const prompt = ai.definePrompt({
 The company's Key Performance Indicator (KPI) for task completion is {{kpi}}%. {{staffName}}'s current performance is {{performance}}%.
 
 {{#if completedTasks}}
-Analyze {{staffName}}'s performance based on their completed tasks and performance score. Address the Team Leader directly and use a collaborative tone (e.g., "we should," "I suggest").
+Analyze {{staffName}}'s performance based on their completed tasks and performance score. Address the Team Leader, {{teamLeaderName}}, directly and use a collaborative tone (e.g., "we should," "I suggest").
 
 - If performance is at or above the KPI, I want you to celebrate their achievements and identify what's working well. Suggest how we can build on this momentum.
 - If performance is below the KPI, let's identify the root causes and provide specific, constructive feedback. I'll propose a clear action plan for us to implement together with {{staffName}}.
@@ -70,7 +71,7 @@ Staff member's completed tasks:
 {{else}}
 The staff member, {{staffName}}, has not completed any tasks yet.
 - Your 'title' should be "Ready to Start!".
-- Your 'advice' should be a short, encouraging message for the Team Leader to motivate {{staffName}}. For example: "It looks like a fresh start for {{staffName}}! I recommend we encourage them to complete their first task. Let's see what they can do!".
+- Your 'advice' for {{teamLeaderName}} should be a detailed, encouraging message for the Team Leader to motivate {{staffName}}. For example: "I'm glad you're here, {{teamLeaderName}}. It looks like a fresh start for {{staffName}}. I suggest we sit down with them to set some clear initial goals, maybe pair-program on their first task, and check in regularly. I'll continue to monitor their progress and provide motivational nudges. Together, we can help them succeed."
 {{/if}}
 `,
 });

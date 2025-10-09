@@ -27,6 +27,7 @@ interface TeamMemberPerformanceCoachProps {
 
 export function TeamMemberPerformanceCoach({ member }: TeamMemberPerformanceCoachProps) {
   const { tasks } = useTimeTracker();
+  const { user } = useUser();
   const [advice, setAdvice] = useState<PerformanceAdviceOutput | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,6 +46,7 @@ export function TeamMemberPerformanceCoach({ member }: TeamMemberPerformanceCoac
       try {
         const input: PerformanceAdviceInput = {
           staffName: member.name,
+          teamLeaderName: user.name,
           completedTasks: completedTasks.map(t => ({ name: t.name, status: t.status, dueDate: t.dueDate, duration: t.duration })),
           kpi: COMPANY_KPI,
           performance,
@@ -63,7 +65,7 @@ export function TeamMemberPerformanceCoach({ member }: TeamMemberPerformanceCoac
     };
 
     fetchAdvice();
-  }, [member.name, performance, JSON.stringify(completedTasks)]);
+  }, [member.name, performance, JSON.stringify(completedTasks), user.name]);
 
   const getPerformanceInfo = () => {
     if (performance >= COMPANY_KPI) return {
