@@ -9,6 +9,7 @@ import { ManagerFeedback } from '@/components/teams/manager-feedback';
 import { PerformanceCoach } from '@/components/performance/performance-coach';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useParams } from 'next/navigation';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const teamMembers = [
   { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const },
@@ -40,19 +41,21 @@ export default function MemberPerformancePage() {
 
   return (
     <AppLayout>
-      <main className="flex-grow p-4 md:p-8 space-y-8">
-        <MemberHeader name={member.name} role={member.role} status={member.status} avatarUrl={avatar?.imageUrl} avatarHint={avatar?.imageHint} />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <PerformanceOverview />
-            <DailyTodoList />
+      <ScrollArea className="h-full">
+        <main className="flex-grow p-4 md:p-8 space-y-8">
+          <MemberHeader name={member.name} role={member.role} status={member.status} avatarUrl={avatar?.imageUrl} avatarHint={avatar?.imageHint} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <PerformanceOverview />
+              <DailyTodoList />
+            </div>
+            <div className="space-y-8">
+              <PerformanceCoach />
+              <ManagerFeedback />
+            </div>
           </div>
-          <div className="space-y-8">
-            <PerformanceCoach />
-            <ManagerFeedback />
-          </div>
-        </div>
-      </main>
+        </main>
+      </ScrollArea>
     </AppLayout>
   );
 }
