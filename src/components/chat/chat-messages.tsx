@@ -409,12 +409,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                 {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
                                 {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
                                     <div className="p-1">
-                                      <div className={cn("grid gap-1", message.imageUrls.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
+                                        <div className={cn("grid gap-1", message.imageUrls.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
                                           {message.imageUrls.slice(0, 4).map((url, index) => {
                                               const remainingImages = message.imageUrls!.length - 4;
                                               const showMore = index === 3 && remainingImages > 0;
                                               return (
-                                                  <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square block cursor-pointer overflow-hidden rounded-md group/more", showMore && "bg-black", message.imageUrls.length === 1 ? 'w-full' : 'w-36 h-36' )}>
+                                                  <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square block cursor-pointer overflow-hidden rounded-md group/more", showMore && "bg-black", message.imageUrls.length === 1 ? 'w-64 h-64' : 'w-36 h-36' )}>
                                                       <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} />
                                                       {showMore && (
                                                           <div className="absolute inset-0 flex items-center justify-center text-white">
