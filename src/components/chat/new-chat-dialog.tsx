@@ -13,10 +13,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search } from 'lucide-react';
+import { Search, LayoutGrid, List } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Contact } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
+import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
 
 interface NewChatDialogProps {
   isOpen: boolean;
@@ -31,6 +34,7 @@ export function NewChatDialog({
 }: NewChatDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const { allContacts, self } = useChat();
+  const [layout, setLayout] = useState<'grid' | 'list'>('list');
 
   const membersToShow = allContacts.filter(member => member.id !== self?.id);
 
@@ -42,10 +46,22 @@ export function NewChatDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm h-[500px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
-          <DialogTitle>New Chat</DialogTitle>
-          <DialogDescription>
-            Select a team member to start a conversation.
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+                <DialogTitle>New Chat</DialogTitle>
+                <DialogDescription>
+                    Select a team member to start a conversation.
+                </DialogDescription>
+            </div>
+             <div className="flex items-center gap-2">
+                <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('grid')} className="h-8 w-8">
+                    <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('list')} className="h-8 w-8">
+                    <List className="h-4 w-4" />
+                </Button>
+            </div>
+          </div>
         </DialogHeader>
 
         <div className="px-6 pb-4">
@@ -62,9 +78,28 @@ export function NewChatDialog({
 
         <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
-                <div className="px-6 space-y-1">
+                <div className={cn(
+                    "px-6 py-2",
+                    layout === 'list' ? 'space-y-1' : 'grid grid-cols-2 gap-4'
+                )}>
                 {filteredMembers.map(member => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
+                    if (layout === 'grid') {
+                        return (
+                             <Card
+                                key={member.id}
+                                className="flex flex-col items-center text-center p-3 cursor-pointer hover:bg-muted"
+                                onClick={() => onStartChat(member)}
+                            >
+                                <Avatar className="h-12 w-12 mb-2">
+                                    <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint}/>
+                                    <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
+                                <p className="text-sm font-semibold line-clamp-1">{member.name}</p>
+                                <p className="text-xs text-muted-foreground line-clamp-1">{member.role}</p>
+                            </Card>
+                        )
+                    }
                     return (
                         <div
                             key={member.id}
@@ -83,7 +118,7 @@ export function NewChatDialog({
                     );
                 })}
                  {filteredMembers.length === 0 && (
-                    <div className="text-center text-muted-foreground py-8">
+                    <div className="text-center text-muted-foreground py-8 col-span-full">
                         No members found.
                     </div>
                  )}

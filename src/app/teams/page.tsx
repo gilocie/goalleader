@@ -78,9 +78,9 @@ function TeamsPageContent() {
   }
 
   return (
-    <main className="flex-grow p-4 md:p-8">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+    <main className="flex-grow">
+      <Card className="h-full flex flex-col rounded-none border-none">
+        <CardHeader className="flex flex-row items-center justify-between p-4 md:p-6">
           <div>
             <CardTitle>Our Team</CardTitle>
             <CardDescription>{user.role === 'Admin' ? 'All Departments' : user.department}</CardDescription>
@@ -102,7 +102,7 @@ function TeamsPageContent() {
                           <Button variant="outline" size="icon" asChild>
                               <Link href="/chat">
                                   <MessageSquare className="h-4 w-4" />
-                                  <span className="sr-only">Start Chat</span>
+                                  <span className="sr-only">Start Team Chat</span>
                               </Link>
                           </Button>
                       </TooltipTrigger>
@@ -129,9 +129,9 @@ function TeamsPageContent() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 overflow-hidden p-2 sm:p-4 md:p-6">
           <TooltipProvider>
-              <ScrollArea className="h-[400px] p-4">
+              <ScrollArea className="h-full">
                   {teamMembers.length > 0 ? (
                     <div
                     className={cn(
@@ -202,7 +202,7 @@ function TeamsPageContent() {
                     })}
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-[350px] text-center p-8 space-y-3">
+                    <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-3">
                       <h3 className="text-xl font-semibold">No Team Members Found</h3>
                       <p className="text-muted-foreground max-w-md">
                         Get started by creating a new team and inviting members to collaborate.
