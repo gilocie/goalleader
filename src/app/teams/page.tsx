@@ -7,72 +7,87 @@ import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LayoutGrid, List, MessageSquare, Phone, Video } from 'lucide-react';
+import { LayoutGrid, List, MessageSquare, Phone, Video, PlusCircle } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
+import { useUser } from '@/context/user-context';
 
-const teamMembers = [
+const allTeamMembers = [
   {
     id: 'patrick-achitabwino-m1',
     name: 'Patrick Achitabwino (You)',
-    role: 'Consultant',
-    status: 'online',
+    role: 'Team Leader',
+    status: 'online' as const,
+    department: 'Customer Service'
   },
   {
     id: 'frank-mhango-m2',
     name: 'Frank Mhango',
     role: 'Consultant',
-    status: 'offline',
+    status: 'offline' as const,
+    department: 'Customer Service'
   },
   {
     id: 'denis-maluwasa-m3',
     name: 'Denis Maluwasa',
     role: 'Consultant',
-    status: 'online',
+    status: 'online' as const,
+    department: 'Customer Service'
   },
   {
     id: 'gift-banda-m4',
     name: 'Gift Banda',
     role: 'Consultant',
-    status: 'online',
+    status: 'online' as const,
+    department: 'Engineering'
   },
   {
     id: 'chiyanjano-mkandawire-m5',
     name: 'Chiyanjano Mkandawire',
     role: 'Consultant',
-    status: 'offline',
+    status: 'offline' as const,
+    department: 'Engineering'
   },
   {
     id: 'wezi-chisale-m6',
     name: 'Wezi Chisale',
     role: 'Consultant',
-    status: 'online',
+    status: 'online' as const,
+    department: 'Marketing'
   },
   {
     id: 'charity-moyo-m7',
     name: 'Charity Moyo',
     role: 'Consultant',
-    status: 'offline',
+    status: 'offline' as const,
+    department: 'Marketing'
   },
   {
     id: 'fumbani-mwenefumbo-m8',
     name: 'Fumbani Mwenefumbo',
     role: 'Consultant',
-    status: 'online',
+    status: 'online' as const,
+    department: 'ICT'
   },
   {
     id: 'rose-kabudula-m9',
     name: 'Rose Kabudula',
     role: 'Consultant',
-    status: 'online',
+    status: 'online' as const,
+    department: 'ICT'
   },
 ];
 
 export default function TeamsPage() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
+  const { user } = useUser();
+
+  const teamMembers = user.role === 'Admin'
+    ? allTeamMembers
+    : allTeamMembers.filter(member => member.department === user.department);
 
   const otherTeamMembers = teamMembers.filter(member => !member.name.includes('(You)'));
 
@@ -83,10 +98,18 @@ export default function TeamsPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Our Team</CardTitle>
-              <CardDescription>Customer Service</CardDescription>
+              <CardDescription>{user.role === 'Admin' ? 'All Departments' : user.department}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
                 <TooltipProvider>
+                     <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Create New Team
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Create a new team</TooltipContent>
+                    </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button variant="outline" size="icon" asChild>

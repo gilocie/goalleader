@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { NotificationProvider } from '@/context/notification-context';
 import { ChatProvider } from '@/context/chat-context';
 import { AISuggestionProvider } from '@/context/ai-suggestion-context';
+import { UserProvider } from '@/context/user-context';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -60,18 +61,20 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <SidebarProvider>
-      <TimeTrackerProvider>
-        <ReportsProvider>
-          <ChatProvider>
-            <NotificationProvider>
-              <AISuggestionProvider>
-                <LayoutWithTracker>{children}</LayoutWithTracker>
-              </AISuggestionProvider>
-            </NotificationProvider>
-          </ChatProvider>
-        </ReportsProvider>
-      </TimeTrackerProvider>
-    </SidebarProvider>
+    <UserProvider>
+        <SidebarProvider>
+        <TimeTrackerProvider>
+            <ReportsProvider>
+            <ChatProvider>
+                <NotificationProvider>
+                <AISuggestionProvider>
+                    <LayoutWithTracker>{children}</LayoutWithTracker>
+                </AISuggestionProvider>
+                </NotificationProvider>
+            </ChatProvider>
+            </ReportsProvider>
+        </TimeTrackerProvider>
+        </SidebarProvider>
+    </UserProvider>
   );
 }

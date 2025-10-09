@@ -11,6 +11,7 @@ import { Separator } from '../ui/separator';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useSidebar } from './sidebar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useUser } from '@/context/user-context';
 
 type NavLink = {
     href: string;
@@ -18,6 +19,7 @@ type NavLink = {
     label: string;
     notificationKey?: string;
     subItems?: NavLink[];
+    roles?: ('Admin' | 'Team Leader' | 'Consultant')[];
 };
 
 const links: NavLink[] = [
@@ -34,7 +36,7 @@ const links: NavLink[] = [
   },
   { href: '/marketing', icon: Store, label: 'Marketing' },
   { href: '/library', icon: Library, label: 'Library' },
-  { href: '/teams', icon: Users, label: 'Teams' },
+  { href: '/teams', icon: Users, label: 'Teams', roles: ['Admin', 'Team Leader'] },
   { href: '/chat', icon: ChatIcon, label: 'Chat', notificationKey: 'chat' },
   { href: '/meetings', icon: Calendar, label: 'Meetings' },
   { href: '/notices', icon: Megaphone, label: 'Notices' },
@@ -42,12 +44,13 @@ const links: NavLink[] = [
 
 const secondaryLinks: NavLink[] = [
     { href: '/support', icon: LifeBuoy, label: 'Support' },
-    { href: '/admin', icon: Shield, label: 'Admin' },
+    { href: '/admin', icon: Shield, label: 'Admin', roles: ['Admin'] },
 ]
 
 export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?: boolean, isCollapsed?: boolean }) {
   const pathname = usePathname();
   const { unreadMessagesCount } = useChat();
+  const { user } = useUser();
 
   const getNotificationCount = (key?: string) => {
     if (key === 'chat') {
@@ -57,6 +60,10 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
   };
   
   const renderLink = (link: NavLink, isSecondary: boolean = false) => {
+    if (link.roles && !link.roles.includes(user.role)) {
+        return null;
+    }
+
     const { href, icon: Icon, label, notificationKey } = link;
     const count = getNotificationCount(notificationKey);
     const isActive = pathname === href || (pathname.startsWith(href) && href !== '/');
