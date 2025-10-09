@@ -40,7 +40,7 @@ export function NewChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md h-[500px] flex flex-col p-0">
+      <DialogContent className="sm:max-w-sm h-[500px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <DialogTitle>New Chat</DialogTitle>
           <DialogDescription>
