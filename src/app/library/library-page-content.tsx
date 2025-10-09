@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { useAISuggestions, getSuggestionIcon, SuggestionItem } from '@/context/ai-suggestion-context';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,21 @@ const SuggestionCard = ({ item, onCardClick }: { item: SuggestionItem, onCardCli
     </Card>
 );
 
+const Shelf = ({ title, items, onCardClick }: { title: string; items: SuggestionItem[]; onCardClick: (item: SuggestionItem) => void; }) => {
+    if (items.length === 0) return null;
+
+    return (
+        <div className="space-y-4">
+            <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {items.map(item => (
+                    <SuggestionCard key={item.id} item={item} onCardClick={onCardClick} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 export function LibraryPageContent() {
   const { unreadItems, readItems, markAsRead } = useAISuggestions();
@@ -49,6 +64,11 @@ export function LibraryPageContent() {
     setIsDetailsDialogOpen(false);
     setSelectedSuggestion(null);
   };
+
+  const motivationItems = useMemo(() => unreadItems.filter(item => item.type === 'motivation'), [unreadItems]);
+  const newsItems = useMemo(() => unreadItems.filter(item => item.type === 'news'), [unreadItems]);
+  const bookItems = useMemo(() => unreadItems.filter(item => item.type === 'book'), [unreadItems]);
+  const storyItems = useMemo(() => unreadItems.filter(item => item.type === 'story'), [unreadItems]);
 
   return (
     <main className="flex-grow p-4 md:p-8">
@@ -67,13 +87,14 @@ export function LibraryPageContent() {
                 </TabsList>
                 <TabsContent value="new" className="mt-4">
                     <Card>
-                         <CardContent className="pt-6">
+                         <CardContent className="pt-6 space-y-8">
                              {unreadItems.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                  {unreadItems.map(item => (
-                                    <SuggestionCard key={item.id} item={item} onCardClick={handleCardClick} />
-                                  ))}
-                                </div>
+                                <>
+                                    <Shelf title="Daily Motivation" items={motivationItems} onCardClick={handleCardClick} />
+                                    <Shelf title="Daily News" items={newsItems} onCardClick={handleCardClick} />
+                                    <Shelf title="Free Books" items={bookItems} onCardClick={handleCardClick} />
+                                    <Shelf title="Business Stories" items={storyItems} onCardClick={handleCardClick} />
+                                </>
                             ) : (
                                 <p className="text-muted-foreground text-center p-8">You're all caught up!</p>
                             )}
