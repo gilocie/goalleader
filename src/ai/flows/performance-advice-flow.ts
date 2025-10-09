@@ -50,25 +50,25 @@ The company's Key Performance Indicator (KPI) for task completion is {{kpi}}%. {
 
 Address the Team Leader, {{teamLeaderName}}, directly and use a collaborative tone (e.g., "we should," "I suggest").
 
-{{#if completedTasks}}
+{{#if completedTasks.length}}
   {{#if isHighPerformer}}
     // HIGH PERFORMER
     Your 'title' should be "Excellent Momentum!".
     Your 'advice' for {{teamLeaderName}} should celebrate {{staffName}}'s achievements and identify what's working well. Suggest how we can build on this momentum. Propose recognizing their hard work.
 
     Use this Markdown structure for the 'advice' field:
-    - A short, conversational summary for the Team Leader.
-    - A "### Key Achievements" section with a bulleted list.
-    - An "### Our Next Steps" section suggesting how to leverage this success (e.g., mentorship opportunities, stretch goals).
+- A short, conversational summary for the Team Leader.
+- A "### Key Achievements" section with a bulleted list.
+- An "### Our Next Steps" section suggesting how to leverage this success (e.g., mentorship opportunities, stretch goals).
   {{else}}
     // NEEDS IMPROVEMENT
     Your 'title' should be "Opportunity for Growth".
     Your 'advice' for {{teamLeaderName}} should identify potential root causes for being below the KPI and provide specific, constructive feedback. Propose a clear, supportive action plan.
 
     Use this Markdown structure for the 'advice' field:
-    - A short, conversational summary for the Team Leader, framing this as a coaching opportunity.
-    - A "### Areas to Focus On" section with a bulleted list (e.g., missed deadlines, task types they struggle with).
-    - A "### Recommended Action Plan" section with a bulleted list of actionable recommendations for the Team Leader to implement with {{staffName}}.
+- A short, conversational summary for the Team Leader, framing this as a coaching opportunity.
+- A "### Areas to Focus On" section with a bulleted list (e.g., missed deadlines, task types they struggle with).
+- A "### Recommended Action Plan" section with a bulleted list of actionable recommendations for the Team Leader to implement with {{staffName}}.
   {{/if}}
 
 Staff member's completed tasks:
@@ -82,12 +82,12 @@ Staff member's completed tasks:
   Your 'advice' for {{teamLeaderName}} should be a detailed, encouraging message. Address the Team Leader by name and outline a proactive plan.
 
   Use this Markdown structure for the 'advice' field:
-  - Start with: "I'm glad you're here, {{teamLeaderName}}. It looks like a fresh start for {{staffName}}..."
-  - An "### Our Recommended Approach" section with a bulleted list of 3 concrete steps:
-    1. **Proactive Engagement:** Suggest a supportive conversation to set clear initial goals.
-    2. **Task Breakdown:** Recommend breaking down initial tasks into smaller, manageable parts.
-    3. **Support & Monitoring:** Emphasize regular check-ins and my role in monitoring progress.
-  - Conclude with a collaborative statement like: "Together, we can help {{staffName}} find their rhythm and excel."
+- Start with: "I'm glad you're here, {{teamLeaderName}}. It looks like a fresh start for {{staffName}}..."
+- An "### Our Recommended Approach" section with a bulleted list of 3 concrete steps:
+    - **Proactive Engagement:** Suggest a supportive conversation to set clear initial goals.
+    - **Task Breakdown:** Recommend breaking down initial tasks into smaller, manageable parts.
+    - **Support & Monitoring:** Emphasize regular check-ins and my role in monitoring progress.
+- Conclude with a collaborative statement like: "Together, we can help {{staffName}} find their rhythm and excel."
 {{/if}}
 `,
 });
@@ -108,3 +108,4 @@ const performanceAdviceFlow = ai.defineFlow(
     throw new Error('No output from prompt');
   }
 );
+
