@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,8 +10,8 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '../ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Search, LayoutGrid, List, User } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Contact } from '@/types/chat';
@@ -19,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { allTeamMembers } from '@/lib/users';
+import { Separator } from '../ui/separator';
 
 interface NewChatDialogProps {
   isOpen: boolean;
@@ -43,7 +45,7 @@ export function NewChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl h-[462px] flex flex-col p-0">
+      <DialogContent className="sm:max-w-4xl h-[402px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
@@ -81,7 +83,7 @@ export function NewChatDialog({
                     "px-6 py-2",
                     layout === 'list' ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
                 )}>
-                {filteredMembers.map(member => {
+                {filteredMembers.map((member, index) => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
                     const memberName = member.name.replace(' (You)', '');
                     
@@ -127,35 +129,37 @@ export function NewChatDialog({
                         )
                     }
                     return (
-                        <div
-                            key={member.id}
-                            className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted"
-                            onClick={() => onStartChat(contact)}
-                        >
-                            <div className="relative">
-                              <Avatar>
-                                  <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
-                                  <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                              </Avatar>
-                               <div className={cn(
-                                  'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
-                                  member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                                )} />
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-semibold">{memberName}</p>
-                                <p className="text-sm text-muted-foreground">{member.role}</p>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    console.log(`View profile of ${member.name}`);
-                                }}
+                        <div key={member.id} className="relative">
+                            <div
+                                className="flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-muted"
+                                onClick={() => onStartChat(contact)}
                             >
-                                <User className="h-4 w-4 text-muted-foreground" />
-                            </Button>
+                                <div className="relative">
+                                <Avatar>
+                                    <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
+                                    <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                </Avatar>
+                                <div className={cn(
+                                    'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
+                                    member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                    )} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="font-semibold">{memberName}</p>
+                                    <p className="text-sm text-muted-foreground">{member.role}</p>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log(`View profile of ${member.name}`);
+                                    }}
+                                >
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                </Button>
+                            </div>
+                             {index % 2 === 0 && <Separator orientation="vertical" className="absolute right-0 top-0 h-full" />}
                         </div>
                     );
                 })}
