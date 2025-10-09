@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
@@ -20,10 +19,7 @@ const teamMembers: Contact[] = [
     { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const, lastMessage: 'All set for the demo.', lastMessageTime: '15m', lastMessageReadStatus: 'read' },
 ];
 
-const messagesData: Message[] = [
-    { id: 'msg1', senderId: 'denis-maluwasa-m3', recipientId: USER_ID, content: "Hey! Just wanted to check in on the progress for the new auth flow.", timestamp: "10:00 AM", type: 'text' },
-    { id: 'msg2', senderId: USER_ID, recipientId: 'denis-maluwasa-m3', content: "Hey Denis, things are going well. I've finished the main logic and am now working on the UI.", timestamp: "10:01 AM", readStatus: 'read', type: 'text' },
-];
+const messagesData: Message[] = [];
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -331,3 +327,5 @@ export const useChat = () => {
   }
   return context;
 };
+
+    
