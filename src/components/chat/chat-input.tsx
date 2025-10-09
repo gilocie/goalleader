@@ -372,7 +372,7 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
                     <Reply className="h-4 w-4 flex-shrink-0" />
                     <div className="truncate">
                         <p className="font-semibold">Replying to {replyTo.senderId === self?.id ? 'yourself' : selectedContact?.name}</p>
-                        <p className="truncate">{message.content || message.type}</p>
+                        <p className="truncate">{replyTo.content || replyTo.type}</p>
                     </div>
                 </div>
                 <Button variant="destructive" size="icon" className="h-6 w-6" onClick={onCancelReply}>
