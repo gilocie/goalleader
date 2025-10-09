@@ -6,7 +6,7 @@ import { MemberHeader } from '@/components/teams/member-header';
 import { PerformanceOverview } from '@/components/teams/performance-overview';
 import { DailyTodoList } from '@/components/teams/daily-todo-list';
 import { ManagerFeedback } from '@/components/teams/manager-feedback';
-import { PerformanceCoach } from '@/components/performance/performance-coach';
+import { TeamMemberPerformanceCoach } from '@/components/performance/team-member-performance-coach';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useParams } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -40,7 +40,7 @@ export default function MemberPerformancePage() {
               <DailyTodoList />
             </div>
             <div className="space-y-8">
-              <PerformanceCoach />
+              <TeamMemberPerformanceCoach member={member} />
               <ManagerFeedback />
             </div>
           </div>
