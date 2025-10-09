@@ -4,7 +4,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,9 @@ import { ReadIndicator } from './read-indicator';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { useSidebar } from '../layout/sidebar';
+import { NewChatDialog } from './new-chat-dialog';
+import { Button } from '../ui/button';
+import { useChat } from '@/context/chat-context';
 
 interface ChatContactListProps {
   contacts: Contact[];
@@ -24,6 +27,8 @@ interface ChatContactListProps {
 export function ChatContactList({ contacts, onSelectContact, selectedContactId }: ChatContactListProps) {
   const { open: isSidebarOpen } = useSidebar();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const { allContacts: allCompanyMembers } = useChat();
 
   const filteredContacts = useMemo(() => {
     if (!searchTerm) {
@@ -33,13 +38,22 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
       contact.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [contacts, searchTerm]);
+  
+  const handleStartChat = (contact: Contact) => {
+    onSelectContact(contact);
+    setIsNewChatOpen(false);
+  }
 
   return (
+    <>
     <Card className="h-full flex flex-col rounded-none border-none">
       {/* Fixed Header */}
       <CardHeader className={cn("p-4 border-b flex-shrink-0", !isSidebarOpen ? "pl-8" : "pl-8")}>
         <div className="flex items-center gap-4">
           <CardTitle className="text-xl">Chats</CardTitle>
+           <Button variant="ghost" size="icon" onClick={() => setIsNewChatOpen(true)} className="h-8 w-8">
+              <Plus className="h-5 w-5" />
+            </Button>
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -109,5 +123,12 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
         </ScrollArea>
       </div>
     </Card>
+    <NewChatDialog 
+        isOpen={isNewChatOpen}
+        onOpenChange={setIsNewChatOpen}
+        allMembers={allCompanyMembers}
+        onStartChat={handleStartChat}
+    />
+    </>
   );
 }

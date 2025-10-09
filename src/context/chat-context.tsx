@@ -28,6 +28,7 @@ const messagesData: Message[] = [
 interface ChatContextType {
   self: Contact | undefined;
   contacts: Contact[];
+  allContacts: Contact[];
   messages: Message[];
   unreadMessagesCount: number;
   selectedContact: Contact | null;
@@ -273,6 +274,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     self,
     contacts,
+    allContacts,
     messages,
     unreadMessagesCount,
     selectedContact,
