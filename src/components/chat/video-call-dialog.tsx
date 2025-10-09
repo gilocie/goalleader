@@ -69,7 +69,7 @@ const DraggableFrame = ({
     isSpeakerMuted: boolean;
   };
   isSelf: boolean;
-  callStatus: 'connecting' | 'ringing' | 'connected' | 'calling';
+  callStatus: 'connecting' | 'ringing' | 'calling';
 }) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);

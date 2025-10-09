@@ -88,7 +88,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
         return {
             ...member,
-            lastMessage: lastMessage?.content || '',
+            lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
             lastMessageTime: lastMessage ? format(new Date(lastMessage.timestamp), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
             lastMessageReadStatus: lastMessage?.senderId === USER_ID ? lastMessage.readStatus : undefined,
@@ -110,20 +110,25 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const contacts = useMemo(() => {
     const contactList = allContacts.filter(c => c.id !== USER_ID && activeChatIds.has(c.id));
-    // If a contact is selected but has no messages yet, add them to the list.
-    if (selectedContact && !contactList.some(c => c.id === selectedContact.id)) {
-        const contactData = allContacts.find(c => c.id === selectedContact.id);
-        if (contactData) {
-            return [contactData, ...contactList];
-        }
-    }
-    return contactList.sort((a, b) => {
+    
+    // Sort contacts by the timestamp of their last message
+    contactList.sort((a, b) => {
         const lastMessageA = messages.filter(m => m.senderId === a.id || m.recipientId === a.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
         const lastMessageB = messages.filter(m => m.senderId === b.id || m.recipientId === b.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
         return new Date(lastMessageB.timestamp).getTime() - new Date(lastMessageA.timestamp).getTime();
     });
+
+    // If a contact is selected but not in the active list (i.e., no messages yet), add them to the top.
+    if (selectedContact && !contactList.some(c => c.id === selectedContact.id)) {
+        const contactData = allContacts.find(c => c.id === selectedContact.id);
+        if (contactData) {
+            return [contactData, ...contactList];
+        }
+    }
+
+    return contactList;
   }, [allContacts, activeChatIds, selectedContact, messages]);
   
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
@@ -213,7 +218,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const startCall = useCallback((contact: Contact) => {
     setAcceptedCallContact(contact);
-  }, []);
+    addSystemMessage(`Calling ${contact.name}...`, contact.id, 'video');
+  }, [addSystemMessage]);
 
   const endCall = useCallback((contactId: string) => {
         addSystemMessage(`Video call ended`, contactId, 'video');
@@ -237,7 +243,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const startVoiceCall = useCallback((contact: Contact) => {
     setAcceptedVoiceCallContact(contact);
-  }, []);
+    addSystemMessage(`Calling ${contact.name}...`, contact.id, 'voice');
+  }, [addSystemMessage]);
   
   const endVoiceCall = useCallback((contactId: string) => {
     addSystemMessage(`Voice call ended`, contactId, 'voice');
