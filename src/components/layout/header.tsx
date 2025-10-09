@@ -96,7 +96,7 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
-      <div className="w-full flex-1 flex items-center">
+      <div className="w-full flex-1 flex items-center gap-4">
         {isMeetingPage && meetingDetails && (
             <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -116,17 +116,9 @@ export function Header() {
         <div className="md:hidden">
             <TimeTracker layout="inline" />
         </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <AgendaDropdown>
+         <AgendaDropdown>
               <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
                   <Calendar className="h-4 w-4" />
-                  {unreadAgendaCount > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                          {unreadAgendaCount}
-                      </span>
-                  )}
                   <span className="sr-only">Toggle Agenda</span>
               </Button>
           </AgendaDropdown>
@@ -134,15 +126,12 @@ export function Header() {
           <LibraryDropdown>
               <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
                   <Library className="h-4 w-4" />
-                  {unreadLibraryCount > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                          {unreadLibraryCount}
-                      </span>
-                  )}
                   <span className="sr-only">Toggle Library</span>
               </Button>
           </LibraryDropdown>
-
+      </div>
+      
+      <div className="flex items-center gap-2">
         <ChatDropdown>
               <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
                   <MessageSquare className="h-4 w-4" />

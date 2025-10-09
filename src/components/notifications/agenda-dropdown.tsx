@@ -52,7 +52,7 @@ export function AgendaDropdown({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
                 {children}
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80 md:w-96 p-0" align="end">
+            <DropdownMenuContent className="w-80 p-0" align="end">
                 <DropdownMenuLabel className="p-3">
                     <span className="font-semibold">Task Calendar</span>
                 </DropdownMenuLabel>
@@ -63,6 +63,14 @@ export function AgendaDropdown({ children }: { children: React.ReactNode }) {
                     onSelect={setSelectedDate}
                     modifiers={modifiers}
                     modifiersStyles={modifiersStyles}
+                    className="p-0"
+                    classNames={{
+                        head_cell: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
+                        cell: "h-8 w-8 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                        day: "h-8 w-8 p-0 font-normal",
+                        day_selected:
+                        "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                    }}
                 />
                 <DropdownMenuSeparator />
                 <div className="p-2">
