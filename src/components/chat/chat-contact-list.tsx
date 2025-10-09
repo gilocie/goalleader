@@ -17,6 +17,7 @@ import { useSidebar } from '../layout/sidebar';
 import { NewChatDialog } from './new-chat-dialog';
 import { Button } from '../ui/button';
 import { useChat } from '@/context/chat-context';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ChatContactListProps {
   contacts: Contact[];
@@ -60,9 +61,18 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button variant="default" size="icon" onClick={() => setIsNewChatOpen(true)} className="h-9 w-9 bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="h-5 w-5" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="default" size="icon" onClick={() => setIsNewChatOpen(true)} className="h-9 w-9 bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Start new chat</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardHeader>
 
