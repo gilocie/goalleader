@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { CheckSquare, Link as LinkIcon } from 'lucide-react';
 import type { SuggestionItem } from '@/context/ai-suggestion-context';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import { cn } from '@/lib/utils';
 
 interface SuggestionDetailsDialogProps {
   isOpen: boolean;
@@ -42,9 +44,9 @@ export function SuggestionDetailsDialog({
         </DialogHeader>
         
         <div className="flex-1 overflow-y-auto py-4 min-h-0">
-          <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-            {suggestion.content}
-          </p>
+            <div className={cn("prose prose-sm max-w-none prose-p:my-0 prose-headings:my-2 prose-blockquote:my-2")}>
+                <ReactMarkdown>{suggestion.content}</ReactMarkdown>
+            </div>
         </div>
         
         <DialogFooter className="flex-shrink-0 pt-4 border-t">
