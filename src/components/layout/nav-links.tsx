@@ -33,13 +33,13 @@ const links: NavLink[] = [
     ]
   },
   { href: '/marketing', icon: Store, label: 'Marketing' },
+  { href: '/teams', icon: Users, label: 'Teams' },
   { href: '/chat', icon: ChatIcon, label: 'Chat', notificationKey: 'chat' },
   { href: '/meetings', icon: Calendar, label: 'Meetings' },
   { href: '/notices', icon: Megaphone, label: 'Notices' },
 ];
 
 const secondaryLinks: NavLink[] = [
-    { href: '/teams', icon: Users, label: 'Teams' },
     { href: '/support', icon: LifeBuoy, label: 'Support' },
     { href: '/admin', icon: Shield, label: 'Admin' },
 ]
@@ -55,7 +55,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
     return 0;
   };
   
-  const renderLink = (link: NavLink) => {
+  const renderLink = (link: NavLink, isSecondary: boolean = false) => {
     const { href, icon: Icon, label, notificationKey } = link;
     const count = getNotificationCount(notificationKey);
     const isActive = pathname === href || (pathname.startsWith(href) && href !== '/');
@@ -68,17 +68,17 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                          <Link
                             href={href}
                             className={cn(
-                                'flex items-center justify-center h-10 w-10 rounded-lg text-muted-foreground transition-all relative hover:text-primary-foreground',
-                                isActive 
-                                    ? 'bg-primary text-primary-foreground' 
-                                    : 'hover:bg-primary'
+                                'flex items-center justify-center h-10 w-10 rounded-lg text-muted-foreground transition-all relative',
+                                isSecondary ? 'hover:bg-primary-foreground/10 hover:text-primary-foreground' : 'hover:text-primary-foreground hover:bg-primary',
+                                isActive && !isSecondary && 'bg-primary text-primary-foreground',
+                                isActive && isSecondary && 'bg-primary-foreground/20 text-primary-foreground'
                             )}
                         >
                             <Icon className="h-5 w-5" />
                             {count > 0 && (
                                 <Badge className={cn(
                                     'absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0',
-                                    isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
+                                     isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
                                 )}>
                                 {count}
                                 </Badge>
@@ -102,7 +102,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                         className={cn(
                             "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:no-underline font-semibold",
                              'hover:bg-muted/50 shadow-sm hover:shadow-md',
-                            isActive || isParentActive
+                            (isActive && href !== '/') || isParentActive
                                 ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
                                 : 'bg-card'
                         )}
@@ -157,11 +157,17 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
             key={href}
             href={href}
             className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground font-semibold transition-all shadow-sm hover:shadow-md',
+                'flex items-center gap-3 rounded-lg px-3 py-2 transition-all shadow-sm hover:shadow-md font-semibold',
                 isMobile ? 'border-b' : '',
-                isActive 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-card hover:bg-muted/50'
+                isSecondary 
+                    ? cn(
+                        'text-primary-foreground/80 hover:bg-primary-foreground/10 hover:text-primary-foreground',
+                        isActive && 'bg-primary-foreground/20 text-primary-foreground'
+                      )
+                    : cn(
+                        'text-muted-foreground hover:bg-muted/50',
+                        isActive && 'bg-primary text-primary-foreground'
+                      )
             )}
         >
             {linkContent}
@@ -173,7 +179,9 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
     <>
       {links.map(link => renderLink(link))}
       <Separator className="my-2" />
-      {secondaryLinks.map(link => renderLink(link))}
+      <div className={cn("rounded-lg p-2 space-y-1", isCollapsed ? "bg-transparent" : "bg-primary")}>
+        {secondaryLinks.map(link => renderLink(link, true))}
+      </div>
     </>
   );
 }
