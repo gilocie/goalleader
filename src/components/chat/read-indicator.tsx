@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Check, CheckCheck, Clock } from 'lucide-react';
@@ -17,20 +16,23 @@ export function ReadIndicator({ status, className, isSelf = false }: ReadIndicat
 
   const getReadColor = () => {
     if (status === 'read') {
-      return 'text-blue-500';
+      return 'text-blue-400';
     }
-    return 'text-muted-foreground';
+    return 'text-primary-foreground/80';
   }
+
+  const iconClass = cn('h-4 w-4', getReadColor(), className);
 
   switch (status) {
     case 'request_sent':
-        return <Clock className={cn('h-4 w-4 text-muted-foreground', className)} />;
+        return <Clock className={cn('h-4 w-4 text-primary-foreground/80', className)} />;
     case 'sent':
-      return <Check className={cn('h-4 w-4 text-muted-foreground', className)} />;
+      return <Check className={iconClass} />;
     case 'delivered':
-      return <CheckCheck className={cn('h-4 w-4 text-muted-foreground', className)} />;
+      return <CheckCheck className={iconClass} />;
     case 'read':
-      return <CheckCheck className={cn('h-4 w-4', getReadColor(), className)} />;
+      // The read color is blue, so we use a different class here.
+      return <CheckCheck className={cn('h-4 w-4 text-blue-400', className)} />;
     default:
       return null;
   }
