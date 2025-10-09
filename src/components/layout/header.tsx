@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library } from 'lucide-react';
@@ -30,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { useSidebar } from './sidebar';
 import { useAISuggestions } from '@/context/ai-suggestion-context';
 import { LibraryDropdown } from '../notifications/library-dropdown';
+import { useUser } from '@/context/user-context';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -40,7 +42,8 @@ const meetings: { [key: string]: { title: string; category: string } } = {
 
 
 export function Header() {
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
+  const { user } = useUser();
+  const userAvatar = PlaceHolderImages.find((img) => img.id === user.id);
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
@@ -158,17 +161,17 @@ export function Header() {
               <Avatar className="h-8 w-8">
                 <AvatarImage
                   src={userAvatar?.imageUrl}
-                  alt="User avatar"
+                  alt={user.name}
                   data-ai-hint={userAvatar?.imageHint}
                   className="object-cover object-top"
                 />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
               </Avatar>
               <span className="sr-only">Toggle user menu</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/profile">
