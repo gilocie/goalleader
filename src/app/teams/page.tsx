@@ -85,11 +85,8 @@ function TeamsPageContent() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
   const { user } = useUser();
 
-  const teamMembers = user.role === 'Admin'
-    ? allTeamMembers
-    : allTeamMembers.filter(member => member.department === user.department);
-
-  const otherTeamMembers = teamMembers.filter(member => !member.name.includes('(You)'));
+  // As per new request, Team Leaders and Admins start with an empty team view
+  const teamMembers = [];
 
   return (
     <main className="flex-grow p-4 md:p-8">
@@ -144,74 +141,86 @@ function TeamsPageContent() {
         <CardContent>
           <TooltipProvider>
               <ScrollArea className="h-[400px] p-4">
-                  <div
-                  className={cn(
-                      'transition-all duration-300',
-                      layout === 'grid'
-                      ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
-                      : 'flex flex-col gap-4'
+                  {teamMembers.length > 0 ? (
+                    <div
+                    className={cn(
+                        'transition-all duration-300',
+                        layout === 'grid'
+                        ? 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'
+                        : 'flex flex-col gap-4'
+                    )}
+                    >
+                    {teamMembers.map((member) => {
+                        const avatar = PlaceHolderImages.find((img) => img.id === member.id);
+                        return (
+                        <Card
+                            key={member.id}
+                            className="shadow-md transition-shadow hover:shadow-lg relative"
+                        >
+                            <div className="absolute top-3 left-3 flex items-center gap-2">
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
+                                    <MessageSquare className="h-4 w-4 text-primary" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Send Message</TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
+                                    <Phone className="h-4 w-4 text-primary" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Call</TooltipContent>
+                                </Tooltip>
+                            </div>
+                            <div className={cn(
+                                'absolute top-3 right-3 h-3 w-3 rounded-full border-2 border-background',
+                                member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                            )} />
+                            <CardContent
+                            className={cn(
+                                'p-4 pt-12',
+                                layout === 'grid' ? 'flex flex-col items-center text-center space-y-4' : 'flex items-center space-x-4'
+                            )}
+                            >
+                            <Avatar className={cn(layout === 'grid' ? 'h-20 w-20' : 'h-12 w-12')}>
+                                <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} className="object-cover" />
+                                <AvatarFallback>
+                                {member.name.split(' ').map((n) => n[0]).join('')}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className={cn(layout === 'grid' ? 'space-y-2' : 'flex-grow')}>
+                                <p className="font-semibold">{member.name}</p>
+                                <p className="text-sm text-muted-foreground">{member.role}</p>
+                                {layout === 'grid' && (
+                                <Button asChild size="sm">
+                                    <Link href={`/teams/${member.id}`}>View Performance</Link>
+                                </Button>
+                                )}
+                            </div>
+                            {layout === 'list' && (
+                                <Button asChild size="sm">
+                                    <Link href={`/teams/${member.id}`}>View Performance</Link>
+                                </Button>
+                            )}
+                            </CardContent>
+                        </Card>
+                        );
+                    })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[350px] text-center p-8 space-y-3">
+                      <h3 className="text-xl font-semibold">No Team Members Found</h3>
+                      <p className="text-muted-foreground max-w-md">
+                        Get started by creating a new team and inviting members to collaborate.
+                      </p>
+                      <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Create New Team
+                      </Button>
+                    </div>
                   )}
-                  >
-                  {otherTeamMembers.map((member) => {
-                      const avatar = PlaceHolderImages.find((img) => img.id === member.id);
-                      return (
-                      <Card
-                          key={member.id}
-                          className="shadow-md transition-shadow hover:shadow-lg relative"
-                      >
-                          <div className="absolute top-3 left-3 flex items-center gap-2">
-                              <Tooltip>
-                              <TooltipTrigger asChild>
-                                  <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
-                                  <MessageSquare className="h-4 w-4 text-primary" />
-                                  </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Send Message</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                              <TooltipTrigger asChild>
-                                  <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
-                                  <Phone className="h-4 w-4 text-primary" />
-                                  </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Call</TooltipContent>
-                              </Tooltip>
-                          </div>
-                          <div className={cn(
-                              'absolute top-3 right-3 h-3 w-3 rounded-full border-2 border-background',
-                              member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                          )} />
-                          <CardContent
-                          className={cn(
-                              'p-4 pt-12',
-                              layout === 'grid' ? 'flex flex-col items-center text-center space-y-4' : 'flex items-center space-x-4'
-                          )}
-                          >
-                          <Avatar className={cn(layout === 'grid' ? 'h-20 w-20' : 'h-12 w-12')}>
-                              <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} className="object-cover" />
-                              <AvatarFallback>
-                              {member.name.split(' ').map((n) => n[0]).join('')}
-                              </AvatarFallback>
-                          </Avatar>
-                          <div className={cn(layout === 'grid' ? 'space-y-2' : 'flex-grow')}>
-                              <p className="font-semibold">{member.name}</p>
-                              <p className="text-sm text-muted-foreground">{member.role}</p>
-                              {layout === 'grid' && (
-                              <Button asChild size="sm">
-                                  <Link href={`/teams/${member.id}`}>View Performance</Link>
-                              </Button>
-                              )}
-                          </div>
-                          {layout === 'list' && (
-                              <Button asChild size="sm">
-                                  <Link href={`/teams/${member.id}`}>View Performance</Link>
-                              </Button>
-                          )}
-                          </CardContent>
-                      </Card>
-                      );
-                  })}
-                  </div>
               </ScrollArea>
           </TooltipProvider>
         </CardContent>

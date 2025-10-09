@@ -15,6 +15,8 @@ import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/context/theme-provider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useUser } from '@/context/user-context';
+import type { UserRole } from '@/context/user-context';
 
 type Kpi = {
   id: number;
@@ -31,14 +33,16 @@ const departmentsAndRoles = {
 const departments = Object.keys(departmentsAndRoles);
 
 function ProfileTabContent() {
+    const { user, saveUser } = useUser();
     const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
     const [kpis, setKpis] = useState<Kpi[]>([
         { id: 1, value: '' },
         { id: 2, value: '' },
         { id: 3, value: '' },
     ]);
-    const [selectedDepartment, setSelectedDepartment] = useState('Customer Service');
-    const [selectedRole, setSelectedRole] = useState('Consultant');
+    const [name, setName] = useState(user.name);
+    const [selectedDepartment, setSelectedDepartment] = useState(user.department);
+    const [selectedRole, setSelectedRole] = useState(user.role);
 
     const availableRoles = departmentsAndRoles[selectedDepartment as keyof typeof departmentsAndRoles] || [];
 
@@ -46,6 +50,15 @@ function ProfileTabContent() {
         setSelectedDepartment(department);
         const rolesForDept = departmentsAndRoles[department as keyof typeof departmentsAndRoles];
         setSelectedRole(rolesForDept ? rolesForDept[0] : '');
+    };
+
+    const handleSaveChanges = () => {
+        saveUser({
+            ...user,
+            name,
+            role: selectedRole as UserRole,
+            department: selectedDepartment,
+        });
     };
 
     const addKpi = () => {
@@ -84,7 +97,7 @@ function ProfileTabContent() {
                 </div>
             </CardHeader>
             <CardContent className="text-center">
-              <CardTitle className="text-2xl">Patrick Achitabwino</CardTitle>
+              <CardTitle className="text-2xl">{name}</CardTitle>
             </CardContent>
           </Card>
 
@@ -120,7 +133,7 @@ function ProfileTabContent() {
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="fullName">Full Name</Label>
-                        <Input id="fullName" defaultValue="Patrick Achitabwino" />
+                        <Input id="fullName" value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="department">Department</Label>
@@ -205,7 +218,7 @@ function ProfileTabContent() {
             </CardContent>
           </Card>
            <div className="flex justify-end">
-            <Button>Save Changes</Button>
+            <Button onClick={handleSaveChanges}>Save Changes</Button>
           </div>
         </div>
       </div>
