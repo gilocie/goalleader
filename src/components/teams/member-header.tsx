@@ -44,24 +44,24 @@ export function MemberHeader({ name, role, status, avatarUrl, avatarHint }: Memb
         <div className="flex items-center gap-2">
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <MessageSquare className="h-5 w-5 text-primary" />
+                    <Button variant="default" size="icon">
+                        <MessageSquare className="h-5 w-5" />
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent>Send Message</TooltipContent>
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <Phone className="h-5 w-5 text-primary" />
+                    <Button variant="default" size="icon">
+                        <Phone className="h-5 w-5" />
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent>Call</TooltipContent>
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon">
-                        <CalendarPlus className="h-5 w-5 text-primary" />
+                    <Button variant="default" size="icon">
+                        <CalendarPlus className="h-5 w-5" />
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent>Invite to Meeting</TooltipContent>
