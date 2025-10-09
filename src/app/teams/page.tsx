@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/context/user-context';
+import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 
 const allTeamMembers = [
   {
@@ -40,42 +41,42 @@ const allTeamMembers = [
   {
     id: 'gift-banda-m4',
     name: 'Gift Banda',
-    role: 'Consultant',
+    role: 'Frontend Developer',
     status: 'online' as const,
     department: 'Engineering'
   },
   {
     id: 'chiyanjano-mkandawire-m5',
     name: 'Chiyanjano Mkandawire',
-    role: 'Consultant',
+    role: 'Backend Developer',
     status: 'offline' as const,
     department: 'Engineering'
   },
   {
     id: 'wezi-chisale-m6',
     name: 'Wezi Chisale',
-    role: 'Consultant',
+    role: 'Marketing Specialist',
     status: 'online' as const,
     department: 'Marketing'
   },
   {
     id: 'charity-moyo-m7',
     name: 'Charity Moyo',
-    role: 'Consultant',
+    role: 'Content Creator',
     status: 'offline' as const,
     department: 'Marketing'
   },
   {
     id: 'fumbani-mwenefumbo-m8',
     name: 'Fumbani Mwenefumbo',
-    role: 'Consultant',
+    role: 'IT Support',
     status: 'online' as const,
     department: 'ICT'
   },
   {
     id: 'rose-kabudula-m9',
     name: 'Rose Kabudula',
-    role: 'Consultant',
+    role: 'Admin',
     status: 'online' as const,
     department: 'ICT'
   },
@@ -84,9 +85,16 @@ const allTeamMembers = [
 function TeamsPageContent() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
   const { user } = useUser();
+  const [isCreateTeamOpen, setCreateTeamOpen] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<(typeof allTeamMembers)>([]);
 
-  // As per new request, Team Leaders and Admins start with an empty team view
-  const teamMembers = [];
+  const handleTeamCreated = (selectedMemberIds: string[]) => {
+    const newTeam = allTeamMembers.filter(member => selectedMemberIds.includes(member.id));
+    setTeamMembers(newTeam);
+    setCreateTeamOpen(false);
+  };
+
+  const membersForDialog = allTeamMembers.filter(member => member.id !== user.id && (user.role === 'Admin' || member.department === user.department));
 
   return (
     <main className="flex-grow p-4 md:p-8">
@@ -218,7 +226,7 @@ function TeamsPageContent() {
                       <p className="text-muted-foreground max-w-md">
                         Get started by creating a new team and inviting members to collaborate.
                       </p>
-                      <Button>
+                      <Button onClick={() => setCreateTeamOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" /> Create New Team
                       </Button>
                     </div>
@@ -227,6 +235,13 @@ function TeamsPageContent() {
           </TooltipProvider>
         </CardContent>
       </Card>
+      <CreateTeamDialog
+        isOpen={isCreateTeamOpen}
+        onOpenChange={setCreateTeamOpen}
+        allMembers={membersForDialog}
+        onTeamCreate={handleTeamCreated}
+        department={user.department}
+      />
     </main>
   );
 }
