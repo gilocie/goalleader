@@ -45,7 +45,7 @@ export function LibraryPageContent() {
       <Card>
         <CardHeader>
           <CardTitle>Knowledge Library</CardTitle>
-          <CardDescription>Your AI-curated collection of books, articles, and inspiration.</CardDescription>
+          <CardDescription>Your Goal Leader-curated collection of books, articles, and inspiration.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-8">
