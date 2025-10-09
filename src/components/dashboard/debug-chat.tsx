@@ -26,7 +26,7 @@ export function DashboardChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFirstMessageLoading, setIsFirstMessageLoading] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const userAvatar = PlaceHolderImages.find((img) => img.id === 'user-avatar');
+  const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
 
   const { tasks } = useTimeTracker();
   const completedTasks = tasks.filter((t) => t.status === 'Completed');
@@ -159,7 +159,7 @@ export function DashboardChat() {
                         >
                         <div className={cn(
                             "prose prose-sm max-w-none prose-p:my-0 prose-headings:my-2 prose-blockquote:my-2",
-                            message.role === 'user' && "prose-strong:text-primary-foreground prose-p:text-primary-foreground prose-a:text-primary-foreground prose-blockquote:text-primary-foreground prose-li:text-primary-foreground prose-ol:text-primary-foreground prose-ul:text-primary-foreground"
+                            message.role === 'user' && "prose-strong:text-primary-foreground prose-p:text-primary-foreground prose-a:text-primary-foreground prose-blockquote:text-primary-foreground prose-li:text-primary-foreground prose-ol:text-primary-foreground prose-ul:text-primary-foreground text-primary-foreground"
                         )}>
                             <ReactMarkdown>{message.content}</ReactMarkdown>
                         </div>
