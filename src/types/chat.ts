@@ -1,3 +1,4 @@
+
 export interface Contact {
     id: string;
     name: string;
@@ -6,7 +7,7 @@ export interface Contact {
     lastMessage: string;
     lastMessageTime: string;
     unreadCount?: number;
-    lastMessageReadStatus?: 'sent' | 'delivered' | 'read';
+    lastMessageReadStatus?: 'sent' | 'delivered' | 'read' | 'request_sent';
     lastMessageSenderId?: string;
 }
 
@@ -16,7 +17,7 @@ export interface Message {
     recipientId: string;
     content: string;
     timestamp: string; // ISO 8601 format
-    readStatus?: 'sent' | 'delivered' | 'read';
+    readStatus?: 'sent' | 'delivered' | 'read' | 'request_sent';
     isSystem?: boolean;
     type: 'text' | 'audio' | 'image' | 'file';
     audioUrl?: string;

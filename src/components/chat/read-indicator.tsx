@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Check, CheckCheck } from 'lucide-react';
+import { Check, CheckCheck, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Message } from '@/types/chat';
 
@@ -28,6 +28,8 @@ export function ReadIndicator({ status, className, isSelf = false }: ReadIndicat
       return <CheckCheck className={cn('h-4 w-4 text-muted-foreground', className)} />;
     case 'read':
       return <CheckCheck className={cn('h-4 w-4', getReadColor(), className)} />;
+    case 'request_sent':
+        return <Clock className={cn('h-4 w-4 text-muted-foreground', className)} />;
     default:
       return null;
   }

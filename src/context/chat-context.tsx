@@ -63,19 +63,17 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // On initial load, set empty messages and load active chat IDs from localStorage
-    setMessages([]);
-    
     try {
         const storedIds = localStorage.getItem('activeChatIds');
         if (storedIds) {
             setActiveChatIds(new Set(JSON.parse(storedIds)));
-        } else {
-            setActiveChatIds(new Set());
+        }
+        const storedMessages = localStorage.getItem('chatMessages');
+        if (storedMessages) {
+            setMessages(JSON.parse(storedMessages));
         }
     } catch (error) {
-        console.error("Failed to load active chats from localStorage", error);
-        setActiveChatIds(new Set());
+        console.error("Failed to load data from localStorage", error);
     }
   }, []);
 
@@ -90,10 +88,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
         return {
             ...member,
-            lastMessage: lastMessage?.content || 'No messages yet',
+            lastMessage: lastMessage?.content || '',
             lastMessageTime: lastMessage ? format(new Date(lastMessage.timestamp), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
-            lastMessageReadStatus: lastMessage?.readStatus,
+            lastMessageReadStatus: lastMessage?.senderId === USER_ID ? lastMessage.readStatus : undefined,
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
@@ -119,83 +117,46 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             return [contactData, ...contactList];
         }
     }
-    return contactList;
-  }, [allContacts, activeChatIds, selectedContact]);
+    return contactList.sort((a, b) => {
+        const lastMessageA = messages.filter(m => m.senderId === a.id || m.recipientId === a.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
+        const lastMessageB = messages.filter(m => m.senderId === b.id || m.recipientId === b.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
+        if (!lastMessageA) return 1;
+        if (!lastMessageB) return -1;
+        return new Date(lastMessageB.timestamp).getTime() - new Date(lastMessageA.timestamp).getTime();
+    });
+  }, [allContacts, activeChatIds, selectedContact, messages]);
   
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
+  const updateMessages = (newMessages: Message[]) => {
+      setMessages(newMessages);
+      try {
+          localStorage.setItem('chatMessages', JSON.stringify(newMessages));
+      } catch (error) {
+          console.error("Failed to save messages to localStorage", error);
+      }
+  }
+
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self) return;
+
+    const existingChat = messages.some(m => (m.senderId === recipientId && m.recipientId === self.id) || (m.senderId === self.id && m.recipientId === recipientId));
+
     const newMessage: Message = {
       id: `msg${Date.now()}-${Math.random()}`,
       senderId: self.id,
       recipientId,
       content,
       timestamp: new Date().toISOString(),
-      readStatus: 'sent',
+      readStatus: !existingChat ? 'request_sent' : 'sent',
       type: type,
       ...data
     };
-    setMessages(prev => [...prev, newMessage]);
+    
+    updateMessages([...messages, newMessage]);
     updateActiveChatIds(new Set(activeChatIds).add(recipientId));
 
-
-    if (content.toLowerCase().includes('call me') || content.toLowerCase().includes('video chat')) {
-        setTimeout(() => {
-            const caller = allContacts.find(c => c.id === recipientId);
-            if (caller) {
-                setIncomingCallFrom(caller);
-            }
-        }, 2000);
-        return;
-    }
-    
-    if (content.toLowerCase().includes('voice chat')) {
-        setTimeout(() => {
-            const caller = allContacts.find(c => c.id === recipientId);
-            if (caller) {
-                setIncomingVoiceCallFrom(caller);
-            }
-        }, 2000);
-        return;
-    }
-    
-    setTimeout(() => {
-        setIsTyping(true);
-        // Mark as delivered
-        setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'delivered'} : m));
-
-        setTimeout(() => {
-             // Simulate a reply from the recipient
-            const recipient = allContacts.find(c => c.id === recipientId);
-            if (recipient) {
-                let replyContent = `Thanks for the message! I've received: "${content.substring(0, 20)}..."`;
-                if (type === 'image') replyContent = "Cool image!";
-                if (type === 'file') replyContent = `Got the file: ${data.fileName}`;
-                if (type === 'audio') replyContent = `Heard your voice note.`;
-
-
-                const replyMessage: Message = {
-                    id: `msg${Date.now() + 1}-${Math.random()}`,
-                    senderId: recipientId,
-                    recipientId: self.id,
-                    content: replyContent,
-                    timestamp: new Date().toISOString(),
-                    type: 'text'
-                };
-                setMessages(prev => [...prev, replyMessage]);
-                setIsTyping(false);
-            }
-
-            // After 3 seconds, simulate that the recipient read the message
-            setTimeout(() => {
-                setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'read'} : m));
-            }, 1000);
-
-        }, 2000 + Math.random() * 2000); // random typing delay
-    }, 1000);
-
-  }, [self, allContacts, activeChatIds]);
+  }, [self, messages, activeChatIds]);
 
   const addSystemMessage = useCallback((content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self) return;
@@ -208,18 +169,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         type: 'text',
         isSystem: true,
     };
-    setMessages(prev => [...prev, systemMessage]);
-  }, [self]);
+    updateMessages([...messages, systemMessage]);
+  }, [self, messages]);
 
   const deleteMessage = useCallback((messageId: string) => {
-    setMessages(prev => prev.filter(m => m.id !== messageId));
-  }, []);
+    const newMessages = messages.filter(m => m.id !== messageId);
+    updateMessages(newMessages);
+  }, [messages]);
 
   const clearChat = useCallback((contactId: string) => {
-    setMessages(prev => prev.filter(
+    const newMessages = messages.filter(
       msg => !((msg.senderId === contactId && msg.recipientId === self?.id) || (msg.senderId === self?.id && msg.recipientId === contactId))
-    ));
-  }, [self?.id]);
+    );
+    updateMessages(newMessages);
+  }, [self?.id, messages]);
 
   const deleteChat = useCallback((contactId: string) => {
     clearChat(contactId);
@@ -233,20 +196,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const forwardMessage = useCallback((message: Message, recipientIds: string[]) => {
     if (!self) return;
 
+    const newMessages: Message[] = [];
     recipientIds.forEach((recipientId, index) => {
-        setTimeout(() => {
-            const forwardedMessage: Message = {
-                ...message,
-                id: `fwd-${Date.now()}-${index}-${Math.random()}`,
-                senderId: self.id,
-                recipientId: recipientId,
-                timestamp: new Date().toISOString(),
-                readStatus: 'sent',
-            };
-            setMessages(prev => [...prev, forwardedMessage]);
-        }, index * 100); // Stagger sending
+        const forwardedMessage: Message = {
+            ...message,
+            id: `fwd-${Date.now()}-${index}-${Math.random()}`,
+            senderId: self.id,
+            recipientId: recipientId,
+            timestamp: new Date().toISOString(),
+            readStatus: 'sent',
+        };
+        newMessages.push(forwardedMessage);
     });
-  }, [self]);
+    updateMessages([...messages, ...newMessages]);
+  }, [self, messages]);
 
   const startCall = useCallback((contact: Contact) => {
     setAcceptedCallContact(contact);
@@ -298,17 +261,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   // Effect to mark messages as read when a chat is opened
   useEffect(() => {
-    if (selectedContact) {
-        // Mark messages as read in the main message list
-        setMessages(prev => prev.map(m => 
-            (m.senderId === selectedContact.id && m.recipientId === self?.id) 
-            ? { ...m, readStatus: 'read' } 
+    if (selectedContact && self) {
+        const newMessages = messages.map(m => 
+            (m.senderId === selectedContact.id && m.recipientId === self.id) 
+            ? { ...m, readStatus: 'read' as const } 
             : m
-        ));
+        );
+        updateMessages(newMessages);
         
         // Ensure the new chat is active
-        updateActiveChatIds(new Set(activeChatIds).add(selectedContact.id));
+        if (!activeChatIds.has(selectedContact.id)) {
+            updateActiveChatIds(new Set(activeChatIds).add(selectedContact.id));
+        }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedContact, self?.id]);
 
 
