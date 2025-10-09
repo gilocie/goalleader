@@ -70,7 +70,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             setActiveChatIds(new Set(JSON.parse(storedIds)));
         }
         const storedMessages = localStorage.getItem('chatMessages');
-        if (storedMessages) {
+        if (storedMessages && storedMessages !== 'undefined') {
             setMessages(JSON.parse(storedMessages));
         }
     } catch (error) {
@@ -112,16 +112,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const contacts = useMemo(() => {
     const contactList = allContacts.filter(c => c.id !== USER_ID && activeChatIds.has(c.id));
     
-    // Sort contacts by the timestamp of their last message
     contactList.sort((a, b) => {
         const lastMessageA = messages.filter(m => m.senderId === a.id || m.recipientId === a.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
         const lastMessageB = messages.filter(m => m.senderId === b.id || m.recipientId === b.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
-        return new Date(lastMessageB.timestamp).getTime() - new Date(lastMessageB.timestamp).getTime();
+        return new Date(lastMessageB.timestamp).getTime() - new Date(lastMessageA.timestamp).getTime();
     });
 
-    // If a contact is selected but not in the active list (i.e., no messages yet), add them to the top.
     if (selectedContact && !contactList.some(c => c.id === selectedContact.id)) {
         const contactData = allContacts.find(c => c.id === selectedContact.id);
         if (contactData) {
@@ -268,7 +266,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [incomingVoiceCallFrom, addSystemMessage]);
   
-  // Effect to mark messages as read when a chat is opened
   useEffect(() => {
     if (selectedContact && self) {
         const newMessages = messages.map(m => 
@@ -278,7 +275,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         );
         updateMessages(newMessages);
         
-        // Ensure the new chat is active
         if (!activeChatIds.has(selectedContact.id)) {
             updateActiveChatIds(new Set(activeChatIds).add(selectedContact.id));
         }
