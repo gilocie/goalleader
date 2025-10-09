@@ -32,6 +32,7 @@ import { VideoCallDialog } from './video-call-dialog';
 import { IncomingVoiceCallDialog } from './incoming-voice-call-dialog';
 import { VoiceCallDialog } from './voice-call-dialog';
 import { format } from 'date-fns';
+import { ConfirmationDialog } from './confirmation-dialog';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -107,7 +108,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat } = useChat();
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
   const { toast } = useToast();
@@ -123,6 +124,13 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [isReceivingVoiceCall, setIsReceivingVoiceCall] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
+  const [confirmation, setConfirmation] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  } | null>(null);
+
   const handleCallClick = () => { startVoiceCall(selectedContact) };
   const handleVideoClick = () => {
     setIsReceivingCall(false);
@@ -138,6 +146,38 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     if (replyTo) { messageData.replyTo = replyTo.id; }
     onSendMessage(content, type, messageData);
     setReplyTo(null);
+  };
+
+  const handleClearChat = () => {
+    setConfirmation({
+      isOpen: true,
+      title: 'Clear Chat History?',
+      description: `This will permanently delete all messages in your conversation with ${selectedContact.name}. This action cannot be undone.`,
+      onConfirm: () => {
+        clearChat(selectedContact.id);
+        toast({ title: "Chat Cleared", description: `Your conversation with ${selectedContact.name} has been cleared.` });
+      }
+    });
+  };
+
+  const handleDeleteChat = () => {
+    setConfirmation({
+        isOpen: true,
+        title: 'Delete Chat?',
+        description: `This will delete the chat with ${selectedContact.name} from your conversation list.`,
+        onConfirm: () => {
+            deleteChat(selectedContact.id);
+            toast({ title: "Chat Deleted", description: `The chat with ${selectedContact.name} has been deleted.` });
+            if (onExitChat) onExitChat();
+        }
+    });
+  };
+
+  const handleArchiveChat = () => {
+    toast({
+        title: 'Archive Chat',
+        description: 'Archive functionality will be implemented soon.',
+    });
   };
 
   useEffect(() => {
@@ -244,10 +284,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             <DropdownMenu>
               <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem><Archive className="mr-2 h-4 w-4" /><span>Archive</span></DropdownMenuItem>
-                <DropdownMenuItem><Eraser className="mr-2 h-4 w-4" /><span>Clear Chat</span></DropdownMenuItem>
+                <DropdownMenuItem onClick={handleArchiveChat}><Archive className="mr-2 h-4 w-4" /><span>Archive</span></DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClearChat}><Eraser className="mr-2 h-4 w-4" /><span>Clear Chat</span></DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" /><span>Delete</span></DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDeleteChat} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" /><span>Delete Chat</span></DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -375,6 +415,15 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             isReceivingCall={isReceivingVoiceCall}
         />
        )}
+        {confirmation && (
+            <ConfirmationDialog
+            isOpen={confirmation.isOpen}
+            onOpenChange={() => setConfirmation(null)}
+            title={confirmation.title}
+            description={confirmation.description}
+            onConfirm={confirmation.onConfirm}
+            />
+        )}
     </>
   );
 }

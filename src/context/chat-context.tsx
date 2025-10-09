@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
@@ -32,6 +33,8 @@ interface ChatContextType {
   setSelectedContact: Dispatch<SetStateAction<Contact | null>>;
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
   deleteMessage: (messageId: string) => void;
+  clearChat: (contactId: string) => void;
+  deleteChat: (contactId: string) => void;
   forwardMessage: (message: Message, recipientIds: string[]) => void;
   isTyping: boolean;
   incomingCallFrom: Contact | null;
@@ -69,13 +72,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             msg => (msg.senderId === member.id && msg.recipientId === USER_ID) ||
                    (msg.senderId === USER_ID && msg.recipientId === member.id)
         );
-        const lastMessage = relevantMessages[relevantMessages.length - 1];
+        const lastMessage = relevantMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
         const unreadCount = relevantMessages.filter(msg => msg.senderId === member.id && msg.readStatus !== 'read').length;
 
         return {
             ...member,
             lastMessage: lastMessage?.content || 'No messages yet',
-            lastMessageTime: lastMessage ? formatDistanceToNowStrict(new Date(lastMessage.timestamp), { addSuffix: false }) : '',
+            lastMessageTime: lastMessage ? format(new Date(lastMessage.timestamp), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
             lastMessageReadStatus: lastMessage?.readStatus,
         };
@@ -217,6 +220,21 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     setMessages(prev => prev.filter(m => m.id !== messageId));
   }, []);
 
+  const clearChat = useCallback((contactId: string) => {
+    setMessages(prev => prev.filter(
+      msg => !((msg.senderId === contactId && msg.recipientId === self?.id) || (msg.senderId === self?.id && msg.recipientId === contactId))
+    ));
+  }, [self?.id]);
+
+  const deleteChat = useCallback((contactId: string) => {
+    clearChat(contactId);
+    updateActiveChatIds(prev => {
+        const newIds = new Set(prev);
+        newIds.delete(contactId);
+        return newIds;
+    });
+  }, [clearChat]);
+
   const forwardMessage = useCallback((message: Message, recipientIds: string[]) => {
     if (!self) return;
 
@@ -309,6 +327,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     setSelectedContact,
     addMessage,
     deleteMessage,
+    clearChat,
+    deleteChat,
     forwardMessage,
     isTyping,
     incomingCallFrom,
