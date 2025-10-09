@@ -60,6 +60,17 @@ Address the Team Leader, {{teamLeaderName}}, directly and use a collaborative to
 - A short, conversational summary for the Team Leader.
 - A "### Key Achievements" section with a bulleted list.
 - An "### Our Next Steps" section suggesting how to leverage this success (e.g., mentorship opportunities, stretch goals).
+
+Example for 'advice':
+"Hi {{teamLeaderName}}, I'm really impressed with {{staffName}}'s performance. Their dedication is clearly paying off, and they've built some great momentum.
+
+### Key Achievements
+- Exceeded the KPI by {{math performance '-' kpi}}%.
+- Consistently completed tasks ahead of schedule.
+
+### Our Next Steps
+- Let's consider assigning them a stretch goal for the next cycle.
+- We should publicly acknowledge their hard work in the next team meeting."
   {{else}}
     // NEEDS IMPROVEMENT
     Your 'title' should be "Opportunity for Growth".
@@ -69,6 +80,17 @@ Address the Team Leader, {{teamLeaderName}}, directly and use a collaborative to
 - A short, conversational summary for the Team Leader, framing this as a coaching opportunity.
 - A "### Areas to Focus On" section with a bulleted list (e.g., missed deadlines, task types they struggle with).
 - A "### Recommended Action Plan" section with a bulleted list of actionable recommendations for the Team Leader to implement with {{staffName}}.
+
+Example for 'advice':
+"Hi {{teamLeaderName}}. I've reviewed {{staffName}}'s performance, and I see a great opportunity for us to provide some targeted coaching.
+
+### Areas to Focus On
+- Currently {{math kpi '-' performance}}% below the team KPI.
+- Seems to struggle with tasks requiring cross-team collaboration.
+
+### Recommended Action Plan
+- I suggest we sit down with them to review their current workload and identify any blockers.
+- Let's pair them with a senior team member for the next project to provide mentorship."
   {{/if}}
 
 Staff member's completed tasks:
@@ -81,13 +103,15 @@ Staff member's completed tasks:
   Your 'title' should be "Ready to Start!".
   Your 'advice' for {{teamLeaderName}} should be a detailed, encouraging message. Address the Team Leader by name and outline a proactive plan.
 
-  Use this Markdown structure for the 'advice' field:
-- Start with: "I'm glad you're here, {{teamLeaderName}}. It looks like a fresh start for {{staffName}}..."
-- An "### Our Recommended Approach" section with a bulleted list of 3 concrete steps:
-    - **Proactive Engagement:** Suggest a supportive conversation to set clear initial goals.
-    - **Task Breakdown:** Recommend breaking down initial tasks into smaller, manageable parts.
-    - **Support & Monitoring:** Emphasize regular check-ins and my role in monitoring progress.
-- Conclude with a collaborative statement like: "Together, we can help {{staffName}} find their rhythm and excel."
+  Use this exact Markdown structure for the 'advice' field, including the newlines:
+"I'm glad you're here, {{teamLeaderName}}. It looks like a fresh start for {{staffName}}! While their current task completion is 0%, this presents a wonderful opportunity for us to lay a strong foundation together. We can view this as a blank slate, ready to be filled with success.
+
+### Our Recommended Approach
+- **Proactive Engagement:** I suggest we have a supportive conversation with {{staffName}} to understand any initial challenges and collaboratively set clear, achievable first goals. This will help them feel valued and understand expectations from day one.
+- **Task Breakdown:** To build momentum, I recommend we break down {{staffName}}'s initial tasks into smaller, more manageable parts. This approach makes goals less daunting and allows for quick wins, fostering confidence and a sense of accomplishment.
+- **Support & Monitoring:** We should implement regular, brief check-ins to offer support and track progress. I'll be here to help monitor their tasks and provide insights along the way.
+
+Together, we can help {{staffName}} find their rhythm and excel. Let's get started!"
 {{/if}}
 `,
 });
@@ -108,4 +132,5 @@ const performanceAdviceFlow = ai.defineFlow(
     throw new Error('No output from prompt');
   }
 );
+
 
