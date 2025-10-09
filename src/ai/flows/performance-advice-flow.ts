@@ -20,6 +20,7 @@ const TaskSchema = z.object({
 });
 
 const PerformanceAdviceInputSchema = z.object({
+  staffName: z.string().describe("The name of the staff member being reviewed."),
   completedTasks: z.array(TaskSchema).describe('The user\'s list of completed tasks for a given period.'),
   kpi: z.number().describe('The key performance indicator (KPI) for task completion, as a percentage.'),
   performance: z.number().describe('The user\'s current performance percentage.'),
@@ -42,34 +43,32 @@ const prompt = ai.definePrompt({
   model: GEMINI_MODEL,
   input: { schema: PerformanceAdviceInputSchema },
   output: { schema: PerformanceAdviceOutputSchema },
-  prompt: `You are an AI performance analyst for GoalLeader. Your goal is to provide a summary to a team leader about their staff member's performance.
+  prompt: `You are an AI performance analyst for GoalLeader. Your goal is to provide a concise and professional summary to a team leader about their staff member's performance. The staff member's name is {{staffName}}.
 
-The company's Key Performance Indicator (KPI) for task completion is {{kpi}}%. The staff member's current performance is {{performance}}%.
+The company's Key Performance Indicator (KPI) for task completion is {{kpi}}%. {{staffName}}'s current performance is {{performance}}%.
 
 {{#if completedTasks}}
-Analyze the staff member's performance based on their completed tasks and performance score.
+Analyze {{staffName}}'s performance based on their completed tasks and performance score. Address the Team Leader directly.
 - If performance is at or above the KPI, highlight their strengths and achievements.
-- If performance is below the KPI, identify areas for improvement and provide constructive feedback for the team leader to discuss with the staff member.
-- Mention specific areas where the staff member is doing well and where they are not performing as expected.
+- If performance is below the KPI, identify areas for improvement and provide constructive, actionable feedback for the Team Leader to discuss with {{staffName}}.
+- Mention specific areas where the staff member is doing well and where they could improve.
 
-The tone should be professional and analytical, suitable for a manager reviewing a team member.
+The tone should be professional and analytical.
 
 Format your response for the 'advice' field using the following Markdown structure:
-- A short overall summary as a paragraph.
-- A "### Strengths" heading.
-- A bulleted list starting with '*' for strengths.
-- An "### Areas for Improvement" heading.
-- A bulleted list starting with '*' for areas for improvement.
+- A short overall summary paragraph addressed to the Team Leader.
+- A "### Strengths" section with a bulleted list.
+- An "### Areas for Improvement" section with a bulleted list.
 
 Staff member's completed tasks:
 {{#each completedTasks}}
-- {{name}} (Completed in {{duration}} seconds)
+- "{{name}}" (Completed in {{duration}} seconds)
 {{/each}}
 
 {{else}}
-The staff member has not completed any tasks yet. 
+The staff member, {{staffName}}, has not completed any tasks yet. 
 - Your 'title' should be "Ready to Start!".
-- Your 'advice' should be a short, encouraging message to motivate them to begin working on their tasks. For example: "It looks like a fresh start! Complete your first task to see your performance analysis here. You've got this!".
+- Your 'advice' should be a short, encouraging message for the Team Leader to motivate {{staffName}}. For example: "It looks like a fresh start for {{staffName}}! Encourage them to complete their first task to see a detailed performance analysis here. They've got this!".
 {{/if}}
 `,
 });

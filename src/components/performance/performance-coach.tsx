@@ -14,11 +14,13 @@ import { Loader2 } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
+import { useUser } from '@/context/user-context';
 
 const COMPANY_KPI = 80; // 80% completion rate as the target
 
 export function PerformanceCoach() {
   const { tasks } = useTimeTracker();
+  const { user } = useUser();
   const [advice, setAdvice] = useState<PerformanceAdviceOutput | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -33,6 +35,7 @@ export function PerformanceCoach() {
       setIsLoading(true);
       try {
         const input: PerformanceAdviceInput = {
+          staffName: user.name,
           completedTasks: completedTasks.map(t => ({ name: t.name, status: t.status, dueDate: t.dueDate, duration: t.duration })),
           kpi: COMPANY_KPI,
           performance,
@@ -51,7 +54,7 @@ export function PerformanceCoach() {
     };
 
     fetchAdvice();
-  }, [tasks]);
+  }, [tasks, user.name]);
 
   const getPerformanceInfo = () => {
     if (performance >= COMPANY_KPI) return {
