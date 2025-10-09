@@ -31,7 +31,7 @@ export function ViewProfileDialog({ isOpen, onOpenChange, member }: ViewProfileD
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm p-0">
+      <DialogContent className="sm:max-w-sm p-0 flex flex-col max-h-[480px]">
         <DialogHeader className="items-center text-center pt-8 pb-4">
           <div className="relative">
             <Avatar className="h-24 w-24">
@@ -49,7 +49,7 @@ export function ViewProfileDialog({ isOpen, onOpenChange, member }: ViewProfileD
         <div className="px-6 space-y-4">
             <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-muted-foreground">Department</span>
-                <Badge variant="secondary">{member.department}</Badge>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">{member.department}</Badge>
             </div>
             <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-muted-foreground">Branch</span>
@@ -59,12 +59,12 @@ export function ViewProfileDialog({ isOpen, onOpenChange, member }: ViewProfileD
                 <span className="text-sm font-medium text-muted-foreground">Country</span>
                 <span className="text-sm font-semibold">Malawi</span>
             </div>
-            <div>
+            <div className="text-left">
                 <p className="text-sm font-medium text-muted-foreground mb-1">Bio</p>
                 <p className="text-sm bg-muted p-3 rounded-md">A passionate developer dedicated to building beautiful and functional user experiences.</p>
             </div>
         </div>
-        <DialogFooter className="p-6">
+        <DialogFooter className="p-6 mt-auto">
           <DialogClose asChild>
             <Button type="button" variant="outline" className="w-full">
               Close
