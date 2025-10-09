@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -44,7 +44,7 @@ export function NewChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl h-[562px] flex flex-col p-0">
+      <DialogContent className="sm:max-w-4xl h-[482px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
@@ -80,7 +80,7 @@ export function NewChatDialog({
             <ScrollArea className="h-full">
                 <div className={cn(
                     "px-6 py-2",
-                    layout === 'list' ? 'space-y-1' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'
+                    layout === 'list' ? 'space-y-1' : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3'
                 )}>
                 {filteredMembers.map(member => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
@@ -99,13 +99,13 @@ export function NewChatDialog({
                         return (
                              <Card
                                 key={member.id}
-                                className="flex flex-col items-center text-center p-2 pt-8 cursor-pointer hover:bg-muted relative"
+                                className="flex flex-col items-center text-center p-2 pt-6 cursor-pointer hover:bg-muted relative"
                                 onClick={() => onStartChat(contact)}
                             >
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-7 w-7 absolute top-2 left-2 text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                    className="h-7 w-7 absolute top-1 left-1 text-muted-foreground hover:bg-primary/10 hover:text-primary"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         console.log(`View profile of ${member.name}`);
@@ -114,7 +114,7 @@ export function NewChatDialog({
                                     <User className="h-4 w-4" />
                                 </Button>
                                  <div className={cn(
-                                    'absolute top-3 right-3 h-2.5 w-2.5 rounded-full border-2 border-background',
+                                    'absolute top-2 right-2 h-2.5 w-2.5 rounded-full border-2 border-background',
                                     member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
                                   )} />
                                 
