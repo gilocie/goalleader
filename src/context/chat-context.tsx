@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 
 const USER_ID = 'patrick-achitabwino-m1';
 
-const teamMembers: Omit<Contact, 'lastMessage' | 'lastMessageTime' | 'unreadCount' | 'lastMessageReadStatus'>[] = [
+const teamMembers: Omit<Contact, 'lastMessage' | 'lastMessageTime' | 'unreadCount' | 'lastMessageReadStatus' | 'lastMessageSenderId'>[] = [
     { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const },
     { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'last seen today at 1:30 PM' },
     { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const },
@@ -60,7 +60,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set(['denis-maluwasa-m3'])); // Start with one active chat
+  const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Generate initial message data on the client side to avoid hydration issues
@@ -68,8 +68,29 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         { id: 'msg1', senderId: 'denis-maluwasa-m3', recipientId: USER_ID, content: 'I pushed the latest changes.', timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(), type: 'text', readStatus: 'sent' }
     ];
     setMessages(messagesData);
-  }, []);
+    
+    // Initialize active chats based on messages
+    const initialChatIds = new Set<string>();
+    messagesData.forEach(msg => {
+        if (msg.senderId !== USER_ID) initialChatIds.add(msg.senderId);
+        if (msg.recipientId !== USER_ID) initialChatIds.add(msg.recipientId);
+    });
 
+    try {
+        const storedIds = localStorage.getItem('activeChatIds');
+        if (storedIds) {
+            const storedSet = new Set(JSON.parse(storedIds));
+            // Combine initial with stored
+            initialChatIds.forEach(id => storedSet.add(id));
+            setActiveChatIds(storedSet);
+        } else {
+            setActiveChatIds(initialChatIds);
+        }
+    } catch (error) {
+        console.error("Failed to load active chats from localStorage", error);
+        setActiveChatIds(initialChatIds);
+    }
+  }, []);
 
   const allContacts = useMemo(() => {
     return teamMembers.map(member => {
@@ -86,30 +107,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessageTime: lastMessage ? format(new Date(lastMessage.timestamp), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
             lastMessageReadStatus: lastMessage?.readStatus,
+            lastMessageSenderId: lastMessage?.senderId,
         };
     });
   }, [messages, selectedContact]);
 
   const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
-
-  useEffect(() => {
-    try {
-        const storedIds = localStorage.getItem('activeChatIds');
-        if (storedIds) {
-            setActiveChatIds(new Set(JSON.parse(storedIds)));
-        } else {
-            // Initialize with any contacts that have messages if nothing is in storage
-            const initialChatIds = new Set<string>();
-            messages.forEach(msg => {
-                if (msg.senderId !== USER_ID) initialChatIds.add(msg.senderId);
-                if (msg.recipientId !== USER_ID) initialChatIds.add(msg.recipientId);
-            });
-            setActiveChatIds(initialChatIds);
-        }
-    } catch (error) {
-        console.error("Failed to load active chats from localStorage", error);
-    }
-  }, [messages]);
 
   const updateActiveChatIds = (newIds: Set<string>) => {
     setActiveChatIds(newIds);

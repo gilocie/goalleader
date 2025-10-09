@@ -12,11 +12,11 @@ interface ReadIndicatorProps {
 }
 
 export function ReadIndicator({ status, className, isSelf = false }: ReadIndicatorProps) {
-  if (!status) return null;
+  if (!status || !isSelf) return null;
 
   const getReadColor = () => {
     if (status === 'read') {
-      return isSelf ? 'text-primary-foreground' : 'text-blue-500';
+      return 'text-blue-500';
     }
     return 'text-muted-foreground';
   }

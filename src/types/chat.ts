@@ -7,6 +7,7 @@ export interface Contact {
     lastMessageTime: string;
     unreadCount?: number;
     lastMessageReadStatus?: 'sent' | 'delivered' | 'read';
+    lastMessageSenderId?: string;
 }
 
 export interface Message {

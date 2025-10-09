@@ -29,7 +29,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
   const { open: isSidebarOpen } = useSidebar();
   const [searchTerm, setSearchTerm] = useState('');
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
-  const { allContacts: allCompanyMembers } = useChat();
+  const { allContacts: allCompanyMembers, self } = useChat();
 
   const filteredContacts = useMemo(() => {
     if (!searchTerm) {
@@ -84,6 +84,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                     {filteredContacts.map((contact, index) => {
                     const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
                     const isSelected = selectedContactId === contact.id;
+                    const isLastMessageFromSelf = contact.lastMessageSenderId === self?.id;
                     return (
                         <React.Fragment key={contact.id}>
                         <div
@@ -109,7 +110,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                             <div className="flex-1 truncate">
                                 <p className={cn("font-semibold text-sm", isSelected && 'text-white')}>{contact.name}</p>
                                 <div className={cn("flex items-center gap-1 text-xs truncate", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
-                                    <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" isSelf={false}/>
+                                    {isLastMessageFromSelf && <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" isSelf={isLastMessageFromSelf}/>}
                                     <span className={cn("truncate", isSelected && 'text-white')}>{contact.lastMessage}</span>
                                 </div>
                             </div>
