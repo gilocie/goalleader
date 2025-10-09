@@ -33,13 +33,13 @@ const SuggestionCard = ({ item, onCardClick }: { item: SuggestionItem, onCardCli
     </Card>
 );
 
-const Shelf = ({ title, items, onCardClick }: { title: string; items: SuggestionItem[]; onCardClick: (item: SuggestionItem) => void; }) => {
+const Shelf = ({ title, items, onCardClick, gridCols = 'md:grid-cols-2 lg:grid-cols-3' }: { title: string; items: SuggestionItem[]; onCardClick: (item: SuggestionItem) => void; gridCols?: string }) => {
     if (items.length === 0) return null;
 
     return (
         <div className="space-y-4">
             <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className={cn("grid grid-cols-1 gap-4", gridCols)}>
                 {items.map(item => (
                     <SuggestionCard key={item.id} item={item} onCardClick={onCardClick} />
                 ))}
@@ -48,9 +48,8 @@ const Shelf = ({ title, items, onCardClick }: { title: string; items: Suggestion
     );
 };
 
-
 export function LibraryPageContent() {
-  const { unreadItems, readItems, markAsRead } = useAISuggestions();
+  const { unreadItems, readItems, markAsRead, monthlyBooks } = useAISuggestions();
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<SuggestionItem | null>(null);
 
@@ -65,10 +64,9 @@ export function LibraryPageContent() {
     setSelectedSuggestion(null);
   };
 
-  const motivationItems = useMemo(() => unreadItems.filter(item => item.type === 'motivation'), [unreadItems]);
-  const newsItems = useMemo(() => unreadItems.filter(item => item.type === 'news'), [unreadItems]);
-  const bookItems = useMemo(() => unreadItems.filter(item => item.type === 'book'), [unreadItems]);
-  const storyItems = useMemo(() => unreadItems.filter(item => item.type === 'story'), [unreadItems]);
+  const motivationItem = useMemo(() => unreadItems.find(item => item.type === 'motivation'), [unreadItems]);
+  const newsItems = useMemo(() => unreadItems.filter(item => item.type === 'news').slice(0, 3), [unreadItems]);
+  const storyItem = useMemo(() => unreadItems.find(item => item.type === 'story'), [unreadItems]);
 
   return (
     <main className="flex-grow p-4 md:p-8">
@@ -88,12 +86,12 @@ export function LibraryPageContent() {
                 <TabsContent value="new" className="mt-4">
                     <Card>
                          <CardContent className="pt-6 space-y-8">
-                             {unreadItems.length > 0 ? (
+                             {unreadItems.length > 0 || monthlyBooks.length > 0 ? (
                                 <>
-                                    <Shelf title="Daily Motivation" items={motivationItems} onCardClick={handleCardClick} />
-                                    <Shelf title="Daily News" items={newsItems} onCardClick={handleCardClick} />
-                                    <Shelf title="Free Books" items={bookItems} onCardClick={handleCardClick} />
-                                    <Shelf title="Business Stories" items={storyItems} onCardClick={handleCardClick} />
+                                    <Shelf title="Book Suggestions of the Month" items={monthlyBooks} onCardClick={handleCardClick} gridCols="lg:grid-cols-3" />
+                                    {motivationItem && <Shelf title="Daily Motivation" items={[motivationItem]} onCardClick={handleCardClick} gridCols="lg:grid-cols-1" />}
+                                    <Shelf title="Daily News" items={newsItems} onCardClick={handleCardClick} gridCols="lg:grid-cols-3" />
+                                    {storyItem && <Shelf title="Business Stories" items={[storyItem]} onCardClick={handleCardClick} gridCols="lg:grid-cols-1" />}
                                 </>
                             ) : (
                                 <p className="text-muted-foreground text-center p-8">You're all caught up!</p>

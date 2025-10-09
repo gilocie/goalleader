@@ -10,8 +10,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { CheckSquare } from 'lucide-react';
+import { CheckSquare, Link as LinkIcon } from 'lucide-react';
 import type { SuggestionItem } from '@/context/ai-suggestion-context';
+import Link from 'next/link';
 
 interface SuggestionDetailsDialogProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ export function SuggestionDetailsDialog({
   suggestion,
   onMarkAsRead,
 }: SuggestionDetailsDialogProps) {
+  const isBook = suggestion.type === 'book';
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col">
@@ -48,7 +51,14 @@ export function SuggestionDetailsDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          {!suggestion.read && (
+          {isBook && suggestion.link ? (
+            <Button asChild>
+              <Link href={suggestion.link} target="_blank">
+                <LinkIcon className="mr-2 h-4 w-4" />
+                Find Book
+              </Link>
+            </Button>
+          ) : !suggestion.read && (
             <Button 
               onClick={() => {
                 onMarkAsRead(suggestion.id);
