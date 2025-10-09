@@ -3,28 +3,42 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon, LifeBuoy, Shield, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon, LifeBuoy, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useSidebar } from './sidebar';
-import { Button } from '../ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-const links = [
+type NavLink = {
+    href: string;
+    icon: React.ElementType;
+    label: string;
+    notificationKey?: string;
+    subItems?: NavLink[];
+};
+
+const links: NavLink[] = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/tasks', icon: ListTodo, label: 'Tasks' },
-  { href: '/performance', icon: Package, label: 'Performance' },
-  { href: '/reports', icon: FileText, label: 'Reports' },
-  { href: '/analytics', icon: LineChart, label: 'Analytics' },
+  { 
+    href: '/tasks', 
+    icon: ListTodo, 
+    label: 'Tasks',
+    subItems: [
+        { href: '/performance', icon: Package, label: 'Performance' },
+        { href: '/reports', icon: FileText, label: 'Reports' },
+        { href: '/analytics', icon: LineChart, label: 'Analytics' },
+    ]
+  },
   { href: '/marketing', icon: Store, label: 'Marketing' },
   { href: '/chat', icon: ChatIcon, label: 'Chat', notificationKey: 'chat' },
   { href: '/meetings', icon: Calendar, label: 'Meetings' },
   { href: '/notices', icon: Megaphone, label: 'Notices' },
 ];
 
-const secondaryLinks = [
+const secondaryLinks: NavLink[] = [
     { href: '/support', icon: LifeBuoy, label: 'Support' },
     { href: '/admin', icon: Shield, label: 'Admin' },
 ]
@@ -40,10 +54,10 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
     return 0;
   };
   
-  const renderLink = (href: string, icon: React.ElementType, label: string, notificationKey?: string) => {
+  const renderLink = (link: NavLink) => {
+    const { href, icon: Icon, label, notificationKey } = link;
     const count = getNotificationCount(notificationKey);
-    const isActive = pathname === href || (href === '/teams' && pathname.startsWith('/teams/')) || (href === '/performance' && pathname.startsWith('/performance'));
-    const Icon = icon;
+    const isActive = pathname === href || (pathname.startsWith(href) && href !== '/');
 
     if (isCollapsed) {
         return (
@@ -75,6 +89,49 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
+        )
+    }
+
+    if (link.subItems) {
+        const isParentActive = link.subItems.some(sub => pathname.startsWith(sub.href));
+        return (
+            <Accordion key={href} type="single" collapsible defaultValue={isParentActive ? 'tasks' : undefined} className="w-full">
+                <AccordionItem value="tasks" className="border-b-0">
+                    <AccordionTrigger
+                        className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:no-underline",
+                            isActive || isParentActive
+                                ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                : 'hover:bg-primary hover:text-primary-foreground'
+                        )}
+                    >
+                        <Icon className="h-4 w-4" />
+                        <span className="flex-1 text-left">{label}</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pl-6 pt-1">
+                        <div className="flex flex-col gap-1">
+                            {link.subItems.map(subLink => {
+                                const isSubActive = pathname.startsWith(subLink.href);
+                                return (
+                                    <Link
+                                        key={subLink.href}
+                                        href={subLink.href}
+                                        className={cn(
+                                            "flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all text-sm",
+                                            isSubActive
+                                                ? 'bg-muted text-primary'
+                                                : 'hover:bg-muted/50'
+                                        )}
+                                    >
+                                        <subLink.icon className="h-4 w-4" />
+                                        {subLink.label}
+                                    </Link>
+                                )
+                            })}
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
         )
     }
 
@@ -112,9 +169,9 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
 
   return (
     <>
-      {links.map(({ href, icon, label, notificationKey }) => renderLink(href, icon, label, notificationKey))}
+      {links.map(link => renderLink(link))}
       <Separator className="my-2" />
-      {secondaryLinks.map(({ href, icon, label, notificationKey }) => renderLink(href, icon, label, notificationKey))}
+      {secondaryLinks.map(link => renderLink(link))}
     </>
   );
 }
