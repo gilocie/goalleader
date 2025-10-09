@@ -26,7 +26,6 @@ import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
 import { IncomingCallDialog } from './incoming-call-dialog';
-import { useRouter } from 'next/navigation';
 import { VideoCallDialog } from './video-call-dialog';
 import { IncomingVoiceCallDialog } from './incoming-voice-call-dialog';
 import { VoiceCallDialog } from './voice-call-dialog';
@@ -48,8 +47,7 @@ const AudioPlayer = ({ audioUrl, audioDuration, isSelf }: AudioPlayerProps) => {
   const [waveBars, setWaveBars] = useState<number[]>([]);
 
   useEffect(() => {
-    // generate a simple random wave shape
-    const bars = Array.from({ length: 25 }, () => Math.floor(Math.random() * 24) + 6);
+    const bars = Array.from({ length: 25 }, () => Math.floor(Math.random() * 20) + 8);
     setWaveBars(bars);
   }, []);
 
@@ -78,11 +76,16 @@ const AudioPlayer = ({ audioUrl, audioDuration, isSelf }: AudioPlayerProps) => {
     return `${m}:${secs < 10 ? "0" : ""}${secs}`;
   };
 
+  // Calculate playback progress (0 → 1)
+  const progress = audioDuration ? currentTime / audioDuration : 0;
+
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-lg w-full max-w-[280px]",
-        isSelf ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+        "flex items-center gap-3 px-3 py-2 rounded-xl shadow-sm w-full max-w-[280px] transition-all duration-300",
+        isSelf
+          ? "bg-green-100 text-green-900 border border-green-300"
+          : "bg-white text-gray-800 border border-gray-200"
       )}
     >
       <audio
@@ -99,42 +102,40 @@ const AudioPlayer = ({ audioUrl, audioDuration, isSelf }: AudioPlayerProps) => {
         size="icon"
         onClick={togglePlay}
         className={cn(
-          "h-10 w-10 flex-shrink-0 rounded-full",
-          isSelf
-            ? "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground"
-            : "bg-primary/10 hover:bg-primary/20 text-primary"
+          "h-10 w-10 flex-shrink-0 rounded-full transition-all",
+          isPlaying
+            ? "bg-green-500 hover:bg-green-600 text-white"
+            : "bg-green-200 hover:bg-green-300 text-green-700"
         )}
       >
-        {isPlaying ? (
-          <Pause className="h-5 w-5" />
-        ) : (
-          <Play className="h-5 w-5 ml-0.5" />
-        )}
+        {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
       </Button>
 
       {/* Waveform */}
-      <div className="flex-1 flex items-center h-8 gap-px overflow-hidden">
-        {waveBars.map((bar, i) => (
-          <div
-            key={i}
-            className={cn(
-              "w-0.5 rounded-sm origin-center transition-all duration-300",
-              isSelf ? "bg-primary-foreground/80" : "bg-primary/80"
-            )}
-            style={{
-              height: `${bar}px`,
-            }}
-          />
-        ))}
+      <div className="relative flex-1 flex items-center h-8 gap-[2px] overflow-hidden">
+        {waveBars.map((bar, i) => {
+          const barProgress = i / waveBars.length;
+          const isPlayed = barProgress < progress;
+          return (
+            <div
+              key={i}
+              className={cn(
+                "w-0.5 rounded-sm transition-all duration-200 ease-in-out",
+                isPlayed ? "bg-green-500" : "bg-green-300"
+              )}
+              style={{ height: `${bar}px` }}
+            />
+          );
+        })}
+        {/* Progress overlay (animated green wave) */}
+        <div
+          className="absolute top-0 left-0 h-full bg-green-400/20 transition-all duration-150"
+          style={{ width: `${progress * 100}%` }}
+        />
       </div>
 
-      {/* Duration label */}
-      <span
-        className={cn(
-          "text-xs font-medium tabular-nums ml-2",
-          isSelf ? "text-primary-foreground/80" : "text-muted-foreground"
-        )}
-      >
+      {/* Duration */}
+      <span className="text-xs font-medium tabular-nums ml-2 text-gray-500">
         {formatTime(isPlaying ? currentTime : audioDuration)}
       </span>
     </div>
@@ -159,7 +160,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const { toast } = useToast();
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-  const router = useRouter();
   
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
@@ -403,7 +403,26 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                 {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
                                 {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
                                     <div className="p-1">
-                                        <div className="grid grid-cols-2 gap-1">{message.imageUrls.slice(0, 4).map((url, index) => { const remainingImages = message.imageUrls!.length - 4; const showMore = index === 3 && remainingImages > 0; return ( <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square w-36 h-36 block cursor-pointer overflow-hidden rounded-md group/more", showMore && "bg-black")}> <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} /> {showMore && ( <div className="absolute inset-0 flex items-center justify-center text-white"><Plus className="h-6 w-6" /><span className="text-xl font-bold">{remainingImages}</span></div> )} </button> ) })}</div>
+                                        <div className={cn("grid gap-1", message.imageUrls.length === 1 ? "grid-cols-2" : "grid-cols-2")}>
+                                            {message.imageUrls.slice(0, 4).map((url, index) => {
+                                                const remainingImages = message.imageUrls!.length - 4;
+                                                const showMore = index === 3 && remainingImages > 0;
+                                                return (
+                                                    <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square w-36 h-36 block cursor-pointer overflow-hidden rounded-md group/more", showMore && "bg-black")}>
+                                                        <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} />
+                                                        {showMore && (
+                                                            <div className="absolute inset-0 flex items-center justify-center text-white">
+                                                                <Plus className="h-6 w-6" />
+                                                                <span className="text-xl font-bold">{remainingImages}</span>
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                )
+                                            })}
+                                            {message.imageUrls.length === 1 && (
+                                                <div className="w-36 h-36 rounded-md bg-transparent" />
+                                            )}
+                                        </div>
                                         {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                                     </div>
                                 ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
