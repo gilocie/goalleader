@@ -5,30 +5,40 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { useAISuggestions, getSuggestionIcon, SuggestionItem } from '@/context/ai-suggestion-context';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Newspaper, Briefcase, Zap } from 'lucide-react';
-import Link from 'next/link';
 import { SuggestionDetailsDialog } from '@/components/library/suggestion-details-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+const SuggestionCard = ({ item, onCardClick }: { item: SuggestionItem, onCardClick: (item: SuggestionItem) => void }) => (
+    <Card 
+      className="flex flex-col transition-all hover:shadow-md cursor-pointer h-full"
+      onClick={() => onCardClick(item)}
+    >
+      <CardHeader className="flex-row items-start gap-4 space-y-0">
+        <div className="mt-1">{getSuggestionIcon(item.type)}</div>
+        <div className="flex-1">
+            <CardTitle className="text-base line-clamp-2">{item.title}</CardTitle>
+            {item.source && (
+                <p className="text-xs text-muted-foreground">Source: {item.source}</p>
+            )}
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1">
+        <p className="text-sm text-muted-foreground line-clamp-4">{item.content}</p>
+      </CardContent>
+      <CardFooter>
+         <Button variant="link" className="p-0 h-auto text-xs">Read More...</Button>
+      </CardFooter>
+    </Card>
+);
+
 
 export function LibraryPageContent() {
-  const { agendaItems, libraryItems, markAsRead } = useAISuggestions();
+  const { unreadItems, readItems, markAsRead } = useAISuggestions();
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<SuggestionItem | null>(null);
 
-  const books = libraryItems.filter(item => item.type === 'book');
-  const stories = libraryItems.filter(item => item.type === 'story');
-  const news = agendaItems.filter(item => item.type === 'news');
-  const motivations = agendaItems.filter(item => item.type === 'motivation');
-
-  const shelves = [
-    { title: 'Book Recommendations', icon: <BookOpen className="h-6 w-6" />, items: books },
-    { title: 'Daily News', icon: <Newspaper className="h-6 w-6" />, items: news },
-    { title: 'Business Stories', icon: <Briefcase className="h-6 w-6" />, items: stories },
-    { title: 'Motivational Messages', icon: <Zap className="h-6 w-6" />, items: motivations },
-  ];
-  
   const handleCardClick = (item: SuggestionItem) => {
     setSelectedSuggestion(item);
     setIsDetailsDialogOpen(true);
@@ -48,65 +58,44 @@ export function LibraryPageContent() {
           <CardDescription>Your Goal Leader-curated collection of books, articles, and inspiration.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-8">
-            {shelves.map((shelf) => (
-              <Card key={shelf.title} className="shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-xl text-primary">
-                    {shelf.icon}
-                    {shelf.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {shelf.items.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {shelf.items.map(item => (
-                        <Card 
-                          key={item.id} 
-                          className={cn(
-                            "flex flex-col transition-all hover:shadow-md cursor-pointer",
-                            !item.read && "border-primary border-2"
-                          )}
-                          onClick={() => handleCardClick(item)}
-                        >
-                          {!item.read && (
-                            <Badge className="absolute -top-2 -right-2 bg-primary text-primary-foreground">New</Badge>
-                          )}
-                          <CardHeader className="flex-row items-start gap-4 space-y-0">
-                            <div className="mt-1">{getSuggestionIcon(item.type)}</div>
-                            <div className="flex-1">
-                                <CardTitle className="text-base line-clamp-2">{item.title}</CardTitle>
-                                {item.source && (
-                                    <p className="text-xs text-muted-foreground">Source: {item.source}</p>
-                                )}
-                            </div>
-                          </CardHeader>
-                          <CardContent className="flex-1">
-                            <p className="text-sm text-muted-foreground line-clamp-4">{item.content}</p>
-                          </CardContent>
-                          <CardFooter>
-                             {item.link ? (
-                                <Button variant="link" asChild className="p-0 h-auto" onClick={(e) => {e.stopPropagation(); markAsRead(item.id)}}>
-                                    <a href={item.link} target="_blank" rel="noopener noreferrer">
-                                        Read More
-                                    </a>
-                                </Button>
+            <Tabs defaultValue="new">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="new">
+                        New For You <Badge className="ml-2">{unreadItems.length}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="history">History</TabsTrigger>
+                </TabsList>
+                <TabsContent value="new" className="mt-4">
+                    <Card>
+                         <CardContent className="pt-6">
+                             {unreadItems.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  {unreadItems.map(item => (
+                                    <SuggestionCard key={item.id} item={item} onCardClick={handleCardClick} />
+                                  ))}
+                                </div>
                             ) : (
-                                <Button variant="link" className="p-0 h-auto" onClick={(e) => {e.stopPropagation(); markAsRead(item.id)}}>
-                                    Mark as Read
-                                </Button>
+                                <p className="text-muted-foreground text-center p-8">You're all caught up!</p>
                             )}
-                          </CardFooter>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-center p-4">No {shelf.title.toLowerCase()} available at the moment.</p>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                         </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="history" className="mt-4">
+                    <Card>
+                         <CardContent className="pt-6">
+                            {readItems.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {readItems.map(item => (
+                                    <SuggestionCard key={item.id} item={item} onCardClick={handleCardClick} />
+                                ))}
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground text-center p-8">No items in your history yet.</p>
+                            )}
+                         </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </CardContent>
       </Card>
       {selectedSuggestion && (

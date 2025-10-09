@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useMemo } from 'react';
 import { Book, Newspaper, Zap } from 'lucide-react';
 
 export interface SuggestionItem {
@@ -12,6 +12,13 @@ export interface SuggestionItem {
   read: boolean;
   link?: string;
   source?: string;
+  timestamp: string;
+}
+
+const generateTimestamp = (hour: number) => {
+    const date = new Date();
+    date.setHours(hour, 0, 0, 0);
+    return date.toISOString();
 }
 
 const initialSuggestions: SuggestionItem[] = [
@@ -21,7 +28,8 @@ const initialSuggestions: SuggestionItem[] = [
     title: 'Book Suggestion: "The Phoenix Project"',
     content: 'A must-read for anyone in tech. It narrates the story of a company\'s IT and DevOps transformation. A great story on teamwork and process improvement.',
     read: false,
-    link: 'https://www.amazon.com/Phoenix-Project-DevOps-Helping-Business/dp/0988262592'
+    link: 'https://www.amazon.com/Phoenix-Project-DevOps-Helping-Business/dp/0988262592',
+    timestamp: generateTimestamp(9), // Morning
   },
   {
     id: 'news-1',
@@ -30,6 +38,7 @@ const initialSuggestions: SuggestionItem[] = [
     content: 'A new study by TechCrunch shows that AI-powered chatbots have improved customer satisfaction rates by up to 25% in the retail sector.',
     read: false,
     source: 'TechCrunch',
+    timestamp: generateTimestamp(13), // Afternoon
   },
   {
     id: 'motivation-1',
@@ -37,13 +46,15 @@ const initialSuggestions: SuggestionItem[] = [
     title: 'Daily Motivation',
     content: '"The secret of getting ahead is getting started." - Mark Twain',
     read: false,
+    timestamp: generateTimestamp(16), // End of day
   },
 ];
 
 interface AISuggestionContextType {
-  agendaItems: SuggestionItem[];
-  libraryItems: SuggestionItem[];
+  unreadItems: SuggestionItem[];
+  readItems: SuggestionItem[];
   markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
 }
 
 const AISuggestionContext = createContext<AISuggestionContextType | undefined>(undefined);
@@ -51,17 +62,22 @@ const AISuggestionContext = createContext<AISuggestionContextType | undefined>(u
 export const AISuggestionProvider = ({ children }: { children: ReactNode }) => {
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>(initialSuggestions);
 
-  const agendaItems = suggestions.filter(s => s.type === 'motivation' || s.type === 'news');
-  const libraryItems = suggestions.filter(s => s.type === 'book' || s.type === 'story');
-
+  const unreadItems = useMemo(() => suggestions.filter(s => !s.read).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [suggestions]);
+  const readItems = useMemo(() => suggestions.filter(s => s.read).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), [suggestions]);
+  
   const markAsRead = (id: string) => {
     setSuggestions(prev => prev.map(s => (s.id === id ? { ...s, read: true } : s)));
   };
+  
+  const markAllAsRead = () => {
+    setSuggestions(prev => prev.map(s => ({ ...s, read: true })));
+  };
 
   const value = {
-    agendaItems,
-    libraryItems,
+    unreadItems,
+    readItems,
     markAsRead,
+    markAllAsRead,
   };
 
   return (

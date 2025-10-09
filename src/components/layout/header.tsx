@@ -50,14 +50,14 @@ export function Header() {
   const { unreadMessagesCount } = useChat();
   const { branding } = useBranding();
   const { open } = useSidebar();
-  const { agendaItems, libraryItems } = useAISuggestions();
+  const { unreadItems } = useAISuggestions();
 
   const isMeetingPage = pathname.startsWith('/meetings/');
   const meetingId = isMeetingPage && typeof params.meetingId === 'string' ? params.meetingId : null;
   const meetingDetails = meetingId ? meetings[meetingId] : null;
 
   const unreadCount = notifications.filter(n => !n.read).length;
-  const unreadLibraryCount = libraryItems.filter(item => !item.read).length;
+  const unreadLibraryCount = unreadItems.length;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
