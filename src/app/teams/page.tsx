@@ -23,22 +23,29 @@ function TeamsPageContent() {
   const [isCreateTeamOpen, setCreateTeamOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState<(typeof allTeamMembers)>([]);
 
+  const getTeamStorageKey = (department: string) => `teamMembers_${department}`;
+
   useEffect(() => {
     try {
-      const storedTeamMemberIds = localStorage.getItem('teamMembers');
+      const storageKey = getTeamStorageKey(user.department);
+      const storedTeamMemberIds = localStorage.getItem(storageKey);
       if (storedTeamMemberIds) {
         const memberIds = JSON.parse(storedTeamMemberIds);
         const savedTeam = allTeamMembers.filter(member => memberIds.includes(member.id));
         setTeamMembers(savedTeam);
+      } else {
+        setTeamMembers([]); // No team found for this department, reset to empty
       }
     } catch (error) {
       console.error("Failed to load team from localStorage", error);
+      setTeamMembers([]);
     }
-  }, []);
+  }, [user.department]);
 
   const handleTeamCreated = (selectedMemberIds: string[]) => {
     try {
-      localStorage.setItem('teamMembers', JSON.stringify(selectedMemberIds));
+      const storageKey = getTeamStorageKey(user.department);
+      localStorage.setItem(storageKey, JSON.stringify(selectedMemberIds));
       const newTeam = allTeamMembers.filter(member => selectedMemberIds.includes(member.id));
       setTeamMembers(newTeam);
     } catch (error) {
