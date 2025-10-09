@@ -67,9 +67,18 @@ const initialSuggestions: SuggestionItem[] = [
     title: 'A Thought for Your Day, Patrick',
     content: `### The Power of a Growth Mindset
 
-A growth mindset, Patrick, is the belief that your abilities can be developed through dedication and hard work. It’s not about believing you can be anything, but knowing you can improve. This simple shift in perspective is the foundation of personal and financial success. When you see challenges as opportunities to learn rather than as insurmountable obstacles, you unlock your potential to achieve great things. Every setback becomes a lesson, and every success is a stepping stone.
+A growth mindset, Patrick, is the belief that your abilities can be developed through dedication and hard work. It’s not about believing you can be anything, but knowing you can improve. This simple shift in perspective is the foundation of personal and financial success.
 
-Embracing this mindset means you are constantly learning and improving. To cultivate it, start by recognizing your fixed-mindset thoughts (e.g., "I'm not good at this") and consciously reframe them ("I'm not good at this *yet*"). Celebrate your process, not just the outcome. By focusing on growth and resilience, you build the mental wealth that is crucial for achieving financial freedom and personal fulfillment.`,
+> When you see challenges as opportunities to learn rather than as insurmountable obstacles, you unlock your potential.
+
+#### How to Cultivate a Growth Mindset:
+1.  **Recognize Your Inner Voice:** Start by noticing your fixed-mindset thoughts.
+    *   *Instead of:* "I'm not good at this."
+    *   *Think:* "I'm not good at this... *yet*."
+2.  **Celebrate the Process:** Don't just focus on the final outcome. Applaud your effort, your strategies, and the progress you're making along the way.
+3.  **Seek Feedback:** View constructive criticism as a gift that helps you grow, not as a personal attack.
+
+Embracing this mindset means you are constantly learning and improving. Every setback becomes a lesson, and every success is a stepping stone. By focusing on growth and resilience, you build the mental wealth that is crucial for achieving financial freedom and personal fulfillment.`,
     read: false,
     timestamp: generateTimestamp(9), // Morning
   },
