@@ -24,37 +24,38 @@ const generateTimestamp = (hour: number) => {
 // Simulate monthly book suggestions
 const getMonthlyBooks = () => {
     const currentMonth = new Date().getMonth();
+    // Books themed around performance, personal growth, and company growth
     const books = [
         {
             id: 'book-1',
             type: 'book' as const,
-            title: 'Book of the Month: "The Lean Startup"',
-            content: 'How Today\'s Entrepreneurs Use Continuous Innovation to Create Radically Successful Businesses. A must-read for anyone in a startup environment.',
-            read: false, // Books are never "read" in the context of being dismissible
-            link: 'https://www.amazon.com/Lean-Startup-Entrepreneurs-Continuous-Innovation/dp/0307887898',
-            timestamp: new Date(new Date().setDate(1)).toISOString(), // First of the month
+            title: 'For Your Performance: "Deep Work"',
+            content: 'Rules for Focused Success in a Distracted World. This book provides actionable advice for improving focus and productivity.',
+            read: false,
+            link: 'https://www.amazon.com/Deep-Work-Focused-Success-Distracted/dp/1455586692',
+            timestamp: new Date(new Date().setDate(1)).toISOString(),
         },
         {
             id: 'book-2',
             type: 'book' as const,
-            title: 'Book of the Month: "Thinking, Fast and Slow"',
-            content: 'A fascinating dive into the two systems that drive the way we think. System 1 is fast, intuitive, and emotional; System 2 is slower, more deliberative, and more logical.',
+            title: 'For Personal Growth: "Atomic Habits"',
+            content: 'An Easy & Proven Way to Build Good Habits & Break Bad Ones. Learn a framework for improving every day.',
             read: false,
-            link: 'https://www.amazon.com/Thinking-Fast-Slow-Daniel-Kahneman/dp/0374533555',
+            link: 'https://www.amazon.com/Atomic-Habits-Proven-Build-Breaks/dp/0735211299',
             timestamp: new Date(new Date().setDate(1)).toISOString(),
         },
         {
             id: 'book-3',
             type: 'book' as const,
-            title: 'Book of the Month: "Sapiens: A Brief History of Humankind"',
-            content: 'Explores the history of humankind, from the Stone Age to the present day, and how Homo sapiens came to dominate the world.',
+            title: 'For Company Growth: "The Innovator\'s Dilemma"',
+            content: 'When New Technologies Cause Great Firms to Fail. A classic on disruption and why market leaders are often the last to see it coming.',
             read: false,
-            link: 'https://www.amazon.com/Sapiens-Humankind-Yuval-Noah-Harari/dp/0062316095',
+            link: 'https://www.amazon.com/Innovators-Dilemma-Technologies-Management-Innovation/dp/1633691780',
             timestamp: new Date(new Date().setDate(1)).toISOString(),
         },
     ];
     // In a real app, you might have different books for different months
-    return books.slice(currentMonth % 1); // Simple logic to rotate books
+    return books;
 };
 
 
@@ -64,35 +65,35 @@ const initialSuggestions: SuggestionItem[] = [
     id: 'motivation-1',
     type: 'motivation',
     title: 'Your Daily Motivation',
-    content: '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
+    content: '"The secret of getting ahead is getting started." - Mark Twain',
     read: false,
     timestamp: generateTimestamp(9), // Morning
   },
   {
     id: 'news-1',
     type: 'news',
-    title: 'AI in Project Management',
-    content: 'A new Forbes article highlights how AI is revolutionizing project timeline predictions, reducing errors by up to 40%.',
+    title: 'Local News: Malawi Digital Skills Initiative',
+    content: 'The Malawian government has launched a new initiative to boost digital literacy and provide tech skills to over 10,000 youths, aiming to foster innovation and create jobs in the tech sector.',
     read: false,
-    source: 'Forbes',
+    source: 'Malawi News Agency',
     timestamp: generateTimestamp(13), // Afternoon
   },
   {
     id: 'news-2',
     type: 'news',
-    title: 'Remote Work Trends',
-    content: 'The latest Gallup poll shows that a hybrid model is now the preferred work style for 55% of knowledge workers.',
+    title: 'International: Global Tech Market Trends',
+    content: 'A recent report indicates that investment in AI and machine learning startups has surpassed $50 billion in the last quarter, signaling continued growth in the tech industry worldwide.',
     read: false,
-    source: 'Gallup',
+    source: 'Reuters',
     timestamp: generateTimestamp(13),
   },
   {
     id: 'news-3',
     type: 'news',
-    title: 'Cybersecurity Alert',
-    content: 'A new phishing scam targeting corporate email accounts is on the rise. Be vigilant with unsolicited attachments.',
+    title: 'Business: The Future of Hybrid Work',
+    content: 'Companies are increasingly adopting flexible work policies, with a focus on results-oriented performance metrics rather than hours spent in the office. This shift is reshaping corporate culture.',
     read: false,
-    source: 'CISA',
+    source: 'Harvard Business Review',
     timestamp: generateTimestamp(13),
   },
   {

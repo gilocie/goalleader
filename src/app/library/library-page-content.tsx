@@ -88,9 +88,9 @@ export function LibraryPageContent() {
                          <CardContent className="pt-6 space-y-8">
                              {unreadItems.length > 0 || monthlyBooks.length > 0 ? (
                                 <>
-                                    <Shelf title="Book Suggestions of the Month" items={monthlyBooks} onCardClick={handleCardClick} gridCols="lg:grid-cols-3" />
                                     {motivationItem && <Shelf title="Daily Motivation" items={[motivationItem]} onCardClick={handleCardClick} gridCols="lg:grid-cols-1" />}
                                     <Shelf title="Daily News" items={newsItems} onCardClick={handleCardClick} gridCols="lg:grid-cols-3" />
+                                    <Shelf title="Book Suggestions of the Month" items={monthlyBooks} onCardClick={handleCardClick} gridCols="lg:grid-cols-3" />
                                     {storyItem && <Shelf title="Business Stories" items={[storyItem]} onCardClick={handleCardClick} gridCols="lg:grid-cols-1" />}
                                 </>
                             ) : (
