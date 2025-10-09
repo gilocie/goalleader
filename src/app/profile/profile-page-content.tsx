@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,6 +43,12 @@ function ProfileTabContent() {
     const [name, setName] = useState(user.name);
     const [selectedDepartment, setSelectedDepartment] = useState(user.department);
     const [selectedRole, setSelectedRole] = useState(user.role);
+    
+    useEffect(() => {
+        setName(user.name);
+        setSelectedDepartment(user.department);
+        setSelectedRole(user.role);
+    }, [user]);
 
     const availableRoles = departmentsAndRoles[selectedDepartment as keyof typeof departmentsAndRoles] || [];
 
