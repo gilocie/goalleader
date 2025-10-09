@@ -15,72 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/context/user-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
-
-const allTeamMembers = [
-  {
-    id: 'patrick-achitabwino-m1',
-    name: 'Patrick Achitabwino (You)',
-    role: 'Team Leader' as const,
-    status: 'online' as const,
-    department: 'Customer Service'
-  },
-  {
-    id: 'frank-mhango-m2',
-    name: 'Frank Mhango',
-    role: 'Consultant' as const,
-    status: 'offline' as const,
-    department: 'Customer Service'
-  },
-  {
-    id: 'denis-maluwasa-m3',
-    name: 'Denis Maluwasa',
-    role: 'Consultant' as const,
-    status: 'online' as const,
-    department: 'Customer Service'
-  },
-  {
-    id: 'gift-banda-m4',
-    name: 'Gift Banda',
-    role: 'Frontend Developer' as const,
-    status: 'online' as const,
-    department: 'Engineering'
-  },
-  {
-    id: 'chiyanjano-mkandawire-m5',
-    name: 'Chiyanjano Mkandawire',
-    role: 'Backend Developer' as const,
-    status: 'offline' as const,
-    department: 'Engineering'
-  },
-   {
-    id: 'wezi-chisale-m6',
-    name: 'Wezi Chisale',
-    role: 'Marketing Specialist' as const,
-    status: 'online' as const,
-    department: 'Marketing'
-  },
-  {
-    id: 'charity-moyo-m7',
-    name: 'Charity Moyo',
-    role: 'Content Creator' as const,
-    status: 'offline' as const,
-    department: 'Marketing'
-  },
-   {
-    id: 'fumbani-mwenefumbo-m8',
-    name: 'Fumbani Mwenefumbo',
-    role: 'IT Support' as const,
-    status: 'online' as const,
-    department: 'ICT'
-  },
-  {
-    id: 'rose-kabudula-m9',
-    name: 'Rose Kabudula',
-    role: 'Admin' as const,
-    status: 'online' as const,
-    department: 'ICT'
-  },
-];
+import { allTeamMembers } from '@/lib/users';
 
 function TeamsPageContent() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
@@ -144,7 +79,7 @@ function TeamsPageContent() {
                    {teamMembers.length > 0 && (
                         <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button>
+                            <Button onClick={() => setCreateTeamOpen(true)}>
                                 <Edit className="mr-2 h-4 w-4" /> Edit Team
                             </Button>
                         </TooltipTrigger>
