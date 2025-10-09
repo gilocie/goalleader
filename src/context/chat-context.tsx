@@ -3,7 +3,7 @@
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
 import type { Contact, Message } from '@/types/chat';
-import { format, formatDistanceToNowStrict } from 'date-fns';
+import { format } from 'date-fns';
 
 const USER_ID = 'patrick-achitabwino-m1';
 
@@ -17,10 +17,6 @@ const teamMembers: Omit<Contact, 'lastMessage' | 'lastMessageTime' | 'unreadCoun
     { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'last seen 2 days ago' },
     { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const },
     { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const },
-];
-
-const messagesData: Message[] = [
-    { id: 'msg1', senderId: 'denis-maluwasa-m3', recipientId: USER_ID, content: 'I pushed the latest changes.', timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(), type: 'text', readStatus: 'sent' }
 ];
 
 interface ChatContextType {
@@ -56,7 +52,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const [messages, setMessages] = useState<Message[]>(messagesData);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
@@ -65,6 +61,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set(['denis-maluwasa-m3'])); // Start with one active chat
+
+  useEffect(() => {
+    // Generate initial message data on the client side to avoid hydration issues
+    const messagesData: Message[] = [
+        { id: 'msg1', senderId: 'denis-maluwasa-m3', recipientId: USER_ID, content: 'I pushed the latest changes.', timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(), type: 'text', readStatus: 'sent' }
+    ];
+    setMessages(messagesData);
+  }, []);
+
 
   const allContacts = useMemo(() => {
     return teamMembers.map(member => {
@@ -104,7 +109,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
         console.error("Failed to load active chats from localStorage", error);
     }
-  }, []);
+  }, [messages]);
 
   const updateActiveChatIds = (newIds: Set<string>) => {
     setActiveChatIds(newIds);
