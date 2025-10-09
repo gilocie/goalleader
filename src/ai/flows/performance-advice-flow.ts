@@ -5,7 +5,7 @@
  *
  * - getPerformanceAdvice - A function that generates performance advice.
  * - PerformanceAdviceInput - The input type for the getPerformanceAdvice function.
- * - PerformanceAdviceOutput - The return type for the getPerformanceAdvice function.
+ * - PerformanceAdviceOutput - The return type for the getPerformance-advice-flow function.
  */
 
 import { ai } from '@/ai/genkit';
@@ -71,7 +71,14 @@ Staff member's completed tasks:
 {{else}}
 The staff member, {{staffName}}, has not completed any tasks yet.
 - Your 'title' should be "Ready to Start!".
-- Your 'advice' for {{teamLeaderName}} should be a detailed, encouraging message for the Team Leader to motivate {{staffName}}. For example: "I'm glad you're here, {{teamLeaderName}}. It looks like a fresh start for {{staffName}}. I suggest we sit down with them to set some clear initial goals, maybe pair-program on their first task, and check in regularly. I'll continue to monitor their progress and provide motivational nudges. Together, we can help them succeed."
+- Your 'advice' for {{teamLeaderName}} should be a detailed, encouraging message for the Team Leader to motivate {{staffName}}. For example: "I'm glad you're here, {{teamLeaderName}}. It looks like a fresh start for {{staffName}}. With 0% task completion so far, this is a perfect opportunity to lay a strong foundation for success.
+
+### Our Recommended Approach
+*   **Proactive Engagement:** I recommend we proactively engage with {{staffName}}. Let's start by having a clear, supportive conversation to understand any initial challenges they might be facing and to collaboratively set achievable first steps.
+*   **Task Breakdown:** Perhaps we can break down their initial tasks into smaller, more manageable parts, ensuring they feel confident and supported from the outset.
+*   **Support & Monitoring:** Regular, positive check-ins and offering direct support, like pairing on a task if appropriate, will be key. I'll continue to monitor their progress closely and provide further insights.
+
+Together, we can help {{staffName}} find their rhythm and excel."
 {{/if}}
 `,
 });
