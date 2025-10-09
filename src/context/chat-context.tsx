@@ -66,14 +66,32 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Initialize active chats based on existing messages
-    const initialChatIds = new Set<string>();
-    messages.forEach(msg => {
-      if (msg.senderId !== USER_ID) initialChatIds.add(msg.senderId);
-      if (msg.recipientId !== USER_ID) initialChatIds.add(msg.recipientId);
-    });
-    setActiveChatIds(initialChatIds);
-  }, [messages]);
+    try {
+        const storedIds = localStorage.getItem('activeChatIds');
+        if (storedIds) {
+            setActiveChatIds(new Set(JSON.parse(storedIds)));
+        } else {
+            // Initialize with any contacts that have messages if nothing is in storage
+            const initialChatIds = new Set<string>();
+            messages.forEach(msg => {
+                if (msg.senderId !== USER_ID) initialChatIds.add(msg.senderId);
+                if (msg.recipientId !== USER_ID) initialChatIds.add(msg.recipientId);
+            });
+            setActiveChatIds(initialChatIds);
+        }
+    } catch (error) {
+        console.error("Failed to load active chats from localStorage", error);
+    }
+  }, []);
+
+  const updateActiveChatIds = (newIds: Set<string>) => {
+    setActiveChatIds(newIds);
+    try {
+        localStorage.setItem('activeChatIds', JSON.stringify(Array.from(newIds)));
+    } catch (error) {
+        console.error("Failed to save active chats to localStorage", error);
+    }
+  }
 
   const contacts = useMemo(() => {
     const contactList = allContacts.filter(c => c.id !== USER_ID && activeChatIds.has(c.id));
@@ -99,7 +117,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       ...data
     };
     setMessages(prev => [...prev, newMessage]);
-    setActiveChatIds(prev => new Set(prev).add(recipientId));
+    updateActiveChatIds(new Set(activeChatIds).add(recipientId));
 
 
     if (content.toLowerCase().includes('call me') || content.toLowerCase().includes('video chat')) {
@@ -171,7 +189,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         }, 2000 + Math.random() * 2000); // random typing delay
     }, 1000);
 
-  }, [self, allContacts, selectedContact]);
+  }, [self, allContacts, selectedContact, activeChatIds]);
 
   const addSystemMessage = useCallback((content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self) return;
@@ -284,7 +302,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c
         ));
         // Ensure the new chat is active
-        setActiveChatIds(prev => new Set(prev).add(selectedContact.id));
+        updateActiveChatIds(new Set(activeChatIds).add(selectedContact.id));
     }
   }, [selectedContact, self?.id]);
 
@@ -327,5 +345,3 @@ export const useChat = () => {
   }
   return context;
 };
-
-    
