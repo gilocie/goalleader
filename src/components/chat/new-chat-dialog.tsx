@@ -8,19 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '../ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Check, Search, LayoutGrid, List, User } from 'lucide-react';
+import { Search, LayoutGrid, List, User } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { allTeamMembers, TeamMember } from '@/lib/users';
-import { Separator } from '../ui/separator';
 import type { Contact } from '@/types/chat';
 import { useUser } from '@/context/user-context';
 import { ViewProfileDialog } from './view-profile-dialog';
@@ -29,6 +26,7 @@ interface NewChatDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onStartChat: (contact: Contact) => void;
+  // allMembers is removed from props as it's now imported directly
 }
 
 export function NewChatDialog({
@@ -95,7 +93,7 @@ export function NewChatDialog({
                       "px-6 py-2",
                       layout === 'list' ? 'grid grid-cols-1 md:grid-cols-2 gap-2' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
                   )}>
-                  {filteredMembers.map((member, index) => {
+                  {filteredMembers.map((member) => {
                       const avatar = PlaceHolderImages.find(p => p.id === member.id);
                       const memberName = member.name.replace(' (You)', '');
                       

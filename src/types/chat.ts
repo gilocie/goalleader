@@ -1,4 +1,3 @@
-
 export interface Contact {
     id: string;
     name: string;
@@ -15,7 +14,7 @@ export interface Message {
     senderId: string;
     recipientId: string;
     content: string;
-    timestamp: string;
+    timestamp: string; // ISO 8601 format
     readStatus?: 'sent' | 'delivered' | 'read';
     isSystem?: boolean;
     type: 'text' | 'audio' | 'image' | 'file';
@@ -26,5 +25,3 @@ export interface Message {
     fileUrl?: string;
     replyTo?: string; // ID of the message this is a reply to
 }
-
-    

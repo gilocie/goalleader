@@ -31,6 +31,7 @@ import { useRouter } from 'next/navigation';
 import { VideoCallDialog } from './video-call-dialog';
 import { IncomingVoiceCallDialog } from './incoming-voice-call-dialog';
 import { VoiceCallDialog } from './voice-call-dialog';
+import { format } from 'date-fns';
 
 interface AudioPlayerProps {
     audioUrl: string;
@@ -272,7 +273,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                       return (
                         <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
                           {isVoice ? <Phone size={14} /> : <VideoIcon size={14} />}
-                          <span>{message.content} - {message.timestamp}</span>
+                          <span>{message.content} - {format(new Date(message.timestamp), 'p')}</span>
                         </div>
                       )
                     }
@@ -294,7 +295,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                 ) : message.type === 'file' && message.fileName && message.fileUrl ? ( <div className="p-3"><div className="flex items-center gap-3"><div className="h-8 w-8" /><div className="flex-1"><p className="font-medium truncate">{message.fileName}</p></div><a href={message.fileUrl} download={message.fileName}><Download className="h-5 w-5" /></a></div></div>
                                 ) : null}
                                 {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
-                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
+                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{format(new Date(message.timestamp), 'p')}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
                             </div>
 
                             {!isSelf && <MessageActions message={message} />}

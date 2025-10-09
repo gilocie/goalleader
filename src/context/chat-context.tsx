@@ -1,25 +1,26 @@
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
 import type { Contact, Message } from '@/types/chat';
-import { format } from 'date-fns';
+import { format, formatDistanceToNowStrict } from 'date-fns';
 
 const USER_ID = 'patrick-achitabwino-m1';
 
-const teamMembers: Contact[] = [
-    { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const, lastMessage: 'On it!', lastMessageTime: '5m', unreadCount: 0, lastMessageReadStatus: 'read' },
-    { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'last seen today at 1:30 PM', lastMessage: 'See you tomorrow.', lastMessageTime: '1h', lastMessageReadStatus: 'delivered' },
-    { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const, lastMessage: 'I pushed the latest changes.', lastMessageTime: '20m', unreadCount: 1, lastMessageReadStatus: 'sent' },
-    { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const, lastMessage: 'The mockups are ready for review.', lastMessageTime: '1h', lastMessageReadStatus: 'read' },
-    { id: 'chiyanjano-mkandawire-m5', name: 'Chiyanjano Mkandawire', role: 'Consultant', status: 'last seen yesterday at 11:15 PM', lastMessage: 'I have a question about the new feature.', lastMessageTime: '3h', lastMessageReadStatus: 'delivered' },
-    { id: 'wezi-chisale-m6', name: 'Wezi Chisale', role: 'Consultant', status: 'online' as const, lastMessage: 'The staging server is updated.', lastMessageTime: '10m', unreadCount: 0, lastMessageReadStatus: 'read' },
-    { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'last seen 2 days ago', lastMessage: 'All set for the demo.', lastMessageTime: '4h', lastMessageReadStatus: 'sent' },
-    { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const, lastMessage: 'The data analysis is complete.', lastMessageTime: '30m', lastMessageReadStatus: 'read' },
-    { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const, lastMessage: 'All set for the demo.', lastMessageTime: '15m', lastMessageReadStatus: 'read' },
+const teamMembers: Omit<Contact, 'lastMessage' | 'lastMessageTime' | 'unreadCount' | 'lastMessageReadStatus'>[] = [
+    { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const },
+    { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'last seen today at 1:30 PM' },
+    { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const },
+    { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const },
+    { id: 'chiyanjano-mkandawire-m5', name: 'Chiyanjano Mkandawire', role: 'Consultant', status: 'last seen yesterday at 11:15 PM' },
+    { id: 'wezi-chisale-m6', name: 'Wezi Chisale', role: 'Consultant', status: 'online' as const },
+    { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'last seen 2 days ago' },
+    { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const },
+    { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const },
 ];
 
-const messagesData: Message[] = [];
+const messagesData: Message[] = [
+    { id: 'msg1', senderId: 'denis-maluwasa-m3', recipientId: USER_ID, content: 'I pushed the latest changes.', timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(), type: 'text', readStatus: 'sent' }
+];
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -52,7 +53,6 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const [allContacts, setAllContacts] = useState<Contact[]>(teamMembers);
   const [messages, setMessages] = useState<Message[]>(messagesData);
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
@@ -60,10 +60,29 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [incomingVoiceCallFrom, setIncomingVoiceCallFrom] = useState<Contact | null>(null);
   const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
   
-  const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
-  
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set());
+  const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set(['denis-maluwasa-m3'])); // Start with one active chat
+
+  const allContacts = useMemo(() => {
+    return teamMembers.map(member => {
+        const relevantMessages = messages.filter(
+            msg => (msg.senderId === member.id && msg.recipientId === USER_ID) ||
+                   (msg.senderId === USER_ID && msg.recipientId === member.id)
+        );
+        const lastMessage = relevantMessages[relevantMessages.length - 1];
+        const unreadCount = relevantMessages.filter(msg => msg.senderId === member.id && msg.readStatus !== 'read').length;
+
+        return {
+            ...member,
+            lastMessage: lastMessage?.content || 'No messages yet',
+            lastMessageTime: lastMessage ? formatDistanceToNowStrict(new Date(lastMessage.timestamp), { addSuffix: false }) : '',
+            unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
+            lastMessageReadStatus: lastMessage?.readStatus,
+        };
+    });
+  }, [messages, selectedContact]);
+
+  const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
 
   useEffect(() => {
     try {
@@ -97,7 +116,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const contactList = allContacts.filter(c => c.id !== USER_ID && activeChatIds.has(c.id));
     // If a contact is selected but has no messages yet, add them to the list.
     if (selectedContact && !contactList.some(c => c.id === selectedContact.id)) {
-        return [selectedContact, ...contactList];
+        const contactData = allContacts.find(c => c.id === selectedContact.id);
+        if (contactData) {
+            return [contactData, ...contactList];
+        }
     }
     return contactList;
   }, [allContacts, activeChatIds, selectedContact]);
@@ -111,7 +133,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       senderId: self.id,
       recipientId,
       content,
-      timestamp: format(new Date(), 'p'),
+      timestamp: new Date().toISOString(),
       readStatus: 'sent',
       type: type,
       ...data
@@ -144,7 +166,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setIsTyping(true);
         // Mark as delivered
         setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'delivered'} : m));
-        setAllContacts(prev => prev.map(c => c.id === self.id ? {...c, lastMessageReadStatus: 'delivered'} : c));
 
         setTimeout(() => {
              // Simulate a reply from the recipient
@@ -161,35 +182,22 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                     senderId: recipientId,
                     recipientId: self.id,
                     content: replyContent,
-                    timestamp: format(new Date(), 'p'),
+                    timestamp: new Date().toISOString(),
                     type: 'text'
                 };
                 setMessages(prev => [...prev, replyMessage]);
                 setIsTyping(false);
-                
-                // Update contact list with new message and unread count
-                setAllContacts(prev => prev.map(c => 
-                    c.id === recipientId 
-                    ? {
-                        ...c, 
-                        lastMessage: replyMessage.content, 
-                        lastMessageTime: format(new Date(), 'p'),
-                        unreadCount: (selectedContact?.id !== c.id) ? (c.unreadCount || 0) + 1 : c.unreadCount
-                    } 
-                    : c
-                ));
             }
 
             // After 3 seconds, simulate that the recipient read the message
             setTimeout(() => {
                 setMessages(prev => prev.map(m => m.id === newMessage.id ? {...m, readStatus: 'read'} : m));
-                setAllContacts(prev => prev.map(c => c.id === self.id ? {...c, lastMessageReadStatus: 'read'} : c));
             }, 1000);
 
         }, 2000 + Math.random() * 2000); // random typing delay
     }, 1000);
 
-  }, [self, allContacts, selectedContact, activeChatIds]);
+  }, [self, allContacts, activeChatIds]);
 
   const addSystemMessage = useCallback((content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self) return;
@@ -198,7 +206,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         senderId: self.id,
         recipientId: contactId,
         content: content,
-        timestamp: format(new Date(), 'p'),
+        timestamp: new Date().toISOString(),
         type: 'text',
         isSystem: true,
     };
@@ -219,25 +227,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 id: `fwd-${Date.now()}-${index}-${Math.random()}`,
                 senderId: self.id,
                 recipientId: recipientId,
-                timestamp: format(new Date(), 'p'),
+                timestamp: new Date().toISOString(),
                 readStatus: 'sent',
             };
             setMessages(prev => [...prev, forwardedMessage]);
-
-             // Update contact list with new message and unread count
-            setAllContacts(prev => prev.map(c => 
-                c.id === recipientId 
-                ? {
-                    ...c, 
-                    lastMessage: `Forwarded: ${message.content || message.type}`,
-                    lastMessageTime: format(new Date(), 'p'),
-                    unreadCount: (selectedContact?.id !== c.id) ? (c.unreadCount || 0) + 1 : c.unreadCount
-                  } 
-                : c
-            ));
         }, index * 100); // Stagger sending
     });
-  }, [self, selectedContact]);
+  }, [self]);
 
   const startCall = useCallback((contact: Contact) => {
     setAcceptedCallContact(contact);
@@ -297,10 +293,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             : m
         ));
         
-        // Update unread count on the contact
-        setAllContacts(prev => prev.map(c => 
-            c.id === selectedContact.id ? { ...c, unreadCount: 0 } : c
-        ));
         // Ensure the new chat is active
         updateActiveChatIds(new Set(activeChatIds).add(selectedContact.id));
     }
