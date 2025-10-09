@@ -34,7 +34,7 @@ export function NewChatDialog({
 }: NewChatDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const { allContacts, self } = useChat();
-  const [layout, setLayout] = useState<'grid' | 'list'>('list');
+  const [layout, setLayout] = useState<'grid' | 'list'>('grid');
 
   const membersToShow = allContacts.filter(member => member.id !== self?.id);
 
@@ -44,7 +44,7 @@ export function NewChatDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg h-[470px] flex flex-col p-0">
+      <DialogContent className="sm:max-w-xl h-[470px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
