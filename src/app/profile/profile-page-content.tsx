@@ -21,8 +21,14 @@ type Kpi = {
   value: string;
 };
 
-const departments = ["Customer Service", "Engineering", "Marketing", "ICT"];
-const roles = ["Admin", "Consultant", "Team Leader"];
+const departmentsAndRoles = {
+    "Customer Service": ["Consultant", "Team Leader"],
+    "Engineering": ["Frontend Developer", "Backend Developer", "QA Engineer"],
+    "Marketing": ["Marketing Specialist", "Content Creator"],
+    "ICT": ["Admin", "IT Support"],
+};
+
+const departments = Object.keys(departmentsAndRoles);
 
 function ProfileTabContent() {
     const userAvatar = PlaceHolderImages.find((img) => img.id === 'patrick-achitabwino-m1');
@@ -31,6 +37,16 @@ function ProfileTabContent() {
         { id: 2, value: '' },
         { id: 3, value: '' },
     ]);
+    const [selectedDepartment, setSelectedDepartment] = useState('Customer Service');
+    const [selectedRole, setSelectedRole] = useState('Consultant');
+
+    const availableRoles = departmentsAndRoles[selectedDepartment as keyof typeof departmentsAndRoles] || [];
+
+    const handleDepartmentChange = (department: string) => {
+        setSelectedDepartment(department);
+        const rolesForDept = departmentsAndRoles[department as keyof typeof departmentsAndRoles];
+        setSelectedRole(rolesForDept ? rolesForDept[0] : '');
+    };
 
     const addKpi = () => {
         setKpis([...kpis, { id: Date.now(), value: '' }]);
@@ -108,7 +124,7 @@ function ProfileTabContent() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="department">Department</Label>
-                        <Select defaultValue="Customer Service">
+                        <Select value={selectedDepartment} onValueChange={handleDepartmentChange}>
                           <SelectTrigger id="department">
                             <SelectValue placeholder="Select department" />
                           </SelectTrigger>
@@ -123,12 +139,12 @@ function ProfileTabContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>
-                        <Select defaultValue="Consultant">
+                        <Select value={selectedRole} onValueChange={setSelectedRole}>
                           <SelectTrigger id="role">
                             <SelectValue placeholder="Select role" />
                           </SelectTrigger>
                           <SelectContent>
-                            {roles.map((role) => (
+                            {availableRoles.map((role) => (
                               <SelectItem key={role} value={role}>{role}</SelectItem>
                             ))}
                           </SelectContent>

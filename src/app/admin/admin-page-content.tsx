@@ -289,7 +289,7 @@ function DepartmentsTabContent() {
                         <Button>Add Department</Button>
                     </div>
                 </div>
-                <p className='text-muted-foreground text-sm'>Existing: Customer Service, Engineering, Marketing</p>
+                <p className='text-muted-foreground text-sm'>Existing: Customer Service, Engineering, Marketing, ICT</p>
             </CardContent>
         </Card>
     );
@@ -303,12 +303,23 @@ function RolesTabContent() {
                 <CardDescription>Define and manage user roles in the system.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 max-w-2xl">
-                 <div className='space-y-2'>
+                <div className='space-y-4'>
                     <Label>Add New Role</Label>
-                    <div className='flex gap-2'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                         <Input placeholder="e.g., Team Leader" />
-                        <Button>Add Role</Button>
+                        <Select>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ict">ICT</SelectItem>
+                                <SelectItem value="customer-service">Customer Service</SelectItem>
+                                <SelectItem value="engineering">Engineering</SelectItem>
+                                <SelectItem value="marketing">Marketing</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
+                    <Button>Add Role</Button>
                 </div>
                 <p className='text-muted-foreground text-sm'>Existing: Admin, Consultant</p>
             </CardContent>
