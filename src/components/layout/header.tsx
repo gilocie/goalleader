@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library } from 'lucide-react';
@@ -30,7 +29,6 @@ import { Logo } from '../icons';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './sidebar';
 import { useAISuggestions } from '@/context/ai-suggestion-context';
-import { AgendaDropdown } from '../notifications/agenda-dropdown';
 import { LibraryDropdown } from '../notifications/library-dropdown';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
@@ -115,12 +113,6 @@ export function Header() {
         <div className="md:hidden">
             <TimeTracker layout="inline" />
         </div>
-         <AgendaDropdown>
-              <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
-                  <Calendar className="h-4 w-4" />
-                  <span className="sr-only">Toggle Agenda</span>
-              </Button>
-          </AgendaDropdown>
 
           <LibraryDropdown>
               <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
