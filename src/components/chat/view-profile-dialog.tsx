@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -32,7 +33,7 @@ export function ViewProfileDialog({ isOpen, onOpenChange, member }: ViewProfileD
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
-        <DialogHeader className="items-center text-center pt-2">
+        <DialogHeader className="items-center text-center">
           <div className="relative">
             <Avatar className="h-20 w-20">
                 <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} />
@@ -46,7 +47,7 @@ export function ViewProfileDialog({ isOpen, onOpenChange, member }: ViewProfileD
           <DialogTitle className="text-xl pt-2">{member.name}</DialogTitle>
           <DialogDescription>{member.role}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-2">
+        <div className="space-y-3">
             <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-muted-foreground">Department</span>
                 <Badge variant="secondary">{member.department}</Badge>
@@ -64,7 +65,7 @@ export function ViewProfileDialog({ isOpen, onOpenChange, member }: ViewProfileD
                 <p className="text-sm bg-muted p-2 rounded-md">A passionate developer dedicated to building beautiful and functional user experiences.</p>
             </div>
         </div>
-        <DialogFooter className="pt-2">
+        <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline" className="w-full">
               Close
