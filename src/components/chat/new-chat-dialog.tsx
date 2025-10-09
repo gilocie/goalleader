@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -80,7 +79,7 @@ export function NewChatDialog({
             <ScrollArea className="h-full">
                 <div className={cn(
                     "px-6 py-2",
-                    layout === 'list' ? 'space-y-1' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
+                    layout === 'list' ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3'
                 )}>
                 {filteredMembers.map(member => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
