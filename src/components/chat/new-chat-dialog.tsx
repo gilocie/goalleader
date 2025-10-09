@@ -20,6 +20,7 @@ import { useChat } from '@/context/chat-context';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { allTeamMembers } from '@/lib/users';
 
 interface NewChatDialogProps {
   isOpen: boolean;
@@ -33,13 +34,13 @@ export function NewChatDialog({
   onStartChat,
 }: NewChatDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const { allContacts, self } = useChat();
+  const { self } = useChat();
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
 
-  const membersToShow = allContacts.filter(member => member.id !== self?.id);
+  const membersToShow = allTeamMembers.filter(member => member.id !== self?.id);
 
   const filteredMembers = membersToShow.filter(member =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase())
+    member.name.toLowerCase().replace(' (you)', '').includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -84,6 +85,7 @@ export function NewChatDialog({
                 )}>
                 {filteredMembers.map(member => {
                     const avatar = PlaceHolderImages.find(p => p.id === member.id);
+                    const memberName = member.name.replace(' (You)', '');
                     if (layout === 'grid') {
                         return (
                              <Card
@@ -92,10 +94,10 @@ export function NewChatDialog({
                                 onClick={() => onStartChat(member)}
                             >
                                 <Avatar className="h-12 w-12 mb-2">
-                                    <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint}/>
-                                    <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                    <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
+                                    <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                                 </Avatar>
-                                <p className="text-sm font-semibold line-clamp-1">{member.name}</p>
+                                <p className="text-sm font-semibold line-clamp-1">{memberName}</p>
                                 <p className="text-xs text-muted-foreground line-clamp-1">{member.role}</p>
                             </Card>
                         )
@@ -107,11 +109,11 @@ export function NewChatDialog({
                             onClick={() => onStartChat(member)}
                         >
                             <Avatar>
-                                <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint}/>
-                                <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                                <AvatarImage src={avatar?.imageUrl} alt={memberName} data-ai-hint={avatar?.imageHint}/>
+                                <AvatarFallback>{memberName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-semibold">{member.name}</p>
+                                <p className="font-semibold">{memberName}</p>
                                 <p className="text-sm text-muted-foreground">{member.role}</p>
                             </div>
                         </div>
