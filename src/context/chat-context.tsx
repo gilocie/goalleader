@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
@@ -117,7 +118,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         const lastMessageB = messages.filter(m => m.senderId === b.id || m.recipientId === b.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
-        return new Date(lastMessageB.timestamp).getTime() - new Date(lastMessageA.timestamp).getTime();
+        return new Date(lastMessageB.timestamp).getTime() - new Date(lastMessageB.timestamp).getTime();
     });
 
     // If a contact is selected but not in the active list (i.e., no messages yet), add them to the top.
@@ -173,8 +174,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         timestamp: new Date().toISOString(),
         type: 'text',
         isSystem: true,
+        callType: type,
     };
-    updateMessages([...messages, systemMessage]);
+    updateMessages(prev => [...prev, systemMessage]);
   }, [self, messages]);
 
   const deleteMessage = useCallback((messageId: string) => {

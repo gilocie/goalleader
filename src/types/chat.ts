@@ -1,4 +1,5 @@
 
+
 export interface Contact {
     id: string;
     name: string;
@@ -26,4 +27,5 @@ export interface Message {
     fileName?: string;
     fileUrl?: string;
     replyTo?: string; // ID of the message this is a reply to
+    callType?: 'video' | 'voice';
 }

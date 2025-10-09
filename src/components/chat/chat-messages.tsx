@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
 import { useRef, useState, useEffect } from 'react';
@@ -126,6 +126,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [isReceivingVoiceCall, setIsReceivingVoiceCall] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   
+  const [showWaitDialog, setShowWaitDialog] = useState(false);
+
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
     title: string;
@@ -135,10 +137,20 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
   const isChatEstablished = selectedContact.lastMessageReadStatus !== 'request_sent';
 
-  const handleCallClick = () => { startVoiceCall(selectedContact) };
+  const handleCallClick = () => { 
+    if (!isChatEstablished) {
+        setShowWaitDialog(true);
+    } else {
+        startVoiceCall(selectedContact);
+    }
+  };
   const handleVideoClick = () => {
-    setIsReceivingCall(false);
-    startCall(selectedContact);
+    if (!isChatEstablished) {
+        setShowWaitDialog(true);
+    } else {
+        setIsReceivingCall(false);
+        startCall(selectedContact);
+    }
   };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
   const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
@@ -287,7 +299,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div>
-                            <Button variant="outline" size="icon" onClick={handleCallClick} disabled={!isChatEstablished}><Phone className="h-4 w-4" /></Button>
+                            <Button variant="outline" size="icon" onClick={handleCallClick}><Phone className="h-4 w-4" /></Button>
                         </div>
                     </TooltipTrigger>
                     {!isChatEstablished && <TooltipContent>Reply to message to enable calls</TooltipContent>}
@@ -295,7 +307,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <Tooltip>
                     <TooltipTrigger asChild>
                        <div>
-                         <Button variant="outline" size="icon" onClick={handleVideoClick} disabled={!isChatEstablished}><Video className="h-4 w-4" /></Button>
+                         <Button variant="outline" size="icon" onClick={handleVideoClick}><Video className="h-4 w-4" /></Button>
                        </div>
                     </TooltipTrigger>
                     {!isChatEstablished && <TooltipContent>Reply to message to enable calls</TooltipContent>}
@@ -328,8 +340,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     const senderAvatar = PlaceHolderImages.find(p => p.id === sender.id);
 
                     if (message.isSystem) {
-                      const isVideo = message.content.includes('video');
-                      const isVoice = message.content.includes('voice');
+                      const isVideo = message.content.toLowerCase().includes('video');
+                      const isVoice = message.content.toLowerCase().includes('voice');
                       return (
                         <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
                           {isVoice ? <Phone size={14} /> : <VideoIcon size={14} />}
@@ -444,6 +456,19 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             onConfirm={confirmation.onConfirm}
             />
         )}
+        <AlertDialog open={showWaitDialog} onOpenChange={setShowWaitDialog}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Request Pending</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Please wait for {selectedContact.name} to accept your message request before starting a call.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>OK</AlertDialogCancel>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </>
   );
 }
