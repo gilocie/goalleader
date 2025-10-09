@@ -133,6 +133,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     onConfirm: () => void;
   } | null>(null);
 
+  const isChatEstablished = selectedContact.lastMessageReadStatus !== 'request_sent';
+
   const handleCallClick = () => { startVoiceCall(selectedContact) };
   const handleVideoClick = () => {
     setIsReceivingCall(false);
@@ -281,8 +283,24 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handleCallClick}><Phone className="h-4 w-4" /></Button>
-            <Button variant="outline" size="icon" onClick={handleVideoClick}><Video className="h-4 w-4" /></Button>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <div>
+                            <Button variant="outline" size="icon" onClick={handleCallClick} disabled={!isChatEstablished}><Phone className="h-4 w-4" /></Button>
+                        </div>
+                    </TooltipTrigger>
+                    {!isChatEstablished && <TooltipContent>Reply to message to enable calls</TooltipContent>}
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                       <div>
+                         <Button variant="outline" size="icon" onClick={handleVideoClick} disabled={!isChatEstablished}><Video className="h-4 w-4" /></Button>
+                       </div>
+                    </TooltipTrigger>
+                    {!isChatEstablished && <TooltipContent>Reply to message to enable calls</TooltipContent>}
+                </Tooltip>
+            </TooltipProvider>
             <DropdownMenu>
               <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end">
