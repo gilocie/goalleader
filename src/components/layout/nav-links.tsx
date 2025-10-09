@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon, LifeBuoy, Shield } from 'lucide-react';
+import { LayoutDashboard, Package, Users, ListTodo, LineChart, Calendar, Megaphone, Store, FileText, MessageSquare as ChatIcon, LifeBuoy, Shield, Library } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
 import { Badge } from '../ui/badge';
@@ -33,6 +33,7 @@ const links: NavLink[] = [
     ]
   },
   { href: '/marketing', icon: Store, label: 'Marketing' },
+  { href: '/library', icon: Library, label: 'Library' },
   { href: '/teams', icon: Users, label: 'Teams' },
   { href: '/chat', icon: ChatIcon, label: 'Chat', notificationKey: 'chat' },
   { href: '/meetings', icon: Calendar, label: 'Meetings' },
@@ -166,7 +167,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                       )
                     : cn(
                         'text-muted-foreground hover:bg-muted/50',
-                        isActive && 'bg-primary text-primary-foreground'
+                        (isActive && href !== '/') ? 'bg-primary text-primary-foreground' : 'bg-card'
                       )
             )}
         >

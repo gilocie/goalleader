@@ -118,94 +118,96 @@ export function Header() {
         </div>
       </div>
       
-       <AgendaDropdown>
-            <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
-                <Calendar className="h-4 w-4" />
-                {unreadAgendaCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                        {unreadAgendaCount}
-                    </span>
-                )}
-                <span className="sr-only">Toggle Agenda</span>
-            </Button>
-        </AgendaDropdown>
+      <div className="flex items-center gap-2">
+        <AgendaDropdown>
+              <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
+                  <Calendar className="h-4 w-4" />
+                  {unreadAgendaCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                          {unreadAgendaCount}
+                      </span>
+                  )}
+                  <span className="sr-only">Toggle Agenda</span>
+              </Button>
+          </AgendaDropdown>
 
-        <LibraryDropdown>
-            <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
-                <Library className="h-4 w-4" />
-                {unreadLibraryCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                        {unreadLibraryCount}
-                    </span>
-                )}
-                <span className="sr-only">Toggle Library</span>
-            </Button>
-        </LibraryDropdown>
+          <LibraryDropdown>
+              <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
+                  <Library className="h-4 w-4" />
+                  {unreadLibraryCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                          {unreadLibraryCount}
+                      </span>
+                  )}
+                  <span className="sr-only">Toggle Library</span>
+              </Button>
+          </LibraryDropdown>
 
-       <ChatDropdown>
-            <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
-                <MessageSquare className="h-4 w-4" />
-                {unreadMessagesCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                    {unreadMessagesCount}
-                </span>
-                )}
-                <span className="sr-only">Toggle chat notifications</span>
-            </Button>
-        </ChatDropdown>
+        <ChatDropdown>
+              <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
+                  <MessageSquare className="h-4 w-4" />
+                  {unreadMessagesCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                      {unreadMessagesCount}
+                  </span>
+                  )}
+                  <span className="sr-only">Toggle chat notifications</span>
+              </Button>
+          </ChatDropdown>
 
-       <NotificationDropdown>
-            <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
-                <Bell className="h-4 w-4" />
-                {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                    {unreadCount}
-                </span>
-                )}
-                <span className="sr-only">Toggle notifications</span>
-            </Button>
-        </NotificationDropdown>
+        <NotificationDropdown>
+              <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
+                  <Bell className="h-4 w-4" />
+                  {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                      {unreadCount}
+                  </span>
+                  )}
+                  <span className="sr-only">Toggle notifications</span>
+              </Button>
+          </NotificationDropdown>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full">
-            <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={userAvatar?.imageUrl}
-                alt="User avatar"
-                data-ai-hint={userAvatar?.imageHint}
-                className="object-cover object-top"
-              />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
-            <span className="sr-only">Toggle user menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href="/profile">
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/profile?tab=settings">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </Link>
-          </DropdownMenuItem>
-           <DropdownMenuItem asChild>
-            <Link href="/support">
-                <LifeBuoy className="mr-2 h-4 w-4" />
-                <span>Support</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon" className="rounded-full">
+              <Avatar className="h-8 w-8">
+                <AvatarImage
+                  src={userAvatar?.imageUrl}
+                  alt="User avatar"
+                  data-ai-hint={userAvatar?.imageHint}
+                  className="object-cover object-top"
+                />
+                <AvatarFallback>U</AvatarFallback>
+              </Avatar>
+              <span className="sr-only">Toggle user menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <User className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/profile?tab=settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/support">
+                  <LifeBuoy className="mr-2 h-4 w-4" />
+                  <span>Support</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }
