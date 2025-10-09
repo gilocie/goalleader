@@ -23,9 +23,9 @@ type Kpi = {
 
 const departmentsAndRoles = {
     "Customer Service": ["Consultant", "Team Leader"],
-    "Engineering": ["Frontend Developer", "Backend Developer", "QA Engineer"],
-    "Marketing": ["Marketing Specialist", "Content Creator"],
-    "ICT": ["Admin", "IT Support"],
+    "Engineering": ["Frontend Developer", "Backend Developer", "QA Engineer", "Team Leader"],
+    "Marketing": ["Marketing Specialist", "Content Creator", "Team Leader"],
+    "ICT": ["Admin", "IT Support", "Team Leader"],
 };
 
 const departments = Object.keys(departmentsAndRoles);
