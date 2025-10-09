@@ -14,15 +14,14 @@ import { Button } from '../ui/button';
 
 const links = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/tasks', icon: ListTodo, label: 'Tasks' },
   { href: '/performance', icon: Package, label: 'Performance' },
   { href: '/reports', icon: FileText, label: 'Reports' },
-  { href: '/teams', icon: Users, label: 'Teams' },
-  { href: '/chat', icon: ChatIcon, label: 'Chat', notificationKey: 'chat' },
-  { href: '/tasks', icon: ListTodo, label: 'Tasks' },
   { href: '/analytics', icon: LineChart, label: 'Analytics' },
+  { href: '/marketing', icon: Store, label: 'Marketing' },
+  { href: '/chat', icon: ChatIcon, label: 'Chat', notificationKey: 'chat' },
   { href: '/meetings', icon: Calendar, label: 'Meetings' },
   { href: '/notices', icon: Megaphone, label: 'Notices' },
-  { href: '/marketing', icon: Store, label: 'Marketing' },
 ];
 
 const secondaryLinks = [
