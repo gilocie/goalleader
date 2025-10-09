@@ -39,6 +39,7 @@ const links: NavLink[] = [
 ];
 
 const secondaryLinks: NavLink[] = [
+    { href: '/teams', icon: Users, label: 'Teams' },
     { href: '/support', icon: LifeBuoy, label: 'Support' },
     { href: '/admin', icon: Shield, label: 'Admin' },
 ]
@@ -99,10 +100,11 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                 <AccordionItem value="tasks" className="border-b-0">
                     <AccordionTrigger
                         className={cn(
-                            "flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all hover:no-underline",
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:no-underline font-semibold",
+                             'hover:bg-muted/50 shadow-sm hover:shadow-md',
                             isActive || isParentActive
                                 ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                                : 'hover:bg-primary hover:text-primary-foreground'
+                                : 'bg-card'
                         )}
                     >
                         <Icon className="h-4 w-4" />
@@ -117,9 +119,9 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                                         key={subLink.href}
                                         href={subLink.href}
                                         className={cn(
-                                            "flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all text-sm",
+                                            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all text-sm",
                                             isSubActive
-                                                ? 'bg-muted text-primary'
+                                                ? 'bg-primary/10 text-primary font-semibold'
                                                 : 'hover:bg-muted/50'
                                         )}
                                     >
@@ -155,11 +157,11 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
             key={href}
             href={href}
             className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-primary transition-all',
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground font-semibold transition-all shadow-sm hover:shadow-md',
                 isMobile ? 'border-b' : '',
                 isActive 
                     ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-primary hover:text-primary-foreground'
+                    : 'bg-card hover:bg-muted/50'
             )}
         >
             {linkContent}
