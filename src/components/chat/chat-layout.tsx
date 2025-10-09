@@ -71,9 +71,10 @@ export function ChatLayout({
             onToggleProfile={onToggleProfile}
           />
         ) : (
-          <div className="flex-col items-center justify-center bg-muted/30 h-full hidden lg:flex">
+          <div className="flex-col items-center justify-center bg-muted/30 h-full hidden lg:flex text-center p-4">
             <Logo className="h-20 w-20 text-primary/20 mb-4" />
             <p className="text-muted-foreground text-lg">Select a contact to start chatting</p>
+            <p className="text-muted-foreground text-sm">or start a new conversation.</p>
           </div>
         )}
       </div>
