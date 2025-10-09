@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AppLayout } from '@/components/layout/app-layout';
@@ -31,7 +32,7 @@ export default function MemberPerformancePage() {
   return (
     <AppLayout>
       <ScrollArea className="h-full">
-        <main className="flex-grow p-4 md:p-8 space-y-8">
+        <main className="flex-grow p-4 md:p-8 space-y-8 mb-5">
           <MemberHeader name={member.name} role={member.role} status={member.status} avatarUrl={avatar?.imageUrl} avatarHint={avatar?.imageHint} />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
