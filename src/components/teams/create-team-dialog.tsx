@@ -19,6 +19,9 @@ import { Check, Search } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { Card } from '../ui/card';
+import { useUser } from '@/context/user-context';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { allTeamMembers } from '@/lib/users';
 
 interface Member {
     id: string;
@@ -35,6 +38,9 @@ interface CreateTeamDialogProps {
   department: string;
 }
 
+const allDepartments = [...new Set(allTeamMembers.map(m => m.department))];
+
+
 export function CreateTeamDialog({
   isOpen,
   onOpenChange,
@@ -44,6 +50,8 @@ export function CreateTeamDialog({
 }: CreateTeamDialogProps) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const { user } = useUser();
   
   const handleCreate = () => {
     onTeamCreate(selectedMembers);
@@ -53,6 +61,7 @@ export function CreateTeamDialog({
     if (!open) {
         setSelectedMembers([]);
         setSearchTerm('');
+        setDepartmentFilter('all');
     }
     onOpenChange(open);
   }
@@ -65,9 +74,11 @@ export function CreateTeamDialog({
     );
   };
 
-  const filteredMembers = allMembers.filter(member => 
-    member.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMembers = allMembers.filter(member => {
+    const nameMatch = member.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const departmentMatch = departmentFilter === 'all' || member.department === departmentFilter;
+    return nameMatch && departmentMatch;
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogChange}>
@@ -75,19 +86,35 @@ export function CreateTeamDialog({
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
           <DialogDescription>
-            Select members from your department ({department}) to form a new team.
+            {user.role === 'Admin' ? 'Select members from any department.' : `Select members from your department (${department}).`}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-                placeholder="Search for a team member..."
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Search for a team member..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            {user.role === 'Admin' && (
+                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                    <SelectTrigger className="w-full md:w-[200px]">
+                        <SelectValue placeholder="Filter by Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Departments</SelectItem>
+                        {allDepartments.map(dept => (
+                            <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            )}
         </div>
+
 
         <div className="flex-1 overflow-hidden -mx-6 px-6">
             <ScrollArea className="h-full">
