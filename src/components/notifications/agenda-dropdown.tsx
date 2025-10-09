@@ -52,7 +52,7 @@ export function AgendaDropdown({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
                 {children}
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80 p-0" align="end">
+            <DropdownMenuContent className="w-[300px] p-0" align="end">
                 <DropdownMenuLabel className="p-3">
                     <span className="font-semibold">Task Calendar</span>
                 </DropdownMenuLabel>
