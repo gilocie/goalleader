@@ -12,10 +12,10 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '../ui/label';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '../ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Check } from 'lucide-react';
+import { Check, Search } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { Card } from '../ui/card';
@@ -43,6 +43,7 @@ export function CreateTeamDialog({
   department,
 }: CreateTeamDialogProps) {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   
   const handleCreate = () => {
     onTeamCreate(selectedMembers);
@@ -51,6 +52,7 @@ export function CreateTeamDialog({
   const handleDialogChange = (open: boolean) => {
     if (!open) {
         setSelectedMembers([]);
+        setSearchTerm('');
     }
     onOpenChange(open);
   }
@@ -63,9 +65,13 @@ export function CreateTeamDialog({
     );
   };
 
+  const filteredMembers = allMembers.filter(member => 
+    member.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogChange}>
-      <DialogContent className="sm:max-w-3xl flex flex-col h-[500px]">
+      <DialogContent className="sm:max-w-3xl flex flex-col h-[600px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
           <DialogDescription>
@@ -73,10 +79,20 @@ export function CreateTeamDialog({
           </DialogDescription>
         </DialogHeader>
 
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+                placeholder="Search for a team member..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+        </div>
+
         <div className="flex-1 overflow-hidden -mx-6 px-6">
             <ScrollArea className="h-full">
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4">
-                    {allMembers.map(member => {
+                    {filteredMembers.map(member => {
                         const avatar = PlaceHolderImages.find(p => p.id === member.id);
                         const isSelected = selectedMembers.includes(member.id);
                         return (
@@ -105,6 +121,11 @@ export function CreateTeamDialog({
                         )
                     })}
                  </div>
+                 {filteredMembers.length === 0 && (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">
+                        No members found.
+                    </div>
+                 )}
             </ScrollArea>
         </div>
         
