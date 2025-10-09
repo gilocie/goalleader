@@ -3,7 +3,7 @@
 import { CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon, Paperclip } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -34,67 +34,111 @@ import { format } from 'date-fns';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { useUser } from '@/context/user-context';
 
+
 interface AudioPlayerProps {
     audioUrl: string;
-    duration: number;
+    audioDuration: number;
     isSelf: boolean;
 }
 
-const AudioPlayer = ({ audioUrl, duration, isSelf }: AudioPlayerProps) => {
-    const audioRef = useRef<HTMLAudioElement>(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [progress, setProgress] = useState(0);
+const AudioPlayer = ({ audioUrl, audioDuration, isSelf }: AudioPlayerProps) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [waveBars, setWaveBars] = useState<number[]>([]);
 
-    const togglePlay = () => {
-        if (audioRef.current) {
-            if (isPlaying) {
-                audioRef.current.pause();
-            } else {
-                audioRef.current.play();
-            }
-            setIsPlaying(!isPlaying);
-        }
-    };
+  useEffect(() => {
+    // generate a simple random wave shape
+    const bars = Array.from({ length: 25 }, () => Math.floor(Math.random() * 24) + 6);
+    setWaveBars(bars);
+  }, []);
 
-    const handleTimeUpdate = () => {
-        if (audioRef.current) {
-            const newProgress = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-            setProgress(newProgress);
-        }
-    };
+  const togglePlay = () => {
+    const player = audioRef.current;
+    if (!player) return;
+    if (isPlaying) player.pause();
+    else player.play();
+    setIsPlaying(!isPlaying);
+  };
 
-    const handleEnded = () => {
-        setIsPlaying(false);
-        setProgress(0);
-    };
+  const handleTime = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    setCurrentTime(a.currentTime);
+  };
 
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
 
-    return (
-        <div className="flex items-center gap-2 p-2">
-            <audio
-                ref={audioRef}
-                src={audioUrl}
-                onTimeUpdate={handleTimeUpdate}
-                onEnded={handleEnded}
-                preload="metadata"
-            />
-            <Button variant="ghost" size="icon" onClick={togglePlay} className={cn("h-10 w-10 rounded-full", isSelf ? 'text-primary-foreground hover:bg-white/20' : 'text-primary hover:bg-black/5')}>
-                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-            </Button>
-            <div className="flex-1 h-1 bg-muted-foreground/20 rounded-full relative">
-                <div 
-                    className={cn("h-1 rounded-full absolute", isSelf ? 'bg-primary-foreground' : 'bg-primary')}
-                    style={{ width: `${progress}%` }}
-                ></div>
-            </div>
-            <span className={cn("text-xs w-12 text-right", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground' )}>{formatTime(duration)}</span>
-        </div>
-    );
+  const formatTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const secs = Math.floor(s % 60);
+    return `${m}:${secs < 10 ? "0" : ""}${secs}`;
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 px-3 py-2 rounded-lg w-full max-w-[280px]",
+        isSelf ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+      )}
+    >
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        preload="metadata"
+        onEnded={handleEnded}
+        onTimeUpdate={handleTime}
+      />
+
+      {/* Play / pause button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={togglePlay}
+        className={cn(
+          "h-10 w-10 flex-shrink-0 rounded-full",
+          isSelf
+            ? "bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground"
+            : "bg-primary/10 hover:bg-primary/20 text-primary"
+        )}
+      >
+        {isPlaying ? (
+          <Pause className="h-5 w-5" />
+        ) : (
+          <Play className="h-5 w-5 ml-0.5" />
+        )}
+      </Button>
+
+      {/* Waveform */}
+      <div className="flex-1 flex items-center h-8 gap-px overflow-hidden">
+        {waveBars.map((bar, i) => (
+          <div
+            key={i}
+            className={cn(
+              "w-0.5 rounded-sm origin-center transition-all duration-300",
+              isSelf ? "bg-primary-foreground/80" : "bg-primary/80"
+            )}
+            style={{
+              height: `${bar}px`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Duration label */}
+      <span
+        className={cn(
+          "text-xs font-medium tabular-nums ml-2",
+          isSelf ? "text-primary-foreground/80" : "text-muted-foreground"
+        )}
+      >
+        {formatTime(isPlaying ? currentTime : audioDuration)}
+      </span>
+    </div>
+  );
 };
 
 
@@ -363,8 +407,15 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                         {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                                     </div>
                                 ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
-                                     <AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={isSelf} />
-                                ) : message.type === 'file' && message.fileName && message.fileUrl ? ( <div className="p-3"><div className="flex items-center gap-3"><div className="h-8 w-8" /><div className="flex-1"><p className="font-medium truncate">{message.fileName}</p></div><a href={message.fileUrl} download={message.fileName}><Download className="h-5 w-5" /></a></div></div>
+                                     <AudioPlayer audioUrl={message.audioUrl} audioDuration={message.audioDuration} isSelf={isSelf} />
+                                ) : message.type === 'file' && message.fileName && message.fileUrl ? ( 
+                                    <div className="p-2">
+                                        <div className="flex items-center gap-3 p-2 rounded-lg bg-background border">
+                                            <div className="flex-shrink-0 h-10 w-10 bg-muted rounded-md flex items-center justify-center"><Paperclip className="h-5 w-5 text-muted-foreground" /></div>
+                                            <div className="flex-1 min-w-0"><p className="font-medium truncate text-sm">{message.fileName}</p></div>
+                                            <a href={message.fileUrl} download={message.fileName}><Button variant="ghost" size="icon"><Download className="h-5 w-5" /></Button></a>
+                                        </div>
+                                    </div>
                                 ) : null}
                                 {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{format(new Date(message.timestamp), 'p')}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
