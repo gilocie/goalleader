@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { MessageSquare, Phone, CalendarPlus } from 'lucide-react';
+import { MessageSquare, Phone, CalendarPlus, ChevronLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface MemberHeaderProps {
     name: string;
@@ -16,9 +17,14 @@ interface MemberHeaderProps {
 }
 
 export function MemberHeader({ name, role, status, avatarUrl, avatarHint }: MemberHeaderProps) {
+  const router = useRouter();
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ChevronLeft className="h-5 w-5" />
+        </Button>
         <div className="relative">
             <Avatar className="h-20 w-20">
                 <AvatarImage src={avatarUrl} alt={name} data-ai-hint={avatarHint} />
