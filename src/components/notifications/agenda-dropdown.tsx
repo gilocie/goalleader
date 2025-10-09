@@ -1,62 +1,99 @@
 
 'use client';
 
+import { useState } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuItem
-} from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button";
+} from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "../ui/scroll-area";
-import { useAISuggestions, getSuggestionIcon } from "@/context/ai-suggestion-context";
-import { formatDistanceToNow } from 'date-fns';
-import { cn } from "@/lib/utils";
+import { useTimeTracker, Task } from "@/context/time-tracker-context";
+import { Calendar } from '../ui/calendar';
+import { Badge } from '../ui/badge';
+import { format, isSameDay, parseISO } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Check, Clock } from 'lucide-react';
 
 export function AgendaDropdown({ children }: { children: React.ReactNode }) {
-    const { agendaItems, markAsRead } = useAISuggestions();
-    const unreadCount = agendaItems.filter(item => !item.read).length;
+    const { tasks } = useTimeTracker();
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+
+    const scheduledDays = tasks.map(task => parseISO(task.dueDate));
+    const completedDays = tasks
+        .filter(task => task.status === 'Completed' && task.endTime)
+        .map(task => new Date(task.endTime!));
+    
+    const modifiers = {
+        scheduled: scheduledDays,
+        completed: completedDays,
+    };
+    
+    const modifiersStyles = {
+        scheduled: {
+            borderColor: 'hsl(var(--primary))',
+            borderWidth: '2px',
+            borderRadius: 'var(--radius)',
+        },
+        completed: {
+            color: 'hsl(var(--primary-foreground))',
+            backgroundColor: 'hsl(var(--primary))',
+        },
+    };
+
+    const tasksForSelectedDay = selectedDate 
+        ? tasks.filter(task => isSameDay(parseISO(task.dueDate), selectedDate) || (task.endTime && isSameDay(new Date(task.endTime), selectedDate)))
+        : [];
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 {children}
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80 md:w-96" align="end">
-                <DropdownMenuLabel className="flex justify-between items-center">
-                    <span className="font-semibold">Today's Agenda</span>
+            <DropdownMenuContent className="w-80 md:w-96 p-0" align="end">
+                <DropdownMenuLabel className="p-3">
+                    <span className="font-semibold">Task Calendar</span>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <ScrollArea className="h-80">
-                    <div className="p-1">
-                        {agendaItems.length > 0 ? (
-                            agendaItems.map(item => (
-                                <DropdownMenuItem 
-                                    key={item.id}
-                                    className={cn(
-                                        "flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto",
-                                        !item.read && "bg-accent"
+                <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    modifiers={modifiers}
+                    modifiersStyles={modifiersStyles}
+                />
+                <DropdownMenuSeparator />
+                <div className="p-2">
+                    <h4 className="px-2 py-1 text-sm font-semibold">
+                        Tasks for {selectedDate ? format(selectedDate, 'PPP') : 'selected date'}
+                    </h4>
+                    <ScrollArea className="h-40">
+                         <div className="p-2 space-y-2">
+                            {tasksForSelectedDay.length > 0 ? (
+                                tasksForSelectedDay.map(task => (
+                                <div key={task.name} className="flex items-center justify-between text-sm p-2 rounded-md bg-muted/50">
+                                    <span className="truncate pr-2">{task.name}</span>
+                                    {task.status === 'Completed' ? (
+                                        <Badge variant="default" className="flex-shrink-0">
+                                            <Check className="mr-1 h-3 w-3" /> Completed
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="secondary" className="flex-shrink-0">
+                                           <Clock className="mr-1 h-3 w-3" /> {task.status}
+                                        </Badge>
                                     )}
-                                    onClick={() => markAsRead(item.id)}
-                                >
-                                    <div className="mt-1">{getSuggestionIcon(item.type)}</div>
-                                    <div className="flex-1 space-y-1">
-                                        <p className="font-semibold text-sm text-accent-foreground">{item.title}</p>
-                                        <p className="text-xs text-accent-foreground/80 line-clamp-3">{item.content}</p>
-                                        {item.source && <p className="text-xs text-accent-foreground/60">Source: {item.source}</p>}
-                                    </div>
-                                    {!item.read && <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1 self-center" />}
-                                </DropdownMenuItem>
-                            ))
-                        ) : (
-                            <div className="text-center text-muted-foreground p-4">
-                                No agenda items for today.
-                            </div>
-                        )}
-                    </div>
-                </ScrollArea>
+                                </div>
+                                ))
+                            ) : (
+                                <div className="text-center text-muted-foreground p-4 text-sm">
+                                    No tasks for this day.
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                </div>
             </DropdownMenuContent>
         </DropdownMenu>
     );
