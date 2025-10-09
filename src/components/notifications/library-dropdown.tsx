@@ -45,23 +45,25 @@ export function LibraryDropdown({ children }: { children: React.ReactNode }) {
                 <ScrollArea className="h-80">
                     <div className="p-1">
                         {unreadCount > 0 ? (
-                            unreadItems.map(item => (
+                            unreadItems.map((item, index) => (
+                                <React.Fragment key={item.id}>
                                 <DropdownMenuItem 
-                                    key={item.id}
                                     className={cn(
                                         "flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto",
-                                        !item.read && "bg-accent"
+                                        !item.read && "bg-primary text-primary-foreground"
                                     )}
                                     onClick={() => handleItemClick(item.id, item.link)}
                                 >
                                     <div className="mt-1">{getSuggestionIcon(item.type)}</div>
                                     <div className="flex-1 space-y-1">
-                                        <p className="font-semibold text-sm text-accent-foreground">{item.title}</p>
-                                        <p className="text-xs text-accent-foreground/80 line-clamp-2">{item.content}</p>
-                                        <p className="text-xs text-accent-foreground/60">{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</p>
+                                        <p className="font-semibold text-sm">{item.title}</p>
+                                        <p className="text-xs text-primary-foreground/80 line-clamp-2">{item.content}</p>
+                                        <p className="text-xs text-primary-foreground/60">{formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}</p>
                                     </div>
-                                    {!item.read && <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1 self-center" />}
+                                    {!item.read && <div className="h-2.5 w-2.5 rounded-full bg-primary-foreground mt-1 self-center" />}
                                 </DropdownMenuItem>
+                                {index < unreadItems.length - 1 && <DropdownMenuSeparator className="bg-primary-foreground/20" />}
+                                </React.Fragment>
                             ))
                         ) : (
                             <div className="text-center text-muted-foreground p-4">

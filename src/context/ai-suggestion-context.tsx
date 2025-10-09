@@ -168,10 +168,10 @@ export const useAISuggestions = (): AISuggestionContextType & { monthlyBooks: Su
 
 export const getSuggestionIcon = (type: SuggestionItem['type']) => {
     switch (type) {
-        case 'book': return <Book className="h-5 w-5 text-purple-500" />;
-        case 'news': return <Newspaper className="h-5 w-5 text-blue-500" />;
-        case 'story': return <Briefcase className="h-5 w-5 text-orange-500" />;
-        case 'motivation': return <Zap className="h-5 w-5 text-yellow-500" />;
+        case 'book': return <Book className="h-5 w-5 text-primary-foreground" />;
+        case 'news': return <Newspaper className="h-5 w-5 text-primary-foreground" />;
+        case 'story': return <Briefcase className="h-5 w-5 text-primary-foreground" />;
+        case 'motivation': return <Zap className="h-5 w-5 text-primary-foreground" />;
         default: return <Zap className="h-5 w-5 text-primary" />;
     }
 }
