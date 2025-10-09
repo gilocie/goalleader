@@ -69,15 +69,17 @@ export function LibraryPageContent() {
                             <p className="text-sm text-muted-foreground line-clamp-4">{item.content}</p>
                           </CardContent>
                           <CardFooter>
-                            <Button variant="link" asChild className="p-0 h-auto" onClick={() => markAsRead(item.id)}>
-                                {item.link ? (
+                             {item.link ? (
+                                <Button variant="link" asChild className="p-0 h-auto" onClick={() => markAsRead(item.id)}>
                                     <a href={item.link} target="_blank" rel="noopener noreferrer">
                                         Read More
                                     </a>
-                                ) : (
-                                    <span>Mark as Read</span>
-                                )}
-                            </Button>
+                                </Button>
+                            ) : (
+                                <Button variant="link" className="p-0 h-auto" onClick={() => markAsRead(item.id)}>
+                                    Mark as Read
+                                </Button>
+                            )}
                           </CardFooter>
                         </Card>
                       ))}
