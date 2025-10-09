@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, Plus, Users } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -80,55 +80,60 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full">
             {filteredContacts.length > 0 ? (
-                <div className="p-2">
-                    {filteredContacts.map((contact, index) => {
+                <div className="p-2 space-y-2">
+                    {filteredContacts.map((contact) => {
                     const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
                     const isSelected = selectedContactId === contact.id;
                     const isLastMessageFromSelf = contact.lastMessageSenderId === self?.id;
+                    
+                    const isRequest = isLastMessageFromSelf && contact.lastMessageReadStatus === 'request_sent';
+
                     return (
-                        <React.Fragment key={contact.id}>
-                        <div
+                        <Card
+                            key={contact.id}
                             className={cn(
-                            'cursor-pointer transition-all hover:bg-accent/50 rounded-lg p-3 group',
+                            'cursor-pointer transition-all hover:shadow-md',
                             isSelected && 'bg-primary text-primary-foreground'
                             )}
                             onClick={() => onSelectContact(contact)}
                         >
-                            <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <Avatar className="h-10 w-10">
-                                <AvatarImage src={avatar?.imageUrl} alt={contact.name} data-ai-hint={avatar?.imageHint} />
-                                <AvatarFallback>{contact.name.slice(0, 2)}</AvatarFallback>
-                                </Avatar>
-                                <span
-                                className={cn(
-                                    'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
-                                    contact.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                                )}
-                                />
-                            </div>
-                            <div className="flex-1 truncate">
-                                <p className={cn("font-semibold text-sm", isSelected && 'text-white')}>{contact.name}</p>
-                                <div className={cn("flex items-center gap-1 text-xs truncate", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
-                                    {isLastMessageFromSelf && <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" isSelf={isLastMessageFromSelf}/>}
-                                    <span className={cn("truncate", isSelected && 'text-white')}>{contact.lastMessage}</span>
+                            <CardContent className="p-3">
+                                <div className="flex items-center gap-3">
+                                <div className="relative">
+                                    <Avatar className="h-10 w-10">
+                                    <AvatarImage src={avatar?.imageUrl} alt={contact.name} data-ai-hint={avatar?.imageHint} />
+                                    <AvatarFallback>{contact.name.slice(0, 2)}</AvatarFallback>
+                                    </Avatar>
+                                    <span
+                                    className={cn(
+                                        'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background',
+                                        contact.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                    )}
+                                    />
                                 </div>
-                            </div>
-                            <div className={cn("flex flex-col items-end text-xs space-y-1", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
-                                <span className={cn(isSelected && 'text-white')}>{contact.lastMessageTime}</span>
-                                {contact.unreadCount && contact.unreadCount > 0 && (
-                                    <Badge className={cn(
-                                        "h-5 w-5 p-0 flex items-center justify-center",
-                                        isSelected ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
-                                    )}>
-                                        {contact.unreadCount}
-                                    </Badge>
-                                )}
-                            </div>
-                            </div>
-                        </div>
-                        {index < filteredContacts.length - 1 && <Separator className="my-1" />}
-                        </React.Fragment>
+                                <div className="flex-1 truncate">
+                                    <p className={cn("font-semibold text-sm", isSelected && 'text-white')}>{contact.name}</p>
+                                    <div className={cn("flex items-center gap-1 text-xs truncate", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                                        {isLastMessageFromSelf && !isRequest && <ReadIndicator status={contact.lastMessageReadStatus} className="h-3.5 w-3.5" isSelf={isLastMessageFromSelf}/>}
+                                        <span className={cn("truncate", isSelected && 'text-white', isRequest && 'italic')}>
+                                            {contact.lastMessage ? (isRequest ? 'Message request sent' : contact.lastMessage) : 'Start the conversation!'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className={cn("flex flex-col items-end text-xs space-y-1", isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                                    <span className={cn(isSelected && 'text-white')}>{contact.lastMessageTime}</span>
+                                    {contact.unreadCount && contact.unreadCount > 0 && (
+                                        <Badge className={cn(
+                                            "h-5 w-5 p-0 flex items-center justify-center",
+                                            isSelected ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
+                                        )}>
+                                            {contact.unreadCount}
+                                        </Badge>
+                                    )}
+                                </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     );
                     })}
                 </div>
