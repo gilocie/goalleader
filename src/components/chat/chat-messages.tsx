@@ -1,4 +1,3 @@
-
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -76,7 +75,7 @@ const AudioPlayer = ({ audioUrl, duration, isSelf }: AudioPlayerProps) => {
     }
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 p-2">
             <audio
                 ref={audioRef}
                 src={audioUrl}
@@ -84,16 +83,16 @@ const AudioPlayer = ({ audioUrl, duration, isSelf }: AudioPlayerProps) => {
                 onEnded={handleEnded}
                 preload="metadata"
             />
-            <Button variant="ghost" size="icon" onClick={togglePlay} className={cn("h-8 w-8 rounded-full", isSelf ? 'text-primary-foreground hover:bg-white/20' : 'text-primary')}>
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            <Button variant="ghost" size="icon" onClick={togglePlay} className={cn("h-10 w-10 rounded-full", isSelf ? 'text-primary-foreground hover:bg-white/20' : 'text-primary hover:bg-black/5')}>
+                {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
             </Button>
-            <div className="w-24 h-1 bg-muted-foreground/30 rounded-full relative">
+            <div className="flex-1 h-1 bg-muted-foreground/20 rounded-full relative">
                 <div 
                     className={cn("h-1 rounded-full absolute", isSelf ? 'bg-primary-foreground' : 'bg-primary')}
                     style={{ width: `${progress}%` }}
                 ></div>
             </div>
-            <span className={cn("text-xs w-10", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground' )}>{formatTime(duration)}</span>
+            <span className={cn("text-xs w-12 text-right", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground' )}>{formatTime(duration)}</span>
         </div>
     );
 };
@@ -363,7 +362,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                         <div className="grid grid-cols-2 gap-1">{message.imageUrls.slice(0, 4).map((url, index) => { const remainingImages = message.imageUrls!.length - 4; const showMore = index === 3 && remainingImages > 0; return ( <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square w-36 h-36 block cursor-pointer overflow-hidden rounded-md group/more", showMore && "bg-black")}> <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} /> {showMore && ( <div className="absolute inset-0 flex items-center justify-center text-white"><Plus className="h-6 w-6" /><span className="text-xl font-bold">{remainingImages}</span></div> )} </button> ) })}</div>
                                         {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                                     </div>
-                                ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? ( <div className="p-1"><AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={isSelf} /></div>
+                                ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
+                                     <AudioPlayer audioUrl={message.audioUrl} duration={message.audioDuration} isSelf={isSelf} />
                                 ) : message.type === 'file' && message.fileName && message.fileUrl ? ( <div className="p-3"><div className="flex items-center gap-3"><div className="h-8 w-8" /><div className="flex-1"><p className="font-medium truncate">{message.fileName}</p></div><a href={message.fileUrl} download={message.fileName}><Download className="h-5 w-5" /></a></div></div>
                                 ) : null}
                                 {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
@@ -461,7 +461,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <AlertDialogHeader>
                     <AlertDialogTitle>Request Pending</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Please wait for {selectedContact.name} to accept your message request before starting a call.
+                        Please wait for ${selectedContact.name} to accept your message request before starting a call.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -472,5 +472,3 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
-
-    
