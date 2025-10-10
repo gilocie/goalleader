@@ -176,6 +176,7 @@ function SettingsTabContent() {
     const [areKeysRevealed, setAreKeysRevealed] = useState(false);
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
     const passwordInputRef = useRef<HTMLInputElement>(null);
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
 
     const handlePasswordSubmit = () => {
         const password = passwordInputRef.current?.value;
@@ -230,12 +231,23 @@ function SettingsTabContent() {
                                     Please enter your admin password to reveal the API keys.
                                 </AlertDialogDescription>
                                 </AlertDialogHeader>
-                                <Input
-                                    ref={passwordInputRef}
-                                    type="password"
-                                    placeholder="Password"
-                                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-                                />
+                                <div className="relative">
+                                    <Input
+                                        ref={passwordInputRef}
+                                        type={showAdminPassword ? 'text' : 'password'}
+                                        placeholder="Password"
+                                        onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                                    />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                                        onClick={() => setShowAdminPassword((prev) => !prev)}
+                                    >
+                                        {showAdminPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
                                 <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={handlePasswordSubmit}>Submit</AlertDialogAction>
