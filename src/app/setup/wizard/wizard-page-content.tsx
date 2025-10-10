@@ -372,7 +372,7 @@ const DomainSetupStep = () => {
   const isFinalStep = currentStep === STEPS.length - 1;
 
   return (
-    <main className="relative flex-grow p-4 md:p-8 flex items-center justify-center bg-muted overflow-hidden">
+    <main className="relative h-screen w-screen flex items-center justify-center bg-muted overflow-hidden">
         {currentBg && (
             <Image
                 src={currentBg.imageUrl}
@@ -383,7 +383,7 @@ const DomainSetupStep = () => {
             />
         )}
         <div className="absolute inset-0 bg-black/50 z-0" />
-      <Card className="w-full max-w-3xl z-10 bg-card/80 backdrop-blur-md">
+      <Card className="w-full max-w-4xl h-[90vh] z-10 bg-card/80 backdrop-blur-md flex flex-col">
         <CardHeader>
           <div className="flex justify-center mb-4">
             <ul className="flex items-center gap-2 md:gap-4">
@@ -409,7 +409,7 @@ const DomainSetupStep = () => {
             Step {currentStep + 1} of {STEPS.length}
           </CardDescription>
         </CardHeader>
-        <CardContent className="h-[380px] flex items-center justify-center py-6 overflow-y-auto">
+        <CardContent className="flex-1 flex items-center justify-center py-6 overflow-hidden">
             {renderStepContent()}
         </CardContent>
         { !isFinalStep && (
