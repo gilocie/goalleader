@@ -35,15 +35,7 @@ export function WizardPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const backgroundImages = useMemo(() => ({
-    0: PlaceHolderImages.find(p => p.id === 'wizard-step-1'),
-    1: PlaceHolderImages.find(p => p.id === 'wizard-step-2'),
-    2: PlaceHolderImages.find(p => p.id === 'wizard-step-3'),
-    3: PlaceHolderImages.find(p => p.id === 'wizard-step-4'),
-    4: PlaceHolderImages.find(p => p.id === 'wizard-step-5'),
-  }), []);
-
-  const currentBg = backgroundImages[0];
+  const currentBg = PlaceHolderImages.find(p => p.id === 'wizard-step-1');
 
 
   const handleNext = () => {
@@ -374,7 +366,7 @@ const DomainSetupStep = () => {
   const isFinalStep = currentStep === STEPS.length - 1;
 
   return (
-    <main className="relative h-screen w-screen flex items-center justify-center bg-muted overflow-hidden">
+    <main className="relative h-screen w-screen flex items-center justify-center bg-muted overflow-hidden py-8">
         {currentBg && (
             <Image
                 src={currentBg.imageUrl}
@@ -428,7 +420,7 @@ const DomainSetupStep = () => {
             </div>
         ) : (
             <div className="p-6 border-t flex justify-center">
-                {renderStepContent()}
+                <FinalizingStep onFinish={() => router.push('/')} />
             </div>
         )}
       </Card>
