@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library, LogOut } from 'lucide-react';
+import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library, LogOut, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useParams } from 'next/navigation';
 
@@ -106,110 +107,121 @@ export function Header() {
         </SheetContent>
       </Sheet>
 
-      <div className="w-full flex-1 flex items-center gap-4">
-        {isMeetingPage && meetingDetails && (
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                    <ChevronLeft />
-                </Button>
-                <div>
-                    <h1 className="font-semibold text-lg">{meetingDetails.title}</h1>
-                    <Badge variant="outline" className="text-xs">{meetingDetails.category}</Badge>
+      <div className="w-full flex-1 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+            {isMeetingPage && meetingDetails && (
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ChevronLeft />
+                    </Button>
+                    <div>
+                        <h1 className="font-semibold text-lg">{meetingDetails.title}</h1>
+                        <Badge variant="outline" className="text-xs">{meetingDetails.category}</Badge>
+                    </div>
                 </div>
+            )}
+            {!open && (
+            <div className="hidden md:block">
+                <TimeTracker layout="inline" />
             </div>
-        )}
-         {!open && (
-          <div className="hidden md:block">
-            <TimeTracker layout="inline" />
-          </div>
-        )}
-        <div className="md:hidden">
-            <TimeTracker layout="inline" />
-        </div>
+            )}
+            <div className="md:hidden">
+                <TimeTracker layout="inline" />
+            </div>
 
-          <LibraryDropdown>
-              <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
-                  <Library className="h-4 w-4" />
-                  {unreadLibraryCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                      {unreadLibraryCount}
-                  </span>
-                  )}
-                  <span className="sr-only">Toggle Library</span>
-              </Button>
-          </LibraryDropdown>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <ChatDropdown>
-              <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
-                  <MessageSquare className="h-4 w-4" />
-                  {unreadMessagesCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                      {unreadMessagesCount}
-                  </span>
-                  )}
-                  <span className="sr-only">Toggle chat notifications</span>
-              </Button>
-          </ChatDropdown>
-
-        <NotificationDropdown>
-              <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
-                  <Bell className="h-4 w-4" />
-                  {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                      {unreadCount}
-                  </span>
-                  )}
-                  <span className="sr-only">Toggle notifications</span>
-              </Button>
-          </NotificationDropdown>
-
-        {user && (
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon" className="rounded-full">
-                <Avatar className="h-8 w-8">
-                    <AvatarImage
-                    src={userAvatar?.imageUrl}
-                    alt={user.name}
-                    data-ai-hint={userAvatar?.imageHint}
-                    className="object-cover object-top"
-                    />
-                    <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <span className="sr-only">Toggle user menu</span>
+            <LibraryDropdown>
+                <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
+                    <Library className="h-4 w-4" />
+                    {unreadLibraryCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                        {unreadLibraryCount}
+                    </span>
+                    )}
+                    <span className="sr-only">Toggle Library</span>
                 </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                <Link href="/profile">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Profile</span>
+            </LibraryDropdown>
+        </div>
+        
+        {user?.role === 'Admin' && (
+            <Button asChild>
+                <Link href="/admin">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin
                 </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                <Link href="/profile?tab=settings">
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                <Link href="/support">
-                    <LifeBuoy className="mr-2 h-4 w-4" />
-                    <span>Support</span>
-                </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Logout</span>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-            </DropdownMenu>
+            </Button>
         )}
+
+        <div className="flex items-center gap-2">
+            <ChatDropdown>
+                <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
+                    <MessageSquare className="h-4 w-4" />
+                    {unreadMessagesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                        {unreadMessagesCount}
+                    </span>
+                    )}
+                    <span className="sr-only">Toggle chat notifications</span>
+                </Button>
+            </ChatDropdown>
+
+            <NotificationDropdown>
+                <Button variant="outline" size="icon" className="relative h-8 w-8 hover:bg-primary hover:text-primary-foreground">
+                    <Bell className="h-4 w-4" />
+                    {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                        {unreadCount}
+                    </span>
+                    )}
+                    <span className="sr-only">Toggle notifications</span>
+                </Button>
+            </NotificationDropdown>
+
+            {user && (
+                <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="secondary" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage
+                        src={userAvatar?.imageUrl}
+                        alt={user.name}
+                        data-ai-hint={userAvatar?.imageHint}
+                        className="object-cover object-top"
+                        />
+                        <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    </Avatar>
+                    <span className="sr-only">Toggle user menu</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                    </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                    <Link href="/profile?tab=settings">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                    </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                    <Link href="/support">
+                        <LifeBuoy className="mr-2 h-4 w-4" />
+                        <span>Support</span>
+                    </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Logout</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+                </DropdownMenu>
+            )}
+        </div>
       </div>
     </header>
   );
