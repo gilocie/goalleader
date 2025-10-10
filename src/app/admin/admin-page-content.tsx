@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
@@ -174,20 +174,26 @@ const SecureKeyInput = ({ name, description, isRevealed }: { name: string; descr
 function SettingsTabContent() {
     const { toast } = useToast();
     const [areKeysRevealed, setAreKeysRevealed] = useState(false);
+    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+    const passwordInputRef = useRef<HTMLInputElement>(null);
 
-    const handleRevealClick = () => {
-        if (areKeysRevealed) {
-            setAreKeysRevealed(false);
-            return;
-        }
-
-        const password = prompt('Please enter your admin password to reveal the keys:');
+    const handlePasswordSubmit = () => {
+        const password = passwordInputRef.current?.value;
         if (password === 'admin') { // This is a placeholder! Use real auth.
             setAreKeysRevealed(true);
             toast({ title: 'Keys Revealed' });
         } else {
             toast({ variant: 'destructive', title: 'Incorrect Password' });
         }
+        setIsPasswordDialogOpen(false);
+    };
+
+    const handleRevealClick = () => {
+        if (areKeysRevealed) {
+            setAreKeysRevealed(false);
+            return;
+        }
+        setIsPasswordDialogOpen(true);
     };
 
     return (
@@ -216,6 +222,27 @@ function SettingsTabContent() {
                         </div>
                     </TabsContent>
                     <TabsContent value="security" className="mt-6">
+                        <AlertDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Admin Authentication</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Please enter your admin password to reveal the API keys.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <Input
+                                    ref={passwordInputRef}
+                                    type="password"
+                                    placeholder="Password"
+                                    onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                                />
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handlePasswordSubmit}>Submit</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+
                         <div className="space-y-6 max-w-2xl">
                            <div className="flex justify-end">
                                 <Button variant="outline" onClick={handleRevealClick}>
