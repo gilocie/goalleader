@@ -9,6 +9,8 @@ import { useCollection, useDoc } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { allTeamMembers } from '@/lib/users';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -130,6 +132,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
     const participants = [self.id, recipientId].sort();
     const chatId = participants.join('--');
+    
+    const messagesCollection = collection(firestore, 'messages');
 
     const newMessage: Omit<Message, 'id' | 'timestamp'> = {
       senderId: self.id,
@@ -140,9 +144,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       ...data
     };
     
-    await addDoc(collection(firestore, 'messages'), {
+    addDoc(messagesCollection, {
         ...newMessage,
         timestamp: serverTimestamp()
+    }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: messagesCollection.path,
+            operation: 'create',
+            requestResourceData: newMessage,
+        });
+        errorEmitter.emit('permission-error', permissionError);
     });
 
     if (!activeChatIds.has(chatId)) {
@@ -168,7 +179,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteMessage = useCallback(async (messageId: string) => {
     if (!firestore) return;
-    await deleteDoc(doc(firestore, 'messages', messageId));
+    const messageRef = doc(firestore, 'messages', messageId);
+    deleteDoc(messageRef).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: messageRef.path,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
   }, [firestore]);
 
   const clearChat = useCallback(async (contactId: string) => {
@@ -273,7 +291,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         messages.forEach(async (m) => {
             if (m.senderId === selectedContact.id && m.recipientId === self.id && m.readStatus !== 'read') {
                 const messageRef = doc(firestore, 'messages', m.id);
-                await updateDoc(messageRef, { readStatus: 'read' });
+                const updateData = { readStatus: 'read' };
+                updateDoc(messageRef, updateData).catch(async (serverError) => {
+                    const permissionError = new FirestorePermissionError({
+                        path: messageRef.path,
+                        operation: 'update',
+                        requestResourceData: updateData,
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                });
             }
         });
     }
