@@ -423,31 +423,48 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                 <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden', isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                                     {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
                                     {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
-                                        <div className="p-1">
-                                            <div className={cn("grid gap-1", message.imageUrls.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
-                                            {message.imageUrls.slice(0, 4).map((url, index) => {
-                                                const remainingImages = message.imageUrls && message.imageUrls.length > 4 ? message.imageUrls.length - 4 : 0;
-                                                const showMore = index === 3 && remainingImages > 0;
-                                                return (
-                                                    <button key={index} onClick={() => handleImageClick(url)} className={cn(
-                                                        "relative aspect-square block cursor-pointer overflow-hidden rounded-md group/more",
-                                                        message.imageUrls?.length === 1 ? 'w-64' : 'w-36 h-36',
-                                                        showMore && "bg-black"
-                                                    )}>
-                                                        <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} />
-                                                        {showMore && (
-                                                            <div className="absolute inset-0 flex items-center justify-center text-white">
-                                                                <Plus className="h-6 w-6" />
-                                                                <span className="text-xl font-bold">{remainingImages}</span>
-                                                            </div>
-                                                        )}
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
-                                        {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
+                                    <div className="p-1">
+                                      <div
+                                        className={cn(
+                                          "grid gap-1",
+                                          message.imageUrls.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                                        )}
+                                      >
+                                        {message.imageUrls.slice(0, 4).map((url, index) => {
+                                          const remainingImages = message.imageUrls!.length - 4;
+                                          const showMore = index === 3 && remainingImages > 0;
+                                          return (
+                                            <button
+                                              key={index}
+                                              onClick={() => handleImageClick(url)}
+                                              className={cn(
+                                                "relative aspect-square block cursor-pointer overflow-hidden rounded-md group/more",
+                                                message.imageUrls && message.imageUrls.length === 1 ? 'w-64' : 'w-36 h-36',
+                                                showMore && "bg-black"
+                                              )}
+                                            >
+                                              <Image
+                                                src={url}
+                                                alt={`attached image ${index + 1}`}
+                                                layout="fill"
+                                                className={cn(
+                                                  "object-cover transition-all",
+                                                  showMore && "opacity-30 group-hover/more:opacity-20"
+                                                )}
+                                              />
+                                              {showMore && (
+                                                <div className="absolute inset-0 flex items-center justify-center text-white">
+                                                  <Plus className="h-6 w-6" />
+                                                  <span className="text-xl font-bold">{remainingImages}</span>
+                                                </div>
+                                              )}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                      {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                                     </div>
-                                ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
+                                    ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
                                     <div className="p-2">
                                         <AudioPlayer audioUrl={message.audioUrl} audioDuration={message.audioDuration} isSelf={isSelf} />
                                     </div>

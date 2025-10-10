@@ -90,7 +90,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         );
         const lastMessage = relevantMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
         
-        // Unread count is messages sent by the other person that are not yet read by the current user
         const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === user.id && msg.readStatus !== 'read').length;
 
         return {
@@ -292,7 +291,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             ? { ...m, readStatus: 'read' as const } 
             : m
         );
-        if (newMessages.some((m, i) => m.readStatus !== messages[i].readStatus)) {
+        if (newMessages.some((m, i) => messages[i] && m.readStatus !== messages[i].readStatus)) {
             updateMessages(newMessages);
         }
 
@@ -302,7 +301,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             updateActiveChatIds(new Set(activeChatIds).add(chatId));
         }
     }
-  }, [selectedContact, self?.id, messages, activeChatIds]);
+  }, [selectedContact, self?.id, messages, activeChatIds, updateMessages]);
 
 
   const value = {
