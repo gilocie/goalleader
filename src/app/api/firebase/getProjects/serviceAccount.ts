@@ -1,5 +1,6 @@
 // This file securely loads your service account credentials from environment variables.
 // DO NOT COMMIT your actual credentials to version control.
+import 'dotenv/config';
 
 export const serviceAccount = {
   "type": "service_account",
