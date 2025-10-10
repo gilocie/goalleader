@@ -1,12 +1,10 @@
 
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
-
-const USER_ID = 'patrick-achitabwino-m1';
+import { useUser } from './user-context';
 
 const teamMembers: Omit<Contact, 'lastMessage' | 'lastMessageTime' | 'unreadCount' | 'lastMessageReadStatus' | 'lastMessageSenderId'>[] = [
     { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const },
@@ -53,6 +51,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
@@ -63,26 +62,32 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set());
 
+  const getStorageKey = (key: string) => `${user.id}_${key}`;
+
   useEffect(() => {
     try {
-        const storedIds = localStorage.getItem('activeChatIds');
+        const storedIds = localStorage.getItem(getStorageKey('activeChatIds'));
         if (storedIds) {
             setActiveChatIds(new Set(JSON.parse(storedIds)));
         }
-        const storedMessages = localStorage.getItem('chatMessages');
+        const storedMessages = localStorage.getItem(getStorageKey('chatMessages'));
         if (storedMessages && storedMessages !== 'undefined') {
             setMessages(JSON.parse(storedMessages));
+        } else {
+            // Reset state if switching to a user with no stored history
+            setMessages([]);
+            setActiveChatIds(new Set());
         }
     } catch (error) {
         console.error("Failed to load data from localStorage", error);
     }
-  }, []);
+  }, [user.id]);
 
   const allContacts = useMemo(() => {
     return teamMembers.map(member => {
         const relevantMessages = messages.filter(
-            msg => (msg.senderId === member.id && msg.recipientId === USER_ID) ||
-                   (msg.senderId === USER_ID && msg.recipientId === member.id)
+            msg => (msg.senderId === member.id && msg.recipientId === user.id) ||
+                   (msg.senderId === user.id && msg.recipientId === member.id)
         );
         const lastMessage = relevantMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
         const unreadCount = relevantMessages.filter(msg => msg.senderId === member.id && msg.readStatus !== 'read').length;
@@ -92,25 +97,25 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
             lastMessageTime: lastMessage ? format(new Date(lastMessage.timestamp), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
-            lastMessageReadStatus: lastMessage?.senderId === USER_ID ? lastMessage.readStatus : undefined,
+            lastMessageReadStatus: lastMessage?.senderId === user.id ? lastMessage.readStatus : undefined,
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact]);
+  }, [messages, selectedContact, user.id]);
 
-  const self = useMemo(() => allContacts.find(c => c.id === USER_ID), [allContacts]);
+  const self = useMemo(() => allContacts.find(c => c.id === user.id), [allContacts, user.id]);
 
   const updateActiveChatIds = (newIds: Set<string>) => {
     setActiveChatIds(newIds);
     try {
-        localStorage.setItem('activeChatIds', JSON.stringify(Array.from(newIds)));
+        localStorage.setItem(getStorageKey('activeChatIds'), JSON.stringify(Array.from(newIds)));
     } catch (error) {
         console.error("Failed to save active chats to localStorage", error);
     }
   }
 
   const contacts = useMemo(() => {
-    const contactList = allContacts.filter(c => c.id !== USER_ID && activeChatIds.has(c.id));
+    const contactList = allContacts.filter(c => c.id !== user.id && activeChatIds.has(c.id));
     
     contactList.sort((a, b) => {
         const lastMessageA = messages.filter(m => m.senderId === a.id || m.recipientId === a.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
@@ -128,14 +133,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return contactList;
-  }, [allContacts, activeChatIds, selectedContact, messages]);
+  }, [allContacts, activeChatIds, selectedContact, messages, user.id]);
   
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
   const updateMessages = (newMessages: Message[]) => {
       setMessages(newMessages);
       try {
-          localStorage.setItem('chatMessages', JSON.stringify(newMessages));
+          localStorage.setItem(getStorageKey('chatMessages'), JSON.stringify(newMessages));
       } catch (error) {
           console.error("Failed to save messages to localStorage", error);
       }
@@ -160,7 +165,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     updateMessages([...messages, newMessage]);
     updateActiveChatIds(new Set(activeChatIds).add(recipientId));
 
-  }, [self, messages, activeChatIds]);
+  }, [self, messages, activeChatIds, getStorageKey]);
 
   const addSystemMessage = useCallback((content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self) return;
@@ -175,19 +180,19 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         callType: type,
     };
     updateMessages(prev => [...prev, systemMessage]);
-  }, [self, messages]);
+  }, [self, messages, updateMessages]);
 
   const deleteMessage = useCallback((messageId: string) => {
     const newMessages = messages.filter(m => m.id !== messageId);
     updateMessages(newMessages);
-  }, [messages]);
+  }, [messages, updateMessages]);
 
   const clearChat = useCallback((contactId: string) => {
     const newMessages = messages.filter(
       msg => !((msg.senderId === contactId && msg.recipientId === self?.id) || (msg.senderId === self?.id && msg.recipientId === contactId))
     );
     updateMessages(newMessages);
-  }, [self?.id, messages]);
+  }, [self?.id, messages, updateMessages]);
 
   const deleteChat = useCallback((contactId: string) => {
     clearChat(contactId);
@@ -196,7 +201,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         newIds.delete(contactId);
         return newIds;
     });
-  }, [clearChat]);
+  }, [clearChat, updateActiveChatIds]);
 
   const forwardMessage = useCallback((message: Message, recipientIds: string[]) => {
     if (!self) return;
@@ -214,7 +219,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         newMessages.push(forwardedMessage);
     });
     updateMessages([...messages, ...newMessages]);
-  }, [self, messages]);
+  }, [self, messages, updateMessages]);
 
   const startCall = useCallback((contact: Contact) => {
     setAcceptedCallContact(contact);
