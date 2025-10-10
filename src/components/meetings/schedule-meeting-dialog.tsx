@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { AISuggestedMeeting } from '@/app/meetings/page';
 import { generateAgenda } from '@/ai/flows/generate-agenda-flow';
 import { MultiSelectCombobox } from './multi-select-combobox';
-import { allUsers } from '@/lib/users';
+import { useUser } from '@/context/user-context';
 import { ScrollArea } from '../ui/scroll-area';
 
 
@@ -43,13 +43,19 @@ export function ScheduleMeetingDialog({
   const [agenda, setAgenda] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [participants, setParticipants] = useState<string[]>([]);
+  const { allTeamMembers } = useUser();
+
+  const userOptionsForCombobox = allTeamMembers.map(user => ({
+    value: user.id,
+    label: user.name,
+  }));
 
   useEffect(() => {
     if (isOpen) {
       if (suggestion) {
         setTitle(suggestion.title);
         // Prefill participants
-        const initialParticipants = allUsers
+        const initialParticipants = userOptionsForCombobox
             .filter(user => suggestion.participants.includes(user.label))
             .map(user => user.value);
         setParticipants(initialParticipants);
@@ -81,7 +87,7 @@ export function ScheduleMeetingDialog({
         setTime('10:00');
       }
     }
-  }, [isOpen, suggestion]);
+  }, [isOpen, suggestion, allTeamMembers]);
 
   const handleConfirm = () => {
     // Logic to schedule the meeting would go here
@@ -159,7 +165,7 @@ export function ScheduleMeetingDialog({
                 </Label>
                 <div className="col-span-3">
                     <MultiSelectCombobox 
-                        options={allUsers}
+                        options={userOptionsForCombobox}
                         selected={participants}
                         onChange={setParticipants}
                         placeholder="Select participants..."
