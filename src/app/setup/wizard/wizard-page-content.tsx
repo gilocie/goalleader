@@ -414,7 +414,7 @@ const DomainSetupStep = () => {
             Step {currentStep + 1} of {STEPS.length}
           </CardDescription>
         </CardHeader>
-        <CardContent className="min-h-[220px] flex items-center justify-center py-6">
+        <CardContent className="min-h-[225px] flex items-center justify-center py-6">
             {renderStepContent()}
         </CardContent>
         { !isFinalStep ? (
