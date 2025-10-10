@@ -1,82 +1,42 @@
-/**
- * @fileOverview Firestore Security Rules for a messaging application.
- *
- * Core Philosophy:
- * This ruleset prioritizes user privacy and data ownership, ensuring users can only
- * access their own profile data and messages where they are a participant. It opts
- * for strict access control by default, requiring explicit permission grants for
- * any data access. The ruleset denormalizes a "participants" array on each message
- * to efficiently secure read operations.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profiles, accessible only to the owning user.
- * - /messages/{messageId}: Stores chat messages, accessible only to participants.
- * - /chats/active: Singleton document storing active chat IDs, publicly readable.
- *
- * Key Security Decisions:
- * - User listing is disallowed to protect user privacy.
- * - Messages are secured by checking for sender or recipient ID in `list` and `get` operations.
- * - The "participants" array on messages is used to efficiently authorize access.
- * - The `activeChats` document is publicly readable to facilitate efficient query.
- *
- * Denormalization for Authorization:
- * - Messages include a `participants` array containing the UIDs of the sender and recipient.
- *   This allows security rules to quickly verify user access without additional reads.
- *
- * Structural Segregation:
- * - Public information (if any) and private user data are kept in separate collections
- *   to simplify security rules and improve performance.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secure user profiles. Only the owner can read/write their own profile.
-     * @path /users/{userId}
-     * @allow (create) - User "abc" can create their own profile with ID "abc".
-     * @allow (get, list) - User "abc" can read their own profile.
-     * @deny (update, delete) - User "xyz" cannot modify or delete user "abc"'s profile.
-     * @principle Enforces document ownership for all operations on user profiles.
+     * USERS COLLECTION
+     * All authenticated users can read (get/list) all user profiles.
+     * Only the profile owner can create or update their own profile.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get, list: if isSignedIn();  // ✅ Allow all logged-in users to list everyone
       allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow update, delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Secure chat messages. Only participants can read messages.
-     * @path /messages/{messageId}
-     * @allow (create) - User "abc" can create a message if they are the sender or recipient.
-     * @allow (get, list) - User "abc" can read a message if they are the sender or recipient.
-     * @deny (update, delete) - No one can update or delete messages.
-     * @principle Enforces shared access based on the "participants" array within the message document.
+     * MESSAGES COLLECTION
+     * Only the sender or recipient can read or create messages.
      */
     match /messages/{messageId} {
       allow create: if isSignedIn() && (
         request.resource.data.senderId == request.auth.uid ||
         request.resource.data.recipientId == request.auth.uid
       );
+
       allow get, list: if isSignedIn() &&
         (resource.data.senderId == request.auth.uid ||
          resource.data.recipientId == request.auth.uid);
-      allow update: if false;
-      allow delete: if false;
+
+      allow update, delete: if false;
     }
 
     /**
-     * @description Allows public read access to active chats.
-     * @path /chats/active
-     * @allow (get, list) - Any user can read the active chats.
-     * @deny (create, update, delete) - No one can create, update, or delete the active chats document.
-     * @principle Provides public read access to facilitate efficient chat query.
+     * CHATS COLLECTION
+     * Everyone can read active chat lists but cannot modify them.
      */
     match /chats/active {
-        allow get, list: if true;
-        allow create, update, delete: if false;
+      allow get, list: if true;
+      allow create, update, delete: if false;
     }
 
     // Helper functions
@@ -89,7 +49,7 @@ service cloud.firestore {
     }
 
     function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+      return isOwner(userId) && resource != null;
     }
   }
 }
