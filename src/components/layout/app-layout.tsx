@@ -25,6 +25,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
     const isLobbyPage = pathname.includes('/lobby');
+    const isSetupPage = pathname === '/setup';
 
     useEffect(() => {
         if (isChatPage) {
@@ -33,18 +34,26 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     }, [isChatPage, setOpen]);
     
     useEffect(() => {
-        if (!loading && !user) {
+        // Allow access to login, register, landing, and setup pages without authentication
+        const publicPages = ['/login', '/register', '/', '/setup'];
+        if (!loading && !user && !publicPages.includes(pathname)) {
             router.push('/login');
         }
-    }, [user, loading, router]);
+    }, [user, loading, router, pathname]);
 
 
     // Render children directly for special full-screen layouts
-    if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings') && !isChatPage)) {
+    if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings') && !isChatPage) || isSetupPage) {
       return <>{children}</>;
     }
 
     if (loading || !user) {
+        // Don't show skeleton for public pages
+        const publicPages = ['/login', '/register', '/'];
+        if (publicPages.includes(pathname)) {
+            return <>{children}</>;
+        }
+
         return (
             <div className="flex min-h-screen w-full bg-muted/40">
                 <div className={cn("hidden md:flex md:flex-col border-r bg-card transition-all duration-300 md:w-[220px] lg:w-[280px]")}>
