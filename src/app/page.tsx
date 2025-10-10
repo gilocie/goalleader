@@ -7,9 +7,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useBranding } from '@/context/branding-context';
+import { useUser } from '@/firebase';
+import { Loader2 } from 'lucide-react';
 
 export default function LandingPage() {
   const { branding } = useBranding();
+  const { user, loading } = useUser();
   const heroBg = PlaceHolderImages.find(p => p.id === 'landing-hero-bg');
 
   return (
@@ -21,12 +24,13 @@ export default function LandingPage() {
             <span className="text-lg">{branding.companyName}</span>
           </Link>
           <nav className="flex items-center gap-4">
-             <Button variant="ghost" asChild className="text-white hover:bg-white/10 hover:text-white">
-                <Link href="/login">Login</Link>
-            </Button>
-            <Button asChild>
-                <Link href="/register">Sign Up</Link>
-            </Button>
+            {!loading && !user && (
+              <>
+                <Button asChild>
+                    <Link href="/register">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -52,9 +56,20 @@ export default function LandingPage() {
                         The ultimate productivity and project management tool designed to help you and your team reach your goals faster.
                     </p>
                     <div className="flex justify-center">
-                         <Button size="lg" asChild>
-                            <Link href="/dashboard">Go to Dashboard</Link>
-                        </Button>
+                        {loading ? (
+                            <Button size="lg" disabled>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Loading...
+                            </Button>
+                        ) : user ? (
+                            <Button size="lg" asChild>
+                                <Link href="/dashboard">Go to Dashboard</Link>
+                            </Button>
+                        ) : (
+                            <Button size="lg" asChild>
+                                <Link href="/login">Login</Link>
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
