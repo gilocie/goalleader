@@ -177,6 +177,7 @@ function SettingsTabContent() {
     const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
     const passwordInputRef = useRef<HTMLInputElement>(null);
     const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
 
     const handlePasswordSubmit = () => {
         const password = passwordInputRef.current?.value;
@@ -218,6 +219,27 @@ function SettingsTabContent() {
                             <div className='space-y-2'>
                                 <Label>Default City</Label>
                                 <Input placeholder="e.g., Lilongwe" />
+                            </div>
+                            <Separator />
+                             <div className='space-y-4'>
+                                <h3 className="font-medium">Reset Password</h3>
+                                <div className="space-y-2 relative">
+                                    <Label htmlFor="new-password">New Password</Label>
+                                    <Input id="new-password" type={showNewPassword ? 'text' : 'password'} placeholder="Enter new password" />
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute right-1 top-7 h-7 w-7 text-muted-foreground"
+                                        onClick={() => setShowNewPassword((prev) => !prev)}
+                                    >
+                                        {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="confirm-password">Confirm New Password</Label>
+                                    <Input id="confirm-password" type={showNewPassword ? 'text' : 'password'} placeholder="Confirm new password" />
+                                </div>
                             </div>
                             <Button>Save General Settings</Button>
                         </div>
