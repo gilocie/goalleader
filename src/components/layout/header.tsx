@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library } from 'lucide-react';
+import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useParams } from 'next/navigation';
 
@@ -32,6 +32,8 @@ import { useSidebar } from './sidebar';
 import { useAISuggestions } from '@/context/ai-suggestion-context';
 import { LibraryDropdown } from '../notifications/library-dropdown';
 import { useUser } from '@/context/user-context';
+import { useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -43,6 +45,7 @@ const meetings: { [key: string]: { title: string; category: string } } = {
 
 export function Header() {
   const { user } = useUser();
+  const auth = useAuth();
   const userAvatar = PlaceHolderImages.find((img) => img.id === user.id);
   const pathname = usePathname();
   const router = useRouter();
@@ -59,6 +62,13 @@ export function Header() {
 
   const unreadCount = notifications.filter(n => !n.read).length;
   const unreadLibraryCount = unreadItems.length;
+
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/');
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
@@ -192,7 +202,10 @@ export function Header() {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Logout</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
