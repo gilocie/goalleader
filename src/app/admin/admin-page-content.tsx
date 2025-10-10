@@ -15,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
@@ -390,32 +390,123 @@ function DepartmentsTabContent() {
 }
 
 function RolesTabContent() {
+    const { user, allTeamMembers } = useUser();
+    const isAdmin = user?.role === 'Admin';
+    const allDepartments = useMemo(() => [...new Set(allTeamMembers.map(m => m.department))], [allTeamMembers]);
+    
+    const allRolesWithDepartments = useMemo(() => {
+        const rolesMap = new Map<string, Set<string>>();
+        allTeamMembers.forEach(member => {
+            if (!rolesMap.has(member.role)) {
+                rolesMap.set(member.role, new Set());
+            }
+            rolesMap.get(member.role)!.add(member.department);
+        });
+        return Array.from(rolesMap.entries()).map(([role, depts]) => ({ name: role, departments: Array.from(depts) }));
+    }, [allTeamMembers]);
+
+    const [roles, setRoles] = useState(allRolesWithDepartments);
+    const [departmentFilter, setDepartmentFilter] = useState('all');
+
+    const [newRole, setNewRole] = useState('');
+    const [newRoleDepartment, setNewRoleDepartment] = useState('');
+    
+    const filteredRoles = useMemo(() => {
+        if (departmentFilter === 'all') return roles;
+        return roles.filter(r => r.departments.includes(departmentFilter));
+    }, [roles, departmentFilter]);
+
+    const handleAddRole = () => {
+        if (newRole && newRoleDepartment) {
+            setRoles(prev => {
+                const existingRole = prev.find(r => r.name === newRole);
+                if (existingRole) {
+                    // Add department to existing role
+                    return prev.map(r => r.name === newRole ? { ...r, departments: [...new Set([...r.departments, newRoleDepartment])] } : r);
+                } else {
+                    // Add new role
+                    return [...prev, { name: newRole, departments: [newRoleDepartment] }];
+                }
+            });
+            setNewRole('');
+            setNewRoleDepartment('');
+        }
+    };
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Roles</CardTitle>
                 <CardDescription>Define and manage user roles in the system.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 max-w-2xl">
-                <div className='space-y-4'>
-                    <Label>Add New Role</Label>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                        <Input placeholder="e.g., Team Leader" />
-                        <Select>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select Department" />
+            <CardContent className="space-y-6">
+                {isAdmin && (
+                    <div className="space-y-4 p-4 border rounded-lg">
+                        <Label className="font-semibold">Add New Role</Label>
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            <Input 
+                                placeholder="e.g., Team Leader" 
+                                value={newRole}
+                                onChange={(e) => setNewRole(e.target.value)}
+                            />
+                            <Select value={newRoleDepartment} onValueChange={setNewRoleDepartment}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Department" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {allDepartments.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button onClick={handleAddRole} disabled={!newRole || !newRoleDepartment}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Role
+                        </Button>
+                    </div>
+                )}
+                
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <Label>Existing Roles</Label>
+                        <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                            <SelectTrigger className="w-full md:w-[200px]">
+                                <SelectValue placeholder="Filter by Department" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="ict">ICT</SelectItem>
-                                <SelectItem value="customer-service">Customer Service</SelectItem>
-                                <SelectItem value="engineering">Engineering</SelectItem>
-                                <SelectItem value="marketing">Marketing</SelectItem>
+                                <SelectItem value="all">All Departments</SelectItem>
+                                {allDepartments.map(dept => <SelectItem key={dept} value={dept}>{dept}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
-                    <Button>Add Role</Button>
+                    <ScrollArea className="h-72">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Role Name</TableHead>
+                                    <TableHead>Department</TableHead>
+                                    {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredRoles.map((role) => (
+                                    <TableRow key={role.name}>
+                                        <TableCell>{role.name}</TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {role.departments.map(dept => <Badge key={dept} variant="secondary">{dept}</Badge>)}
+                                            </div>
+                                        </TableCell>
+                                        {isAdmin && (
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon"><Edit className="h-4 w-4" /></Button>
+                                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </ScrollArea>
                 </div>
-                <p className='text-muted-foreground text-sm'>Existing: Admin, Consultant</p>
             </CardContent>
         </Card>
     );
@@ -591,5 +682,3 @@ export function AdminPageContent() {
         </main>
     );
 }
-
-    
