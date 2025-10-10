@@ -352,9 +352,21 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
         fileInputRef.current.value = '';
     }
   };
+  
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+  }
 
-  const handleSendImages = (data: { urls: string[]; caption: string }) => {
-    onSendMessage(data.caption || '', 'image', { imageUrls: data.urls });
+  const handleSendImages = async (data: { urls: string[]; caption: string }) => {
+    const imageFiles = imagePreviews.map(p => p.file);
+    const base64Urls = await Promise.all(imageFiles.map(file => blobToBase64(file)));
+
+    onSendMessage(data.caption || '', 'image', { imageUrls: base64Urls });
     setImagePreviews([]);
   };
 
