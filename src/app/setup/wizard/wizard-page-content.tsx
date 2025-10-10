@@ -414,10 +414,10 @@ const DomainSetupStep = () => {
             Step {currentStep + 1} of {STEPS.length}
           </CardDescription>
         </CardHeader>
-        <CardContent className="h-[340px] flex items-center justify-center py-6 overflow-y-auto">
+        <CardContent className="h-[300px] flex items-center justify-center py-6 overflow-y-auto">
             {renderStepContent()}
         </CardContent>
-        { !isFinalStep ? (
+        { !isFinalStep && (
              <div className="p-6 border-t flex justify-between">
                 <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
                     Previous
@@ -426,10 +426,6 @@ const DomainSetupStep = () => {
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Next
                 </Button>
-            </div>
-        ) : (
-            <div className="p-6 border-t flex justify-center items-center">
-                <FinalizingStep onFinish={() => router.push('/')} />
             </div>
         )}
       </Card>
