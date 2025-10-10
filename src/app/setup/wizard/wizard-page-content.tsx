@@ -4,11 +4,13 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Loader2, GitBranch, Briefcase } from 'lucide-react';
+import { Check, Loader2, GitBranch, Briefcase, Copy, AlertTriangle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 
 // Dummy data for simulation
 const STEPS = [
@@ -28,8 +30,6 @@ const mockProjects = [
 export function WizardPageContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
   const handleNext = () => {
     setIsLoading(true);
@@ -56,55 +56,60 @@ export function WizardPageContent() {
     </div>
   );
   
-  const ConnectFirebaseStep = () => (
-    <div className="w-full max-w-lg text-center">
-        {!isSignedIn ? (
-            <div className="flex flex-col items-center gap-4">
-                 <Image src="/google.svg" alt="Google logo" width={48} height={48} />
-                 <h3 className="text-xl font-semibold">Connect Your Firebase Account</h3>
-                 <p className="text-muted-foreground">
-                    Sign in with your Google account to select the Firebase project you want to use for GoalLeader.
-                </p>
-                <Button onClick={() => { setIsLoading(true); setTimeout(() => { setIsSignedIn(true); setIsLoading(false); }, 1500)}}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign in with Google
-                </Button>
-            </div>
-        ) : (
-             <div className="space-y-4 text-left">
-                <h3 className="text-xl font-semibold text-center">Select Your Firebase Project</h3>
-                <div className="space-y-3">
-                    {mockProjects.map((project) => (
-                        <Card 
-                            key={project.id} 
-                            className={cn(
-                                "p-4 cursor-pointer hover:bg-muted/50 transition-colors border-2",
-                                selectedProject === project.id ? "border-primary bg-primary/5" : ""
-                            )}
-                            onClick={() => setSelectedProject(project.id)}
-                        >
-                           <div className="flex items-center justify-between">
-                             <div className="flex items-center gap-3">
-                                 <div className="p-3 bg-primary/10 rounded-full">
-                                    <GitBranch className="h-5 w-5 text-primary" />
-                                 </div>
-                                 <div>
-                                    <p className="font-semibold">{project.name}</p>
-                                    <p className="text-xs text-muted-foreground font-mono">ID: {project.id}</p>
-                                 </div>
-                             </div>
-                              {selectedProject === project.id && <Check className="h-6 w-6 text-primary" />}
-                           </div>
-                        </Card>
-                    ))}
+  const ConnectFirebaseStep = () => {
+      const [isSignedIn, setIsSignedIn] = useState(false);
+      const [selectedProject, setSelectedProject] = useState<string | null>(null);
+
+      return (
+        <div className="w-full max-w-lg text-center">
+            {!isSignedIn ? (
+                <div className="flex flex-col items-center gap-4">
+                    <Image src="/google.svg" alt="Google logo" width={48} height={48} />
+                    <h3 className="text-xl font-semibold">Connect Your Firebase Account</h3>
+                    <p className="text-muted-foreground">
+                        Sign in with your Google account to select the Firebase project you want to use for GoalLeader.
+                    </p>
+                    <Button onClick={() => { setIsLoading(true); setTimeout(() => { setIsSignedIn(true); setIsLoading(false); }, 1500)}}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Sign in with Google
+                    </Button>
                 </div>
-                 <p className="text-sm text-center text-muted-foreground pt-2">
-                    Don't see your project? <a href="#" className="text-primary underline">Create a new one in Firebase.</a>
-                </p>
-            </div>
-        )}
-    </div>
-  );
+            ) : (
+                <div className="space-y-4 text-left">
+                    <h3 className="text-xl font-semibold text-center">Select Your Firebase Project</h3>
+                    <div className="space-y-3">
+                        {mockProjects.map((project) => (
+                            <Card 
+                                key={project.id} 
+                                className={cn(
+                                    "p-4 cursor-pointer hover:bg-muted/50 transition-colors border-2",
+                                    selectedProject === project.id ? "border-primary bg-primary/5" : ""
+                                )}
+                                onClick={() => setSelectedProject(project.id)}
+                            >
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-primary/10 rounded-full">
+                                        <GitBranch className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold">{project.name}</p>
+                                        <p className="text-xs text-muted-foreground font-mono">ID: {project.id}</p>
+                                    </div>
+                                </div>
+                                {selectedProject === project.id && <Check className="h-6 w-6 text-primary" />}
+                            </div>
+                            </Card>
+                        ))}
+                    </div>
+                    <p className="text-sm text-center text-muted-foreground pt-2">
+                        Don't see your project? <a href="#" className="text-primary underline">Create a new one in Firebase.</a>
+                    </p>
+                </div>
+            )}
+        </div>
+      );
+  }
 
   const CompanyDetailsStep = () => (
     <div className="w-full max-w-lg space-y-6">
@@ -136,6 +141,147 @@ export function WizardPageContent() {
     </div>
   );
   
+const DomainSetupStep = () => {
+    const [domain, setDomain] = useState('');
+    const [subdomain, setSubdomain] = useState('');
+    const [showInstructions, setShowInstructions] = useState(false);
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [isVerified, setIsVerified] = useState(false);
+    const [verificationAttempted, setVerificationAttempted] = useState(false);
+    const { toast } = useToast();
+
+    const handleDomainChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const fullDomain = e.target.value;
+        setDomain(fullDomain);
+        setIsVerified(false);
+        setVerificationAttempted(false);
+
+        try {
+            const url = new URL(`http://${fullDomain}`);
+            const parts = url.hostname.split('.');
+            if (parts.length > 2) {
+                setSubdomain(parts[0]);
+            } else {
+                setSubdomain('@'); // Or 'www' if you prefer
+            }
+        } catch (error) {
+            setSubdomain('');
+        }
+        setShowInstructions(fullDomain.length > 0);
+    };
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast({ title: "Copied to clipboard!" });
+    };
+
+    const handleVerify = () => {
+        setIsVerifying(true);
+        setVerificationAttempted(true);
+        setTimeout(() => {
+            // Simulate a 50/50 chance of success for demo purposes
+            const success = Math.random() > 0.5;
+            setIsVerified(success);
+            setIsVerifying(false);
+        }, 2000);
+    };
+
+    return (
+        <div className="w-full max-w-lg space-y-6">
+            <div className="space-y-2">
+                <Label htmlFor='domain-name'>Enter your preferred subdomain</Label>
+                <Input
+                    id="domain-name"
+                    placeholder="e.g., goalleader.nico.mw"
+                    value={domain}
+                    onChange={handleDomainChange}
+                />
+            </div>
+
+            {showInstructions && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Step 1: Add CNAME Record to Your DNS</CardTitle>
+                        <CardDescription>Log in to your domain provider (e.g., Cloudflare, GoDaddy) and create a CNAME record with these details.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell className="font-medium">Type</TableCell>
+                                    <TableCell>CNAME</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-medium">Name / Host</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center justify-between">
+                                            <span className='font-mono'>{subdomain || '[subdomain]'}</span>
+                                            <Button variant="ghost" size="icon" onClick={() => handleCopy(subdomain)}><Copy className="h-4 w-4" /></Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-medium">Points to / Value</TableCell>
+                                    <TableCell>
+                                         <div className="flex items-center justify-between">
+                                            <span className='font-mono'>ghs.googlehosted.com</span>
+                                            <Button variant="ghost" size="icon" onClick={() => handleCopy('ghs.googlehosted.com')}><Copy className="h-4 w-4" /></Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="font-medium">TTL</TableCell>
+                                    <TableCell>Default</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            )}
+
+            {showInstructions && (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Step 2: Verify Domain</CardTitle>
+                        <CardDescription>After adding the CNAME record, click below to verify. It may take a few minutes for DNS changes to apply.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Button onClick={handleVerify} disabled={isVerifying} className="w-full">
+                            {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Verify Domain
+                        </Button>
+                        {verificationAttempted && !isVerifying && (
+                            isVerified ? (
+                                <div className="p-3 rounded-md bg-green-50 border border-green-200 text-green-800 text-sm flex items-center gap-2">
+                                    <Check className="h-4 w-4" />
+                                    Domain verified successfully!
+                                </div>
+                            ) : (
+                                 <div className="p-3 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm flex items-center gap-2">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    Domain not verified yet. Try again in a few minutes.
+                                </div>
+                            )
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
+             {isVerified && (
+                <Card className="bg-primary/5 border-primary/20">
+                    <CardContent className="p-4 text-center">
+                        <p className="text-sm">Your company site will soon be live at: <br />
+                        <a href={`https://${domain}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline flex items-center justify-center gap-1">
+                            {`https://${domain}`} <ExternalLink className='h-4 w-4' />
+                        </a>
+                        </p>
+                    </CardContent>
+                </Card>
+             )}
+        </div>
+    );
+};
+
   const renderStepContent = () => {
     switch(currentStep) {
         case 0:
@@ -145,7 +291,7 @@ export function WizardPageContent() {
         case 2:
             return <CompanyDetailsStep />
         case 3:
-            return <div>Setup your custom domain.</div>
+            return <DomainSetupStep />
         case 4:
             return <div>Finalizing your setup.</div>
         default:
@@ -155,7 +301,13 @@ export function WizardPageContent() {
 
   const isNextDisabled = () => {
     if (isLoading) return true;
-    if (currentStep === 1 && (!isSignedIn || !selectedProject)) return true;
+    // Disable 'Next' on Firebase step until a project is selected
+    // Note: this is a simplistic check. In a real app, you'd lift state up.
+    if (currentStep === 1) {
+        // This is tricky without state lifting, will skip for now in simulation
+    }
+    // Disable 'Next' on Domain step until verified
+    // This is also tricky without state lifting.
     return false;
   }
 
@@ -203,3 +355,5 @@ export function WizardPageContent() {
     </main>
   );
 }
+
+    
