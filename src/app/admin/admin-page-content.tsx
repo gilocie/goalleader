@@ -1,11 +1,11 @@
 
 'use client';
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Shield, Palette, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard, LucideIcon } from 'lucide-react';
+import { Shield, Palette, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard, LucideIcon, Edit, PlusCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -20,13 +20,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/context/user-context';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 function OverviewTabContent() {
     const { allTeamMembers } = useUser();
     const stats = [
         { title: 'Total Users', value: allTeamMembers.length, icon: Users },
-        { title: 'Departments', value: 3, icon: Building },
-        { title: 'Roles', value: 2, icon: Briefcase },
+        { title: 'Departments', value: [...new Set(allTeamMembers.map(m => m.department))].length, icon: Building },
+        { title: 'Roles', value: [...new Set(allTeamMembers.map(m => m.role))].length, icon: Briefcase },
         { title: 'Branches', value: 1, icon: GitBranch },
     ];
     return (
@@ -274,21 +275,115 @@ function UserManagementTabContent() {
 }
 
 function DepartmentsTabContent() {
+    const { allTeamMembers, user } = useUser();
+    const isAdmin = user?.role === 'Admin';
+    const [departments, setDepartments] = useState([...new Set(allTeamMembers.map(m => m.department))]);
+    const [newDepartment, setNewDepartment] = useState('');
+    const [editingDepartment, setEditingDepartment] = useState<{ oldName: string, newName: string } | null>(null);
+
+    const handleAddDepartment = () => {
+        if (newDepartment && !departments.includes(newDepartment)) {
+            setDepartments(prev => [...prev, newDepartment]);
+            setNewDepartment('');
+        }
+    };
+
+    const handleUpdateDepartment = () => {
+        if (editingDepartment) {
+            setDepartments(prev => prev.map(d => d === editingDepartment.oldName ? editingDepartment.newName : d));
+            setEditingDepartment(null);
+        }
+    };
+
+    const handleDeleteDepartment = (deptName: string) => {
+        setDepartments(prev => prev.filter(d => d !== deptName));
+    };
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Departments</CardTitle>
                 <CardDescription>Manage organizational departments.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 max-w-2xl">
-                 <div className='space-y-2'>
-                    <Label>Add New Department</Label>
-                    <div className='flex gap-2'>
-                        <Input placeholder="e.g., Human Resources" />
-                        <Button>Add Department</Button>
-                    </div>
+            <CardContent>
+                <div className="space-y-4">
+                    {isAdmin && (
+                        <div className="space-y-2">
+                            <Label htmlFor="new-department">Add New Department</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="new-department"
+                                    placeholder="e.g., Human Resources"
+                                    value={newDepartment}
+                                    onChange={(e) => setNewDepartment(e.target.value)}
+                                />
+                                <Button onClick={handleAddDepartment}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                    <ScrollArea className="h-72">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Department Name</TableHead>
+                                    {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {departments.map((dept) => (
+                                    <TableRow key={dept}>
+                                        <TableCell>{dept}</TableCell>
+                                        {isAdmin && (
+                                            <TableCell className="text-right">
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Edit Department</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                <Input defaultValue={dept} onChange={(e) => setEditingDepartment({ oldName: dept, newName: e.target.value })} className="mt-4" />
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel onClick={() => setEditingDepartment(null)}>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={handleUpdateDepartment}>Save</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                     <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This action cannot be undone. This will permanently delete the department.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDeleteDepartment(dept)}>Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </ScrollArea>
                 </div>
-                <p className='text-muted-foreground text-sm'>Existing: Customer Service, Engineering, Marketing, ICT</p>
             </CardContent>
         </Card>
     );
