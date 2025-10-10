@@ -28,7 +28,7 @@ function OverviewTabContent() {
         { title: 'Total Users', value: allTeamMembers.length, icon: Users },
         { title: 'Departments', value: [...new Set(allTeamMembers.map(m => m.department))].length, icon: Building },
         { title: 'Roles', value: [...new Set(allTeamMembers.map(m => m.role))].length, icon: Briefcase },
-        { title: 'Branches', value: 1, icon: GitBranch },
+        { title: 'Branches', value: [...new Set(allTeamMembers.map(m => m.branch).filter(Boolean))].length, icon: GitBranch },
     ];
     return (
         <Card>
@@ -194,10 +194,9 @@ function UserManagementTabContent() {
                             <SelectValue placeholder="Filter by Department" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="ict">ICT</SelectItem>
-                            <SelectItem value="customer-service">Customer Service</SelectItem>
-                            <SelectItem value="engineering">Engineering</SelectItem>
-                            <SelectItem value="marketing">Marketing</SelectItem>
+                            {[...new Set(users.map(u => u.department))].map(dept => (
+                                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                     <Select>
@@ -205,9 +204,9 @@ function UserManagementTabContent() {
                             <SelectValue placeholder="Filter by Role" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="consultant">Consultant</SelectItem>
-                            <SelectItem value="team-leader">Team Leader</SelectItem>
+                             {[...new Set(users.map(u => u.role))].map(role => (
+                                <SelectItem key={role} value={role}>{role}</SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -513,21 +512,115 @@ function RolesTabContent() {
 }
 
 function BranchesTabContent() {
+    const { allTeamMembers, user } = useUser();
+    const isAdmin = user?.role === 'Admin';
+    const [branches, setBranches] = useState([...new Set(allTeamMembers.map(m => m.branch).filter(Boolean))]);
+    const [newBranch, setNewBranch] = useState('');
+    const [editingBranch, setEditingBranch] = useState<{ oldName: string, newName: string } | null>(null);
+
+    const handleAddBranch = () => {
+        if (newBranch && !branches.includes(newBranch)) {
+            setBranches(prev => [...prev, newBranch]);
+            setNewBranch('');
+        }
+    };
+
+    const handleUpdateBranch = () => {
+        if (editingBranch) {
+            setBranches(prev => prev.map(b => b === editingBranch.oldName ? editingBranch.newName : b));
+            setEditingBranch(null);
+        }
+    };
+
+    const handleDeleteBranch = (branchName: string) => {
+        setBranches(prev => prev.filter(b => b !== branchName));
+    };
+    
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Branches</CardTitle>
                 <CardDescription>Manage company branches and locations.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 max-w-2xl">
-                 <div className='space-y-2'>
-                    <Label>Add New Branch</Label>
-                    <div className='flex gap-2'>
-                        <Input placeholder="e.g., London Office" />
-                        <Button>Add Branch</Button>
-                    </div>
+             <CardContent>
+                <div className="space-y-4">
+                    {isAdmin && (
+                        <div className="space-y-2">
+                            <Label htmlFor="new-branch">Add New Branch</Label>
+                            <div className="flex gap-2">
+                                <Input
+                                    id="new-branch"
+                                    placeholder="e.g., London Office"
+                                    value={newBranch}
+                                    onChange={(e) => setNewBranch(e.target.value)}
+                                />
+                                <Button onClick={handleAddBranch}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                    <ScrollArea className="h-72">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Branch Name</TableHead>
+                                    {isAdmin && <TableHead className="text-right">Actions</TableHead>}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {branches.map((branch) => (
+                                    <TableRow key={branch}>
+                                        <TableCell>{branch}</TableCell>
+                                        {isAdmin && (
+                                            <TableCell className="text-right">
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <Edit className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Edit Branch</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                <Input defaultValue={branch} onChange={(e) => setEditingBranch({ oldName: branch, newName: e.target.value })} className="mt-4" />
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel onClick={() => setEditingBranch(null)}>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={handleUpdateBranch}>Save</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                     <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This action cannot be undone. This will permanently delete the branch.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDeleteBranch(branch)}>Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </ScrollArea>
                 </div>
-                <p className='text-muted-foreground text-sm'>Existing: Main Office</p>
             </CardContent>
         </Card>
     );
@@ -682,3 +775,5 @@ export function AdminPageContent() {
         </main>
     );
 }
+
+    
