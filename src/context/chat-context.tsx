@@ -10,6 +10,7 @@ import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useCollection, useDoc } from '@/firebase';
+import { useUser as useUserContext } from './user-context';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -45,7 +46,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user: firebaseUser } = useUser(); // Firebase user
-  const { allTeamMembers } = useUser();
+  const { allTeamMembers } = useUserContext();
   const firestore = useFirestore();
   
   const messagesQuery = useMemo(() => {
@@ -68,7 +69,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const activeChatIds = useMemo(() => new Set(activeChatsData?.ids || []), [activeChatsData]);
 
   const allContacts = useMemo(() => {
-    if (!firebaseUser) return [];
+    if (!firebaseUser || !allTeamMembers) return [];
     return allTeamMembers.map(member => {
         const relevantMessages = messages.filter(
             msg => (msg.senderId === member.id && msg.recipientId === firebaseUser.uid) ||
@@ -362,4 +363,3 @@ export const useChat = () => {
   }
   return context;
 };
-
