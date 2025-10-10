@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Shield, Palette, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard, LucideIcon, Edit, PlusCircle } from 'lucide-react';
+import { Shield, Palette, Building, Users, Ban, Trash2, MessageSquare, UserCheck, Search, MoreHorizontal, Briefcase, GitBranch, Settings, LayoutDashboard, LucideIcon, Edit, PlusCircle, Copy, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -22,6 +22,7 @@ import { useUser } from '@/context/user-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useUser as useFirebaseAuthUser } from '@/firebase';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
 
 function OverviewTabContent() {
     const { allTeamMembers } = useUser();
@@ -126,6 +127,64 @@ function BrandingTabContent() {
     )
 }
 
+const envKeys = [
+    { name: 'GOOGLE_GEMINI_API_KEY', description: 'API key for Google Gemini services.' },
+    { name: 'NEXT_PUBLIC_FIREBASE_API_KEY', description: 'Firebase project API key.' },
+    { name: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN', description: 'Firebase project authentication domain.' },
+    { name: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID', description: 'Firebase project ID.' },
+    { name: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID', description: 'Firebase Cloud Messaging sender ID.' },
+    { name: 'NEXT_PUBLIC_FIREBASE_APP_ID', description: 'Firebase application ID.' },
+];
+
+const SecureKeyInput = ({ name, description }: { name: string; description: string }) => {
+    const [value, setValue] = useState('**********');
+    const [revealed, setRevealed] = useState(false);
+    const { toast } = useToast();
+
+    const handleCopy = () => {
+        // In a real app, you would fetch the actual key from a secure backend
+        const realKey = `real_${name}_value`;
+        navigator.clipboard.writeText(realKey);
+        toast({ title: 'Copied to clipboard' });
+    };
+
+    const handleReveal = () => {
+        // Here you would prompt for admin password
+        const password = prompt('Please enter your admin password to reveal the key:');
+        if (password === 'admin') { // This is a placeholder! Use real auth.
+            setRevealed(true);
+            // In a real app, you would fetch and display the real key.
+            setValue(`real_${name}_value`);
+        } else {
+            toast({ variant: 'destructive', title: 'Incorrect Password' });
+        }
+    };
+
+    return (
+        <div className='space-y-2'>
+            <div className="flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-muted-foreground" />
+                <div>
+                    <Label htmlFor={name} className="font-mono text-sm">{name}</Label>
+                    <p className="text-xs text-muted-foreground">{description}</p>
+                </div>
+            </div>
+            <div className="relative">
+                <Input id={name} type={revealed ? 'text' : 'password'} value={value} readOnly />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleReveal}>
+                        {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopy}>
+                        <Copy className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 function SettingsTabContent() {
     return (
         <Card>
@@ -133,14 +192,14 @@ function SettingsTabContent() {
                 <CardTitle>Settings</CardTitle>
                 <CardDescription>Manage system-wide settings and integrations.</CardDescription>
             </CardHeader>
-            <CardContent className="max-w-2xl">
+            <CardContent>
                  <Tabs defaultValue="general" className="w-full">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="general">General</TabsTrigger>
                         <TabsTrigger value="security">Security</TabsTrigger>
                     </TabsList>
                     <TabsContent value="general" className="mt-6">
-                        <div className="space-y-6">
+                        <div className="space-y-6 max-w-2xl">
                             <div className='space-y-2'>
                                 <Label>Default Country</Label>
                                 <Input placeholder="e.g., Malawi" />
@@ -153,16 +212,13 @@ function SettingsTabContent() {
                         </div>
                     </TabsContent>
                     <TabsContent value="security" className="mt-6">
-                        <div className="space-y-6">
-                            <div className='space-y-2'>
-                                <Label htmlFor='gemini-key'>Google Gemini API Key</Label>
-                                <Input id="gemini-key" type="password" placeholder="Enter your Gemini API Key" />
-                            </div>
-                            <div className='space-y-2'>
+                        <div className="space-y-6 max-w-2xl">
+                           {envKeys.map(key => <SecureKeyInput key={key.name} {...key} />)}
+                           <div className='space-y-2'>
                                 <Label htmlFor='admin-pin'>Admin PIN</Label>
                                 <Input id="admin-pin" type="password" placeholder="Set or change your admin PIN" />
                             </div>
-                            <Button>Save Security Settings</Button>
+                           <Button>Save Security Settings</Button>
                         </div>
                     </TabsContent>
                 </Tabs>
