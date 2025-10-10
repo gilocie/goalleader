@@ -68,14 +68,14 @@ export function WizardPageContent() {
   );
   
   const ConnectFirebaseStep = () => {
-      const [user, setUser] = useState<User | null>(null);
-      const [projects, setProjects] = useState<FirebaseProject[]>([]);
-      const [selectedProject, setSelectedProject] = useState<string | null>(null);
-      const [isFetchingProjects, setIsFetchingProjects] = useState(false);
-      const [loginAttempted, setLoginAttempted] = useState(false);
-      const { toast } = useToast();
+    const [user, setUser] = useState<User | null>(null);
+    const [projects, setProjects] = useState<FirebaseProject[]>([]);
+    const [selectedProject, setSelectedProject] = useState<string | null>(null);
+    const [isFetchingProjects, setIsFetchingProjects] = useState(false);
+    const { toast } = useToast();
 
-      const handleFetchProjects = useCallback(async (gUser: User) => {
+    const handleFetchProjects = useCallback(async (gUser: User) => {
+        if (projects.length > 0) return; // Don't re-fetch
         setIsFetchingProjects(true);
         try {
             const token = await gUser.getIdToken();
@@ -98,32 +98,29 @@ export function WizardPageContent() {
         } finally {
              setIsFetchingProjects(false);
         }
-      }, [toast]);
+      }, [toast, projects.length]);
 
       useEffect(() => {
         if (!auth) return;
-
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             if (currentUser) {
                 handleFetchProjects(currentUser);
             }
         });
-        
-        // Automatically trigger Google sign-in when the component mounts
-        if (auth && !user && !loginAttempted) {
-          setLoginAttempted(true); // Prevent re-triggering
-          const provider = new GoogleAuthProvider();
-          signInWithPopup(auth, provider).catch(error => {
-              console.error("Login failed:", error);
-              if (error.code !== 'auth/popup-closed-by-user') {
-                toast({ variant: "destructive", title: "Login Failed", description: "Could not sign in with Google."});
-              }
-          });
-        }
-
         return unsubscribe;
-      }, [auth, user, handleFetchProjects, loginAttempted, toast]);
+      }, [auth, handleFetchProjects]);
+
+      const handleLogin = () => {
+        if (!auth) return;
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(auth, provider).catch(error => {
+            console.error("Login failed:", error);
+            if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+              toast({ variant: "destructive", title: "Login Failed", description: "Could not sign in with Google."});
+            }
+        });
+      };
       
       const GoogleLogo = () => (
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
@@ -134,15 +131,17 @@ export function WizardPageContent() {
         </svg>
       );
 
-      if (!user && !isFetchingProjects) {
+      if (!user) {
           return (
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-4 text-center">
                 <GoogleLogo />
                 <h3 className="text-xl font-semibold">Connect Your Firebase Account</h3>
-                <p className="text-muted-foreground">
-                    Waiting for Google Sign-in...
+                <p className="text-muted-foreground max-w-sm">
+                    To continue, please sign in with your Google account. This will allow us to fetch your available Firebase projects.
                 </p>
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <Button onClick={handleLogin}>
+                    Sign in with Google
+                </Button>
             </div>
           )
       }
