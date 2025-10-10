@@ -1,13 +1,13 @@
 /**
  * @file Firestore Security Rules
- * @core_philosophy This ruleset prioritizes user privacy and data ownership. Users can only read and write their own profile data. Chat messages can only be created, but not updated or deleted.
+ * @core_philosophy This ruleset prioritizes user privacy and data ownership. Users can only read and write their own profile data. Chat messages can be created, but not updated or deleted.
  * @data_structure
  *   - /users/{userId}: Stores individual user profiles.
  *   - /messages/{messageId}: Stores all chat messages.
  *   - /chats/active: Singleton document to track active chat IDs.
  * @key_security_decisions
  *   - Users can only read and write their own user profile.
- *   - Chat messages can be created by anyone, representing a public chat. Updates and deletes are forbidden.
+ *   - Chat messages can be created by anyone, but not updated or deleted.
  *   - The list of active chat IDs is publicly readable and writable. This is potentially insecure and should be reviewed.
  * @denormalization_for_authorization N/A - No denormalization is used in this ruleset.
  * @structural_segregation N/A - No structural segregation is used in this ruleset.
@@ -20,6 +20,7 @@ service cloud.firestore {
      * @description Controls access to user profile documents.
      * @path /users/{userId}
      * @allow (read, write) if the user is the owner of the profile.
+     *   e.g., request.auth.uid = 'user_abc'
      * @deny (read, write) if the user is not the owner of the profile.
      *   e.g., request.auth.uid = 'otherUser'
      * @principle Enforces document ownership for reads and writes.
