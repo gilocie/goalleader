@@ -10,6 +10,6 @@ import { googleAI } from '@genkit-ai/google-genai';
 
 /**
  * The primary, stable Gemini model used for most generative tasks.
- * Using 'gemini-2.5-flash' provides a balance of speed and capability.
+ * Using 'gemini-1.5-flash-latest' provides a balance of speed and capability.
  */
-export const GEMINI_MODEL = 'googleai/gemini-2.5-flash';
+export const GEMINI_MODEL = googleAI('gemini-1.5-flash-latest');
