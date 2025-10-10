@@ -351,7 +351,7 @@ const DomainSetupStep = () => {
         case 3:
             return <DomainSetupStep />
         case 4:
-            return null;
+            return null; // The FinalizingStep is handled differently
         default:
             return null;
     }
@@ -365,7 +365,7 @@ const DomainSetupStep = () => {
   const isFinalStep = currentStep === STEPS.length - 1;
 
   return (
-    <main className="relative h-screen w-screen flex items-center justify-center bg-muted overflow-hidden">
+    <main className="relative h-screen w-screen flex items-center justify-center bg-muted overflow-hidden py-8">
         {currentBg && (
             <Image
                 src={currentBg.imageUrl}
@@ -377,19 +377,18 @@ const DomainSetupStep = () => {
         )}
         <div className="absolute inset-0 bg-black/50 z-0" />
 
-        <Card className="w-full max-w-4xl h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
-            <div className="p-6 text-center border-b flex flex-col items-center">
-                <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
-                <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
-            </div>
-            
-            <ScrollArea className="flex-1 overflow-auto p-6">
-                <div className="flex flex-col items-center justify-center">
-                    {renderStepContent()}
-                </div>
-            </ScrollArea>
+        {!isFinalStep ? (
+            <Card className="w-full max-w-4xl h-auto max-h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
+                <ScrollArea className="flex-1 overflow-auto p-6">
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="p-6 text-center flex flex-col items-center">
+                            <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
+                            <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
+                        </div>
+                        {renderStepContent()}
+                    </div>
+                </ScrollArea>
 
-            { !isFinalStep ? (
                 <div className="p-6 border-t flex justify-between items-center">
                     <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
                         Previous
@@ -418,12 +417,12 @@ const DomainSetupStep = () => {
                         Next
                     </Button>
                 </div>
-            ) : (
-                <div className="p-6 border-t flex justify-center">
-                    <FinalizingStep onFinish={() => router.push('/')} />
-                </div>
-            )}
-        </Card>
+            </Card>
+        ) : (
+            <div className="z-10 text-white">
+                <FinalizingStep onFinish={() => router.push('/')} />
+            </div>
+        )}
     </main>
   );
 }
