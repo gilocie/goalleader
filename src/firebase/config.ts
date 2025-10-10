@@ -2,6 +2,7 @@
 // In a production multi-tenant environment, these values would be fetched
 // from a secure remote configuration service (like Firebase Remote Config)
 // during application startup.
+import 'dotenv/config';
 
 // The setup wizard described in the architecture would be responsible for
 // populating the remote config for each client.
