@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -173,20 +172,26 @@ function SettingsTabContent() {
 }
 
 function UserManagementTabContent() {
-    const { user: currentUser, allTeamMembers, allUsersWithAuth } = useUser();
+    const { user: currentUser, allUsersWithAuth } = useUser();
+    const { user: firebaseUser } = useFirebaseAuthUser();
 
-    const adminCount = useMemo(() => allTeamMembers.filter(u => u.role === 'Admin').length, [allTeamMembers]);
+    const adminCount = useMemo(() => allUsersWithAuth.filter(u => u.role === 'Admin').length, [allUsersWithAuth]);
 
     const users = useMemo(() => {
-        return allUsersWithAuth.map(u => ({
-            ...u,
-            email: u.email || `${u.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`,
-        }))
-    }, [allUsersWithAuth]);
+        return allUsersWithAuth.map(u => {
+            let email = u.email || `${u.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`;
+            if (u.id === currentUser?.id) {
+                email = firebaseUser?.email || email;
+            }
+            return { ...u, email };
+        });
+    }, [allUsersWithAuth, currentUser, firebaseUser]);
     
 
     const ActionMenuItem = ({ children, disabled, tooltip }: { children: React.ReactNode, disabled: boolean, tooltip?: string }) => {
-        if (disabled) {
+        const item = <DropdownMenuItem disabled={disabled}>{children}</DropdownMenuItem>;
+
+        if (disabled && tooltip) {
             return (
                 <TooltipProvider>
                     <Tooltip>
@@ -202,7 +207,7 @@ function UserManagementTabContent() {
                 </TooltipProvider>
             )
         }
-        return <DropdownMenuItem>{children}</DropdownMenuItem>;
+        return <DropdownMenuItem disabled={disabled}>{children}</DropdownMenuItem>;
     };
 
 
@@ -288,7 +293,9 @@ function UserManagementTabContent() {
                                                     <ActionMenuItem disabled={isSoleAdmin} tooltip="Cannot change role of the sole admin.">
                                                         <UserCheck className="mr-2 h-4 w-4" />Assign Role
                                                     </ActionMenuItem>
-                                                    <DropdownMenuItem><MessageSquare className="mr-2 h-4 w-4" />Send Message</DropdownMenuItem>
+                                                    <ActionMenuItem disabled={isSelf} tooltip="You cannot send a message to yourself.">
+                                                        <MessageSquare className="mr-2 h-4 w-4" />Send Message
+                                                    </ActionMenuItem>
                                                     <DropdownMenuSeparator />
                                                      <ActionMenuItem disabled={isSoleAdmin} tooltip="Cannot ban the sole admin.">
                                                         <Ban className="mr-2 h-4 w-4 text-destructive" />

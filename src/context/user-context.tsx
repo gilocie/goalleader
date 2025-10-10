@@ -99,14 +99,17 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   // Mock fetching all users with emails
   useEffect(() => {
-      if (allTeamMembers) {
-          const combined = allTeamMembers.map(member => ({
-              ...member,
-              email: `${member.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com` // Mock email
-          }));
+      if (allTeamMembers && firebaseUser) {
+          const combined = allTeamMembers.map(member => {
+              // Show real email for current user, mock for others
+              const email = member.id === firebaseUser.uid
+                  ? firebaseUser.email
+                  : `${member.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`;
+              return { ...member, email: email || '' };
+          });
           setAllUsersWithAuth(combined);
       }
-  }, [allTeamMembers]);
+  }, [allTeamMembers, firebaseUser]);
 
   const saveUser = (newUser: User) => {
      try {
