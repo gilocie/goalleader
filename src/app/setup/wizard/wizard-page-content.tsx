@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, Loader2, GitBranch, Briefcase, Copy, AlertTriangle, ExternalLink } from 'lucide-react';
@@ -30,6 +31,7 @@ const mockProjects = [
 export function WizardPageContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleNext = () => {
     setIsLoading(true);
@@ -282,6 +284,47 @@ const DomainSetupStep = () => {
     );
 };
 
+  const FinalizingStep = ({ onFinish }: { onFinish: () => void }) => {
+    const [isFinalizing, setIsFinalizing] = useState(false);
+    const [isComplete, setIsComplete] = useState(false);
+
+    const handleFinishClick = () => {
+        setIsFinalizing(true);
+        setTimeout(() => {
+            setIsFinalizing(false);
+            setIsComplete(true);
+            setTimeout(() => {
+                onFinish();
+            }, 1500);
+        }, 3000);
+    };
+
+    return (
+        <div className="text-center space-y-6">
+            {isComplete ? (
+                 <div className="flex flex-col items-center gap-4">
+                     <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center animate-in zoom-in-50">
+                        <Check className="h-12 w-12 text-green-600" />
+                     </div>
+                     <p className="text-lg font-semibold">Setup Complete!</p>
+                     <p className="text-muted-foreground">Redirecting you now...</p>
+                 </div>
+            ) : isFinalizing ? (
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <p className="text-lg font-semibold">Building your environment...</p>
+                    <p className="text-muted-foreground">This may take a moment.</p>
+                </div>
+            ) : (
+                <div className="flex flex-col items-center gap-4">
+                    <p>You're all set! Click finish to complete the setup.</p>
+                    <Button onClick={handleFinishClick} size="lg">Finish Setup</Button>
+                </div>
+            )}
+        </div>
+    );
+  };
+
   const renderStepContent = () => {
     switch(currentStep) {
         case 0:
@@ -293,7 +336,7 @@ const DomainSetupStep = () => {
         case 3:
             return <DomainSetupStep />
         case 4:
-            return <div>Finalizing your setup.</div>
+            return <FinalizingStep onFinish={() => router.push('/')} />;
         default:
             return null;
     }
@@ -301,13 +344,6 @@ const DomainSetupStep = () => {
 
   const isNextDisabled = () => {
     if (isLoading) return true;
-    // Disable 'Next' on Firebase step until a project is selected
-    // Note: this is a simplistic check. In a real app, you'd lift state up.
-    if (currentStep === 1) {
-        // This is tricky without state lifting, will skip for now in simulation
-    }
-    // Disable 'Next' on Domain step until verified
-    // This is also tricky without state lifting.
     return false;
   }
 
@@ -339,18 +375,20 @@ const DomainSetupStep = () => {
             Step {currentStep + 1} of {STEPS.length}
           </CardDescription>
         </CardHeader>
-        <CardContent className="min-h-[300px] flex items-center justify-center">
+        <CardContent className="min-h-[400px] flex items-center justify-center">
             {renderStepContent()}
         </CardContent>
-        <div className="p-6 border-t flex justify-between">
-            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
-                Previous
-            </Button>
-            <Button onClick={handleNext} disabled={isNextDisabled()}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {currentStep === STEPS.length - 1 ? 'Finish' : 'Next'}
-            </Button>
-        </div>
+        {currentStep < 4 && (
+            <div className="p-6 border-t flex justify-between">
+                <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
+                    Previous
+                </Button>
+                <Button onClick={handleNext} disabled={isNextDisabled()}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Next
+                </Button>
+            </div>
+        )}
       </Card>
     </main>
   );
