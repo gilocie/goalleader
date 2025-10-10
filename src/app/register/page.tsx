@@ -17,7 +17,6 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -30,18 +29,12 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
-  const [department, setDepartment] = useState('');
-  const [role, setRole] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const auth = useAuth();
   const firestore = useFirestore();
-  const { allTeamMembers } = useUserContext();
   const router = useRouter();
   const { toast } = useToast();
-
-  const departments = allTeamMembers ? [...new Set(allTeamMembers.map(m => m.department))] : [];
-  const rolesForDepartment = allTeamMembers ? allTeamMembers.filter(m => m.department === department) : [];
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,8 +56,8 @@ export default function RegisterPage() {
 
         const userProfileData = {
             name: fullName,
-            department: department,
-            role: role,
+            department: 'Unassigned',
+            role: 'Consultant',
             status: 'online',
             country: '',
             branch: '',
@@ -136,26 +129,6 @@ export default function RegisterPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} />
-                </div>
-              </div>
-               <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="department">Department</Label>
-                  <Select value={department} onValueChange={setDepartment}>
-                      <SelectTrigger><SelectValue placeholder="Select Department"/></SelectTrigger>
-                      <SelectContent>
-                          {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                      </SelectContent>
-                  </Select>
-                </div>
-                 <div className="grid gap-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={role} onValueChange={setRole} disabled={!department}>
-                       <SelectTrigger><SelectValue placeholder="Select Role"/></SelectTrigger>
-                      <SelectContent>
-                          {rolesForDepartment.map(m => <SelectItem key={m.role} value={m.role}>{m.role}</SelectItem>)}
-                      </SelectContent>
-                  </Select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
