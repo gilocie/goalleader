@@ -70,7 +70,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [sentMessages, receivedMessages]);
 
 
-  const { data: activeChatsData } = useDoc<{ ids: string[] }>(firestore ? doc(firestore, 'chats', 'active') : null);
+  const { data: activeChatsData } = useDoc<{ ids: string[] }>(firestore && firebaseUser ? doc(firestore, 'chats', firebaseUser.uid) : null);
 
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
@@ -126,10 +126,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [allContacts, firebaseUser]);
 
   const updateActiveChatIds = async (newIds: Set<string>) => {
-    if (!firestore) return;
-    const activeChatsRef = doc(firestore, 'chats', 'active');
+    if (!firestore || !firebaseUser) return;
+    const activeChatsRef = doc(firestore, 'chats', firebaseUser.uid);
     try {
-        await updateDoc(activeChatsRef, { ids: Array.from(newIds) });
+        await setDoc(activeChatsRef, { ids: Array.from(newIds) }, { merge: true });
     } catch (e) {
         console.error("Failed to update active chats in Firestore", e);
     }
@@ -139,30 +139,31 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!firebaseUser) return [];
     const contactList = allContacts.filter(c => {
         if (c.id === firebaseUser.uid) return false;
-        const chatId = [firebaseUser.uid, c.id].sort().join('--');
-        return activeChatIds.has(chatId);
+        // A chat is "active" if there are any messages between the two users.
+        const hasMessages = messages.some(m => 
+            (m.senderId === c.id && m.recipientId === firebaseUser.uid) || 
+            (m.senderId === firebaseUser.uid && m.recipientId === c.id)
+        );
+        return hasMessages;
     });
     
     contactList.sort((a, b) => {
         if (!firebaseUser) return 0;
         const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
-        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m1.timestamp?.toMillis() || 0) - (m2.timestamp?.toMillis() || 0))[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
         return (lastMessageB.timestamp?.toMillis() || 0) - (lastMessageA.timestamp?.toMillis() || 0);
     });
 
     return contactList;
-  }, [allContacts, activeChatIds, messages, firebaseUser]);
+  }, [allContacts, messages, firebaseUser]);
   
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
 
   const addMessage = useCallback(async (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self || !firestore) return;
-
-    const participants = [self.id, recipientId].sort();
-    const chatId = participants.join('--');
     
     const messagesCollection = collection(firestore, 'messages');
 
@@ -182,15 +183,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         const permissionError = new FirestorePermissionError({
             path: messagesCollection.path,
             operation: 'create',
-            requestResourceData: newMessage,
+            requestResourceData: {...newMessage, timestamp: new Date().toISOString() }, // Add a client-side timestamp for the error report
         });
         errorEmitter.emit('permission-error', permissionError);
     });
 
-    if (!activeChatIds.has(chatId)) {
-        await updateActiveChatIds(new Set(activeChatIds).add(chatId));
-    }
-  }, [self, firestore, activeChatIds]);
+  }, [self, firestore]);
 
   const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self || !firestore) return;
@@ -233,24 +231,17 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const deleteChat = useCallback(async (contactId: string) => {
     await clearChat(contactId);
     if (self) {
-        const participants = [self.id, contactId].sort();
-        const chatId = participants.join('--');
         const newIds = new Set(activeChatIds);
-        newIds.delete(chatId);
+        const chatIdsToDelete = messages.filter(m => (m.senderId === contactId && m.recipientId === self.id) || (m.senderId === self.id && m.recipientId === contactId)).map(m => [m.senderId, m.recipientId].sort().join('--'));
+        chatIdsToDelete.forEach(id => newIds.delete(id));
         await updateActiveChatIds(newIds);
     }
-  }, [clearChat, self, activeChatIds]);
+  }, [clearChat, self, messages, activeChatIds]);
 
   const forwardMessage = useCallback(async (message: Message, recipientIds: string[]) => {
     if (!self || !firestore) return;
     
     for (const recipientId of recipientIds) {
-        const participants = [self.id, recipientId].sort();
-        const chatId = participants.join('--');
-        if (!activeChatIds.has(chatId)) {
-            await updateActiveChatIds(new Set(activeChatIds).add(chatId));
-        }
-
         const forwardedMessage = {
             ...message,
             senderId: self.id,
@@ -265,7 +256,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             timestamp: serverTimestamp()
         });
     }
-  }, [self, firestore, activeChatIds]);
+  }, [self, firestore]);
 
   const startCall = useCallback((contact: Contact) => {
     setAcceptedCallContact(contact);
