@@ -1,6 +1,6 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth }_from_ 'firebase/auth';
+import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
 import { firebaseConfig } from './config';
@@ -30,5 +30,3 @@ export {
   useDoc,
   useUser,
 };
-
-    
