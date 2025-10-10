@@ -137,6 +137,36 @@
       "description": "Abstract background for landing page hero",
       "imageUrl": "https://images.unsplash.com/photo-1567193729952-23830c0743ea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bW9kZXJuJTIwb2ZmaWNlJTIwYWJzdHJhY3R8ZW58MHx8fHwxNzU4ODkwMzY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "modern office abstract"
+    },
+    {
+      "id": "wizard-step-1",
+      "description": "Abstract shapes for welcome step",
+      "imageUrl": "https://images.unsplash.com/photo-1557683316-973673baf926?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "abstract gradient"
+    },
+    {
+      "id": "wizard-step-2",
+      "description": "Cloud infrastructure for Firebase step",
+      "imageUrl": "https://images.unsplash.com/photo-1581093450021-4a7360e9a6b5?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "cloud server"
+    },
+    {
+      "id": "wizard-step-3",
+      "description": "Modern office for company details step",
+      "imageUrl": "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "modern office"
+    },
+    {
+      "id": "wizard-step-4",
+      "description": "Network connections for domain setup step",
+      "imageUrl": "https://images.unsplash.com/photo-1555949963-ff98db7bbae8?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "network connection"
+    },
+    {
+      "id": "wizard-step-5",
+      "description": "Rocket launch for finalizing step",
+      "imageUrl": "https://images.unsplash.com/photo-1541185934-01b604e066c4?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max",
+      "imageHint": "rocket launch"
     }
   ]
 }

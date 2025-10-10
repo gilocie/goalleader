@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 // Dummy data for simulation
 const STEPS = [
@@ -32,6 +33,16 @@ export function WizardPageContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const backgroundImages = useMemo(() => ({
+    0: PlaceHolderImages.find(p => p.id === 'wizard-step-1'),
+    1: PlaceHolderImages.find(p => p.id === 'wizard-step-2'),
+    2: PlaceHolderImages.find(p => p.id === 'wizard-step-3'),
+    3: PlaceHolderImages.find(p => p.id === 'wizard-step-4'),
+    4: PlaceHolderImages.find(p => p.id === 'wizard-step-5'),
+  }), []);
+
+  const currentBg = backgroundImages[currentStep as keyof typeof backgroundImages];
 
   const handleNext = () => {
     setIsLoading(true);
@@ -62,11 +73,20 @@ export function WizardPageContent() {
       const [isSignedIn, setIsSignedIn] = useState(false);
       const [selectedProject, setSelectedProject] = useState<string | null>(null);
 
+      const GoogleLogo = () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+            <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+            <path fill="#FF3D00" d="m6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z" />
+            <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+            <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-0.792 2.237-2.231 4.166-4.087 5.571l6.19 5.238C42.012 36.49 44 30.861 44 24c0-1.341-.138-2.65-.389-3.917z" />
+        </svg>
+      );
+
       return (
         <div className="w-full max-w-lg text-center">
             {!isSignedIn ? (
                 <div className="flex flex-col items-center gap-4">
-                    <Image src="/google.svg" alt="Google logo" width={48} height={48} />
+                    <GoogleLogo />
                     <h3 className="text-xl font-semibold">Connect Your Firebase Account</h3>
                     <p className="text-muted-foreground">
                         Sign in with your Google account to select the Firebase project you want to use for GoalLeader.
@@ -267,7 +287,7 @@ const DomainSetupStep = () => {
                         )}
                     </CardContent>
                 </Card>
-            )}
+             )}
 
              {isVerified && (
                 <Card className="bg-primary/5 border-primary/20">
@@ -316,8 +336,11 @@ const DomainSetupStep = () => {
                     <p className="text-muted-foreground">This may take a moment.</p>
                 </div>
             ) : (
-                <div className="flex flex-col items-center gap-4">
-                    <p>You're all set! Click finish to complete the setup.</p>
+                 <div className="flex flex-col items-center gap-4">
+                    <h2 className="text-2xl font-semibold">You're All Set!</h2>
+                    <p className="text-muted-foreground max-w-sm mx-auto">
+                        Click the button below to finalize the setup and build your environment. You will be redirected to the main page upon completion.
+                    </p>
                     <Button onClick={handleFinishClick} size="lg">Finish Setup</Button>
                 </div>
             )}
@@ -348,8 +371,18 @@ const DomainSetupStep = () => {
   }
 
   return (
-    <main className="flex-grow p-4 md:p-8 flex items-center justify-center bg-muted">
-      <Card className="w-full max-w-3xl">
+    <main className="relative flex-grow p-4 md:p-8 flex items-center justify-center bg-muted overflow-hidden">
+        {currentBg && (
+            <Image
+                src={currentBg.imageUrl}
+                alt={currentBg.description}
+                data-ai-hint={currentBg.imageHint}
+                fill
+                className="object-cover z-0"
+            />
+        )}
+        <div className="absolute inset-0 bg-black/50 z-0" />
+      <Card className="w-full max-w-3xl z-10 bg-card/80 backdrop-blur-md">
         <CardHeader>
           <div className="flex justify-center mb-4">
             <ul className="flex items-center gap-2 md:gap-4">
@@ -378,20 +411,18 @@ const DomainSetupStep = () => {
         <CardContent className="min-h-[400px] flex items-center justify-center">
             {renderStepContent()}
         </CardContent>
-        {currentStep < 4 && (
-            <div className="p-6 border-t flex justify-between">
-                <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
-                    Previous
-                </Button>
+         <div className="p-6 border-t flex justify-between">
+            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading || (currentStep === 4 && true)}>
+                Previous
+            </Button>
+            {currentStep < 4 ? (
                 <Button onClick={handleNext} disabled={isNextDisabled()}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Next
                 </Button>
-            </div>
-        )}
+            ) : null}
+        </div>
       </Card>
     </main>
   );
 }
-
-    
