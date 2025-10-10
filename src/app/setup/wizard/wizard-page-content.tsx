@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,33 +72,10 @@ export function WizardPageContent() {
       const [projects, setProjects] = useState<FirebaseProject[]>([]);
       const [selectedProject, setSelectedProject] = useState<string | null>(null);
       const [isFetchingProjects, setIsFetchingProjects] = useState(false);
+      const [loginAttempted, setLoginAttempted] = useState(false);
       const { toast } = useToast();
 
-      useEffect(() => {
-        if (!auth) return;
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-            if (currentUser) {
-                handleFetchProjects(currentUser);
-            }
-        });
-        return unsubscribe;
-      }, [auth]);
-
-      const handleLogin = async () => {
-        if (!auth) return;
-        const provider = new GoogleAuthProvider();
-        
-        try {
-            await signInWithPopup(auth, provider);
-            // The onAuthStateChanged listener will handle the user state and trigger project fetching.
-        } catch (error) {
-            console.error("Login failed:", error);
-            toast({ variant: "destructive", title: "Login Failed", description: "Could not sign in with Google."});
-        }
-      };
-
-      const handleFetchProjects = async (gUser: User) => {
+      const handleFetchProjects = useCallback(async (gUser: User) => {
         setIsFetchingProjects(true);
         try {
             const token = await gUser.getIdToken();
@@ -121,8 +98,33 @@ export function WizardPageContent() {
         } finally {
              setIsFetchingProjects(false);
         }
-      }
+      }, [toast]);
 
+      useEffect(() => {
+        if (!auth) return;
+
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                handleFetchProjects(currentUser);
+            }
+        });
+        
+        // Automatically trigger Google sign-in when the component mounts
+        if (auth && !user && !loginAttempted) {
+          setLoginAttempted(true); // Prevent re-triggering
+          const provider = new GoogleAuthProvider();
+          signInWithPopup(auth, provider).catch(error => {
+              console.error("Login failed:", error);
+              if (error.code !== 'auth/popup-closed-by-user') {
+                toast({ variant: "destructive", title: "Login Failed", description: "Could not sign in with Google."});
+              }
+          });
+        }
+
+        return unsubscribe;
+      }, [auth, user, handleFetchProjects, loginAttempted, toast]);
+      
       const GoogleLogo = () => (
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
             <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
@@ -132,17 +134,15 @@ export function WizardPageContent() {
         </svg>
       );
 
-      if (!user) {
+      if (!user && !isFetchingProjects) {
           return (
             <div className="flex flex-col items-center gap-4">
                 <GoogleLogo />
                 <h3 className="text-xl font-semibold">Connect Your Firebase Account</h3>
                 <p className="text-muted-foreground">
-                    Sign in with your Google account to select the Firebase project you want to use for GoalLeader.
+                    Waiting for Google Sign-in...
                 </p>
-                <Button onClick={handleLogin}>
-                    Sign in with Google
-                </Button>
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
           )
       }
