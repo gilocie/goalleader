@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, Loader2, GitBranch, Briefcase, Copy, AlertTriangle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -338,7 +339,12 @@ const DomainSetupStep = () => {
                Click the button below to finalize the setup and build your environment. You will be redirected to the main page upon completion.
            </p>
            <div className="flex items-center gap-4">
-               <Button onClick={handlePrevious} variant="outline" size="lg" className="border-white text-white hover:bg-white/10 hover:text-white">Back</Button>
+               <Button 
+                    onClick={handlePrevious} 
+                    variant="outline" 
+                    size="lg"
+                    className="border-white text-white bg-black/20 hover:bg-white/10 hover:text-white"
+                >Back</Button>
                <Button onClick={handleFinishClick} size="lg">Finish Setup</Button>
            </div>
        </div>
@@ -377,26 +383,26 @@ const DomainSetupStep = () => {
             />
         )}
         <div className="absolute inset-0 bg-black/50 z-0" />
-
+        
         {isFinalStep ? (
              <div className="z-10 text-white">
                 <FinalizingStep onFinish={() => router.push('/')} />
             </div>
         ) : (
-            <Card className="w-full max-w-4xl h-auto max-h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col my-8">
-              <div className="flex-1 overflow-hidden flex flex-col">
-                <ScrollArea className="h-full">
-                    <div className="flex flex-col items-center justify-center p-6">
-                        <div className="p-6 text-center flex flex-col items-center">
-                            <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
-                            <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
+            <Card className="w-full max-w-4xl h-[400px] z-10 bg-card/80 backdrop-blur-md flex flex-col my-8">
+                <div className="flex-1 flex flex-col min-h-0">
+                    <ScrollArea className="h-full">
+                        <div className="flex flex-col items-center justify-center p-6">
+                            <div className="p-6 text-center flex flex-col items-center">
+                                <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
+                                <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
+                            </div>
+                            {renderStepContent()}
                         </div>
-                        {renderStepContent()}
-                    </div>
-                </ScrollArea>
-              </div>
+                    </ScrollArea>
+                </div>
               
-              <div className="p-6 border-t flex justify-between items-center">
+              <CardFooter className="p-6 border-t flex justify-between items-center">
                   <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
                       Previous
                   </Button>
@@ -423,7 +429,7 @@ const DomainSetupStep = () => {
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Next
                   </Button>
-              </div>
+              </CardFooter>
             </Card>
         )}
     </main>
