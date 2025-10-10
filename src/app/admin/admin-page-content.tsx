@@ -21,9 +21,10 @@ import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/context/user-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useUser as useFirebaseAuthUser } from '@/firebase';
+import { useUser as useFirebaseAuthUser, useAuth } from '@/firebase';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 
 function OverviewTabContent() {
     const { allTeamMembers } = useUser();
@@ -180,16 +181,26 @@ function SettingsTabContent() {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const { user: firebaseUser } = useFirebaseAuthUser();
 
-    const handlePasswordSubmit = () => {
+    const handlePasswordSubmit = async () => {
         const password = passwordInputRef.current?.value;
-        if (password === 'admin') { // This is a placeholder! Use real auth.
+        if (!password || !firebaseUser || !firebaseUser.email) {
+            toast({ variant: 'destructive', title: 'Error', description: 'User not found or password empty.' });
+            setIsPasswordDialogOpen(false);
+            return;
+        }
+
+        try {
+            const credential = EmailAuthProvider.credential(firebaseUser.email, password);
+            await reauthenticateWithCredential(firebaseUser, credential);
             setAreKeysRevealed(true);
             toast({ title: 'Keys Revealed' });
-        } else {
+        } catch (error) {
             toast({ variant: 'destructive', title: 'Incorrect Password' });
+        } finally {
+            setIsPasswordDialogOpen(false);
         }
-        setIsPasswordDialogOpen(false);
     };
 
     const handleRevealClick = () => {
@@ -985,3 +996,5 @@ export function AdminPageContent() {
         </main>
     );
 }
+
+    
