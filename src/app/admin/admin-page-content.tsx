@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -136,9 +137,7 @@ const envKeys = [
     { name: 'NEXT_PUBLIC_FIREBASE_APP_ID', description: 'Firebase application ID.' },
 ];
 
-const SecureKeyInput = ({ name, description }: { name: string; description: string }) => {
-    const [value, setValue] = useState('**********');
-    const [revealed, setRevealed] = useState(false);
+const SecureKeyInput = ({ name, description, isRevealed }: { name: string; description: string; isRevealed: boolean; }) => {
     const { toast } = useToast();
 
     const handleCopy = () => {
@@ -146,18 +145,6 @@ const SecureKeyInput = ({ name, description }: { name: string; description: stri
         const realKey = `real_${name}_value`;
         navigator.clipboard.writeText(realKey);
         toast({ title: 'Copied to clipboard' });
-    };
-
-    const handleReveal = () => {
-        // Here you would prompt for admin password
-        const password = prompt('Please enter your admin password to reveal the key:');
-        if (password === 'admin') { // This is a placeholder! Use real auth.
-            setRevealed(true);
-            // In a real app, you would fetch and display the real key.
-            setValue(`real_${name}_value`);
-        } else {
-            toast({ variant: 'destructive', title: 'Incorrect Password' });
-        }
     };
 
     return (
@@ -170,15 +157,14 @@ const SecureKeyInput = ({ name, description }: { name: string; description: stri
                 </div>
             </div>
             <div className="relative">
-                <Input id={name} type={revealed ? 'text' : 'password'} value={value} readOnly />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleReveal}>
-                        {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopy}>
-                        <Copy className="h-4 w-4" />
-                    </Button>
-                </div>
+                <Input id={name} type={isRevealed ? 'text' : 'password'} value={isRevealed ? `real_${name}_value` : '**********'} readOnly />
+                {isRevealed && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCopy}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -186,6 +172,24 @@ const SecureKeyInput = ({ name, description }: { name: string; description: stri
 
 
 function SettingsTabContent() {
+    const { toast } = useToast();
+    const [areKeysRevealed, setAreKeysRevealed] = useState(false);
+
+    const handleRevealClick = () => {
+        if (areKeysRevealed) {
+            setAreKeysRevealed(false);
+            return;
+        }
+
+        const password = prompt('Please enter your admin password to reveal the keys:');
+        if (password === 'admin') { // This is a placeholder! Use real auth.
+            setAreKeysRevealed(true);
+            toast({ title: 'Keys Revealed' });
+        } else {
+            toast({ variant: 'destructive', title: 'Incorrect Password' });
+        }
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -213,7 +217,13 @@ function SettingsTabContent() {
                     </TabsContent>
                     <TabsContent value="security" className="mt-6">
                         <div className="space-y-6 max-w-2xl">
-                           {envKeys.map(key => <SecureKeyInput key={key.name} {...key} />)}
+                           <div className="flex justify-end">
+                                <Button variant="outline" onClick={handleRevealClick}>
+                                    {areKeysRevealed ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+                                    {areKeysRevealed ? 'Hide Keys' : 'Reveal All Keys'}
+                                </Button>
+                            </div>
+                           {envKeys.map(key => <SecureKeyInput key={key.name} {...key} isRevealed={areKeysRevealed} />)}
                            <div className='space-y-2'>
                                 <Label htmlFor='admin-pin'>Admin PIN</Label>
                                 <Input id="admin-pin" type="password" placeholder="Set or change your admin PIN" />
