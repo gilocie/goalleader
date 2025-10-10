@@ -1,11 +1,13 @@
 
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { allTeamMembers, TeamMember } from '@/lib/users';
+import { useUser as useFirebaseAuthUser } from '@/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
 export type UserRole = 'Admin' | 'Team Leader' | 'Consultant' | 'Frontend Developer' | 'Backend Developer' | 'QA Engineer' | 'Marketing Specialist' | 'Content Creator' | 'IT Support';
 
@@ -24,8 +26,8 @@ const defaultUser: User = {
 };
 
 interface UserContextType {
-  user: User;
-  setUser: React.Dispatch<React.SetStateAction<User>>;
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   saveUser: (user: User) => void;
   updateUserStatus: (userId: string, status: 'online' | string) => void;
   getUserStatus: (userId: string) => 'online' | string;
@@ -37,44 +39,67 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 const USER_STATUS_KEY = 'user_statuses';
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User>(defaultUser);
+  const { user: firebaseUser } = useFirebaseAuthUser();
+  const firestore = useFirestore();
+  const [user, setUser] = useState<User | null>(null);
   const [userStatuses, setUserStatuses] = useState<Record<string, 'online' | string>>({});
   const { toast } = useToast();
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('userSettings');
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-        updateUserStatus(parsedUser.id, 'online');
-      } else {
-        updateUserStatus(defaultUser.id, 'online');
-      }
+    if (firebaseUser && firestore) {
+        const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+        const unsubscribe = onSnapshot(userDocRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                setUser({
+                    id: firebaseUser.uid,
+                    name: data.name || firebaseUser.displayName || 'Anonymous',
+                    role: data.role || 'Consultant',
+                    department: data.department || 'Customer Service',
+                });
+            } else {
+                 // If no user profile in Firestore, create a default one
+                 const newUserProfile: User = {
+                    id: firebaseUser.uid,
+                    name: firebaseUser.displayName || `User-${firebaseUser.uid.slice(0,5)}`,
+                    role: 'Consultant',
+                    department: 'Customer Service',
+                 };
+                 setUser(newUserProfile);
+            }
+        });
+        return () => unsubscribe();
+    } else {
+        setUser(null);
+    }
+  }, [firebaseUser, firestore]);
 
+  useEffect(() => {
+    try {
       const storedStatuses = localStorage.getItem(USER_STATUS_KEY);
       if (storedStatuses) {
         setUserStatuses(JSON.parse(storedStatuses));
       }
     } catch (error) {
-      console.error("Failed to load user data from localStorage", error);
+      console.error("Failed to load user statuses from localStorage", error);
     }
   }, []);
 
   const saveUser = (newUser: User) => {
      try {
-        // Set previous user's status to offline
-        updateUserStatus(user.id, `last seen ${format(new Date(), "p 'on' MMM d")}`);
+        // This function is now mostly for local profile switching simulation
+        if (user) {
+          updateUserStatus(user.id, `last seen ${format(new Date(), "p 'on' MMM d")}`);
+        }
         
-        localStorage.setItem('userSettings', JSON.stringify(newUser));
+        localStorage.setItem('userSettings', JSON.stringify(newUser)); // This might be used for theme etc, but not auth user
         setUser(newUser);
         
-        // Set new user's status to online
         updateUserStatus(newUser.id, 'online');
 
         toast({
-            title: 'Profile Switched',
-            description: `You are now acting as ${newUser.name}.`,
+            title: 'Profile Switched (Simulation)',
+            description: `You are now viewing as ${newUser.name}. To truly switch accounts, please log out and log in.`,
         });
      } catch (error) {
         console.error("Failed to save user settings to localStorage", error);
