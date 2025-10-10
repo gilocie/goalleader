@@ -48,7 +48,18 @@ const initialMessageFlow = ai.defineFlow(
     outputSchema: InitialMessageOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    try {
+      const { output } = await prompt(input);
+      if (!output) {
+        throw new Error("AI response was empty.");
+      }
+      return output;
+    } catch (error) {
+        console.error("Error in initialMessageFlow:", error);
+        // Return a safe, default greeting if the AI fails
+        return {
+            greeting: `Hi ${input.name}! I'm having a little trouble connecting to my creative brain right now, but I'm still here to help. What can I do for you?`
+        };
+    }
   }
 );
