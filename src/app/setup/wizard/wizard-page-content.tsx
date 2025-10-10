@@ -36,6 +36,7 @@ export function WizardPageContent() {
   const router = useRouter();
 
   const currentBg = PlaceHolderImages.find(p => p.id === 'wizard-step-1');
+  const isFinalStep = currentStep === STEPS.length - 1;
 
 
   const handleNext = () => {
@@ -337,7 +338,7 @@ const DomainSetupStep = () => {
                Click the button below to finalize the setup and build your environment. You will be redirected to the main page upon completion.
            </p>
            <div className="flex items-center gap-4">
-               <Button onClick={handlePrevious} variant="outline" size="lg">Back</Button>
+               <Button onClick={handlePrevious} variant="outline" size="lg" className="border-white text-white hover:bg-white/10 hover:text-white">Back</Button>
                <Button onClick={handleFinishClick} size="lg">Finish Setup</Button>
            </div>
        </div>
@@ -363,8 +364,6 @@ const DomainSetupStep = () => {
     if (isLoading) return true;
     return false;
   }
-  
-  const isFinalStep = currentStep === STEPS.length - 1;
 
   return (
     <main className="relative h-screen w-screen flex items-center justify-center bg-muted overflow-hidden py-8">
@@ -380,51 +379,51 @@ const DomainSetupStep = () => {
         <div className="absolute inset-0 bg-black/50 z-0" />
 
         {isFinalStep ? (
-            <div className="z-10 text-white">
+             <div className="z-10 text-white">
                 <FinalizingStep onFinish={() => router.push('/')} />
             </div>
         ) : (
-            <Card className="w-full max-w-4xl h-[400px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
-                <div className="flex-1 overflow-hidden">
-                    <ScrollArea className="h-full">
-                        <div className="flex flex-col items-center justify-center p-6">
-                            <div className="p-6 text-center flex flex-col items-center">
-                                <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
-                                <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
-                            </div>
-                            {renderStepContent()}
+            <Card className="w-full max-w-4xl h-auto max-h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col my-8">
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <ScrollArea className="h-full">
+                    <div className="flex flex-col items-center justify-center p-6">
+                        <div className="p-6 text-center flex flex-col items-center">
+                            <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
+                            <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
                         </div>
-                    </ScrollArea>
-                </div>
-                
-                <div className="p-6 border-t flex justify-between items-center">
-                    <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
-                        Previous
-                    </Button>
+                        {renderStepContent()}
+                    </div>
+                </ScrollArea>
+              </div>
+              
+              <div className="p-6 border-t flex justify-between items-center">
+                  <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
+                      Previous
+                  </Button>
 
-                    <ul className="flex items-center gap-2 md:gap-4">
-                    {STEPS.map((step, index) => (
-                        <li key={step} className="flex items-center gap-2">
-                        <div className={cn(
-                            "h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                            currentStep > index ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground",
-                            currentStep === index && "bg-primary text-primary-foreground ring-4 ring-primary/20"
-                        )}>
-                            {currentStep > index ? <Check className="h-5 w-5" /> : index + 1}
-                        </div>
-                        <span className={cn(
-                            "hidden md:block text-sm transition-colors",
-                            currentStep >= index ? "font-semibold text-foreground" : "text-muted-foreground"
-                        )}>{step}</span>
-                        </li>
-                    ))}
-                    </ul>
+                  <ul className="flex items-center gap-2 md:gap-4">
+                  {STEPS.map((step, index) => (
+                      <li key={step} className="flex items-center gap-2">
+                      <div className={cn(
+                          "h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                          currentStep > index ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground",
+                          currentStep === index && "bg-primary text-primary-foreground ring-4 ring-primary/20"
+                      )}>
+                          {currentStep > index ? <Check className="h-5 w-5" /> : index + 1}
+                      </div>
+                      <span className={cn(
+                          "hidden md:block text-sm transition-colors",
+                          currentStep >= index ? "font-semibold text-foreground" : "text-muted-foreground"
+                      )}>{step}</span>
+                      </li>
+                  ))}
+                  </ul>
 
-                    <Button onClick={handleNext} disabled={isNextDisabled()}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Next
-                    </Button>
-                </div>
+                  <Button onClick={handleNext} disabled={isNextDisabled()}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Next
+                  </Button>
+              </div>
             </Card>
         )}
     </main>
