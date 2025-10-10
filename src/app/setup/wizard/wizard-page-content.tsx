@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -352,7 +351,8 @@ const DomainSetupStep = () => {
         case 3:
             return <DomainSetupStep />
         case 4:
-            return <FinalizingStep onFinish={() => router.push('/')} />;
+             // The FinalizingStep is now only rendered in the footer
+            return null;
         default:
             return null;
     }
