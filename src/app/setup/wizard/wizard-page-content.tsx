@@ -16,7 +16,7 @@ const STEPS = [
   "Finalizing",
 ];
 
-export function SetupPageContent() {
+export function WizardPageContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 

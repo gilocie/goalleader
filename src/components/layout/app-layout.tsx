@@ -25,7 +25,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
     const isLobbyPage = pathname.includes('/lobby');
-    const isSetupPage = pathname === '/setup';
+    const isSetupPage = pathname.startsWith('/setup');
 
     useEffect(() => {
         if (isChatPage) {
@@ -35,7 +35,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     
     useEffect(() => {
         // Allow access to login, register, landing, and setup pages without authentication
-        const publicPages = ['/login', '/register', '/', '/setup'];
+        const publicPages = ['/login', '/register', '/', '/setup', '/setup/wizard'];
         if (!loading && !user && !publicPages.includes(pathname)) {
             router.push('/login');
         }
