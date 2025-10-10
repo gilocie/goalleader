@@ -1,4 +1,5 @@
 
+import type { Timestamp } from 'firebase/firestore';
 
 export interface Contact {
     id: string;
@@ -17,7 +18,7 @@ export interface Message {
     senderId: string;
     recipientId: string;
     content: string;
-    timestamp: string; // ISO 8601 format
+    timestamp: Timestamp;
     readStatus?: 'sent' | 'delivered' | 'read' | 'request_sent';
     isSystem?: boolean;
     type: 'text' | 'audio' | 'image' | 'file';
@@ -29,3 +30,5 @@ export interface Message {
     replyTo?: string; // ID of the message this is a reply to
     callType?: 'video' | 'voice';
 }
+
+    

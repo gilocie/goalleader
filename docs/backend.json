@@ -1,0 +1,104 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile information.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role in the organization."
+        },
+        "department": {
+          "type": "string",
+          "description": "The department the user belongs to."
+        },
+        "status": {
+            "type": "string",
+            "description": "The user's current status (e.g., 'online', 'offline', 'last seen...')."
+        }
+      },
+      "required": ["name", "role", "department", "status"]
+    },
+    "chatMessage": {
+      "title": "Chat Message",
+      "description": "Represents a single message in a chat conversation.",
+      "type": "object",
+      "properties": {
+        "senderId": {
+          "type": "string"
+        },
+        "recipientId": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "readStatus": {
+          "type": "string",
+          "enum": ["sent", "delivered", "read"]
+        },
+        "isSystem": {
+            "type": "boolean"
+        },
+        "type": {
+            "type": "string",
+            "enum": ["text", "audio", "image", "file"]
+        },
+        "audioUrl": { "type": "string" },
+        "audioDuration": { "type": "number" },
+        "imageUrls": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "fileName": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "replyTo": { "type": "string" },
+        "callType": {
+            "type": "string",
+            "enum": ["video", "voice"]
+        }
+      },
+      "required": ["senderId", "recipientId", "content", "timestamp", "type"]
+    },
+    "activeChats": {
+        "title": "Active Chats",
+        "description": "A document to track which chat conversations are active.",
+        "type": "object",
+        "properties": {
+            "ids": {
+                "type": "array",
+                "items": { "type": "string" }
+            }
+        },
+        "required": ["ids"]
+    }
+  },
+  "auth": {
+    "providers": ["anonymous"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/userProfile" },
+      "description": "Stores individual user profile data."
+    },
+    "/messages/{messageId}": {
+        "schema": { "$ref": "#/entities/chatMessage" },
+        "description": "Stores all chat messages."
+    },
+    "/chats/active": {
+        "schema": { "$ref": "#/entities/activeChats" },
+        "description": "Singleton document to track active chat IDs."
+    }
+  }
+}
+
+    

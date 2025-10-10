@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -90,7 +89,7 @@ const AudioPlayer = ({
       className={cn(
         "flex items-center gap-3 px-3 py-2 rounded-xl shadow-sm w-full max-w-[280px] transition-all duration-300",
         isSelf
-          ? "bg-green-100 text-green-900 border border-green-300"
+          ? "bg-primary text-primary-foreground"
           : "bg-white text-gray-800 border border-gray-200"
       )}
     >
@@ -110,8 +109,9 @@ const AudioPlayer = ({
         className={cn(
           "h-10 w-10 flex-shrink-0 rounded-full transition-all",
           isPlaying
-            ? "bg-green-500 hover:bg-green-600 text-white"
-            : "bg-green-200 hover:bg-green-300 text-green-700"
+            ? "bg-background/20 hover:bg-background/30 text-white"
+            : "bg-background/20 hover:bg-background/30 text-white",
+          !isSelf && (isPlaying ? "bg-primary/20 text-primary" : "bg-primary/10 text-primary")
         )}
       >
         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
@@ -121,13 +121,12 @@ const AudioPlayer = ({
       <div className="relative flex-1 flex items-center h-8 gap-[2px] overflow-hidden">
         {waveBars.map((bar, i) => {
           const barProgress = i / waveBars.length;
-          const isPlayed = barProgress < progress;
           return (
             <div
               key={i}
               className={cn(
                 "w-0.5 rounded-sm transition-all duration-200 ease-in-out",
-                isPlayed ? "bg-green-500" : "bg-green-300"
+                isSelf ? 'bg-primary-foreground/30' : 'bg-accent'
               )}
               style={{ height: `${bar}px` }}
             />
@@ -135,13 +134,13 @@ const AudioPlayer = ({
         })}
         {/* Progress overlay (animated green wave) */}
         <div
-          className="absolute top-0 left-0 h-full bg-green-400/20 transition-all duration-150"
+          className="absolute top-0 left-0 h-full bg-primary/80 transition-all duration-150"
           style={{ width: `${progress * 100}%` }}
         />
       </div>
 
       {/* Duration */}
-      <span className="text-xs font-medium tabular-nums ml-2 text-gray-500">
+      <span className={cn("text-xs font-medium tabular-nums ml-2", isSelf ? 'text-primary-foreground/80' : 'text-gray-500')}>
         {formatTime(isPlaying ? currentTime : audioDuration)}
       </span>
     </div>
@@ -402,7 +401,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                       return (
                         <div key={message.id} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
                           {isVoice ? <Phone size={14} /> : <VideoIcon size={14} />}
-                          <span>{message.content} - {format(new Date(message.timestamp), 'p')}</span>
+                          <span>{message.content} - {message.timestamp ? format(message.timestamp.toDate(), 'p') : ''}</span>
                         </div>
                       )
                     }
@@ -478,7 +477,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                     </div>
                                 ) : null}
                                 {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
-                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{format(new Date(message.timestamp), 'p')}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
+                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp ? format(message.timestamp.toDate(), 'p') : ''}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
                             </div>
 
                             {!isSelf && <MessageActions message={message} />}
@@ -584,3 +583,5 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
+    

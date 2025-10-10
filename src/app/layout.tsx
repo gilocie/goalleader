@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/context/theme-provider';
 import { BrandingProvider } from '@/context/branding-context';
 import { useEffect } from 'react';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 // --- Helper Functions ---
 function hexToHsl(hex: string): [number, number, number] | null {
@@ -81,13 +82,17 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <ThemeProvider>
           <BrandingProvider>
-            <BrandingInitializer>
-              {children}
-              <Toaster />
-            </BrandingInitializer>
+            <FirebaseClientProvider>
+              <BrandingInitializer>
+                {children}
+                <Toaster />
+              </BrandingInitializer>
+            </FirebaseClientProvider>
           </BrandingProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+
+    
