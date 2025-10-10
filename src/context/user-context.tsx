@@ -27,6 +27,7 @@ const defaultUser: User = {
 
 interface UserContextType {
   user: User | null;
+  loading: boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   saveUser: (user: User) => void;
   updateUserStatus: (userId: string, status: 'online' | string) => void;
@@ -39,13 +40,19 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 const USER_STATUS_KEY = 'user_statuses';
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const { user: firebaseUser } = useFirebaseAuthUser();
+  const { user: firebaseUser, loading: authLoading } = useFirebaseAuthUser();
   const firestore = useFirestore();
   const [user, setUser] = useState<User | null>(null);
   const [userStatuses, setUserStatuses] = useState<Record<string, 'online' | string>>({});
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
+    if (authLoading) {
+        setLoading(true);
+        return;
+    }
+    
     if (firebaseUser && firestore) {
         const userDocRef = doc(firestore, 'users', firebaseUser.uid);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
@@ -67,12 +74,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                  };
                  setUser(newUserProfile);
             }
+            setLoading(false);
         });
         return () => unsubscribe();
     } else {
         setUser(null);
+        setLoading(false);
     }
-  }, [firebaseUser, firestore]);
+  }, [firebaseUser, firestore, authLoading]);
 
   useEffect(() => {
     try {
@@ -130,6 +139,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     user,
+    loading,
     setUser,
     saveUser,
     updateUserStatus,

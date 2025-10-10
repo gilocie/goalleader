@@ -12,8 +12,9 @@ import { cn } from '@/lib/utils';
 import { NotificationProvider } from '@/context/notification-context';
 import { ChatProvider } from '@/context/chat-context';
 import { AISuggestionProvider } from '@/context/ai-suggestion-context';
-import { UserProvider, useUser } from '@/context/user-context';
+import { UserProvider } from '@/context/user-context';
 import { Skeleton } from '../ui/skeleton';
+import { useUser } from '@/firebase';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const pathname = usePathname();
