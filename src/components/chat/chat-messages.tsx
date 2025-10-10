@@ -160,6 +160,11 @@ interface ChatMessagesProps {
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
   const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat } = useChat();
   const { user } = useUser();
+
+  if (!user) {
+    return null; // Don't render until user is loaded
+  }
+
   const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === user.id) : undefined;
   const { toast } = useToast();
