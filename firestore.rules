@@ -1,67 +1,89 @@
 /**
- * @file Firestore Security Rules
- * @core_philosophy This ruleset enforces a user-ownership model for user profiles and shared access to chat messages based on sender and recipient IDs. It prevents listing of all users.
- * @data_structure
- *   - /users/{userId}: Stores individual user profile data. Only the user can read/write their own profile.
- *   - /messages/{messageId}: Stores all chat messages. Read/write access is based on sender/recipient relationships.
- *   - /chats/active: Singleton document tracking active chat IDs. Currently allows public read access and no write access.
- * @key_security_decisions
- *   - Listing all users is explicitly denied to protect user privacy.
- *   - Read and write access to chat messages is limited to the sender and recipient.
- *   - The `/chats/active` document is readable by all but cannot be modified.
- * @denormalization_for_authorization N/A
- * @structural_segregation N/A
+ * @description This ruleset enforces a user-ownership model for user profiles and shared access for chat messages.
+ * All authenticated users can list user profiles to enable features like user directories or search results.
+ * @dataStructure
+ * - /users/{userId}: Stores individual user profile data, accessible to the owner and listable by any signed-in user.
+ * - /messages/{messageId}: Stores all chat messages; only authenticated users can read and write messages.
+ * - /chats/active: Singleton document to track active chat IDs, accessible only by authenticated users.
+ * @keySecurityDecisions
+ * - User listing is enabled for signed-in users to support user directories.
+ * - Access to the /chats/active document is restricted to authenticated users.
+ * - The data shapes of documents are not strictly validated, allowing for rapid iteration.
+ * @denormalizationForAuthorization Not applicable.
+ * @structuralSegregation Not applicable.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Protects user profile data. Only the user can read and write their own profile.
+     * @description Controls access to user profile documents. Allows users to read their own profile and allows any signed-in user to list all user profiles.
      * @path /users/{userId}
-     * @allow (create, update, get, delete) - Authenticated user with matching userId.
-     * @deny (create, update, get, delete) - Any other user trying to access this profile.
-     * @deny list - Listing of all users is prohibited.
-     * @principle Enforces document ownership for writes.
+     * @allow (get) User A can read User A's profile (auth.uid == userId).
+     * @allow (list) Any signed-in user can list all user profiles.
+     * @allow (create) User A can create their own profile (auth.uid == userId).
+     * @allow (update) User A can update their own profile (auth.uid == userId).
+     * @allow (delete) User A can delete their own profile (auth.uid == userId).
+     * @deny (get) User A cannot read User B's profile (auth.uid != userId) unless signed in.
+     * @deny (create) User A cannot create User B's profile (auth.uid != userId).
+     * @deny (update) User A cannot update User B's profile (auth.uid != userId).
+     * @deny (delete) User A cannot delete User B's profile (auth.uid != userId).
+     * @principle Enforces document ownership for writes, allows public listing for signed-in users.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Manages access to chat messages. Only the sender or recipient can read a message.
+     * @description Controls access to chat messages. Allows only authenticated users to read and write messages.
      * @path /messages/{messageId}
-     * @allow (get) - Sender or recipient of the message.
-     * @allow (create) - Authenticated user.
-     * @allow (update, delete) - Sender of the message.
-     * @deny list - No listing of all messages.
-     * @principle Shared access based on sender and recipient IDs.
+     * @allow (get) Signed-in user can read a message.
+     * @allow (list) Signed-in user can list messages.
+     * @allow (create) Signed-in user can create a message.
+     * @allow (update) Signed-in user can update a message.
+     * @allow (delete) Signed-in user can delete a message.
+     * @deny (get) Anonymous user cannot read a message.
+     * @deny (list) Anonymous user cannot list messages.
+     * @deny (create) Anonymous user cannot create a message.
+     * @deny (update) Anonymous user cannot update a message.
+     * @deny (delete) Anonymous user cannot delete a message.
+     * @principle Restricts access to authenticated users only.
      */
     match /messages/{messageId} {
-      allow get: if isSenderOrRecipient(request.auth.uid, resource.data.senderId, resource.data.recipientId);
-      allow list: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if isSender(request.auth.uid, resource.data.senderId) && resource != null;
-      allow delete: if isSender(request.auth.uid, resource.data.senderId) && resource != null;
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
-    /**
-     * @description Controls access to active chat IDs.
-     * @path /chats/active
-     * @allow get, list: Public read access to all active chat IDs.
-     * @deny create, update, delete: No modifications allowed.
-     * @principle Public read with owner-only writes.
-     */
+      /**
+       * @description Controls access to the active chats document. Allows only authenticated users to read and write to this document.
+       * @path /chats/active
+       * @allow (get) Signed-in user can get the active chats document.
+       * @allow (list) Signed-in user can list the active chats document.
+       * @allow (create) Signed-in user can create the active chats document.
+       * @allow (update) Signed-in user can update the active chats document.
+       * @allow (delete) Signed-in user can delete the active chats document.
+       * @deny (get) Anonymous user cannot read the active chats document.
+       * @deny (list) Anonymous user cannot list the active chats document.
+       * @deny (create) Anonymous user cannot create the active chats document.
+       * @deny (update) Anonymous user cannot update the active chats document.
+       * @deny (delete) Anonymous user cannot delete the active chats document.
+       * @principle Restricts access to authenticated users only.
+       */
     match /chats/active {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
-    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
@@ -72,14 +94,6 @@ service cloud.firestore {
 
     function isExistingOwner(userId) {
         return isOwner(userId) && resource != null;
-    }
-
-    function isSenderOrRecipient(userId, senderId, recipientId) {
-      return userId == senderId || userId == recipientId;
-    }
-
-    function isSender(userId, senderId) {
-      return userId == senderId;
     }
   }
 }
