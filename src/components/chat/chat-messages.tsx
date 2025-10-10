@@ -413,7 +413,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                               const remainingImages = message.imageUrls!.length - 4;
                                               const showMore = index === 3 && remainingImages > 0;
                                               return (
-                                                  <button key={index} onClick={() => handleImageClick(url)} className={cn("relative aspect-square block cursor-pointer overflow-hidden rounded-md group/more", message.imageUrls.length === 1 ? 'w-64' : 'w-36 h-36', showMore && "bg-black" )}>
+                                                  <button key={index} onClick={() => handleImageClick(url)} className={cn(
+                                                      "relative aspect-square block cursor-pointer overflow-hidden rounded-md group/more",
+                                                      message.imageUrls && message.imageUrls.length === 1 ? 'w-64' : 'w-36 h-36',
+                                                      showMore && "bg-black"
+                                                  )}>
                                                       <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} />
                                                       {showMore && (
                                                           <div className="absolute inset-0 flex items-center justify-center text-white">
