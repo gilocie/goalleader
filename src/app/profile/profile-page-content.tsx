@@ -16,6 +16,7 @@ import { useTheme } from '@/context/theme-provider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUser } from '@/context/user-context';
+import { useUser as useFirebaseAuthUser } from '@/firebase';
 import type { UserRole } from '@/context/user-context';
 import { SwitchProfileDialog } from '@/components/profile/switch-profile-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -37,6 +38,7 @@ const departments = Object.keys(departmentsAndRoles);
 
 function ProfileTabContent() {
     const { user, saveUser, loading, allTeamMembers } = useUser();
+    const { user: firebaseUser } = useFirebaseAuthUser();
     
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -51,13 +53,13 @@ function ProfileTabContent() {
     ]);
 
     useEffect(() => {
-        if (user) {
+        if (user && firebaseUser) {
             setName(user.name);
             setSelectedDepartment(user.department);
             setSelectedRole(user.role);
-            setEmail(`${user.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`);
+            setEmail(firebaseUser.email || '');
         }
-    }, [user]);
+    }, [user, firebaseUser]);
 
     if (loading || !user) {
         return (
