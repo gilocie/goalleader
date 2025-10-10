@@ -46,7 +46,7 @@ const meetings: { [key: string]: { title: string; category: string } } = {
 export function Header() {
   const { user } = useUser();
   const auth = useAuth();
-  const userAvatar = PlaceHolderImages.find((img) => img.id === user.id);
+  const userAvatar = user ? PlaceHolderImages.find((img) => img.id === user.id) : null;
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
@@ -165,49 +165,51 @@ export function Header() {
               </Button>
           </NotificationDropdown>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon" className="rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={userAvatar?.imageUrl}
-                  alt={user.name}
-                  data-ai-hint={userAvatar?.imageHint}
-                  className="object-cover object-top"
-                />
-                <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-              </Avatar>
-              <span className="sr-only">Toggle user menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/profile">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/profile?tab=settings">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/support">
-                  <LifeBuoy className="mr-2 h-4 w-4" />
-                  <span>Support</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {user && (
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-full">
+                <Avatar className="h-8 w-8">
+                    <AvatarImage
+                    src={userAvatar?.imageUrl}
+                    alt={user.name}
+                    data-ai-hint={userAvatar?.imageHint}
+                    className="object-cover object-top"
+                    />
+                    <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <span className="sr-only">Toggle user menu</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                <Link href="/profile?tab=settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                <Link href="/support">
+                    <LifeBuoy className="mr-2 h-4 w-4" />
+                    <span>Support</span>
+                </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Logout</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+            </DropdownMenu>
+        )}
       </div>
     </header>
   );
