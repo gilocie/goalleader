@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,7 @@ import type { UserRole } from '@/context/user-context';
 import { SwitchProfileDialog } from '@/components/profile/switch-profile-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { TeamMember } from '@/lib/users';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 type Kpi = {
   id: number;
@@ -56,6 +57,9 @@ function ProfileTabContent() {
         { id: 2, value: '' },
         { id: 3, value: '' },
     ]);
+    
+    const adminCount = useMemo(() => allTeamMembers.filter(u => u.role === 'Admin').length, [allTeamMembers]);
+    const isSoleAdmin = useMemo(() => user?.role === 'Admin' && adminCount === 1, [user, adminCount]);
 
     useEffect(() => {
         if (user && firebaseUser) {
@@ -219,6 +223,31 @@ function ProfileTabContent() {
                 </div>
             </CardContent>
           </Card>
+          
+           <Card>
+                <CardHeader>
+                    <CardTitle>Account Actions</CardTitle>
+                </CardHeader>
+                <CardFooter>
+                     <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <div className="w-full">
+                                    <Button variant="destructive" className="w-full" disabled={isSoleAdmin}>
+                                        <Trash2 className='mr-2 h-4 w-4' />
+                                        Delete Account
+                                    </Button>
+                                </div>
+                            </TooltipTrigger>
+                            {isSoleAdmin && (
+                                <TooltipContent>
+                                    <p>You cannot delete your account as the sole administrator.</p>
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </TooltipProvider>
+                </CardFooter>
+            </Card>
 
         </div>
 
@@ -254,7 +283,7 @@ function ProfileTabContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>
-                        <Select value={selectedRole} onValueChange={setSelectedRole}>
+                        <Select value={selectedRole} onValueChange={setSelectedRole} disabled={isSoleAdmin}>
                           <SelectTrigger id="role">
                             <SelectValue placeholder="Select role" />
                           </SelectTrigger>

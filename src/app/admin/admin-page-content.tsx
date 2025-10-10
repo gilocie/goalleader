@@ -21,6 +21,8 @@ import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/context/user-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useUser as useFirebaseAuthUser } from '@/firebase';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function OverviewTabContent() {
     const { allTeamMembers } = useUser();
@@ -171,11 +173,38 @@ function SettingsTabContent() {
 }
 
 function UserManagementTabContent() {
-    const { user: currentUser, allTeamMembers } = useUser();
-    const users = allTeamMembers.map(u => ({
-        ...u,
-        email: `${u.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`,
-    }));
+    const { user: currentUser, allTeamMembers, allUsersWithAuth } = useUser();
+
+    const adminCount = useMemo(() => allTeamMembers.filter(u => u.role === 'Admin').length, [allTeamMembers]);
+
+    const users = useMemo(() => {
+        return allUsersWithAuth.map(u => ({
+            ...u,
+            email: u.email || `${u.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`,
+        }))
+    }, [allUsersWithAuth]);
+    
+
+    const ActionMenuItem = ({ children, disabled, tooltip }: { children: React.ReactNode, disabled: boolean, tooltip?: string }) => {
+        if (disabled) {
+            return (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <div className="relative flex cursor-not-allowed select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors opacity-50">
+                                {children}
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{tooltip}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )
+        }
+        return <DropdownMenuItem>{children}</DropdownMenuItem>;
+    };
+
 
     return (
          <Card>
@@ -224,6 +253,8 @@ function UserManagementTabContent() {
                             {users.map(user => {
                                 const avatar = PlaceHolderImages.find(p => p.id === user.id);
                                 const isSelf = user.id === currentUser?.id;
+                                const isSoleAdmin = isSelf && user.role === 'Admin' && adminCount === 1;
+
                                 return (
                                     <TableRow key={user.id}>
                                         <TableCell className="py-2">
@@ -254,11 +285,19 @@ function UserManagementTabContent() {
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem><UserCheck className="mr-2 h-4 w-4" />Assign Role</DropdownMenuItem>
+                                                    <ActionMenuItem disabled={isSoleAdmin} tooltip="Cannot change role of the sole admin.">
+                                                        <UserCheck className="mr-2 h-4 w-4" />Assign Role
+                                                    </ActionMenuItem>
                                                     <DropdownMenuItem><MessageSquare className="mr-2 h-4 w-4" />Send Message</DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive"><Ban className="mr-2 h-4 w-4" />Ban User</DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" />Delete User</DropdownMenuItem>
+                                                     <ActionMenuItem disabled={isSoleAdmin} tooltip="Cannot ban the sole admin.">
+                                                        <Ban className="mr-2 h-4 w-4 text-destructive" />
+                                                        <span className='text-destructive'>Ban User</span>
+                                                    </ActionMenuItem>
+                                                    <ActionMenuItem disabled={isSoleAdmin} tooltip="Cannot delete the sole admin.">
+                                                        <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                                                        <span className='text-destructive'>Delete User</span>
+                                                    </ActionMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -775,5 +814,3 @@ export function AdminPageContent() {
         </main>
     );
 }
-
-    

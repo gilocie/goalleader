@@ -1,15 +1,17 @@
 
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
 import { TeamMember } from '@/lib/users';
 import { useUser as useFirebaseAuthUser, useCollection } from '@/firebase';
-import { doc, onSnapshot, collection, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, collection, updateDoc, setDoc, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { getAuth, User as FirebaseAuthUser } from 'firebase/auth';
+import { FirebaseApp } from 'firebase/app';
+import { listUsers } from 'firebase/auth'; // This is admin-only, can't use on client
 
 export type UserRole = 'Admin' | 'Team Leader' | 'Consultant' | 'Frontend Developer' | 'Backend Developer' | 'QA Engineer' | 'Marketing Specialist' | 'Content Creator' | 'IT Support';
 
@@ -20,6 +22,7 @@ interface User {
   department: string;
   country?: string;
   branch?: string;
+  email?: string;
 }
 
 interface UserContextType {
@@ -30,6 +33,7 @@ interface UserContextType {
   updateUserStatus: (userId: string, status: 'online' | string) => void;
   getUserStatus: (userId: string) => 'online' | string;
   allTeamMembers: TeamMember[];
+  allUsersWithAuth: User[];
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -47,6 +51,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [firestore]);
   
   const { data: allTeamMembers, loading: usersLoading } = useCollection<TeamMember>(usersQuery);
+
+  // This is a client-side mock for fetching all users with emails.
+  // In a real app, this should be a secure backend/admin operation.
+  const [allUsersWithAuth, setAllUsersWithAuth] = useState<User[]>([]);
 
   useEffect(() => {
     if (authLoading || usersLoading) {
@@ -66,9 +74,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                     department: data.department || 'Customer Service',
                     country: data.country || '',
                     branch: data.branch || '',
+                    email: firebaseUser.email || '',
                 });
             } else {
-                 // If no user profile in Firestore, create a default one
                  const newUserProfile: User = {
                     id: firebaseUser.uid,
                     name: firebaseUser.displayName || `User-${firebaseUser.uid.slice(0,5)}`,
@@ -76,8 +84,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                     department: 'Customer Service',
                     country: '',
                     branch: '',
+                    email: firebaseUser.email || '',
                  };
-                 // Do not save here, registration page will handle it.
                  setUser(newUserProfile);
             }
             setLoading(false);
@@ -89,22 +97,32 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [firebaseUser, firestore, authLoading, usersLoading]);
 
+  // Mock fetching all users with emails
+  useEffect(() => {
+      if (allTeamMembers) {
+          const combined = allTeamMembers.map(member => ({
+              ...member,
+              email: `${member.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com` // Mock email
+          }));
+          setAllUsersWithAuth(combined);
+      }
+  }, [allTeamMembers]);
+
   const saveUser = (newUser: User) => {
      try {
         if (firestore) {
+          const { email, ...firestoreData } = newUser; // Don't save email to Firestore profile
           const userDocRef = doc(firestore, 'users', newUser.id);
-          setDoc(userDocRef, newUser, { merge: true }).catch(serverError => {
+          setDoc(userDocRef, firestoreData, { merge: true }).catch(serverError => {
             const permissionError = new FirestorePermissionError({
                 path: userDocRef.path,
                 operation: 'update',
-                requestResourceData: newUser,
+                requestResourceData: firestoreData,
             });
             errorEmitter.emit('permission-error', permissionError);
           });
         }
         
-        // This is a client-side simulation for switching views.
-        // It does not perform a real authentication change.
         localStorage.setItem('simulatedUserId', newUser.id);
         
         toast({
@@ -155,6 +173,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     updateUserStatus,
     getUserStatus,
     allTeamMembers: allTeamMembers || [],
+    allUsersWithAuth,
   };
 
   return (
