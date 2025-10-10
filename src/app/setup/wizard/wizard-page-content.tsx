@@ -15,6 +15,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
+import { useAuth } from '@/firebase';
 
 // Dummy data for simulation
 const STEPS = [
@@ -25,16 +27,16 @@ const STEPS = [
   "Finalizing",
 ];
 
-const mockProjects = [
-    { id: 'goalleader-prod-3a4b1c', name: 'GoalLeader Production' },
-    { id: 'acme-corp-web-9f8e7d', name: 'Acme Corp Website' },
-    { id: 'internal-crm-5c6b2a', name: 'Internal CRM' },
-]
+type FirebaseProject = {
+    projectId: string;
+    displayName: string;
+}
 
 export function WizardPageContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const auth = useAuth();
 
   const currentBg = PlaceHolderImages.find(p => p.id === 'wizard-step-1');
   const isFinalStep = currentStep === STEPS.length - 1;
@@ -66,8 +68,58 @@ export function WizardPageContent() {
   );
   
   const ConnectFirebaseStep = () => {
-      const [isSignedIn, setIsSignedIn] = useState(false);
+      const [user, setUser] = useState<User | null>(null);
+      const [projects, setProjects] = useState<FirebaseProject[]>([]);
       const [selectedProject, setSelectedProject] = useState<string | null>(null);
+      const [isFetchingProjects, setIsFetchingProjects] = useState(false);
+      const { toast } = useToast();
+
+      useEffect(() => {
+        if (!auth) return;
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            if (currentUser) {
+                handleFetchProjects(currentUser);
+            }
+        });
+        return unsubscribe;
+      }, [auth]);
+
+      const handleLogin = async () => {
+        if (!auth) return;
+        const provider = new GoogleAuthProvider();
+        provider.addScope('https://www.googleapis.com/auth/cloud-platform.readonly');
+        
+        try {
+            await signInWithPopup(auth, provider);
+            // The onAuthStateChanged listener will handle the user state and trigger project fetching.
+        } catch (error) {
+            console.error("Login failed:", error);
+            toast({ variant: "destructive", title: "Login Failed", description: "Could not sign in with Google."});
+        }
+      };
+
+      const handleFetchProjects = async (gUser: User) => {
+        setIsFetchingProjects(true);
+        try {
+            const token = await gUser.getIdToken(true);
+            const response = await fetch('/api/firebase/getProjects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to fetch projects');
+            }
+            const data = await response.json();
+            setProjects(data.projects || []);
+        } catch (error: any) {
+             toast({ variant: "destructive", title: "Error Fetching Projects", description: error.message });
+        } finally {
+             setIsFetchingProjects(false);
+        }
+      }
 
       const GoogleLogo = () => (
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
@@ -78,53 +130,61 @@ export function WizardPageContent() {
         </svg>
       );
 
+      if (!user) {
+          return (
+            <div className="flex flex-col items-center gap-4">
+                <GoogleLogo />
+                <h3 className="text-xl font-semibold">Connect Your Firebase Account</h3>
+                <p className="text-muted-foreground">
+                    Sign in with your Google account to select the Firebase project you want to use for GoalLeader.
+                </p>
+                <Button onClick={handleLogin}>
+                    Sign in with Google
+                </Button>
+            </div>
+          )
+      }
+
+      if (isFetchingProjects) {
+        return (
+            <div className="flex flex-col items-center gap-4">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p>Fetching your Firebase projects...</p>
+            </div>
+        )
+      }
+
       return (
-        <div className="w-full max-w-lg text-center">
-            {!isSignedIn ? (
-                <div className="flex flex-col items-center gap-4">
-                    <GoogleLogo />
-                    <h3 className="text-xl font-semibold">Connect Your Firebase Account</h3>
-                    <p className="text-muted-foreground">
-                        Sign in with your Google account to select the Firebase project you want to use for GoalLeader.
-                    </p>
-                    <Button onClick={() => { setIsLoading(true); setTimeout(() => { setIsSignedIn(true); setIsLoading(false); }, 1500)}}>
-                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Sign in with Google
-                    </Button>
-                </div>
-            ) : (
-                <div className="space-y-4 text-left">
-                    <h3 className="text-xl font-semibold text-center">Select Your Firebase Project</h3>
-                    <div className="space-y-3">
-                        {mockProjects.map((project) => (
-                            <Card 
-                                key={project.id} 
-                                className={cn(
-                                    "p-4 cursor-pointer hover:bg-muted/50 transition-colors border-2",
-                                    selectedProject === project.id ? "border-primary bg-primary/5" : ""
-                                )}
-                                onClick={() => setSelectedProject(project.id)}
-                            >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-primary/10 rounded-full">
-                                        <GitBranch className="h-5 w-5 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold">{project.name}</p>
-                                        <p className="text-xs text-muted-foreground font-mono">ID: {project.id}</p>
-                                    </div>
-                                </div>
-                                {selectedProject === project.id && <Check className="h-6 w-6 text-primary" />}
+        <div className="w-full max-w-lg space-y-4 text-left">
+            <h3 className="text-xl font-semibold text-center">Select Your Firebase Project</h3>
+            <div className="space-y-3">
+                {projects.map((project) => (
+                    <Card 
+                        key={project.projectId} 
+                        className={cn(
+                            "p-4 cursor-pointer hover:bg-muted/50 transition-colors border-2",
+                            selectedProject === project.projectId ? "border-primary bg-primary/5" : ""
+                        )}
+                        onClick={() => setSelectedProject(project.projectId)}
+                    >
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-primary/10 rounded-full">
+                                <GitBranch className="h-5 w-5 text-primary" />
                             </div>
-                            </Card>
-                        ))}
+                            <div>
+                                <p className="font-semibold">{project.displayName}</p>
+                                <p className="text-xs text-muted-foreground font-mono">ID: {project.projectId}</p>
+                            </div>
+                        </div>
+                        {selectedProject === project.projectId && <Check className="h-6 w-6 text-primary" />}
                     </div>
-                    <p className="text-sm text-center text-muted-foreground pt-2">
-                        Don't see your project? <a href="#" className="text-primary underline">Create a new one in Firebase.</a>
-                    </p>
-                </div>
-            )}
+                    </Card>
+                ))}
+            </div>
+            <p className="text-sm text-center text-muted-foreground pt-2">
+                Don't see your project? <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Create a new one in Firebase.</a>
+            </p>
         </div>
       );
   }
@@ -384,12 +444,8 @@ const DomainSetupStep = () => {
         )}
         <div className="absolute inset-0 bg-black/50 z-0" />
         
-        {isFinalStep ? (
-             <div className="z-10 text-white">
-                <FinalizingStep onFinish={() => router.push('/')} />
-            </div>
-        ) : (
-            <Card className="w-full max-w-4xl h-[400px] z-10 bg-card/80 backdrop-blur-md flex flex-col my-8">
+        {!isFinalStep ? (
+             <Card className="w-full max-w-4xl z-10 bg-card/80 backdrop-blur-md flex flex-col my-8 h-[400px]">
                 <div className="flex-1 flex flex-col min-h-0">
                     <ScrollArea className="h-full">
                         <div className="flex flex-col items-center justify-center p-6">
@@ -431,6 +487,10 @@ const DomainSetupStep = () => {
                   </Button>
               </CardFooter>
             </Card>
+        ) : (
+             <div className="z-10 text-white">
+                <FinalizingStep onFinish={() => router.push('/')} />
+            </div>
         )}
     </main>
   );
