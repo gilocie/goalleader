@@ -24,6 +24,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   
   const auth = useAuth();
   const router = useRouter();
@@ -35,7 +36,8 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
         await signInWithEmailAndPassword(auth, email, password);
-        toast({ title: 'Login Successful', description: "Welcome back!" });
+        toast({ title: 'Login Successful', description: "Welcome back! Redirecting..." });
+        setIsRedirecting(true);
         router.push('/dashboard');
     } catch (error: any) {
         toast({
@@ -43,12 +45,18 @@ export default function LoginPage() {
             title: 'Login Failed',
             description: error.message,
         });
-    } finally {
         setIsLoading(false);
     }
   }
 
   return (
+    <>
+    {isRedirecting && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-lg font-semibold">Redirecting to Dashboard...</p>
+        </div>
+    )}
     <div className="flex flex-col min-h-screen bg-background">
        <header className="absolute top-0 z-40 w-full">
         <div className="container mx-auto flex h-14 items-center justify-between px-4 md:px-6">
@@ -129,5 +137,6 @@ export default function LoginPage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
