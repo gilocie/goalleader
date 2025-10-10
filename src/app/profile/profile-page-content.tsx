@@ -19,6 +19,7 @@ import { useUser } from '@/context/user-context';
 import type { UserRole } from '@/context/user-context';
 import { SwitchProfileDialog } from '@/components/profile/switch-profile-dialog';
 import { allTeamMembers } from '@/lib/users';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Kpi = {
   id: number;
@@ -35,26 +36,80 @@ const departmentsAndRoles = {
 const departments = Object.keys(departmentsAndRoles);
 
 function ProfileTabContent() {
-    const { user, saveUser } = useUser();
-    const userAvatar = PlaceHolderImages.find((img) => img.id === user.id);
+    const { user, saveUser, loading } = useUser();
+    
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [selectedDepartment, setSelectedDepartment] = useState('');
+    const [selectedRole, setSelectedRole] = useState('');
+    const [isSwitchProfileOpen, setIsSwitchProfileOpen] = useState(false);
+
     const [kpis, setKpis] = useState<Kpi[]>([
         { id: 1, value: '' },
         { id: 2, value: '' },
         { id: 3, value: '' },
     ]);
-    const [name, setName] = useState(user.name);
-    const [email, setEmail] = useState('');
-    const [selectedDepartment, setSelectedDepartment] = useState(user.department);
-    const [selectedRole, setSelectedRole] = useState(user.role);
-    const [isSwitchProfileOpen, setIsSwitchProfileOpen] = useState(false);
-    
+
     useEffect(() => {
-        setName(user.name);
-        setSelectedDepartment(user.department);
-        setSelectedRole(user.role);
-        setEmail(`${user.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`);
+        if (user) {
+            setName(user.name);
+            setSelectedDepartment(user.department);
+            setSelectedRole(user.role);
+            setEmail(`${user.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`);
+        }
     }, [user]);
 
+    if (loading || !user) {
+        return (
+            <div className="grid gap-8 lg:grid-cols-3">
+                <div className="lg:col-span-1 space-y-8">
+                    <Card>
+                        <CardHeader className="items-center">
+                           <Skeleton className="h-32 w-32 rounded-full" />
+                        </CardHeader>
+                        <CardContent className="text-center space-y-2">
+                            <Skeleton className="h-8 w-40 mx-auto" />
+                            <Skeleton className="h-6 w-24 mx-auto" />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-6 w-32" />
+                            <Skeleton className="h-4 w-48" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="lg:col-span-2 space-y-8">
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-6 w-40" />
+                            <Skeleton className="h-4 w-64" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                           <Skeleton className="h-10 w-full" />
+                           <Skeleton className="h-24 w-full" />
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader>
+                            <Skeleton className="h-6 w-48" />
+                            <Skeleton className="h-4 w-56" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                           <Skeleton className="h-10 w-full" />
+                           <Skeleton className="h-10 w-full" />
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        )
+    }
+
+    const userAvatar = PlaceHolderImages.find((img) => img.id === user.id);
     const availableRoles = departmentsAndRoles[selectedDepartment as keyof typeof departmentsAndRoles] || [];
 
     const handleDepartmentChange = (department: string) => {
@@ -430,4 +485,3 @@ export function ProfilePageContent() {
   );
 }
 
-    
