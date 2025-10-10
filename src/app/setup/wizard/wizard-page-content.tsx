@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, Loader2, GitBranch, Briefcase, Copy, AlertTriangle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -376,7 +377,7 @@ const DomainSetupStep = () => {
         <div className="absolute inset-0 bg-black/50 z-0" />
 
         {!isFinalStep ? (
-            <Card className="w-full max-w-4xl h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
+            <Card className="w-full max-w-4xl h-[400px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
                 <ScrollArea className="flex-1 p-6 flex flex-col">
                   <div className="flex flex-col items-center justify-center">
                       <div className="p-6 text-center flex flex-col items-center">
