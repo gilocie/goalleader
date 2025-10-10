@@ -51,12 +51,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const messagesSentQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'messages'), where('senderId', '==', firebaseUser.uid), orderBy('timestamp', 'asc'));
+    return query(collection(firestore, 'messages'), where('senderId', '==', firebaseUser.uid));
   }, [firestore, firebaseUser]);
 
   const messagesReceivedQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid), orderBy('timestamp', 'asc'));
+    return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid));
   }, [firestore, firebaseUser]);
 
   const { data: sentMessages } = useCollection<Message>(messagesSentQuery);
