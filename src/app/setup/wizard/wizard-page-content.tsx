@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check, Loader2, GitBranch, Briefcase, Copy, AlertTriangle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -351,7 +351,6 @@ const DomainSetupStep = () => {
         case 3:
             return <DomainSetupStep />
         case 4:
-             // The FinalizingStep is now only rendered in the footer
             return null;
         default:
             return null;
@@ -366,7 +365,7 @@ const DomainSetupStep = () => {
   const isFinalStep = currentStep === STEPS.length - 1;
 
   return (
-    <main className="relative h-screen w-screen flex items-center justify-center bg-muted overflow-hidden py-8">
+    <main className="relative h-screen w-screen flex items-center justify-center bg-muted overflow-hidden">
         {currentBg && (
             <Image
                 src={currentBg.imageUrl}
@@ -377,53 +376,54 @@ const DomainSetupStep = () => {
             />
         )}
         <div className="absolute inset-0 bg-black/50 z-0" />
-      <Card className="w-full max-w-4xl h-auto max-h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
-        <CardContent className="flex-1 flex flex-col items-center justify-center py-6 overflow-hidden">
-            <div className="text-center mb-8">
+
+        <Card className="w-full max-w-4xl h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
+            <div className="p-6 text-center border-b flex flex-col items-center">
                 <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
                 <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
             </div>
-            <ScrollArea className="w-full">
-                <div className="flex flex-col items-center justify-center p-4">
+            
+            <ScrollArea className="flex-1 overflow-auto p-6">
+                <div className="flex flex-col items-center justify-center">
                     {renderStepContent()}
                 </div>
             </ScrollArea>
-        </CardContent>
-        { !isFinalStep ? (
-             <div className="p-6 border-t flex justify-between items-center">
-                <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
-                    Previous
-                </Button>
 
-                <ul className="flex items-center gap-2 md:gap-4">
-                  {STEPS.map((step, index) => (
-                    <li key={step} className="flex items-center gap-2">
-                      <div className={cn(
-                        "h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                        currentStep > index ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground",
-                        currentStep === index && "bg-primary text-primary-foreground ring-4 ring-primary/20"
-                      )}>
-                        {currentStep > index ? <Check className="h-5 w-5" /> : index + 1}
-                      </div>
-                      <span className={cn(
-                        "hidden md:block text-sm transition-colors",
-                         currentStep >= index ? "font-semibold text-foreground" : "text-muted-foreground"
-                      )}>{step}</span>
-                    </li>
-                  ))}
-                </ul>
+            { !isFinalStep ? (
+                <div className="p-6 border-t flex justify-between items-center">
+                    <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
+                        Previous
+                    </Button>
 
-                <Button onClick={handleNext} disabled={isNextDisabled()}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Next
-                </Button>
-            </div>
-        ) : (
-            <div className="p-6 border-t flex justify-center">
-                <FinalizingStep onFinish={() => router.push('/')} />
-            </div>
-        )}
-      </Card>
+                    <ul className="flex items-center gap-2 md:gap-4">
+                    {STEPS.map((step, index) => (
+                        <li key={step} className="flex items-center gap-2">
+                        <div className={cn(
+                            "h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                            currentStep > index ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground",
+                            currentStep === index && "bg-primary text-primary-foreground ring-4 ring-primary/20"
+                        )}>
+                            {currentStep > index ? <Check className="h-5 w-5" /> : index + 1}
+                        </div>
+                        <span className={cn(
+                            "hidden md:block text-sm transition-colors",
+                            currentStep >= index ? "font-semibold text-foreground" : "text-muted-foreground"
+                        )}>{step}</span>
+                        </li>
+                    ))}
+                    </ul>
+
+                    <Button onClick={handleNext} disabled={isNextDisabled()}>
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Next
+                    </Button>
+                </div>
+            ) : (
+                <div className="p-6 border-t flex justify-center">
+                    <FinalizingStep onFinish={() => router.push('/')} />
+                </div>
+            )}
+        </Card>
     </main>
   );
 }
