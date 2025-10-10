@@ -5,7 +5,7 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, where } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -49,13 +49,27 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { allTeamMembers } = useUserContext();
   const firestore = useFirestore();
   
-  const messagesQuery = useMemo(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'messages'), orderBy('timestamp', 'asc'));
-  }, [firestore]);
+  const messagesSentQuery = useMemo(() => {
+    if (!firestore || !firebaseUser) return null;
+    return query(collection(firestore, 'messages'), where('senderId', '==', firebaseUser.uid), orderBy('timestamp', 'asc'));
+  }, [firestore, firebaseUser]);
 
-  const { data: messages = [], loading: messagesLoading } = useCollection<Message>(messagesQuery);
+  const messagesReceivedQuery = useMemo(() => {
+    if (!firestore || !firebaseUser) return null;
+    return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid), orderBy('timestamp', 'asc'));
+  }, [firestore, firebaseUser]);
+
+  const { data: sentMessages } = useCollection<Message>(messagesSentQuery);
+  const { data: receivedMessages } = useCollection<Message>(messagesReceivedQuery);
   
+  const messages = useMemo(() => {
+    const allMessages = [...sentMessages, ...receivedMessages];
+    // Deduplicate and sort
+    const uniqueMessages = Array.from(new Map(allMessages.map(m => [m.id, m])).values());
+    return uniqueMessages.sort((a,b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+  }, [sentMessages, receivedMessages]);
+
+
   const { data: activeChatsData } = useDoc<{ ids: string[] }>(firestore ? doc(firestore, 'chats', 'active') : null);
 
   const [isTyping, setIsTyping] = useState(false);
