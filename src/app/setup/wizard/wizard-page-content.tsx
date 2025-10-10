@@ -72,10 +72,11 @@ export function WizardPageContent() {
     const [projects, setProjects] = useState<FirebaseProject[]>([]);
     const [selectedProject, setSelectedProject] = useState<string | null>(null);
     const [isFetchingProjects, setIsFetchingProjects] = useState(false);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const { toast } = useToast();
 
     const handleFetchProjects = useCallback(async (gUser: User) => {
-        if (projects.length > 0) return; // Don't re-fetch
+        if (projects.length > 0) return;
         setIsFetchingProjects(true);
         try {
             const token = await gUser.getIdToken();
@@ -105,21 +106,28 @@ export function WizardPageContent() {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             if (currentUser) {
+                setIsLoggingIn(false); // User is signed in, no longer "logging in"
                 handleFetchProjects(currentUser);
             }
         });
         return unsubscribe;
       }, [auth, handleFetchProjects]);
 
-      const handleLogin = () => {
+      const handleLogin = async () => {
         if (!auth) return;
+        setIsLoggingIn(true);
         const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch(error => {
-            console.error("Login failed:", error);
+        // provider.addScope('https://www.googleapis.com/auth/cloud-platform.readonly');
+        
+        try {
+            await signInWithPopup(auth, provider);
+            // onAuthStateChanged will handle the rest
+        } catch (error: any) {
             if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-              toast({ variant: "destructive", title: "Login Failed", description: "Could not sign in with Google."});
+                toast({ variant: "destructive", title: "Login Failed", description: "Could not sign in with Google." });
             }
-        });
+            setIsLoggingIn(false);
+        }
       };
       
       const GoogleLogo = () => (
@@ -131,7 +139,7 @@ export function WizardPageContent() {
         </svg>
       );
 
-      if (!user) {
+      if (!user && !isLoggingIn) {
           return (
             <div className="flex flex-col items-center gap-4 text-center">
                 <GoogleLogo />
@@ -145,6 +153,18 @@ export function WizardPageContent() {
             </div>
           )
       }
+      
+      if (isLoggingIn || (!user && !isFetchingProjects)) {
+         return (
+            <div className="flex flex-col items-center gap-4 text-center">
+                <GoogleLogo />
+                <h3 className="text-xl font-semibold">Connect Your Firebase Account</h3>
+                <p className="text-muted-foreground">Waiting for Google Sign-in...</p>
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          )
+      }
+
 
       if (isFetchingProjects) {
         return (
@@ -446,7 +466,7 @@ const DomainSetupStep = () => {
         <div className="absolute inset-0 bg-black/50 z-0" />
         
         {!isFinalStep ? (
-             <Card className="w-full max-w-4xl z-10 bg-card/80 backdrop-blur-md flex flex-col my-8 h-[400px]">
+             <Card className="w-full max-w-4xl z-10 bg-card/80 backdrop-blur-md flex flex-col my-8 h-auto">
                 <div className="flex-1 flex flex-col min-h-0">
                     <ScrollArea className="h-full">
                         <div className="flex flex-col items-center justify-center p-6">
@@ -496,3 +516,5 @@ const DomainSetupStep = () => {
     </main>
   );
 }
+
+    
