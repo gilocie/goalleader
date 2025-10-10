@@ -222,38 +222,34 @@ const DomainSetupStep = () => {
 
             {showInstructions && (
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Step 1: Add CNAME Record to Your DNS</CardTitle>
-                        <CardDescription>Log in to your domain provider (e.g., Cloudflare, GoDaddy) and create a CNAME record with these details.</CardDescription>
+                    <CardHeader className="p-4">
+                        <CardTitle className="text-base">Step 1: Add CNAME Record to Your DNS</CardTitle>
+                        <CardDescription className="text-xs">Log in to your domain provider and create a CNAME record with these details.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-4 pt-0">
                         <Table>
                             <TableBody>
                                 <TableRow>
-                                    <TableCell className="font-medium">Type</TableCell>
-                                    <TableCell>CNAME</TableCell>
+                                    <TableCell className="font-medium text-xs">Type</TableCell>
+                                    <TableCell className="text-xs">CNAME</TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell className="font-medium">Name / Host</TableCell>
+                                    <TableCell className="font-medium text-xs">Name / Host</TableCell>
                                     <TableCell>
                                         <div className="flex items-center justify-between">
-                                            <span className='font-mono'>{subdomain || '[subdomain]'}</span>
-                                            <Button variant="ghost" size="icon" onClick={() => handleCopy(subdomain)}><Copy className="h-4 w-4" /></Button>
+                                            <span className='font-mono text-xs'>{subdomain || '[subdomain]'}</span>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(subdomain)}><Copy className="h-3 w-3" /></Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell className="font-medium">Points to / Value</TableCell>
+                                    <TableCell className="font-medium text-xs">Points to</TableCell>
                                     <TableCell>
                                          <div className="flex items-center justify-between">
-                                            <span className='font-mono'>ghs.googlehosted.com</span>
-                                            <Button variant="ghost" size="icon" onClick={() => handleCopy('ghs.googlehosted.com')}><Copy className="h-4 w-4" /></Button>
+                                            <span className='font-mono text-xs'>ghs.googlehosted.com</span>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy('ghs.googlehosted.com')}><Copy className="h-3 w-3" /></Button>
                                         </div>
                                     </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-medium">TTL</TableCell>
-                                    <TableCell>Default</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -263,24 +259,23 @@ const DomainSetupStep = () => {
 
             {showInstructions && (
                  <Card>
-                    <CardHeader>
-                        <CardTitle>Step 2: Verify Domain</CardTitle>
-                        <CardDescription>After adding the CNAME record, click below to verify. It may take a few minutes for DNS changes to apply.</CardDescription>
+                    <CardHeader className="p-4">
+                        <CardTitle className="text-base">Step 2: Verify Domain</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-4 p-4 pt-0">
                         <Button onClick={handleVerify} disabled={isVerifying} className="w-full">
                             {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Verify Domain
                         </Button>
                         {verificationAttempted && !isVerifying && (
                             isVerified ? (
-                                <div className="p-3 rounded-md bg-green-50 border border-green-200 text-green-800 text-sm flex items-center gap-2">
-                                    <Check className="h-4 w-4" />
+                                <div className="p-2 rounded-md bg-green-50 border border-green-200 text-green-800 text-xs flex items-center gap-2">
+                                    <Check className="h-3 w-3" />
                                     Domain verified successfully!
                                 </div>
                             ) : (
-                                 <div className="p-3 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm flex items-center gap-2">
-                                    <AlertTriangle className="h-4 w-4" />
+                                 <div className="p-2 rounded-md bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs flex items-center gap-2">
+                                    <AlertTriangle className="h-3 w-3" />
                                     Domain not verified yet. Try again in a few minutes.
                                 </div>
                             )
@@ -291,10 +286,10 @@ const DomainSetupStep = () => {
 
              {isVerified && (
                 <Card className="bg-primary/5 border-primary/20">
-                    <CardContent className="p-4 text-center">
-                        <p className="text-sm">Your company site will soon be live at: <br />
+                    <CardContent className="p-3 text-center">
+                        <p className="text-xs">Your company site will soon be live at: <br />
                         <a href={`https://${domain}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary underline flex items-center justify-center gap-1">
-                            {`https://${domain}`} <ExternalLink className='h-4 w-4' />
+                            {`https://${domain}`} <ExternalLink className='h-3 w-3' />
                         </a>
                         </p>
                     </CardContent>
@@ -414,7 +409,7 @@ const DomainSetupStep = () => {
             Step {currentStep + 1} of {STEPS.length}
           </CardDescription>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center py-6 overflow-y-auto">
+        <CardContent className="h-[380px] flex items-center justify-center py-6 overflow-y-auto">
             {renderStepContent()}
         </CardContent>
         { !isFinalStep && (
