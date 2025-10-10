@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
@@ -10,7 +11,7 @@ const teamMembers: Omit<Contact, 'lastMessage' | 'lastMessageTime' | 'unreadCoun
     { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'last seen today at 1:30 PM' },
     { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const },
     { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const },
-    { id: 'chiyanjano-mkandawire-m5', name: 'Chiyanjano Mkandawire', role: 'Consultant', status: 'last seen yesterday at 11:15 PM' },
+    { id: 'chiyanjano-mkandawire-m5', name: 'Chiyanjano Mkandawire', role: 'Consultant', status: 'online' as const },
     { id: 'wezi-chisale-m6', name: 'Wezi Chisale', role: 'Consultant', status: 'online' as const },
     { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'last seen 2 days ago' },
     { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const },
@@ -54,7 +55,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useUser();
+  const { user, getUserStatus } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
@@ -94,6 +95,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
         return {
             ...member,
+            status: getUserStatus(member.id),
             lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
             lastMessageTime: lastMessage ? format(new Date(lastMessage.timestamp), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
@@ -101,7 +103,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact, user.id]);
+  }, [messages, selectedContact, user.id, getUserStatus]);
+
 
   const self = useMemo(() => allContacts.find(c => c.id === user.id), [allContacts, user.id]);
 
@@ -115,16 +118,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }
   
   const contacts = useMemo(() => {
-    // A contact is "active" if they are in `activeChatIds` AND the current user is one of the participants.
-    const currentUserActiveChats = Array.from(activeChatIds).filter(chatId => {
-        const participants = chatId.split('--');
-        return participants.includes(user.id);
-    });
-
     const contactList = allContacts.filter(c => {
-        if (c.id === user.id) return false; // Exclude self
-        // Check if there's a chat between the current user and contact `c`
-        return currentUserActiveChats.some(chatId => chatId.includes(c.id));
+        if (c.id === user.id) return false;
+        const chatId = [user.id, c.id].sort().join('--');
+        return activeChatIds.has(chatId);
     });
     
     contactList.sort((a, b) => {

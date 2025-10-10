@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -173,6 +174,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const [isReceivingVoiceCall, setIsReceivingVoiceCall] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const firstUnreadRef = useRef<HTMLDivElement>(null);
   
   const [showWaitDialog, setShowWaitDialog] = useState(false);
 
@@ -257,13 +259,16 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   }, [acceptedVoiceCallContact]);
   
     useEffect(() => {
-    if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('div');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
-    }
-  }, [messages]);
+      if (firstUnreadRef.current) {
+          firstUnreadRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (scrollAreaRef.current) {
+          const viewport = scrollAreaRef.current.querySelector('div');
+          if (viewport) {
+              viewport.scrollTop = viewport.scrollHeight;
+          }
+      }
+  }, [messages, selectedContact]);
+
 
   if (!self) {
     return null;
@@ -301,6 +306,9 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   };
   
   const findMessageById = (id: string) => messages.find(m => m.id === id);
+
+  const firstUnreadIndex = messages.findIndex(m => m.senderId === selectedContact.id && m.readStatus !== 'read');
+
 
   return (
     <>
@@ -381,11 +389,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                       No messages yet. Start the conversation!
                   </div>
                 ) : (
-                  messages.map((message) => {
+                  messages.map((message, index) => {
                     const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
                     const isSelf = message.senderId === self.id;
                     const sender = contacts.find(c => c.id === message.senderId) || self;
                     const senderAvatar = PlaceHolderImages.find(p => p.id === sender.id);
+                    const showUnreadMarker = index === firstUnreadIndex;
 
                     if (message.isSystem) {
                       const isVideo = message.callType === 'video';
@@ -399,42 +408,49 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     }
 
                     return (
-                        <div key={message.id} className={cn('flex items-end gap-2 group', isSelf ? 'justify-end' : 'justify-start')}>
-                            {!isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} /><AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar> )}
-                            
-                            {isSelf && <MessageActions message={message} />}
+                        <div key={message.id}>
+                           {showUnreadMarker && (
+                                <div ref={firstUnreadRef} className="relative text-center my-4">
+                                    <hr className="absolute left-0 right-0 top-1/2 -translate-y-1/2 border-red-500" />
+                                    <span className="relative bg-background px-2 text-xs font-semibold text-red-500">New Messages</span>
+                                </div>
+                            )}
+                            <div className={cn('flex items-end gap-2 group', isSelf ? 'justify-end' : 'justify-start')}>
+                                {!isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} /><AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar> )}
+                                
+                                {isSelf && <MessageActions message={message} />}
 
-                            <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden', isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                                {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
-                                {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
-                                    <div className="p-1">
-                                        <div className={cn("grid gap-1", message.imageUrls.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
-                                          {message.imageUrls.slice(0, 4).map((url, index) => {
-                                              const remainingImages = message.imageUrls!.length - 4;
-                                              const showMore = index === 3 && remainingImages > 0;
-                                              return (
-                                                  <button key={index} onClick={() => handleImageClick(url)} className={cn(
-                                                      "relative aspect-square block cursor-pointer overflow-hidden rounded-md group/more",
-                                                      message.imageUrls && message.imageUrls.length === 1 ? 'w-64' : 'w-36 h-36',
-                                                      showMore && "bg-black"
-                                                  )}>
-                                                      <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} />
-                                                      {showMore && (
-                                                          <div className="absolute inset-0 flex items-center justify-center text-white">
-                                                              <Plus className="h-6 w-6" />
-                                                              <span className="text-xl font-bold">{remainingImages}</span>
-                                                          </div>
-                                                      )}
-                                                  </button>
-                                              )
-                                          })}
-                                      </div>
-                                      {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
-                                  </div>
+                                <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden', isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                    {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
+                                    {message.type === 'image' && message.imageUrls && message.imageUrls.length > 0 ? (
+                                        <div className="p-1">
+                                            <div className={cn("grid gap-1", message.imageUrls.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
+                                            {message.imageUrls.slice(0, 4).map((url, index) => {
+                                                const remainingImages = message.imageUrls && message.imageUrls.length > 4 ? message.imageUrls.length - 4 : 0;
+                                                const showMore = index === 3 && remainingImages > 0;
+                                                return (
+                                                    <button key={index} onClick={() => handleImageClick(url)} className={cn(
+                                                        "relative aspect-square block cursor-pointer overflow-hidden rounded-md group/more",
+                                                        message.imageUrls?.length === 1 ? 'w-64' : 'w-36 h-36',
+                                                        showMore && "bg-black"
+                                                    )}>
+                                                        <Image src={url} alt={`attached image ${index + 1}`} layout="fill" className={cn("object-cover transition-all", showMore && 'opacity-30 group-hover/more:opacity-20')} />
+                                                        {showMore && (
+                                                            <div className="absolute inset-0 flex items-center justify-center text-white">
+                                                                <Plus className="h-6 w-6" />
+                                                                <span className="text-xl font-bold">{remainingImages}</span>
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                        {message.content && ( <div className="p-3 pt-2"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
+                                    </div>
                                 ) : message.type === 'audio' && message.audioUrl && typeof message.audioDuration !== 'undefined' ? (
-                                     <div className="p-2">
+                                    <div className="p-2">
                                         <AudioPlayer audioUrl={message.audioUrl} audioDuration={message.audioDuration} isSelf={isSelf} />
-                                     </div>
+                                    </div>
                                 ) : message.type === 'file' && message.fileName && message.fileUrl ? ( 
                                     <div className="p-2">
                                         <div className="flex items-center gap-3 p-2 rounded-lg bg-background border">
@@ -452,6 +468,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
                             {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={user.name} /><AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar> )}
                         </div>
+                    </div>
                     )
                   })
                 )}
