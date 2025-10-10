@@ -6,7 +6,6 @@ import { initializeApp, getApps, App } from 'firebase-admin/app';
 import { serviceAccount } from './serviceAccount';
 
 // Initialize Firebase Admin SDK if not already initialized
-// This part is kept for potential future use but is not critical for the mock.
 if (!getApps().length) {
   try {
     initializeApp({
@@ -29,29 +28,37 @@ export async function POST(req: NextRequest) {
     }
     const idToken = authorization.split('Bearer ')[1];
     
-    // In a real scenario, you would verify the token.
-    // We will simulate a successful verification for this mock.
+    // In a real production app, you would verify the ID token here
+    // using the Firebase Admin SDK to ensure the request is authentic.
+    // Example: const decodedToken = await getAuth().verifyIdToken(idToken);
+    // const uid = decodedToken.uid;
+    
     if (!idToken) {
-      throw new Error("Invalid token");
+      throw new Error("Invalid token provided.");
     }
 
-    // --- MOCK IMPLEMENTATION ---
-    // Instead of calling the Google API with placeholder credentials,
-    // we return a mock list of projects to simulate a successful API call.
+    // --- MOCK IMPLEMENTATION of Google API Call ---
+    // In a real-world scenario, you would use the idToken or an OAuth2 access token
+    // to authenticate with the Google Cloud/Firebase Management APIs.
+    // This is a complex flow involving OAuth2 consent screens and token exchanges.
+    // To keep this example functional, we will mock the final API response.
+
+    console.log("Simulating API call to Firebase Management API with user's token.");
+
     const mockProjects = [
       { projectId: 'goalleader-prod-1a2b3', displayName: 'GoalLeader Production' },
       { projectId: 'goalleader-dev-4c5d6', displayName: 'GoalLeader Development' },
       { projectId: 'analytics-dashboard-7e8f9', displayName: 'Analytics Dashboard' },
+      { projectId: 'new-staging-env', displayName: 'Staging Environment' },
     ];
     
     // Simulate a network delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     return NextResponse.json({ projects: mockProjects });
 
   } catch (error: any) {
     console.error("Error in /api/firebase/getProjects:", error.message);
-    // Return a more generic error to avoid exposing implementation details.
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -102,10 +102,13 @@ export function WizardPageContent() {
       const handleFetchProjects = async (gUser: User) => {
         setIsFetchingProjects(true);
         try {
-            const token = await gUser.getIdToken(true);
+            const token = await gUser.getIdToken();
             const response = await fetch('/api/firebase/getProjects', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
             });
 
             if (!response.ok) {
