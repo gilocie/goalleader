@@ -315,14 +315,14 @@ const DomainSetupStep = () => {
                         <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center animate-in zoom-in-50">
                             <Check className="h-12 w-12 text-green-600" />
                         </div>
-                        <p className="text-lg font-semibold">Setup Complete!</p>
-                        <p className="text-muted-foreground">Redirecting you now...</p>
+                        <p className="text-lg font-semibold text-white">Setup Complete!</p>
+                        <p className="text-white/80">Redirecting you now...</p>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center gap-4">
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                        <p className="text-lg font-semibold">Building your environment...</p>
-                        <p className="text-muted-foreground">This may take a moment.</p>
+                        <p className="text-lg font-semibold text-white">Building your environment...</p>
+                        <p className="text-white/80">This may take a moment.</p>
                     </div>
                 )}
             </div>
@@ -331,8 +331,8 @@ const DomainSetupStep = () => {
     
     return (
         <div className="flex flex-col items-center gap-4 text-center">
-           <h2 className="text-2xl font-semibold">You're All Set!</h2>
-           <p className="text-muted-foreground max-w-sm mx-auto">
+           <h2 className="text-2xl font-semibold text-white">You're All Set!</h2>
+           <p className="text-white/80 max-w-sm mx-auto">
                Click the button below to finalize the setup and build your environment. You will be redirected to the main page upon completion.
            </p>
            <Button onClick={handleFinishClick} size="lg">Finish Setup</Button>
@@ -350,8 +350,6 @@ const DomainSetupStep = () => {
             return <CompanyDetailsStep />
         case 3:
             return <DomainSetupStep />
-        case 4:
-            return null; // The FinalizingStep is handled differently
         default:
             return null;
     }
@@ -378,15 +376,15 @@ const DomainSetupStep = () => {
         <div className="absolute inset-0 bg-black/50 z-0" />
 
         {!isFinalStep ? (
-            <Card className="w-full max-w-4xl h-auto max-h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
-                <ScrollArea className="flex-1 overflow-auto p-6">
-                    <div className="flex flex-col items-center justify-center">
-                        <div className="p-6 text-center flex flex-col items-center">
-                            <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
-                            <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
-                        </div>
-                        {renderStepContent()}
-                    </div>
+            <Card className="w-full max-w-4xl h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
+                <ScrollArea className="flex-1 p-6 flex flex-col">
+                  <div className="flex flex-col items-center justify-center">
+                      <div className="p-6 text-center flex flex-col items-center">
+                          <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
+                          <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
+                      </div>
+                      {renderStepContent()}
+                  </div>
                 </ScrollArea>
 
                 <div className="p-6 border-t flex justify-between items-center">
