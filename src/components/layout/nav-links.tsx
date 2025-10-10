@@ -60,7 +60,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
   };
   
   const renderLink = (link: NavLink, isSecondary: boolean = false) => {
-    if (link.roles && !link.roles.includes(user.role)) {
+    if (!user || (link.roles && !link.roles.includes(user.role))) {
         return null;
     }
 
