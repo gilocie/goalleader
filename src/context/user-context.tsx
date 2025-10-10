@@ -5,6 +5,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { allTeamMembers, TeamMember } from '@/lib/users';
 
 export type UserRole = 'Admin' | 'Team Leader' | 'Consultant' | 'Frontend Developer' | 'Backend Developer' | 'QA Engineer' | 'Marketing Specialist' | 'Content Creator' | 'IT Support';
 
@@ -28,6 +29,7 @@ interface UserContextType {
   saveUser: (user: User) => void;
   updateUserStatus: (userId: string, status: 'online' | string) => void;
   getUserStatus: (userId: string) => 'online' | string;
+  allTeamMembers: TeamMember[];
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -107,6 +109,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     saveUser,
     updateUserStatus,
     getUserStatus,
+    allTeamMembers,
   };
 
   return (

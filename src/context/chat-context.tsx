@@ -8,18 +8,7 @@ import { useUser } from './user-context';
 import { useCollection, useDoc } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-
-const teamMembers: Omit<Contact, 'lastMessage' | 'lastMessageTime' | 'unreadCount' | 'lastMessageReadStatus' | 'lastMessageSenderId'>[] = [
-    { id: 'patrick-achitabwino-m1', name: 'Patrick Achitabwino', role: 'Consultant', status: 'online' as const },
-    { id: 'frank-mhango-m2', name: 'Frank Mhango', role: 'Consultant', status: 'last seen today at 1:30 PM' },
-    { id: 'denis-maluwasa-m3', name: 'Denis Maluwasa', role: 'Consultant', status: 'online' as const },
-    { id: 'gift-banda-m4', name: 'Gift Banda', role: 'Consultant', status: 'online' as const },
-    { id: 'chiyanjano-mkandawire-m5', name: 'Chiyanjano Mkandawire', role: 'Consultant', status: 'online' as const },
-    { id: 'wezi-chisale-m6', name: 'Wezi Chisale', role: 'Consultant', status: 'online' as const },
-    { id: 'charity-moyo-m7', name: 'Charity Moyo', role: 'Consultant', status: 'last seen 2 days ago' },
-    { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const },
-    { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const },
-];
+import { allTeamMembers } from '@/lib/users';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -54,7 +43,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const { user, getUserStatus, allTeamMembers: allUsers, updateUserStatus } = useUser();
+  const { user, getUserStatus, updateUserStatus } = useUser();
   const firestore = useFirestore();
   
   const messagesQuery = useMemo(() => {
@@ -77,7 +66,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const activeChatIds = useMemo(() => new Set(activeChatsData?.ids || []), [activeChatsData]);
 
   const allContacts = useMemo(() => {
-    return allUsers.map(member => {
+    return allTeamMembers.map(member => {
         const relevantMessages = messages.filter(
             msg => (msg.senderId === member.id && msg.recipientId === user.id) ||
                    (msg.senderId === user.id && msg.recipientId === member.id)
@@ -100,7 +89,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact, user.id, getUserStatus, allUsers]);
+  }, [messages, selectedContact, user.id, getUserStatus]);
 
 
   const self = useMemo(() => allContacts.find(c => c.id === user.id), [allContacts, user.id]);
@@ -331,5 +320,3 @@ export const useChat = () => {
   }
   return context;
 };
-
-    
