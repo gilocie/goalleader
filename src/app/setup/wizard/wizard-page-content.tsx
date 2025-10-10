@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Dummy data for simulation
 const STEPS = [
@@ -42,7 +43,8 @@ export function WizardPageContent() {
     4: PlaceHolderImages.find(p => p.id === 'wizard-step-5'),
   }), []);
 
-  const currentBg = backgroundImages[currentStep as keyof typeof backgroundImages];
+  const currentBg = backgroundImages[0];
+
 
   const handleNext = () => {
     setIsLoading(true);
@@ -409,8 +411,12 @@ const DomainSetupStep = () => {
             Step {currentStep + 1} of {STEPS.length}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex-1 flex items-center justify-center py-6 overflow-y-auto">
-            {renderStepContent()}
+        <CardContent className="flex-1 flex items-center justify-center py-6 overflow-hidden">
+            <ScrollArea className="h-full w-full">
+              <div className="flex items-center justify-center p-4 h-[380px]">
+                  {renderStepContent()}
+              </div>
+            </ScrollArea>
         </CardContent>
         { !isFinalStep && (
              <div className="p-6 border-t flex justify-between">
