@@ -178,6 +178,8 @@ function SettingsTabContent() {
     const passwordInputRef = useRef<HTMLInputElement>(null);
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     const handlePasswordSubmit = () => {
         const password = passwordInputRef.current?.value;
@@ -197,6 +199,41 @@ function SettingsTabContent() {
         }
         setIsPasswordDialogOpen(true);
     };
+    
+    const handleSaveGeneralSettings = () => {
+        if (newPassword) {
+            if (newPassword !== confirmPassword) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Passwords do not match',
+                });
+                return;
+            }
+            // In a real app, you would have the current password to compare against
+            if (newPassword === 'admin') {
+                 toast({
+                    variant: 'destructive',
+                    title: 'New Password Required',
+                    description: 'Please use a password different from the current one.',
+                });
+                return;
+            }
+            
+            // In a real app, you would make an API call to update the password here
+            toast({
+                title: 'Password Updated',
+                description: 'The admin password has been successfully updated.',
+            });
+            setNewPassword('');
+            setConfirmPassword('');
+        } else {
+            toast({
+                title: 'Settings Saved',
+                description: 'Your general settings have been updated.',
+            });
+        }
+    };
+
 
     return (
         <Card>
@@ -225,7 +262,7 @@ function SettingsTabContent() {
                                 <h3 className="font-medium">Reset Password</h3>
                                 <div className="space-y-2 relative">
                                     <Label htmlFor="new-password">New Password</Label>
-                                    <Input id="new-password" type={showNewPassword ? 'text' : 'password'} placeholder="Enter new password" />
+                                    <Input id="new-password" type={showNewPassword ? 'text' : 'password'} placeholder="Enter new password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}/>
                                     <Button
                                         type="button"
                                         variant="ghost"
@@ -238,10 +275,10 @@ function SettingsTabContent() {
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                    <Input id="confirm-password" type={showNewPassword ? 'text' : 'password'} placeholder="Confirm new password" />
+                                    <Input id="confirm-password" type={showNewPassword ? 'text' : 'password'} placeholder="Confirm new password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                                 </div>
                             </div>
-                            <Button>Save General Settings</Button>
+                            <Button onClick={handleSaveGeneralSettings}>Save General Settings</Button>
                         </div>
                     </TabsContent>
                     <TabsContent value="security" className="mt-6">
