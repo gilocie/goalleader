@@ -4,13 +4,13 @@
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
-import { useUser } from './user-context';
-import { useCollection, useDoc } from '@/firebase';
+import { useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { allTeamMembers } from '@/lib/users';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useCollection, useDoc } from '@/firebase';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -45,7 +45,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const { user, getUserStatus, updateUserStatus } = useUser();
+  const { user } = useUser(); // Firebase user
   const firestore = useFirestore();
   
   const messagesQuery = useMemo(() => {
@@ -68,10 +68,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const activeChatIds = useMemo(() => new Set(activeChatsData?.ids || []), [activeChatsData]);
 
   const allContacts = useMemo(() => {
+    if (!user) return [];
     return allTeamMembers.map(member => {
         const relevantMessages = messages.filter(
-            msg => (msg.senderId === member.id && msg.recipientId === user.id) ||
-                   (msg.senderId === user.id && msg.recipientId === member.id)
+            msg => (msg.senderId === member.id && msg.recipientId === user.uid) ||
+                   (msg.senderId === user.uid && msg.recipientId === member.id)
         );
         const lastMessage = relevantMessages.sort((a, b) => {
             const timeA = a.timestamp?.toMillis() || 0;
@@ -79,22 +80,35 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             return timeB - timeA;
         })[0];
         
-        const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === user.id && msg.readStatus !== 'read').length;
+        const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === user.uid && msg.readStatus !== 'read').length;
 
         return {
             ...member,
-            status: getUserStatus(member.id),
+            status: 'offline', // Simplified for now
             lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
             lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
-            lastMessageReadStatus: lastMessage?.senderId === user.id ? lastMessage.readStatus : undefined,
+            lastMessageReadStatus: lastMessage?.senderId === user.uid ? lastMessage.readStatus : undefined,
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact, user.id, getUserStatus]);
+  }, [messages, selectedContact, user]);
 
 
-  const self = useMemo(() => allContacts.find(c => c.id === user.id), [allContacts, user.id]);
+  const self = useMemo(() => {
+      if (!user) return undefined;
+      const selfInList = allContacts.find(c => c.id === user.uid);
+      if (selfInList) return selfInList;
+
+      // Fallback if not in team members list (e.g. new anonymous user)
+      return {
+          id: user.uid,
+          name: user.isAnonymous ? 'Guest User' : (user.displayName || 'You'),
+          role: 'Consultant',
+          status: 'online',
+          department: 'Customer Service'
+      }
+  }, [allContacts, user]);
 
   const updateActiveChatIds = async (newIds: Set<string>) => {
     if (!firestore) return;
@@ -107,22 +121,24 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }
   
   const contacts = useMemo(() => {
+    if (!user) return [];
     const contactList = allContacts.filter(c => {
-        if (c.id === user.id) return false;
-        const chatId = [user.id, c.id].sort().join('--');
+        if (c.id === user.uid) return false;
+        const chatId = [user.uid, c.id].sort().join('--');
         return activeChatIds.has(chatId);
     });
     
     contactList.sort((a, b) => {
-        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === user.id) || (m.senderId === user.id && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
-        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === user.id) || (m.senderId === user.id && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        if (!user) return 0;
+        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === user.uid) || (m.senderId === user.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === user.uid) || (m.senderId === user.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
         return (lastMessageB.timestamp?.toMillis() || 0) - (lastMessageA.timestamp?.toMillis() || 0);
     });
 
     return contactList;
-  }, [allContacts, activeChatIds, messages, user.id]);
+  }, [allContacts, activeChatIds, messages, user]);
   
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
@@ -303,7 +319,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             }
         });
     }
-  }, [selectedContact, self?.id, messages, firestore]);
+  }, [selectedContact, self, messages, firestore]);
 
 
   const value = {
@@ -346,3 +362,5 @@ export const useChat = () => {
   }
   return context;
 };
+
+    
