@@ -88,7 +88,6 @@ export function WizardPageContent() {
       const handleLogin = async () => {
         if (!auth) return;
         const provider = new GoogleAuthProvider();
-        provider.addScope('https://www.googleapis.com/auth/cloud-platform.readonly');
         
         try {
             await signInWithPopup(auth, provider);
