@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { TeamMember } from '@/lib/users';
 import { useUser as useFirebaseAuthUser, useCollection } from '@/firebase';
-import { doc, onSnapshot, collection, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, collection, updateDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -18,6 +18,8 @@ interface User {
   name: string;
   role: UserRole;
   department: string;
+  country?: string;
+  branch?: string;
 }
 
 interface UserContextType {
@@ -62,6 +64,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                     name: data.name || firebaseUser.displayName || 'Anonymous',
                     role: data.role || 'Consultant',
                     department: data.department || 'Customer Service',
+                    country: data.country || '',
+                    branch: data.branch || '',
                 });
             } else {
                  // If no user profile in Firestore, create a default one
@@ -70,7 +74,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                     name: firebaseUser.displayName || `User-${firebaseUser.uid.slice(0,5)}`,
                     role: 'Consultant',
                     department: 'Customer Service',
+                    country: '',
+                    branch: '',
                  };
+                 // Do not save here, registration page will handle it.
                  setUser(newUserProfile);
             }
             setLoading(false);
@@ -84,31 +91,39 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const saveUser = (newUser: User) => {
      try {
-        if (user && firestore) {
-          const oldUserDocRef = doc(firestore, 'users', user.id);
-          updateDoc(oldUserDocRef, { status: `last seen ${format(new Date(), "p 'on' MMM d")}`});
+        if (firestore) {
+          const userDocRef = doc(firestore, 'users', newUser.id);
+          setDoc(userDocRef, newUser, { merge: true }).catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: userDocRef.path,
+                operation: 'update',
+                requestResourceData: newUser,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+          });
         }
         
         // This is a client-side simulation for switching views.
         // It does not perform a real authentication change.
         localStorage.setItem('simulatedUserId', newUser.id);
         
-        if (firestore) {
-          const newUserDocRef = doc(firestore, 'users', newUser.id);
-          updateDoc(newUserDocRef, { status: 'online' });
+        toast({
+            title: 'Profile Updated',
+            description: `Your profile has been saved.`,
+        });
+
+        if (user?.id !== newUser.id) {
+            window.location.reload();
+        } else {
+            setUser(newUser);
         }
 
-        toast({
-            title: 'Profile Switched',
-            description: `You are now viewing as ${newUser.name}.`,
-        });
-        window.location.reload();
      } catch (error) {
-        console.error("Failed to save user settings to localStorage", error);
+        console.error("Failed to save user settings", error);
         toast({
             variant: 'destructive',
             title: 'Error',
-            description: 'Could not switch profiles.',
+            description: 'Could not save profile.',
         });
      }
   };

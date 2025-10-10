@@ -18,8 +18,16 @@
           "description": "The department the user belongs to."
         },
         "status": {
+          "type": "string",
+          "description": "The user's current status (e.g., 'online', 'offline', 'last seen...')."
+        },
+        "country": {
             "type": "string",
-            "description": "The user's current status (e.g., 'online', 'offline', 'last seen...')."
+            "description": "The country the user is located in."
+        },
+        "branch": {
+            "type": "string",
+            "description": "The specific branch or office the user works from."
         }
       },
       "required": ["name", "role", "department", "status"]
@@ -100,5 +108,3 @@
     }
   }
 }
-
-    

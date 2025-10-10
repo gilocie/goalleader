@@ -35,6 +35,9 @@ const departmentsAndRoles = {
 };
 
 const departments = Object.keys(departmentsAndRoles);
+const countries = ["Malawi", "United States", "United Kingdom", "Canada"];
+const branches = ["Main Office", "Lilongwe Branch", "Blantyre Branch"];
+
 
 function ProfileTabContent() {
     const { user, saveUser, loading, allTeamMembers } = useUser();
@@ -44,6 +47,8 @@ function ProfileTabContent() {
     const [email, setEmail] = useState('');
     const [selectedDepartment, setSelectedDepartment] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
+    const [selectedCountry, setSelectedCountry] = useState('');
+    const [selectedBranch, setSelectedBranch] = useState('');
     const [isSwitchProfileOpen, setIsSwitchProfileOpen] = useState(false);
 
     const [kpis, setKpis] = useState<Kpi[]>([
@@ -57,6 +62,8 @@ function ProfileTabContent() {
             setName(user.name);
             setSelectedDepartment(user.department);
             setSelectedRole(user.role);
+            setSelectedCountry(user.country || '');
+            setSelectedBranch(user.branch || '');
             setEmail(firebaseUser.email || '');
         }
     }, [user, firebaseUser]);
@@ -93,6 +100,8 @@ function ProfileTabContent() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                            <Skeleton className="h-10 w-full" />
+                           <Skeleton className="h-10 w-full" />
+                           <Skeleton className="h-10 w-full" />
                            <Skeleton className="h-24 w-full" />
                         </CardContent>
                     </Card>
@@ -126,6 +135,8 @@ function ProfileTabContent() {
             name,
             role: selectedRole as UserRole,
             department: selectedDepartment,
+            country: selectedCountry,
+            branch: selectedBranch,
         });
     };
 
@@ -155,9 +166,11 @@ function ProfileTabContent() {
                 id: memberToSwitch.id,
                 name: newName,
                 role: memberToSwitch.role,
-                department: memberToSwitch.department
+                department: memberToSwitch.department,
+                country: memberToSwitch.country,
+                branch: memberToSwitch.branch,
             });
-            window.location.reload(); // Reload to apply context changes everywhere
+            window.location.reload();
         }
         setIsSwitchProfileOpen(false);
     }
@@ -250,6 +263,34 @@ function ProfileTabContent() {
                               <SelectItem key={role} value={role}>{role}</SelectItem>
                             ))}
                           </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="country">Country</Label>
+                        <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                            <SelectTrigger id="country">
+                                <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {countries.map((country) => (
+                                    <SelectItem key={country} value={country}>{country}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="branch">Branch</Label>
+                        <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                            <SelectTrigger id="branch">
+                                <SelectValue placeholder="Select branch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {branches.map((branch) => (
+                                    <SelectItem key={branch} value={branch}>{branch}</SelectItem>
+                                ))}
+                            </SelectContent>
                         </Select>
                     </div>
                 </div>

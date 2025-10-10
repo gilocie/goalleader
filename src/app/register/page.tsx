@@ -12,7 +12,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useBranding } from '@/context/branding-context';
-import { useAuth, useFirestore, useUser } from '@/firebase';
+import { useAuth, useFirestore, useUser as useUserContext } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -36,7 +36,7 @@ export default function RegisterPage() {
 
   const auth = useAuth();
   const firestore = useFirestore();
-  const { allTeamMembers } = useUser();
+  const { allTeamMembers } = useUserContext();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -64,7 +64,9 @@ export default function RegisterPage() {
             name: fullName,
             department: department,
             role: role,
-            status: 'online'
+            status: 'online',
+            country: '',
+            branch: '',
         };
 
         const userDocRef = doc(firestore, 'users', user.uid);
@@ -77,8 +79,8 @@ export default function RegisterPage() {
           errorEmitter.emit('permission-error', permissionError);
         });
 
-        toast({ title: 'Registration Successful', description: "You're now logged in." });
-        router.push('/dashboard');
+        toast({ title: 'Registration Successful', description: "Please complete your profile." });
+        router.push('/profile');
 
     } catch (error: any) {
         toast({

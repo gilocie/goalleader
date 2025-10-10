@@ -8,6 +8,8 @@ export interface TeamMember {
   role: UserRole;
   status: 'online' | string;
   department: string;
+  country?: string;
+  branch?: string;
 }
 
 // This file is now primarily for type definitions.
