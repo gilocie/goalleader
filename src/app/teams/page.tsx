@@ -15,17 +15,18 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/context/user-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
-import { allTeamMembers } from '@/lib/users';
+import type { TeamMember } from '@/lib/users';
 
 function TeamsPageContent() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
-  const { user } = useUser();
+  const { user, allTeamMembers } = useUser();
   const [isCreateTeamOpen, setCreateTeamOpen] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<(typeof allTeamMembers)>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
 
   const getTeamStorageKey = (department: string) => `teamMembers_${department}`;
 
   useEffect(() => {
+    if (!user?.department) return;
     try {
       const storageKey = getTeamStorageKey(user.department);
       const storedTeamMemberIds = localStorage.getItem(storageKey);
@@ -40,9 +41,10 @@ function TeamsPageContent() {
       console.error("Failed to load team from localStorage", error);
       setTeamMembers([]);
     }
-  }, [user.department]);
+  }, [user?.department, allTeamMembers]);
 
   const handleTeamCreated = (selectedMemberIds: string[]) => {
+    if (!user?.department) return;
     try {
       const storageKey = getTeamStorageKey(user.department);
       localStorage.setItem(storageKey, JSON.stringify(selectedMemberIds));
@@ -55,10 +57,14 @@ function TeamsPageContent() {
   };
 
   const membersForDialog = allTeamMembers.filter(member => {
-    if (member.id === user.id) return false; // Exclude self
-    if (user.role === 'Admin') return true; // Admin sees everyone
-    return member.department === user.department; // Team Leader sees their department
+    if (member.id === user?.id) return false; // Exclude self
+    if (user?.role === 'Admin') return true; // Admin sees everyone
+    return member.department === user?.department; // Team Leader sees their department
   });
+  
+  if (!user) {
+    return null; // Or a loading skeleton
+  }
 
   const shouldRenderPage = user.role === 'Admin' || user.role === 'Team Leader';
 

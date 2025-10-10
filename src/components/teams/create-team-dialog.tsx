@@ -21,7 +21,6 @@ import { cn } from '@/lib/utils';
 import { Card } from '../ui/card';
 import { useUser } from '@/context/user-context';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { allTeamMembers } from '@/lib/users';
 
 interface Member {
     id: string;
@@ -38,8 +37,6 @@ interface CreateTeamDialogProps {
   department: string;
 }
 
-const allDepartments = [...new Set(allTeamMembers.map(m => m.department))];
-
 
 export function CreateTeamDialog({
   isOpen,
@@ -51,8 +48,10 @@ export function CreateTeamDialog({
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
-  const { user } = useUser();
+  const { user, allTeamMembers } = useUser();
   
+  const allDepartments = [...new Set(allTeamMembers.map(m => m.department))];
+
   const handleCreate = () => {
     onTeamCreate(selectedMembers);
   };
@@ -86,7 +85,7 @@ export function CreateTeamDialog({
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
           <DialogDescription>
-            {user.role === 'Admin' ? 'Select members from any department.' : `Select members from your department (${department}).`}
+            {user && user.role === 'Admin' ? 'Select members from any department.' : `Select members from your department (${department}).`}
           </DialogDescription>
         </DialogHeader>
 
@@ -100,7 +99,7 @@ export function CreateTeamDialog({
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            {user.role === 'Admin' && (
+            {user && user.role === 'Admin' && (
                 <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
                     <SelectTrigger className="w-full md:w-[200px]">
                         <SelectValue placeholder="Filter by Department" />
