@@ -409,7 +409,7 @@ const DomainSetupStep = () => {
             Step {currentStep + 1} of {STEPS.length}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex-1 flex items-center justify-center py-6 overflow-hidden">
+        <CardContent className="flex-1 flex items-center justify-center py-6 overflow-y-auto">
             {renderStepContent()}
         </CardContent>
         { !isFinalStep && (
