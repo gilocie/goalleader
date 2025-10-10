@@ -9,7 +9,6 @@ import { Shield, Palette, Building, Users, Ban, Trash2, MessageSquare, UserCheck
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { allUsers } from '@/lib/users';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,10 +19,12 @@ import { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useBranding } from '@/context/branding-context';
 import { Separator } from '@/components/ui/separator';
+import { useUser } from '@/context/user-context';
 
 function OverviewTabContent() {
+    const { allTeamMembers } = useUser();
     const stats = [
-        { title: 'Total Users', value: allUsers.length, icon: Users },
+        { title: 'Total Users', value: allTeamMembers.length, icon: Users },
         { title: 'Departments', value: 3, icon: Building },
         { title: 'Roles', value: 2, icon: Briefcase },
         { title: 'Branches', value: 1, icon: GitBranch },
@@ -169,12 +170,10 @@ function SettingsTabContent() {
 }
 
 function UserManagementTabContent() {
-    const users = allUsers.map(u => ({
+    const { user: currentUser, allTeamMembers } = useUser();
+    const users = allTeamMembers.map(u => ({
         ...u,
-        name: u.label,
-        email: `${u.label.toLowerCase().replace(/\s/g, '.')}@goalleader.com`,
-        department: u.label.includes('Patrick') ? 'ICT' : 'Customer Service',
-        role: u.label.includes('Patrick') ? 'Admin' : 'Consultant'
+        email: `${u.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`,
     }));
 
     return (
@@ -223,15 +222,15 @@ function UserManagementTabContent() {
                         </TableHeader>
                         <TableBody>
                             {users.map(user => {
-                                const avatar = PlaceHolderImages.find(p => p.id === user.value);
-                                const isSelf = user.name === 'Patrick Achitabwino';
+                                const avatar = PlaceHolderImages.find(p => p.id === user.id);
+                                const isSelf = user.id === currentUser?.id;
                                 return (
-                                    <TableRow key={user.value}>
+                                    <TableRow key={user.id}>
                                         <TableCell className="py-2">
                                             <div className="flex items-center gap-3">
                                                 <Avatar className='h-8 w-8'>
-                                                    <AvatarImage src={avatar?.imageUrl} alt={user.label} className='object-cover object-top' />
-                                                    <AvatarFallback>{user.label.slice(0, 2)}</AvatarFallback>
+                                                    <AvatarImage src={avatar?.imageUrl} alt={user.name} className='object-cover object-top' />
+                                                    <AvatarFallback>{user.name.slice(0, 2)}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
                                                     <p className="font-medium text-sm">
@@ -497,3 +496,5 @@ export function AdminPageContent() {
         </main>
     );
 }
+
+    
