@@ -1,20 +1,16 @@
 /**
- * @fileoverview Firestore Security Rules for Prototyping.
- *
- * Core Philosophy:
- * This ruleset prioritizes rapid prototyping by focusing on authorization and skipping data validation.
- * It enforces a strict user-ownership model for user profiles and public read access for chat messages.
- *
- * Data Structure:
- * - /users/{userId}: Stores individual user profile data. Access is restricted to the user themselves.
- * - /messages/{messageId}: Stores all chat messages. Public read access is granted, but write access is denied.
- * - /chats/active: Singleton document to track active chat IDs.
- *
- * Key Security Decisions:
- * - User profiles are private and only accessible to the owning user.
- * - Chat messages are publicly readable.
- * - Data validation is skipped to allow for flexible schema changes during prototyping.
- * - No user listing is allowed.
+ * @file Firestore Security Rules
+ * @core_philosophy This ruleset prioritizes user privacy and data ownership. Users can only read and write their own profile data. Chat messages can only be created, but not updated or deleted.
+ * @data_structure
+ *   - /users/{userId}: Stores individual user profiles.
+ *   - /messages/{messageId}: Stores all chat messages.
+ *   - /chats/active: Singleton document to track active chat IDs.
+ * @key_security_decisions
+ *   - Users can only read and write their own user profile.
+ *   - Chat messages can be created by anyone, representing a public chat. Updates and deletes are forbidden.
+ *   - The list of active chat IDs is publicly readable and writable. This is potentially insecure and should be reviewed.
+ * @denormalization_for_authorization N/A - No denormalization is used in this ruleset.
+ * @structural_segregation N/A - No structural segregation is used in this ruleset.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -23,15 +19,10 @@ service cloud.firestore {
     /**
      * @description Controls access to user profile documents.
      * @path /users/{userId}
-     * @allow (create) User 'nZCmcICE21gjQuh9Qn0c74keBPF2' can create their own profile.
-     * @deny (create) User ' অন্যuser' cannot create profile for 'nZCmcICE21gjQuh9Qn0c74keBPF2'.
-     * @allow (get) User 'nZCmcICE21gjQuh9Qn0c74keBPF2' can read their own profile.
-     * @deny (get) User ' অন্যuser' cannot read profile for 'nZCmcICE21gjQuh9Qn0c74keBPF2'.
-     * @allow (update) User 'nZCmcICE21gjQuh9Qn0c74keBPF2' can update their own profile.
-     * @deny (update) User ' অন্যuser' cannot update profile for 'nZCmcICE21gjQuh9Qn0c74keBPF2'.
-     * @allow (delete) User 'nZCmcICE21gjQuh9Qn0c74keBPF2' can delete their own profile.
-     * @deny (delete) User ' অন্যuser' cannot delete profile for 'nZCmcICE21gjQuh9Qn0c74keBPF2'.
-     * @principle Enforces document ownership for all operations.
+     * @allow (read, write) if the user is the owner of the profile.
+     * @deny (read, write) if the user is not the owner of the profile.
+     *   e.g., request.auth.uid = 'otherUser'
+     * @principle Enforces document ownership for reads and writes.
      */
     match /users/{userId} {
       allow get: if isOwner(userId);
@@ -42,37 +33,43 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to chat message documents.
+     * @description Controls access to chat messages. Messages can be created by anyone, but not updated or deleted.
      * @path /messages/{messageId}
-     * @allow (get) Any user can read any message.
-     * @allow (list) Any user can list messages.
-     * @deny (create) No user can create a message directly via Firestore (messages should be created by backend).
-     * @deny (update) No user can update messages.
-     * @deny (delete) No user can delete messages.
+     * @allow (create) any authenticated user can create a message.
+     *   e.g., request.auth.uid = 'user_abc'
+     * @deny (update, delete) no one can update or delete a message.
+     *   e.g., request.auth.uid = 'user_abc'
+     * @principle Allows public creation of messages, but restricts updates and deletions.
      */
     match /messages/{messageId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn();
+      allow update: if false;
+      allow delete: if false;
     }
 
-      /**
-       * @description Controls access to the active chats singleton document.
-       * @path /chats/active
-       */
+    /**
+     * @description Controls access to the list of active chat IDs. This document is publicly readable and writable.
+     * @path /chats/active
+     * @allow (read, write) anyone can read and write the active chat IDs.
+     * @principle Allows public read and write access to active chat IDs.
+     */
     match /chats/active {
-        allow get: if true;
-        allow list: if false;
-        allow create: if false;
-        allow update: if false;
-        allow delete: if false;
+      allow get: if true;
+      allow list: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if true;
     }
 
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
 
     function isExistingOwner(userId) {
