@@ -385,48 +385,50 @@ const DomainSetupStep = () => {
             />
         )}
         <div className="absolute inset-0 bg-black/50 z-0" />
-      <Card className="w-full max-w-4xl h-[90vh] z-10 bg-card/80 backdrop-blur-md flex flex-col">
-        <CardHeader>
-          <div className="flex justify-center mb-4">
-            <ul className="flex items-center gap-2 md:gap-4">
-              {STEPS.map((step, index) => (
-                <li key={step} className="flex items-center gap-2">
-                  <div className={cn(
-                    "h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                    currentStep > index ? "bg-primary text-primary-foreground" : "bg-muted-foreground text-muted",
-                    currentStep === index && "bg-primary text-primary-foreground ring-4 ring-primary/20"
-                  )}>
-                    {currentStep > index ? <Check className="h-5 w-5" /> : index + 1}
-                  </div>
-                  <span className={cn(
-                    "hidden md:block text-sm transition-colors",
-                     currentStep >= index ? "font-semibold text-primary" : "text-muted-foreground"
-                  )}>{step}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <CardTitle className="text-center text-2xl">{STEPS[currentStep]}</CardTitle>
-          <CardDescription className="text-center">
-            Step {currentStep + 1} of {STEPS.length}
-          </CardDescription>
-        </CardHeader>
+      <Card className="w-full max-w-4xl h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
         <CardContent className="flex-1 flex items-center justify-center py-6 overflow-hidden">
             <ScrollArea className="h-full w-full">
-              <div className="flex items-center justify-center p-4 h-[380px]">
+              <div className="flex flex-col items-center justify-center p-4 min-h-[420px]">
+                  <div className="text-center mb-8">
+                    <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
+                    <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
+                  </div>
                   {renderStepContent()}
               </div>
             </ScrollArea>
         </CardContent>
-        { !isFinalStep && (
-             <div className="p-6 border-t flex justify-between">
+        { !isFinalStep ? (
+             <div className="p-6 border-t flex justify-between items-center">
                 <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 0 || isLoading}>
                     Previous
                 </Button>
+
+                <ul className="flex items-center gap-2 md:gap-4">
+                  {STEPS.map((step, index) => (
+                    <li key={step} className="flex items-center gap-2">
+                      <div className={cn(
+                        "h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
+                        currentStep > index ? "bg-primary text-primary-foreground" : "bg-muted-foreground/20 text-muted-foreground",
+                        currentStep === index && "bg-primary text-primary-foreground ring-4 ring-primary/20"
+                      )}>
+                        {currentStep > index ? <Check className="h-5 w-5" /> : index + 1}
+                      </div>
+                      <span className={cn(
+                        "hidden md:block text-sm transition-colors",
+                         currentStep >= index ? "font-semibold text-foreground" : "text-muted-foreground"
+                      )}>{step}</span>
+                    </li>
+                  ))}
+                </ul>
+
                 <Button onClick={handleNext} disabled={isNextDisabled()}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Next
                 </Button>
+            </div>
+        ) : (
+            <div className="p-6 border-t flex justify-center">
+                {renderStepContent()}
             </div>
         )}
       </Card>
