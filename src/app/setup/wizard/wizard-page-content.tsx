@@ -378,15 +378,15 @@ const DomainSetupStep = () => {
         )}
         <div className="absolute inset-0 bg-black/50 z-0" />
       <Card className="w-full max-w-4xl h-auto max-h-[600px] z-10 bg-card/80 backdrop-blur-md flex flex-col">
-        <CardContent className="flex-1 flex items-center justify-center py-6 overflow-hidden">
-            <ScrollArea className="h-full w-full">
-              <div className="flex flex-col items-center justify-center p-4 min-h-[380px]">
-                  <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
-                    <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
-                  </div>
-                  {renderStepContent()}
-              </div>
+        <CardContent className="flex-1 flex flex-col items-center justify-center py-6 overflow-hidden">
+            <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold tracking-tight">{STEPS[currentStep]}</h1>
+                <p className="text-muted-foreground">Step {currentStep + 1} of {STEPS.length}</p>
+            </div>
+            <ScrollArea className="w-full">
+                <div className="flex flex-col items-center justify-center p-4">
+                    {renderStepContent()}
+                </div>
             </ScrollArea>
         </CardContent>
         { !isFinalStep ? (
