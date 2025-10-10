@@ -12,18 +12,15 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useBranding } from '@/context/branding-context';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, useUser } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { allTeamMembers, UserRole } from '@/lib/users';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
-
-const departments = [...new Set(allTeamMembers.map(m => m.department))];
 
 export default function RegisterPage() {
   const { branding } = useBranding();
@@ -39,8 +36,11 @@ export default function RegisterPage() {
 
   const auth = useAuth();
   const firestore = useFirestore();
+  const { allTeamMembers } = useUser();
   const router = useRouter();
   const { toast } = useToast();
+
+  const departments = [...new Set(allTeamMembers.map(m => m.department))];
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();

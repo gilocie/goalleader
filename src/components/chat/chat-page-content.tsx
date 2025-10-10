@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -5,7 +6,6 @@ import { ChatLayout } from '@/components/chat/chat-layout';
 import type { Contact, Message } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
 import { NewChatDialog } from './new-chat-dialog';
-import { allTeamMembers } from '@/lib/users';
 
 export function ChatPageContent() {
   const { contacts, messages, selectedContact, setSelectedContact, addMessage, deleteMessage, self } = useChat();

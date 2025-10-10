@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -17,16 +18,17 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
-import { allTeamMembers, TeamMember } from '@/lib/users';
+import type { TeamMember } from '@/lib/users';
 import type { Contact } from '@/types/chat';
 import { useUser } from '@/context/user-context';
 import { ViewProfileDialog } from './view-profile-dialog';
+import { useChat } from '@/context/chat-context';
 
 interface NewChatDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onStartChat: (contact: Contact) => void;
-  // allMembers is removed from props as it's now imported directly
+  // allMembers is removed from props as it's now from context
 }
 
 export function NewChatDialog({
@@ -36,6 +38,7 @@ export function NewChatDialog({
 }: NewChatDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const { user: self } = useUser();
+  const { allContacts: allTeamMembers } = useChat();
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
   const [viewingProfile, setViewingProfile] = useState<TeamMember | null>(null);
 

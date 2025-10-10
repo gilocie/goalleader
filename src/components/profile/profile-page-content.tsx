@@ -19,7 +19,6 @@ import { useUser } from '@/context/user-context';
 import type { UserRole } from '@/context/user-context';
 import { SwitchProfileDialog } from '@/components/profile/switch-profile-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { TeamMember } from '@/lib/users';
 
 type Kpi = {
   id: number;
@@ -36,7 +35,7 @@ const departmentsAndRoles = {
 const departments = Object.keys(departmentsAndRoles);
 
 function ProfileTabContent() {
-    const { user, saveUser, loading, allTeamMembers } = useUser();
+    const { user, saveUser, loading } = useUser();
     
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -146,16 +145,9 @@ function ProfileTabContent() {
         return `KPI #${index + 1}`;
     }
 
-    const handleProfileSwitch = (memberToSwitch: TeamMember) => {
+    const handleProfileSwitch = (memberToSwitch: any) => {
         if (memberToSwitch) {
-             const newName = memberToSwitch.name.replace(' (You)', '').trim();
-            saveUser({
-                id: memberToSwitch.id,
-                name: newName,
-                role: memberToSwitch.role,
-                department: memberToSwitch.department
-            });
-            window.location.reload(); // Reload to apply context changes everywhere
+            saveUser(memberToSwitch);
         }
         setIsSwitchProfileOpen(false);
     }

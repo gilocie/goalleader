@@ -20,37 +20,37 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { Card } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { allTeamMembers } from '@/lib/users';
 import { useUser } from '@/context/user-context';
+import type { TeamMember } from '@/lib/users';
 
 interface SwitchProfileDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onSwitchProfile: (selectedMemberId: string) => void;
+  onSwitchProfile: (selectedMember: TeamMember) => void;
 }
-
-const allDepartments = [...new Set(allTeamMembers.map(m => m.department))];
-
 
 export function SwitchProfileDialog({
   isOpen,
   onOpenChange,
   onSwitchProfile,
 }: SwitchProfileDialogProps) {
-  const { user: currentUser } = useUser();
-  const [selectedMember, setSelectedMember] = useState<string | null>(currentUser.id);
+  const { user: currentUser, allTeamMembers } = useUser();
+  const [selectedMember, setSelectedMember] = useState<string | null>(currentUser?.id || null);
   const [searchTerm, setSearchTerm] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   
   useEffect(() => {
     if (isOpen) {
-      setSelectedMember(currentUser.id);
+      setSelectedMember(currentUser?.id || null);
     }
   }, [isOpen, currentUser]);
 
   const handleSwitch = () => {
     if (selectedMember) {
-      onSwitchProfile(selectedMember);
+      const userToSwitch = allTeamMembers.find(u => u.id === selectedMember);
+      if (userToSwitch) {
+        onSwitchProfile(userToSwitch);
+      }
     }
   };
 
@@ -61,10 +61,12 @@ export function SwitchProfileDialog({
     }
     onOpenChange(open);
   }
+  
+  const allDepartments = [...new Set(allTeamMembers.map(m => m.department))];
 
   const filteredMembers = allTeamMembers.map(member => ({
     ...member,
-    name: member.id === currentUser.id ? `${member.name.replace(' (You)', '')} (You)` : member.name.replace(' (You)', ''),
+    name: member.id === currentUser?.id ? `${member.name.replace(' (You)', '')} (You)` : member.name.replace(' (You)', ''),
   })).filter(member => {
     const nameMatch = member.name.toLowerCase().includes(searchTerm.toLowerCase());
     const departmentMatch = departmentFilter === 'all' || member.department === departmentFilter;
@@ -153,7 +155,7 @@ export function SwitchProfileDialog({
           </DialogClose>
           <Button
             onClick={handleSwitch}
-            disabled={!selectedMember || selectedMember === currentUser.id}
+            disabled={!selectedMember || selectedMember === currentUser?.id}
           >
             Switch Profile
           </Button>
@@ -162,5 +164,3 @@ export function SwitchProfileDialog({
     </Dialog>
   );
 }
-
-    

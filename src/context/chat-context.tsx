@@ -7,7 +7,6 @@ import { format } from 'date-fns';
 import { useUser } from '@/firebase';
 import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { allTeamMembers } from '@/lib/users';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useCollection, useDoc } from '@/firebase';
@@ -45,7 +44,8 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useUser(); // Firebase user
+  const { user: firebaseUser } = useUser(); // Firebase user
+  const { allTeamMembers } = useUser();
   const firestore = useFirestore();
   
   const messagesQuery = useMemo(() => {
@@ -68,11 +68,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const activeChatIds = useMemo(() => new Set(activeChatsData?.ids || []), [activeChatsData]);
 
   const allContacts = useMemo(() => {
-    if (!user) return [];
+    if (!firebaseUser) return [];
     return allTeamMembers.map(member => {
         const relevantMessages = messages.filter(
-            msg => (msg.senderId === member.id && msg.recipientId === user.uid) ||
-                   (msg.senderId === user.uid && msg.recipientId === member.id)
+            msg => (msg.senderId === member.id && msg.recipientId === firebaseUser.uid) ||
+                   (msg.senderId === firebaseUser.uid && msg.recipientId === member.id)
         );
         const lastMessage = relevantMessages.sort((a, b) => {
             const timeA = a.timestamp?.toMillis() || 0;
@@ -80,35 +80,35 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             return timeB - timeA;
         })[0];
         
-        const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === user.uid && msg.readStatus !== 'read').length;
+        const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === firebaseUser.uid && msg.readStatus !== 'read').length;
 
         return {
             ...member,
-            status: 'offline', // Simplified for now
+            status: member.status || 'offline',
             lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
             lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
-            lastMessageReadStatus: lastMessage?.senderId === user.uid ? lastMessage.readStatus : undefined,
+            lastMessageReadStatus: lastMessage?.senderId === firebaseUser.uid ? lastMessage.readStatus : undefined,
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact, user]);
+  }, [messages, selectedContact, firebaseUser, allTeamMembers]);
 
 
   const self = useMemo(() => {
-      if (!user) return undefined;
-      const selfInList = allContacts.find(c => c.id === user.uid);
+      if (!firebaseUser) return undefined;
+      const selfInList = allContacts.find(c => c.id === firebaseUser.uid);
       if (selfInList) return selfInList;
 
       // Fallback if not in team members list (e.g. new anonymous user)
       return {
-          id: user.uid,
-          name: user.isAnonymous ? 'Guest User' : (user.displayName || 'You'),
+          id: firebaseUser.uid,
+          name: firebaseUser.isAnonymous ? 'Guest User' : (firebaseUser.displayName || 'You'),
           role: 'Consultant',
           status: 'online',
           department: 'Customer Service'
       }
-  }, [allContacts, user]);
+  }, [allContacts, firebaseUser]);
 
   const updateActiveChatIds = async (newIds: Set<string>) => {
     if (!firestore) return;
@@ -121,24 +121,24 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }
   
   const contacts = useMemo(() => {
-    if (!user) return [];
+    if (!firebaseUser) return [];
     const contactList = allContacts.filter(c => {
-        if (c.id === user.uid) return false;
-        const chatId = [user.uid, c.id].sort().join('--');
+        if (c.id === firebaseUser.uid) return false;
+        const chatId = [firebaseUser.uid, c.id].sort().join('--');
         return activeChatIds.has(chatId);
     });
     
     contactList.sort((a, b) => {
-        if (!user) return 0;
-        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === user.uid) || (m.senderId === user.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
-        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === user.uid) || (m.senderId === user.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        if (!firebaseUser) return 0;
+        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
         return (lastMessageB.timestamp?.toMillis() || 0) - (lastMessageA.timestamp?.toMillis() || 0);
     });
 
     return contactList;
-  }, [allContacts, activeChatIds, messages, user]);
+  }, [allContacts, activeChatIds, messages, firebaseUser]);
   
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
@@ -363,4 +363,3 @@ export const useChat = () => {
   return context;
 };
 
-    
