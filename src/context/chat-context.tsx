@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
@@ -17,6 +16,10 @@ const teamMembers: Omit<Contact, 'lastMessage' | 'lastMessageTime' | 'unreadCoun
     { id: 'fumbani-mwenefumbo-m8', name: 'Fumbani Mwenefumbo', role: 'Consultant', status: 'online' as const },
     { id: 'rose-kabudula-m9', name: 'Rose Kabudula', role: 'Consultant', status: 'online' as const },
 ];
+
+const GLOBAL_MESSAGES_KEY = 'global_chatMessages';
+const GLOBAL_ACTIVE_CHATS_KEY = 'global_activeChatIds';
+
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -62,26 +65,21 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [activeChatIds, setActiveChatIds] = useState<Set<string>>(new Set());
 
-  const getStorageKey = (key: string) => `${user.id}_${key}`;
-
+  // Load from global storage
   useEffect(() => {
     try {
-        const storedIds = localStorage.getItem(getStorageKey('activeChatIds'));
-        if (storedIds) {
-            setActiveChatIds(new Set(JSON.parse(storedIds)));
-        }
-        const storedMessages = localStorage.getItem(getStorageKey('chatMessages'));
-        if (storedMessages && storedMessages !== 'undefined') {
+        const storedMessages = localStorage.getItem(GLOBAL_MESSAGES_KEY);
+        if (storedMessages) {
             setMessages(JSON.parse(storedMessages));
-        } else {
-            // Reset state if switching to a user with no stored history
-            setMessages([]);
-            setActiveChatIds(new Set());
+        }
+        const storedActiveChats = localStorage.getItem(GLOBAL_ACTIVE_CHATS_KEY);
+        if (storedActiveChats) {
+            setActiveChatIds(new Set(JSON.parse(storedActiveChats)));
         }
     } catch (error) {
-        console.error("Failed to load data from localStorage", error);
+        console.error("Failed to load global chat data from localStorage", error);
     }
-  }, [user.id]);
+  }, []);
 
   const allContacts = useMemo(() => {
     return teamMembers.map(member => {
@@ -90,7 +88,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                    (msg.senderId === user.id && msg.recipientId === member.id)
         );
         const lastMessage = relevantMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-        const unreadCount = relevantMessages.filter(msg => msg.senderId === member.id && msg.readStatus !== 'read').length;
+        
+        // Unread count is messages sent by the other person that are not yet read by the current user
+        const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === user.id && msg.readStatus !== 'read').length;
 
         return {
             ...member,
@@ -108,39 +108,42 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const updateActiveChatIds = (newIds: Set<string>) => {
     setActiveChatIds(newIds);
     try {
-        localStorage.setItem(getStorageKey('activeChatIds'), JSON.stringify(Array.from(newIds)));
+        localStorage.setItem(GLOBAL_ACTIVE_CHATS_KEY, JSON.stringify(Array.from(newIds)));
     } catch (error) {
         console.error("Failed to save active chats to localStorage", error);
     }
   }
-
+  
   const contacts = useMemo(() => {
-    const contactList = allContacts.filter(c => c.id !== user.id && activeChatIds.has(c.id));
+    // A contact is "active" if they are in `activeChatIds` AND the current user is one of the participants.
+    const currentUserActiveChats = Array.from(activeChatIds).filter(chatId => {
+        const participants = chatId.split('--');
+        return participants.includes(user.id);
+    });
+
+    const contactList = allContacts.filter(c => {
+        if (c.id === user.id) return false; // Exclude self
+        // Check if there's a chat between the current user and contact `c`
+        return currentUserActiveChats.some(chatId => chatId.includes(c.id));
+    });
     
     contactList.sort((a, b) => {
-        const lastMessageA = messages.filter(m => m.senderId === a.id || m.recipientId === a.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
-        const lastMessageB = messages.filter(m => m.senderId === b.id || m.recipientId === b.id).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
+        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === user.id) || (m.senderId === user.id && m.recipientId === a.id)).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
+        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === user.id) || (m.senderId === user.id && m.recipientId === b.id)).sort((m1, m2) => new Date(m2.timestamp).getTime() - new Date(m1.timestamp).getTime())[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
         return new Date(lastMessageB.timestamp).getTime() - new Date(lastMessageA.timestamp).getTime();
     });
 
-    if (selectedContact && !contactList.some(c => c.id === selectedContact.id)) {
-        const contactData = allContacts.find(c => c.id === selectedContact.id);
-        if (contactData) {
-            return [contactData, ...contactList];
-        }
-    }
-
     return contactList;
-  }, [allContacts, activeChatIds, selectedContact, messages, user.id]);
+  }, [allContacts, activeChatIds, messages, user.id]);
   
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
   const updateMessages = (newMessages: Message[]) => {
       setMessages(newMessages);
       try {
-          localStorage.setItem(getStorageKey('chatMessages'), JSON.stringify(newMessages));
+          localStorage.setItem(GLOBAL_MESSAGES_KEY, JSON.stringify(newMessages));
       } catch (error) {
           console.error("Failed to save messages to localStorage", error);
       }
@@ -149,7 +152,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self) return;
 
-    const existingChat = messages.some(m => (m.senderId === recipientId && m.recipientId === self.id) || (m.senderId === self.id && m.recipientId === recipientId));
+    // A chat is identified by the two participants
+    const participants = [self.id, recipientId].sort();
+    const chatId = participants.join('--');
 
     const newMessage: Message = {
       id: `msg${Date.now()}-${Math.random()}`,
@@ -157,15 +162,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       recipientId,
       content,
       timestamp: new Date().toISOString(),
-      readStatus: !existingChat ? 'request_sent' : 'sent',
+      readStatus: 'sent',
       type: type,
       ...data
     };
     
     updateMessages([...messages, newMessage]);
-    updateActiveChatIds(new Set(activeChatIds).add(recipientId));
+    updateActiveChatIds(new Set(activeChatIds).add(chatId));
 
-  }, [self, messages, activeChatIds, getStorageKey]);
+  }, [self, messages, activeChatIds]);
 
   const addSystemMessage = useCallback((content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self) return;
@@ -196,17 +201,23 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteChat = useCallback((contactId: string) => {
     clearChat(contactId);
-    updateActiveChatIds(prev => {
-        const newIds = new Set(prev);
-        newIds.delete(contactId);
-        return newIds;
-    });
-  }, [clearChat, updateActiveChatIds]);
+    if (self) {
+        const participants = [self.id, contactId].sort();
+        const chatId = participants.join('--');
+        updateActiveChatIds(prev => {
+            const newIds = new Set(prev);
+            newIds.delete(chatId);
+            return newIds;
+        });
+    }
+  }, [clearChat, updateActiveChatIds, self]);
 
   const forwardMessage = useCallback((message: Message, recipientIds: string[]) => {
     if (!self) return;
 
     const newMessages: Message[] = [];
+    const newActiveChatIds = new Set(activeChatIds);
+    
     recipientIds.forEach((recipientId, index) => {
         const forwardedMessage: Message = {
             ...message,
@@ -217,9 +228,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             readStatus: 'sent',
         };
         newMessages.push(forwardedMessage);
+
+        const participants = [self.id, recipientId].sort();
+        const chatId = participants.join('--');
+        newActiveChatIds.add(chatId);
     });
+
     updateMessages([...messages, ...newMessages]);
-  }, [self, messages, updateMessages]);
+    updateActiveChatIds(newActiveChatIds);
+  }, [self, messages, activeChatIds, updateMessages]);
 
   const startCall = useCallback((contact: Contact) => {
     setAcceptedCallContact(contact);
@@ -274,18 +291,21 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (selectedContact && self) {
         const newMessages = messages.map(m => 
-            (m.senderId === selectedContact.id && m.recipientId === self.id) 
+            (m.senderId === selectedContact.id && m.recipientId === self.id && m.readStatus !== 'read') 
             ? { ...m, readStatus: 'read' as const } 
             : m
         );
-        updateMessages(newMessages);
-        
-        if (!activeChatIds.has(selectedContact.id)) {
-            updateActiveChatIds(new Set(activeChatIds).add(selectedContact.id));
+        if (newMessages.some((m, i) => m.readStatus !== messages[i].readStatus)) {
+            updateMessages(newMessages);
+        }
+
+        const participants = [self.id, selectedContact.id].sort();
+        const chatId = participants.join('--');
+        if (!activeChatIds.has(chatId)) {
+            updateActiveChatIds(new Set(activeChatIds).add(chatId));
         }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedContact, self?.id]);
+  }, [selectedContact, self?.id, messages, activeChatIds]);
 
 
   const value = {
