@@ -11,7 +11,10 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!auth) return;
+    if (!auth) {
+        setLoading(false);
+        return;
+    }
     
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -20,9 +23,6 @@ export function useUser() {
       } else {
         // If no user, sign in anonymously
         signInAnonymously(auth)
-          .then((cred) => {
-            setUser(cred.user);
-          })
           .catch((error) => {
             console.error("Anonymous sign-in failed:", error);
           })
@@ -37,5 +37,3 @@ export function useUser() {
 
   return { user, loading };
 }
-
-    
