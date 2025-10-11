@@ -23,6 +23,27 @@ import type { Lead } from '@/lib/client-leads';
 import { useMarketing } from '@/context/marketing-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
+const getStatusBadgeClasses = (status: string): string => {
+    switch (status) {
+        case 'New':
+            return 'bg-blue-100 text-blue-800 border-blue-200';
+        case 'Contacted':
+            return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+        case 'Qualified':
+            return 'bg-purple-100 text-purple-800 border-purple-200';
+        case 'Proposal Sent':
+            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+        case 'Negotiation':
+            return 'bg-orange-100 text-orange-800 border-orange-200';
+        case 'Won':
+            return 'bg-green-100 text-green-800 border-green-200';
+        case 'Lost':
+            return 'bg-red-100 text-red-800 border-red-200';
+        default:
+            return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+};
+
 export function ClientLeadsGrid() {
   const [isAddLeadOpen, setAddLeadOpen] = useState(false);
   const [isEditLeadOpen, setIsEditLeadOpen] = useState(false);
@@ -145,7 +166,7 @@ export function ClientLeadsGrid() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Badge variant={lead.status === 'New' ? 'secondary' : 'outline'} className="w-full justify-center">
+                         <Badge variant="outline" className={cn("w-full justify-center", getStatusBadgeClasses(lead.status))}>
                             {lead.status}
                         </Badge>
                     </CardFooter>
