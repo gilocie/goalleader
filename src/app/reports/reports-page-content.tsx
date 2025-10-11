@@ -18,6 +18,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { useUser } from '@/context/user-context';
 import { Report } from '@/context/reports-context';
+import { Label } from '@/components/ui/label';
 
 
 export function ReportsPageContent() {
@@ -26,6 +27,7 @@ export function ReportsPageContent() {
   const [dateFilter, setDateFilter] = useState('all');
   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
   const [reportToEdit, setReportToEdit] = useState<Report | null>(null);
+  const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
   const [viewingReport, setViewingReport] = useState<Report | null>(null);
   const { user } = useUser();
@@ -55,7 +57,7 @@ export function ReportsPageContent() {
 
   const handleEditReport = () => {
     if (reportToEdit) {
-      updateReport({ ...reportToEdit, content: editedContent });
+      updateReport({ ...reportToEdit, title: editedTitle, content: editedContent });
       setReportToEdit(null);
     }
   };
@@ -133,7 +135,7 @@ export function ReportsPageContent() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => { setReportToEdit(report); setEditedContent(report.content); }}>
+                            <DropdownMenuItem onClick={() => { setReportToEdit(report); setEditedTitle(report.title); setEditedContent(report.content); }}>
                               <Edit className="mr-2 h-4 w-4" />
                               <span>Edit</span>
                             </DropdownMenuItem>
@@ -195,15 +197,27 @@ export function ReportsPageContent() {
           <EditDialogHeader>
             <EditDialogTitle>Edit Report</EditDialogTitle>
             <EditDialogDescription>
-              Make changes to your report content below.
+              Make changes to your report below.
             </EditDialogDescription>
           </EditDialogHeader>
-          <div className="py-4">
-            <Textarea
-              value={editedContent}
-              onChange={(e) => setEditedContent(e.target.value)}
-              className="h-64"
-            />
+          <div className="py-4 space-y-4">
+             <div className='space-y-2'>
+                <Label htmlFor="edit-title">Title</Label>
+                <Input
+                    id="edit-title"
+                    value={editedTitle}
+                    onChange={(e) => setEditedTitle(e.target.value)}
+                />
+            </div>
+             <div className='space-y-2'>
+                <Label htmlFor="edit-content">Content</Label>
+                <Textarea
+                    id="edit-content"
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    className="h-64"
+                />
+            </div>
           </div>
           <EditDialogFooter>
             <Button variant="outline" onClick={() => setReportToEdit(null)}>Cancel</Button>
