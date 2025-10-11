@@ -49,35 +49,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { allTeamMembers, updateUserStatus } = useUserContext();
   const firestore = useFirestore();
   
-  const messagesSentQuery = useMemo(() => {
-    if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'messages'), where('senderId', '==', firebaseUser.uid));
-  }, [firestore, firebaseUser]);
+  const messagesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'messages'), orderBy('timestamp'));
+  }, [firestore]);
 
-  const messagesReceivedQuery = useMemo(() => {
-    if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid));
-  }, [firestore, firebaseUser]);
-
-  const { data: sentMessages, setData: setSentMessages } = useCollection<Message>(messagesSentQuery);
-  const { data: receivedMessages, setData: setReceivedMessages } = useCollection<Message>(messagesReceivedQuery);
+  const { data: messages, setData: setMessages } = useCollection<Message>(messagesQuery);
   
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  useEffect(() => {
-    if (sentMessages.length === 0 && receivedMessages.length === 0 && messages.length > 0) {
-      // initial load from previous state, don't clear
-    } else {
-        const allMessages = [...sentMessages, ...receivedMessages];
-        const uniqueMessages = Array.from(new Map(allMessages.map(m => [m.id, m])).values());
-        uniqueMessages.sort((a,b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
-        setMessages(uniqueMessages);
-    }
-  }, [sentMessages, receivedMessages]);
-
-
-  const { data: activeChatsData } = useDoc<{ ids: string[] }>(firestore && firebaseUser ? doc(firestore, 'chats', firebaseUser.uid) : null);
-
+  const [activeChats, setActiveChats] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
@@ -160,32 +139,31 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
 
-  const addMessage = useCallback(async (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
+  const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self || !firestore) return;
-    
+
     const messagesCollection = collection(firestore, 'messages');
 
-    const newMessageData: Omit<Message, 'id' | 'timestamp'> = {
+    const newMessageData: Omit<Message, 'id'| 'timestamp'> = {
       senderId: self.id,
       recipientId,
       content,
       readStatus: 'sent',
       type: type,
-      ...data
+      ...data,
     };
-    
-    addDoc(messagesCollection, {
-        ...newMessageData,
-        timestamp: serverTimestamp()
-    }).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: messagesCollection.path,
-            operation: 'create',
-            requestResourceData: {...newMessageData, timestamp: new Date().toISOString() },
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
 
+    addDoc(messagesCollection, {
+      ...newMessageData,
+      timestamp: serverTimestamp(),
+    }).catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: messagesCollection.path,
+        operation: 'create',
+        requestResourceData: { ...newMessageData, timestamp: new Date().toISOString() },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
   }, [self, firestore]);
 
   const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
@@ -204,31 +182,32 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [self, firestore]);
 
-const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
-  if (!firestore || !self) return;
-  const messageRef = doc(firestore, 'messages', messageId);
-  const messageToDelete = messages.find(m => m.id === messageId);
-  if (!messageToDelete) return;
+  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
+    if (!firestore || !self) return;
+    const messageRef = doc(firestore, 'messages', messageId);
+    const messageToDelete = messages.find(m => m.id === messageId);
+    if (!messageToDelete) return;
 
-  if (deleteForEveryone) {
-    if (messageToDelete.senderId === self.id) {
-      // Hard delete for everyone (allowed by rules)
-      await deleteDoc(messageRef);
+    if (deleteForEveryone && messageToDelete.senderId === self.id) {
+        // Hard delete for everyone if sender
+        deleteDoc(messageRef).catch(serverError => {
+            const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'delete' });
+            errorEmitter.emit('permission-error', permissionError);
+        });
     } else {
-      // Recipient cannot delete for everyone, only soft delete for themselves
-      await updateDoc(messageRef, { deletedByRecipient: true });
+        // Soft delete for self
+        const updateData = messageToDelete.senderId === self.id
+            ? { deletedBySender: true }
+            : { deletedByRecipient: true };
+        updateDoc(messageRef, updateData).catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: messageRef.path,
+                operation: 'update',
+                requestResourceData: updateData
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
     }
-  } else {
-    // Soft delete for self
-    if (messageToDelete.senderId === self.id) {
-      await updateDoc(messageRef, { deletedBySender: true });
-    } else {
-      await updateDoc(messageRef, { deletedByRecipient: true });
-    }
-  }
-
-  // Remove from local state immediately
-  setMessages(prev => prev.filter(m => m.id !== messageId));
 }, [firestore, self, messages]);
 
   const clearChat = useCallback(async (contactId: string) => {
@@ -251,15 +230,11 @@ const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: b
     await batch.commit().catch(err => {
         console.error("Failed to clear chat:", err);
     });
-     setMessages(prev => prev.filter(msg => !chatMessagesToUpdate.some(m => m.id === msg.id)));
   }, [self, firestore, messages]);
 
   const deleteChat = useCallback(async (contactId: string) => {
     await clearChat(contactId);
-    if (self) {
-        setSelectedContact(null);
-    }
-  }, [clearChat, self]);
+  }, [clearChat]);
 
   const forwardMessage = useCallback(async (message: Message, recipientIds: string[]) => {
     if (!self || !firestore) return;
@@ -333,28 +308,37 @@ const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: b
   }, [incomingVoiceCallFrom, addSystemMessage]);
   
   useEffect(() => {
-    if (selectedContact && self && firestore) {
-        const batch = writeBatch(firestore);
-        let hasUnread = false;
-        messages.forEach((m) => {
-            if (m.senderId === selectedContact.id && m.recipientId === self.id && m.readStatus !== 'read') {
-                const messageRef = doc(firestore, 'messages', m.id);
-                batch.update(messageRef, { readStatus: 'read' });
-                hasUnread = true;
-            }
+    if (!self || !firestore) return;
+  
+    const batch = writeBatch(firestore);
+    let updatesMade = false;
+  
+    messages.forEach((m) => {
+      // Mark as delivered if received and not yet delivered/read
+      if (m.recipientId === self.id && m.readStatus === 'sent') {
+        const messageRef = doc(firestore, 'messages', m.id);
+        batch.update(messageRef, { readStatus: 'delivered' });
+        updatesMade = true;
+      }
+      // Mark as read if the chat is open
+      if (selectedContact && m.senderId === selectedContact.id && m.recipientId === self.id && m.readStatus !== 'read') {
+        const messageRef = doc(firestore, 'messages', m.id);
+        batch.update(messageRef, { readStatus: 'read' });
+        updatesMade = true;
+      }
+    });
+  
+    if (updatesMade) {
+      batch.commit().catch(serverError => {
+        const permissionError = new FirestorePermissionError({
+          path: `messages/[multiple]`,
+          operation: 'update',
+          requestResourceData: { readStatus: 'read/delivered' },
         });
-        if (hasUnread) {
-            batch.commit().catch(serverError => {
-                const permissionError = new FirestorePermissionError({
-                    path: `messages/[multiple]`,
-                    operation: 'update',
-                    requestResourceData: { readStatus: 'read' },
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-        }
+        errorEmitter.emit('permission-error', permissionError);
+      });
     }
-  }, [selectedContact, self, messages, firestore]);
+  }, [messages, selectedContact, self, firestore]);
 
 
   const value = {
@@ -381,7 +365,7 @@ const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: b
     incomingVoiceCallFrom,
     startVoiceCall,
     endVoiceCall,
-acceptVoiceCall,
+    acceptVoiceCall,
     declineVoiceCall,
     acceptedVoiceCallContact,
     setAcceptedVoiceCallContact,

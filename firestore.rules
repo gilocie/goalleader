@@ -4,9 +4,17 @@ service cloud.firestore {
 
     // -------------------- USERS --------------------
     match /users/{userId} {
+      // Any user can read profiles
       allow get, list: if true;
+
+      // Only owner can create their profile
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+
+      // Only owner can update profile; ID cannot change
+      allow update: if isSignedIn() && isExistingOwner(userId) &&
+        request.resource.data.id == resource.data.id;
+
+      // Only owner can delete profile
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
@@ -27,7 +35,7 @@ service cloud.firestore {
           'deletedByRecipient'
         ]);
 
-      // Only sender can fully delete message for everyone
+      // Only sender can fully delete a message for everyone
       allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
     }
 
