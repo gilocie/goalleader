@@ -11,13 +11,14 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import { format } from 'date-fns';
+import { format, differenceInMinutes } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { Timestamp } from 'firebase/firestore';
+import { useNotifications } from './notification-context';
 
 
 export type Task = {
@@ -70,6 +71,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   
   const { user: firebaseUser } = useUser();
   const firestore = useFirestore();
+  const { addNotification } = useNotifications();
 
   const todosQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
@@ -121,6 +123,35 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
       }
     };
   }, [isActive]);
+
+  // Notification for upcoming tasks
+  useEffect(() => {
+    const checkUpcomingTasks = () => {
+        const now = new Date();
+        localTasks.forEach(task => {
+            if (task.status === 'Pending' && task.startTime && typeof task.startTime === 'string') {
+                const [hours, minutes] = task.startTime.split(':').map(Number);
+                const startTime = new Date(task.dueDate);
+                startTime.setHours(hours, minutes);
+
+                const minutesUntilStart = differenceInMinutes(startTime, now);
+
+                if (minutesUntilStart > 0 && minutesUntilStart <= 15) {
+                    addNotification({
+                        type: 'task',
+                        title: `Upcoming Task: ${task.name}`,
+                        message: `Starts in ${minutesUntilStart} minutes.`,
+                        link: '/projects'
+                    });
+                }
+            }
+        });
+    };
+
+    const intervalId = setInterval(checkUpcomingTasks, 60000); // Check every minute
+
+    return () => clearInterval(intervalId);
+}, [localTasks, addNotification]);
 
   const startTask = useCallback(async (taskId: string) => {
     if (!firestore || !firebaseUser) return;

@@ -102,7 +102,7 @@ export function CompletedProjectsTable() {
       case 'thisWeek':
         return completed.filter(t => {
             if (!t.endTime) return false;
-            const endDate = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime);
+            const endDate = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime as string);
             return isWithinInterval(endDate, {
                 start: startOfWeek(now),
                 end: endOfWeek(now),
@@ -111,7 +111,7 @@ export function CompletedProjectsTable() {
       case 'thisMonth':
         return completed.filter(t => {
             if (!t.endTime) return false;
-            const endDate = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime);
+            const endDate = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime as string);
             return isWithinInterval(endDate, {
                 start: startOfMonth(now),
                 end: endOfMonth(now),
