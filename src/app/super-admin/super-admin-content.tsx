@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid } from 'lucide-react';
+import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid, Mail, Phone, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,9 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { format } from 'date-fns';
 
 
 type NavItem = {
@@ -66,6 +69,7 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
 
 const OverviewPage = () => {
     const { toast } = useToast();
+    const [clientList, setClientList] = useState(clients);
 
     const handleCopy = (text: string, label: string) => {
         navigator.clipboard.writeText(text);
@@ -75,13 +79,13 @@ const OverviewPage = () => {
         });
     };
     
-    const activeClients = clients.filter(c => c.status === 'Active').length;
-    const suspendedClients = clients.filter(c => c.status === 'Suspended').length;
+    const activeClients = clientList.filter(c => c.status === 'Active').length;
+    const suspendedClients = clientList.filter(c => c.status === 'Suspended').length;
 
     return (
         <div className="space-y-8">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Total Clients" value={clients.length} icon={Users} description="All registered client instances." />
+                <StatCard title="Total Clients" value={clientList.length} icon={Users} description="All registered client instances." />
                 <StatCard title="Active Clients" value={activeClients} icon={CheckCircle} description="Currently active and running." />
                 <StatCard title="Total Sales" value="$12,450" icon={DollarSign} description="+15% from last month" />
                 <StatCard title="Monthly Revenue" value="$4,150" icon={TrendingUp} description="Recurring and new subscriptions" />
@@ -99,7 +103,7 @@ const OverviewPage = () => {
                     <CardDescription>A list of the 5 most recently created companies.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {clients.slice(0,5).map((client: Client) => (
+                    {clientList.slice(0,5).map((client: Client) => (
                         <Card key={client.id} className="p-4 space-y-4">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
@@ -111,18 +115,6 @@ const OverviewPage = () => {
                                         <div className="text-xs text-muted-foreground font-mono">{client.id}</div>
                                     </div>
                                 </div>
-                                 <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                                        <DropdownMenuItem>Manage Billing</DropdownMenuItem>
-                                        <DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
                             </div>
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
@@ -159,7 +151,12 @@ const OverviewPage = () => {
     );
 };
 
-const ClientCard = ({ client, layout, onCopy }: { client: Client, layout: 'list' | 'grid', onCopy: (text: string, label: string) => void }) => {
+const ClientCard = ({ client, layout, onCopy, onSuspend, onActivate, onViewDetails }: { client: Client, layout: 'list' | 'grid', onCopy: (text: string, label: string) => void, onSuspend: (client: Client) => void, onActivate: (client: Client) => void, onViewDetails: (client: Client) => void }) => {
+    const { toast } = useToast();
+    const handleManageBilling = () => {
+        toast({ title: 'Coming Soon', description: 'Billing management will be available in a future update.' });
+    };
+    
     if (layout === 'list') {
         return (
             <Card className="p-3">
@@ -179,7 +176,15 @@ const ClientCard = ({ client, layout, onCopy }: { client: Client, layout: 'list'
                     </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end"><DropdownMenuItem>View Details</DropdownMenuItem><DropdownMenuItem>Manage Billing</DropdownMenuItem><DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem></DropdownMenuContent>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onViewDetails(client)}>View Details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleManageBilling}>Manage Billing</DropdownMenuItem>
+                            {client.status === 'Active' ? (
+                                <DropdownMenuItem className="text-destructive" onClick={() => onSuspend(client)}>Suspend</DropdownMenuItem>
+                            ) : (
+                                <DropdownMenuItem onClick={() => onActivate(client)}>Activate</DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </Card>
@@ -198,7 +203,15 @@ const ClientCard = ({ client, layout, onCopy }: { client: Client, layout: 'list'
                 </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                    <DropdownMenuContent align="end"><DropdownMenuItem>View Details</DropdownMenuItem><DropdownMenuItem>Manage Billing</DropdownMenuItem><DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem></DropdownMenuContent>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onViewDetails(client)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleManageBilling}>Manage Billing</DropdownMenuItem>
+                        {client.status === 'Active' ? (
+                            <DropdownMenuItem className="text-destructive" onClick={() => onSuspend(client)}>Suspend</DropdownMenuItem>
+                        ) : (
+                            <DropdownMenuItem onClick={() => onActivate(client)}>Activate</DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
                 </DropdownMenu>
             </div>
             <div className="space-y-2 text-sm">
@@ -227,8 +240,12 @@ const ClientsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
     const [layout, setLayout] = useState<'list' | 'grid'>('list');
+    const [clientList, setClientList] = useState(clients);
+    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+    const [suspendConfirm, setSuspendConfirm] = useState<Client | null>(null);
+    const [activateConfirm, setActivateConfirm] = useState<Client | null>(null);
   
-    const filteredClients = clients.filter(client => {
+    const filteredClients = clientList.filter(client => {
       const statusMatch = activeTab === 'all' || client.status === activeTab;
       const searchMatch = client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           client.adminEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -243,50 +260,102 @@ const ClientsPage = () => {
             description: `The ${label.toLowerCase()} has been copied to your clipboard.`,
         });
     };
+
+    const handleSuspend = () => {
+        if (!suspendConfirm) return;
+        setClientList(prev => prev.map(c => c.id === suspendConfirm.id ? { ...c, status: 'Suspended' } : c));
+        setSuspendConfirm(null);
+        toast({ title: 'Client Suspended', description: `${suspendConfirm.companyName} has been suspended.` });
+    };
+
+    const handleActivate = () => {
+        if (!activateConfirm) return;
+        setClientList(prev => prev.map(c => c.id === activateConfirm.id ? { ...c, status: 'Active' } : c));
+        setActivateConfirm(null);
+        toast({ title: 'Client Activated', description: `${activateConfirm.companyName} has been activated.` });
+    };
   
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Client Management</CardTitle>
-          <CardDescription>View, search, and manage all client instances.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-             <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search clients..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-             </div>
-             <div className="flex items-center gap-2">
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto hidden sm:block">
-                    <TabsList>
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="Active">Active</TabsTrigger>
-                        <TabsTrigger value="Suspended">Suspended</TabsTrigger>
-                        <TabsTrigger value="Incomplete">Incomplete</TabsTrigger>
-                    </TabsList>
-                </Tabs>
-                <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('list')}><List className="h-4 w-4" /></Button>
-                <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('grid')}><LayoutGrid className="h-4 w-4" /></Button>
+      <>
+        <Card>
+          <CardHeader>
+            <CardTitle>Client Management</CardTitle>
+            <CardDescription>View, search, and manage all client instances.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+               <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search clients..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+               </div>
+               <div className="flex items-center gap-2">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto hidden sm:block">
+                      <TabsList>
+                          <TabsTrigger value="all">All</TabsTrigger>
+                          <TabsTrigger value="Active">Active</TabsTrigger>
+                          <TabsTrigger value="Suspended">Suspended</TabsTrigger>
+                          <TabsTrigger value="Incomplete">Incomplete</TabsTrigger>
+                      </TabsList>
+                  </Tabs>
+                  <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('list')}><List className="h-4 w-4" /></Button>
+                  <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('grid')}><LayoutGrid className="h-4 w-4" /></Button>
+              </div>
             </div>
-          </div>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto sm:hidden">
-               <TabsList className='grid grid-cols-4 w-full'>
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="Active">Active</TabsTrigger>
-                  <TabsTrigger value="Suspended">Suspended</TabsTrigger>
-                  <TabsTrigger value="Incomplete">Incomplete</TabsTrigger>
-               </TabsList>
-             </Tabs>
-  
-          <div className={cn("gap-4", layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'space-y-2')}>
-            {filteredClients.map((client: Client) => (
-                <ClientCard key={client.id} client={client} layout={layout} onCopy={handleCopy} />
-            ))}
-            </div>
-        </CardContent>
-      </Card>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto sm:hidden">
+                 <TabsList className='grid grid-cols-4 w-full'>
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="Active">Active</TabsTrigger>
+                    <TabsTrigger value="Suspended">Suspended</TabsTrigger>
+                    <TabsTrigger value="Incomplete">Incomplete</TabsTrigger>
+                 </TabsList>
+               </Tabs>
+    
+            <div className={cn("gap-4", layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'space-y-2')}>
+              {filteredClients.map((client: Client) => (
+                  <ClientCard key={client.id} client={client} layout={layout} onCopy={handleCopy} onSuspend={setSuspendConfirm} onActivate={setActivateConfirm} onViewDetails={setSelectedClient} />
+              ))}
+              </div>
+          </CardContent>
+        </Card>
+        
+        {/* View Details Dialog */}
+        <Dialog open={!!selectedClient} onOpenChange={() => setSelectedClient(null)}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>{selectedClient?.companyName}</DialogTitle>
+                    <DialogDescription>ID: {selectedClient?.id}</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4 text-sm">
+                    <p><strong>Admin Email:</strong> {selectedClient?.adminEmail}</p>
+                    <p><strong>Firebase Project ID:</strong> {selectedClient?.firebaseProjectId}</p>
+                    <p><strong>Domain:</strong> <a href={`https://${selectedClient?.domain}`} target="_blank" rel="noopener noreferrer" className="text-primary underline">{selectedClient?.domain}</a></p>
+                    <p><strong>Status:</strong> {selectedClient?.status}</p>
+                    <p><strong>Created At:</strong> {selectedClient && format(new Date(selectedClient.createdAt), 'PPP')}</p>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Close</Button></DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        
+        {/* Suspend Confirmation */}
+        <AlertDialog open={!!suspendConfirm} onOpenChange={() => setSuspendConfirm(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will suspend {suspendConfirm?.companyName}'s account.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleSuspend}>Suspend</AlertDialogAction></AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Activate Confirmation */}
+        <AlertDialog open={!!activateConfirm} onOpenChange={() => setActivateConfirm(null)}>
+            <AlertDialogContent>
+                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will reactivate {activateConfirm?.companyName}'s account.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleActivate}>Activate</AlertDialogAction></AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+      </>
     )
-  }
+}
 
 const supportTickets = [
     { id: 'TICKET-001', client: 'Innovate Inc.', subject: 'Billing issue', status: 'Open', lastUpdate: '2 hours ago' },
