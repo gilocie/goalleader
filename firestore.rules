@@ -1,84 +1,42 @@
-/**
- * @fileoverview Firestore Security Rules for the application.
- *
- * Core Philosophy:
- * This ruleset enforces a user-ownership model for profiles and active chats.
- * Messages have read access for everyone, but creation is restricted to the sender,
- * and deletion to the original sender. Updates to messages are limited to read status and soft-delete flags
- * for either sender or recipient.
- *
- * Data Structure:
- * - /users/{userId}: User profile data, accessible and modifiable only by the user.
- * - /messages/{messageId}: Chat messages, readable by everyone but with restricted write access.
- * - /chats/{userId}: Active chat tracking, owned and managed by each user.
- *
- * Key Security Decisions:
- * - Public read access for messages.
- * - Strict ownership for user profiles and active chats.
- * - Limited message updates for read status and soft-delete flags.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Manages access to user profiles.
-     * @path /users/{userId}
-     * @allow (get, list) if true
-     * @allow (create) if isSignedIn() && isOwner(userId) && request.resource.data.id == userId
-     * @allow (update) if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id
-     * @allow (delete) if isSignedIn() && isExistingOwner(userId)
-     * @deny (create) if !isSignedIn() || !isOwner(userId) || request.resource.data.id != userId
-     * @deny (update) if !isSignedIn() || !isExistingOwner(userId) || request.resource.data.id != resource.data.id
-     * @deny (delete) if !isSignedIn() || !isExistingOwner(userId)
-     * @principle Enforces document ownership for writes.
-     */
+    // -------------------- USERS --------------------
     match /users/{userId} {
+      // Any user can read profiles
       allow get, list: if true;
+
+      // Only owner can create their profile
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+
+      // Only owner can update profile; ID cannot change
       allow update: if isSignedIn() && isExistingOwner(userId) &&
         request.resource.data.id == resource.data.id;
+
+      // Only owner can delete profile
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
-    /**
-     * @description Manages access to chat messages.
-     * @path /messages/{messageId}
-     * @allow (get, list) if true
-     * @allow (create) if isSignedIn() && request.resource.data.senderId == request.auth.uid
-     * @allow (update) if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) && request.resource.data.keys().hasOnly(['readStatus', 'deletedBySender', 'deletedByRecipient'])
-     * @allow (delete) if isSignedIn() && request.auth.uid == resource.data.senderId
-     * @deny (create) if !isSignedIn() || request.resource.data.senderId != request.auth.uid
-     * @deny (update) if !isSignedIn() || !(resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) || !request.resource.data.keys().hasOnly(['readStatus', 'deletedBySender', 'deletedByRecipient'])
-     * @deny (delete) if !isSignedIn() || request.auth.uid != resource.data.senderId
-     * @principle Allows public read access but restricts writes to authorized users.
-     */
+    // -------------------- MESSAGES --------------------
     match /messages/{messageId} {
+      // Any user can read messages
       allow get, list: if true;
+
+      // Only sender can create a message
       allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
-      allow update: if isSignedIn() &&
-        (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) &&
-        request.resource.data.keys().hasOnly([
-          'readStatus',
-          'deletedBySender',
-          'deletedByRecipient'
-        ]);
+
+      // Sender or recipient can update soft-delete or readStatus
+      allow update: if isSignedIn() 
+        && (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) 
+        && onlyUpdatingAllowedFields();
+
+      // Only sender can fully delete a message for everyone
       allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
     }
 
-    /**
-     * @description Manages access to active chat tracking.
-     * @path /chats/{userId}
-     * @allow (get, list) if isSignedIn() && isOwner(userId)
-     * @allow (create) if isSignedIn() && isOwner(userId)
-     * @allow (update) if isSignedIn() && isExistingOwner(userId)
-     * @allow (delete) if isSignedIn() && isExistingOwner(userId)
-     * @deny (get, list) if !isSignedIn() || !isOwner(userId)
-     * @deny (create) if !isSignedIn() || !isOwner(userId)
-     * @deny (update) if !isSignedIn() || !isExistingOwner(userId)
-     * @deny (delete) if !isSignedIn() || !isExistingOwner(userId)
-     * @principle Enforces document ownership for all operations.
-     */
+    // -------------------- ACTIVE CHATS --------------------
     match /chats/{userId} {
       allow get, list: if isSignedIn() && isOwner(userId);
       allow create: if isSignedIn() && isOwner(userId);
@@ -86,6 +44,7 @@ service cloud.firestore {
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
+    // -------------------- HELPER FUNCTIONS --------------------
     function isSignedIn() {
       return request.auth != null;
     }
@@ -96,6 +55,16 @@ service cloud.firestore {
 
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
+    }
+
+    function isSenderOrRecipient(senderId, recipientId) {
+      return request.auth.uid == senderId || request.auth.uid == recipientId;
+    }
+
+    function onlyUpdatingAllowedFields() {
+      let allowedFields = ['readStatus', 'deletedBySender', 'deletedByRecipient'];
+      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      return affectedKeys.hasOnly(allowedFields);
     }
   }
 }
