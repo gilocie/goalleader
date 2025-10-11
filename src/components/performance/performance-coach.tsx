@@ -32,10 +32,13 @@ export function PerformanceCoach() {
 
   useEffect(() => {
     const fetchAdvice = async () => {
+      if (!user) return; // Don't run if user is not loaded yet
+
       setIsLoading(true);
       try {
         const input: PerformanceAdviceInput = {
           staffName: user.name,
+          teamLeaderName: 'Team Leader', // This should be dynamic in a real app
           completedTasks: completedTasks.map(t => ({ name: t.name, status: t.status, dueDate: t.dueDate, duration: t.duration })),
           kpi: COMPANY_KPI,
           performance,
@@ -54,7 +57,7 @@ export function PerformanceCoach() {
     };
 
     fetchAdvice();
-  }, [tasks, user.name]);
+  }, [tasks, user]); // Depend on the whole user object
 
   const getPerformanceInfo = () => {
     if (performance >= COMPANY_KPI) return {
@@ -78,6 +81,16 @@ export function PerformanceCoach() {
   };
 
   const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
+
+  if (!user) {
+    return (
+        <Card className="h-full max-h-[460px] flex flex-col">
+            <CardContent className="flex-1 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </CardContent>
+        </Card>
+    )
+  }
 
   return (
     <Card className="h-full max-h-[460px] flex flex-col">
