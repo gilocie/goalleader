@@ -97,8 +97,8 @@ export function ClientLeadsGrid() {
                     <Card key={lead.id} className="flex flex-col bg-primary text-primary-foreground rounded-lg shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader>
                         <div className="flex justify-between items-start">
-                            <div className='flex items-center gap-3'>
-                                <User className="h-6 w-6 text-primary-foreground/80" />
+                            <div className='flex flex-col items-start gap-2'>
+                                <User className="h-8 w-8 text-primary-foreground/80" />
                                 <div>
                                     <CardTitle className="text-xl">{lead.name}</CardTitle>
                                     <CardDescription className="text-primary-foreground/80">{lead.company}</CardDescription>
