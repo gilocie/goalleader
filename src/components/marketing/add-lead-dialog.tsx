@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import type { Lead } from '@/lib/client-leads';
+import { useEffect } from 'react';
 
 const leadSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -34,12 +35,13 @@ interface AddLeadDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onAddLead: (data: Omit<Lead, 'id'>) => void;
+  lead?: Lead | null;
 }
 
-export function AddLeadDialog({ isOpen, onOpenChange, onAddLead }: AddLeadDialogProps) {
+export function AddLeadDialog({ isOpen, onOpenChange, onAddLead, lead = null }: AddLeadDialogProps) {
   const form = useForm<LeadFormValues>({
     resolver: zodResolver(leadSchema),
-    defaultValues: {
+    defaultValues: lead || {
       name: '',
       company: '',
       email: '',
@@ -49,18 +51,40 @@ export function AddLeadDialog({ isOpen, onOpenChange, onAddLead }: AddLeadDialog
     },
   });
 
+  useEffect(() => {
+    if (lead) {
+      form.reset(lead);
+    } else {
+      form.reset({
+        name: '',
+        company: '',
+        email: '',
+        phone: '',
+        service: '',
+        status: 'New',
+      });
+    }
+  }, [lead, form]);
+
   const onSubmit = (data: LeadFormValues) => {
     onAddLead(data);
     form.reset();
   };
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      form.reset();
+    }
+    onOpenChange(open);
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add New Lead</DialogTitle>
+          <DialogTitle>{lead ? 'Edit Lead' : 'Add New Lead'}</DialogTitle>
           <DialogDescription>
-            Enter the details for the new client lead.
+            {lead ? 'Update the details for this lead.' : 'Enter the details for the new client lead.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -119,37 +143,65 @@ export function AddLeadDialog({ isOpen, onOpenChange, onAddLead }: AddLeadDialog
                     )}
                 />
             </div>
-            <FormField
-                control={form.control}
-                name="service"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Service of Interest</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a service" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        <SelectItem value="UX/UI Design">UX/UI Design</SelectItem>
-                        <SelectItem value="Frontend Dev">Frontend Dev</SelectItem>
-                        <SelectItem value="Backend Dev">Backend Dev</SelectItem>
-                        <SelectItem value="QA Testing">QA Testing</SelectItem>
-                        <SelectItem value="Cloud Services">Cloud Services</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-            />
+             <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="service"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Service of Interest</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a service" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="UX/UI Design">UX/UI Design</SelectItem>
+                            <SelectItem value="Frontend Dev">Frontend Dev</SelectItem>
+                            <SelectItem value="Backend Dev">Backend Dev</SelectItem>
+                            <SelectItem value="QA Testing">QA Testing</SelectItem>
+                            <SelectItem value="Cloud Services">Cloud Services</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="New">New</SelectItem>
+                                <SelectItem value="Contacted">Contacted</SelectItem>
+                                <SelectItem value="Qualified">Qualified</SelectItem>
+                                <SelectItem value="Proposal Sent">Proposal Sent</SelectItem>
+                                <SelectItem value="Negotiation">Negotiation</SelectItem>
+                                <SelectItem value="Won">Won</SelectItem>
+                                <SelectItem value="Lost">Lost</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
              <DialogFooter className='pt-4'>
                 <DialogClose asChild>
                     <Button type="button" variant="outline">
                     Cancel
                     </Button>
                 </DialogClose>
-                <Button type="submit">Add Lead</Button>
+                <Button type="submit">{lead ? 'Save Changes' : 'Add Lead'}</Button>
             </DialogFooter>
           </form>
         </Form>

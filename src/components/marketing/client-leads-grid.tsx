@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, MoreHorizontal, Mail, Phone, User, Loader2 } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Mail, Phone, User, Loader2, Edit, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AddLeadDialog } from './add-lead-dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -21,12 +21,17 @@ import { cn } from '@/lib/utils';
 import { useSidebar } from '../layout/sidebar';
 import type { Lead } from '@/lib/client-leads';
 import { useMarketing } from '@/context/marketing-context';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
 export function ClientLeadsGrid() {
   const [isAddLeadOpen, setAddLeadOpen] = useState(false);
+  const [isEditLeadOpen, setIsEditLeadOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<Lead | null>(null);
+  const [leadToEdit, setLeadToEdit] = useState<Lead | null>(null);
+
   const { toast } = useToast();
   const { open: isSidebarOpen } = useSidebar();
-  const { leads, addLead, loading } = useMarketing();
+  const { leads, addLead, updateLead, deleteLead, loading } = useMarketing();
 
   const handleAddLead = (data: Omit<Lead, 'id'>) => {
     addLead(data);
@@ -36,6 +41,32 @@ export function ClientLeadsGrid() {
       description: `${data.name} from ${data.company} has been added to your leads.`,
     });
   };
+
+  const handleUpdateLead = (data: Lead) => {
+    if (!leadToEdit) return;
+    updateLead(leadToEdit.id!, data);
+    setIsEditLeadOpen(false);
+    setLeadToEdit(null);
+    toast({
+      title: "Lead Updated",
+      description: `${data.name}'s information has been updated.`,
+    });
+  };
+
+  const handleDeleteLead = () => {
+    if (!leadToDelete) return;
+    deleteLead(leadToDelete.id!);
+    setLeadToDelete(null);
+    toast({
+      title: "Lead Deleted",
+      description: `${leadToDelete.name} has been removed from your leads.`,
+    });
+  };
+  
+  const openEditDialog = (lead: Lead) => {
+    setLeadToEdit(lead);
+    setIsEditLeadOpen(true);
+  }
 
   return (
     <>
@@ -62,8 +93,8 @@ export function ClientLeadsGrid() {
                     "grid grid-cols-1 gap-4",
                     isSidebarOpen ? "md:grid-cols-2 xl:grid-cols-3" : "md:grid-cols-3 xl:grid-cols-4"
                 )}>
-                {leads.map((lead, index) => (
-                    <Card key={index} className="flex flex-col bg-primary text-primary-foreground rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                {leads.map((lead) => (
+                    <Card key={lead.id} className="flex flex-col bg-primary text-primary-foreground rounded-lg shadow-lg hover:shadow-xl transition-shadow">
                     <CardHeader>
                         <div className="flex justify-between items-start">
                             <div className='flex items-center gap-3'>
@@ -81,13 +112,22 @@ export function ClientLeadsGrid() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => openEditDialog(lead)}>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setLeadToDelete(lead)} className="text-destructive focus:text-destructive">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                                <DropdownMenuLabel>Contact</DropdownMenuLabel>
                                 <DropdownMenuItem>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Send Email
+                                  <Mail className="mr-2 h-4 w-4" />
+                                  Send Email
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
-                                <Phone className="mr-2 h-4 w-4" />
-                                Call
+                                  <Phone className="mr-2 h-4 w-4" />
+                                  Call
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                             </DropdownMenu>
@@ -122,6 +162,28 @@ export function ClientLeadsGrid() {
         onOpenChange={setAddLeadOpen}
         onAddLead={handleAddLead}
       />
+      {leadToEdit && (
+        <AddLeadDialog
+            isOpen={isEditLeadOpen}
+            onOpenChange={setIsEditLeadOpen}
+            onAddLead={handleUpdateLead as any}
+            lead={leadToEdit}
+        />
+      )}
+      <AlertDialog open={!!leadToDelete} onOpenChange={() => setLeadToDelete(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the lead for {leadToDelete?.name}.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteLead}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

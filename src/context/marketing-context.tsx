@@ -17,6 +17,8 @@ interface MarketingContextType {
   approvedContent: MarketingContent[];
   loading: boolean;
   addLead: (lead: Omit<Lead, 'id'>) => void;
+  updateLead: (leadId: string, updates: Partial<Lead>) => void;
+  deleteLead: (leadId: string) => void;
   approveContent: (content: Suggestion) => void;
   updateApprovedContent: (contentId: string, updates: Partial<MarketingContent>) => void;
   deleteApprovedContent: (contentId: string) => void;
@@ -52,6 +54,31 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
         path: leadsCollection.path,
         operation: 'create',
         requestResourceData: lead,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
+  }, [firestore]);
+
+  const updateLead = useCallback((leadId: string, updates: Partial<Lead>) => {
+    if (!firestore) return;
+    const leadDocRef = doc(firestore, 'clientLeads', leadId);
+    updateDoc(leadDocRef, updates).catch(serverError => {
+      const permissionError = new FirestorePermissionError({
+        path: leadDocRef.path,
+        operation: 'update',
+        requestResourceData: updates,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
+  }, [firestore]);
+
+  const deleteLead = useCallback((leadId: string) => {
+    if (!firestore) return;
+    const leadDocRef = doc(firestore, 'clientLeads', leadId);
+    deleteDoc(leadDocRef).catch(serverError => {
+      const permissionError = new FirestorePermissionError({
+        path: leadDocRef.path,
+        operation: 'delete',
       });
       errorEmitter.emit('permission-error', permissionError);
     });
@@ -106,6 +133,8 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
     approvedContent: approvedContent || [],
     loading,
     addLead,
+    updateLead,
+    deleteLead,
     approveContent,
     updateApprovedContent,
     deleteApprovedContent,
