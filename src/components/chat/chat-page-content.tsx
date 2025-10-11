@@ -31,8 +31,8 @@ export function ChatPageContent() {
     setIsProfileOpen(false);
   };
   
-  const handleDeleteMessage = (messageId: string) => {
-    deleteMessage(messageId);
+  const handleDeleteMessage = (messageId: string, deleteForEveryone: boolean) => {
+    deleteMessage(messageId, deleteForEveryone);
   }
   
   const handleStartChat = (contact: Contact) => {
