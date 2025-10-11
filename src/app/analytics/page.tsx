@@ -8,41 +8,113 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CheckCircle, Clock, Activity, TrendingUp, TrendingDown, Target, Hourglass } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-const kpiData = [
-    { title: 'Tasks Completed', value: '1,250', trend: '+15.2%', trendDirection: 'up' as const, icon: <CheckCircle className="text-primary" /> },
-    { title: 'On-Time Rate', value: '92.8%', trend: '-1.5%', trendDirection: 'down' as const, icon: <Clock className="text-blue-500" /> },
-    { title: 'Projects in Progress', value: '12', trend: '+2', trendDirection: 'up' as const, icon: <Activity className="text-yellow-500" /> },
-    { title: 'Avg. Task Duration', value: '3.2h', trend: '+0.5h', trendDirection: 'down' as const, icon: <Hourglass className="text-red-500" /> },
-]
-
-const taskTrendData = [
-  { name: 'Jan', created: 120, completed: 98 },
-  { name: 'Feb', created: 140, completed: 122 },
-  { name: 'Mar', created: 160, completed: 135 },
-  { name: 'Apr', created: 150, completed: 140 },
-  { name: 'May', created: 180, completed: 168 },
-  { name: 'Jun', created: 170, completed: 155 },
-];
-
-const projectDistributionData = [
-  { name: 'Project Phoenix', value: 400 },
-  { name: 'Project Nova', value: 300 },
-  { name: 'Project Orion', value: 300 },
-  { name: 'Project Apex', value: 200 },
-];
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
-
-const recentActivities = [
-    { id: 1, user: 'Patrick Achitabwino', action: 'completed the task "Develop new auth API".', time: '2 hours ago', avatarId: 'patrick-achitabwino-m1' },
-    { id: 2, user: 'Wezi Chisale', action: 'started a new project "Project Terra".', time: '5 hours ago', avatarId: 'wezi-chisale-m6' },
-    { id: 3, user: 'Frank Mhango', action: 'reached the milestone "Q2 Revenue Goals".', time: '1 day ago', avatarId: 'frank-mhango-m2' },
-    { id: 4, user: 'Charity Moyo', action: 'updated the status of "Project Orion".', time: '2 days ago', avatarId: 'charity-moyo-m7' },
-    { id: 5, user: 'Gift Banda', action: 'completed the task "Design marketing banners".', time: '3 days ago', avatarId: 'gift-banda-m4' },
-];
-
+import { useTimeTracker } from '@/context/time-tracker-context';
+import { useUser } from '@/context/user-context';
+import { useMemo } from 'react';
+import { format, parseISO, isBefore, startOfMonth, endOfMonth, getMonth } from 'date-fns';
 
 export default function AnalyticsPage() {
+    const { tasks } = useTimeTracker();
+    const { allTeamMembers } = useUser();
+
+    const stats = useMemo(() => {
+        const completedTasks = tasks.filter(t => t.status === 'Completed');
+        const onTimeTasks = completedTasks.filter(t => {
+            if (!t.endTime || !t.dueDate) return false;
+            const completionDate = (t.endTime as any).toDate ? (t.endTime as any).toDate() : new Date(t.endTime as any);
+            const dueDate = parseISO(t.dueDate);
+            return isBefore(completionDate, dueDate) || completionDate.toDateString() === dueDate.toDateString();
+        });
+
+        const totalDuration = completedTasks.reduce((acc, t) => acc + (t.duration || 0), 0);
+        const avgDurationHours = completedTasks.length > 0 ? (totalDuration / completedTasks.length / 3600) : 0;
+
+        return {
+            tasksCompleted: completedTasks.length,
+            onTimeRate: completedTasks.length > 0 ? (onTimeTasks.length / completedTasks.length) * 100 : 0,
+            projectsInProgress: tasks.filter(t => t.status === 'In Progress').length,
+            avgTaskDuration: avgDurationHours.toFixed(1),
+        };
+    }, [tasks]);
+
+    const kpiData = [
+        { title: 'Tasks Completed', value: stats.tasksCompleted.toLocaleString(), trend: '+15.2%', trendDirection: 'up' as const, icon: <CheckCircle className="text-primary" /> },
+        { title: 'On-Time Rate', value: `${stats.onTimeRate.toFixed(1)}%`, trend: '-1.5%', trendDirection: 'down' as const, icon: <Clock className="text-blue-500" /> },
+        { title: 'Projects in Progress', value: stats.projectsInProgress, trend: '+2', trendDirection: 'up' as const, icon: <Activity className="text-yellow-500" /> },
+        { title: 'Avg. Task Duration', value: `${stats.avgTaskDuration}h`, trend: '+0.5h', trendDirection: 'down' as const, icon: <Hourglass className="text-red-500" /> },
+    ]
+
+    const taskTrendData = useMemo(() => {
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthlyData = Array.from({ length: 12 }, (_, i) => ({
+            name: monthNames[i],
+            created: 0,
+            completed: 0
+        }));
+
+        tasks.forEach(task => {
+            const createdAt = (task.createdAt as any)?.toDate();
+            if (createdAt) {
+                const month = getMonth(createdAt);
+                monthlyData[month].created++;
+            }
+
+            if (task.status === 'Completed' && task.endTime) {
+                const completedAt = (task.endTime as any)?.toDate();
+                if (completedAt) {
+                    const month = getMonth(completedAt);
+                    monthlyData[month].completed++;
+                }
+            }
+        });
+        // Return data for the last 6 months
+        const currentMonth = new Date().getMonth();
+        return Array.from({ length: 6 }, (_, i) => {
+            const monthIndex = (currentMonth - 5 + i + 12) % 12;
+            return monthlyData[monthIndex];
+        });
+    }, [tasks]);
+
+    const projectDistributionData = useMemo(() => {
+        const distribution: { [key: string]: number } = {};
+        tasks.forEach(task => {
+            const department = allTeamMembers.find(m => m.id === task.userId)?.department || 'Unassigned';
+            if (distribution[department]) {
+                distribution[department]++;
+            } else {
+                distribution[department] = 1;
+            }
+        });
+
+        return Object.entries(distribution).map(([name, value]) => ({ name, value }));
+
+    }, [tasks, allTeamMembers]);
+
+    const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+
+    const recentActivities = useMemo(() => {
+        return tasks.sort((a,b) => {
+            const timeA = (a.createdAt as any)?.toMillis() || 0;
+            const timeB = (b.createdAt as any)?.toMillis() || 0;
+            return timeB - timeA;
+        }).slice(0, 5).map((task, index) => {
+            const user = allTeamMembers.find(u => u.id === task.userId);
+            let action = '';
+            if (task.status === 'Completed') action = `completed the task "${task.name}".`;
+            else if (task.status === 'In Progress') action = `started the task "${task.name}".`;
+            else action = `created the task "${task.name}".`;
+
+            return {
+                id: task.id,
+                user: user?.name || 'Unknown User',
+                action: action,
+                time: format(new Date((task.createdAt as any).toDate()), 'p'),
+                avatarId: user?.id || `user-${index}`
+            };
+        });
+    }, [tasks, allTeamMembers]);
+
+
   return (
     <AppLayout>
       <main className="flex-grow p-4 md:p-8 space-y-8">
@@ -110,7 +182,7 @@ export default function AnalyticsPage() {
             <Card className="col-span-12 lg:col-span-3">
                 <CardHeader>
                     <CardTitle>Project Workload Distribution</CardTitle>
-                    <CardDescription>Breakdown of tasks across active projects.</CardDescription>
+                    <CardDescription>Breakdown of tasks across departments.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
