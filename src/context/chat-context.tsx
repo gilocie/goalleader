@@ -132,7 +132,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     contactList.sort((a, b) => {
         if (!firebaseUser) return 0;
         const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
-        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m1.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
         return (lastMessageB.timestamp?.toMillis() || 0) - (lastMessageA.timestamp?.toMillis() || 0);
@@ -227,8 +227,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } else {
         const isSender = messageToDelete.senderId === self.id;
         const updateData = {
-            deletedBySender: isSender || messageToDelete.deletedBySender,
-            deletedByRecipient: !isSender || messageToDelete.deletedByRecipient,
+          deletedBySender: isSender || (messageToDelete.deletedBySender ?? false),
+          deletedByRecipient: !isSender || (messageToDelete.deletedByRecipient ?? false),
         };
 
         updateDoc(messageRef, updateData)
