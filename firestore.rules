@@ -186,6 +186,29 @@ service cloud.firestore {
       allow read, write: if isSignedIn();
     }
 
+    /**
+      * @description Grants controlled write access for creating new customer or system setup documents.
+      * @path /clients/{clientId}
+      * @allow (create) Any authenticated user can create their own client entry during setup.
+      * @allow (read, update, delete) Only the user who created the client can manage it.
+      */
+      match /clients/{clientId} {
+        allow create: if isSignedIn();
+        allow read, update, delete: if isSignedIn() && resource.data.createdBy == request.auth.uid;
+      }
+
+      /**
+      * @description Setup wizard collection for system-level initialization.
+      * @path /setup/{setupId}
+      * @allow (create) Any authenticated user can initiate setup.
+      * @allow (read, update, delete) Only the user who initiated setup can modify.
+      */
+      match /setup/{setupId} {
+        allow create: if isSignedIn();
+        allow read, update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+
     function isSignedIn() {
       return request.auth != null;
     }
