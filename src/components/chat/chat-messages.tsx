@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
 import { useRef, useState, useEffect } from 'react';
@@ -153,7 +153,7 @@ interface ChatMessagesProps {
   selectedContact: Contact;
   onExitChat?: () => void;
   onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
-  onDeleteMessage: (messageId: string) => void;
+  onDeleteMessage: (messageId: string, deleteForEveryone: boolean) => void;
   onToggleProfile: () => void;
 }
 
@@ -181,6 +181,9 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const firstUnreadRef = useRef<HTMLDivElement>(null);
   
   const [showWaitDialog, setShowWaitDialog] = useState(false);
+  
+  const [messageToDelete, setMessageToDelete] = useState<Message | null>(null);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
 
   const [confirmation, setConfirmation] = useState<{
     isOpen: boolean;
@@ -217,12 +220,25 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     onSendMessage(content, type, messageData);
     setReplyTo(null);
   };
+  
+  const handleDeleteRequest = (message: Message) => {
+    setMessageToDelete(message);
+    setDeleteConfirmationOpen(true);
+  };
+  
+  const confirmDelete = (forEveryone: boolean) => {
+    if (messageToDelete) {
+        onDeleteMessage(messageToDelete.id, forEveryone);
+    }
+    setDeleteConfirmationOpen(false);
+    setMessageToDelete(null);
+  }
 
   const handleClearChat = () => {
     setConfirmation({
       isOpen: true,
       title: 'Clear Chat History?',
-      description: `This will permanently delete all messages in your conversation with ${selectedContact.name}. This action cannot be undone.`,
+      description: `This will permanently remove all messages in this conversation from your view. This action cannot be undone.`,
       onConfirm: () => {
         clearChat(selectedContact.id);
         toast({ title: "Chat Cleared", description: `Your conversation with ${selectedContact.name} has been cleared.` });
@@ -296,14 +312,10 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             <Forward className="mr-2 h-4 w-4" /><span>Forward</span>
           </DropdownMenuItem>
           {hasAttachment && (<DropdownMenuItem onClick={() => handleAction('download', message)}><Download className="mr-2 h-4 w-4" /><span>Download</span></DropdownMenuItem>)}
-          {isSelf && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onDeleteMessage(message.id)} className="text-destructive focus:text-destructive">
-                <Trash2 className="mr-2 h-4 w-4" /><span>Delete</span>
-              </DropdownMenuItem>
-            </>
-          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleDeleteRequest(message)} className="text-destructive focus:text-destructive">
+            <Trash2 className="mr-2 h-4 w-4" /><span>Delete</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -312,6 +324,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const findMessageById = (id: string) => messages.find(m => m.id === id);
 
   const firstUnreadIndex = messages.findIndex(m => m.senderId === selectedContact.id && m.readStatus !== 'read');
+  
+  const visibleMessages = messages.filter(m => {
+    if (m.senderId === self.id) return !m.deletedBySender;
+    if (m.recipientId === self.id) return !m.deletedByRecipient;
+    return true;
+  });
 
 
   return (
@@ -388,12 +406,12 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         <div className="flex-1 overflow-auto">
             <ScrollArea className="h-full" ref={scrollAreaRef}>
               <div className="space-y-4 p-4">
-                {messages.length === 0 ? (
+                {visibleMessages.length === 0 ? (
                   <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
                       No messages yet. Start the conversation!
                   </div>
                 ) : (
-                  messages.map((message, index) => {
+                  visibleMessages.map((message, index) => {
                     const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
                     const isSelf = message.senderId === self.id;
                     const sender = contacts.find(c => c.id === message.senderId) || self;
@@ -517,6 +535,28 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       </Dialog>
       {forwardMessage && (<ForwardMessageDialog isOpen={!!forwardMessage} onOpenChange={() => setForwardMessage(null)} message={forwardMessage} contacts={contacts} />)}
 
+        <AlertDialog open={deleteConfirmationOpen} onOpenChange={setDeleteConfirmationOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Message</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Are you sure you want to delete this message?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    {messageToDelete?.senderId === self.id && (
+                        <AlertDialogAction onClick={() => confirmDelete(true)}>
+                            Delete for Everyone
+                        </AlertDialogAction>
+                    )}
+                    <AlertDialogAction onClick={() => confirmDelete(false)}>
+                        Delete for Me
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
       <IncomingCallDialog
         isOpen={!!incomingCallFrom}
         onClose={() => declineCall()}
@@ -588,5 +628,3 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
-
-    

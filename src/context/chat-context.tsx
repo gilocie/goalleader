@@ -21,7 +21,7 @@ interface ChatContextType {
   selectedContact: Contact | null;
   setSelectedContact: Dispatch<SetStateAction<Contact | null>>;
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
-  deleteMessage: (messageId: string) => void;
+  deleteMessage: (messageId: string, deleteForEveryone: boolean) => void;
   clearChat: (contactId: string) => void;
   deleteChat: (contactId: string) => void;
   forwardMessage: (message: Message, recipientIds: string[]) => void;
@@ -46,7 +46,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user: firebaseUser } = useUser(); // Firebase user
-  const { allTeamMembers } = useUserContext();
+  const { allTeamMembers, updateUserStatus } = useUserContext();
   const firestore = useFirestore();
   
   const messagesSentQuery = useMemo(() => {
@@ -125,6 +125,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
   }, [allContacts, firebaseUser]);
 
+  useEffect(() => {
+    if(firebaseUser) {
+        updateUserStatus(firebaseUser.uid, 'online');
+    }
+  }, [firebaseUser, updateUserStatus]);
+
   const updateActiveChatIds = async (newIds: Set<string>) => {
     if (!firestore || !firebaseUser) return;
     const activeChatsRef = doc(firestore, 'chats', firebaseUser.uid);
@@ -141,8 +147,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         if (c.id === firebaseUser.uid) return false;
         // A chat is "active" if there are any messages between the two users.
         const hasMessages = messages.some(m => 
-            (m.senderId === c.id && m.recipientId === firebaseUser.uid) || 
-            (m.senderId === firebaseUser.uid && m.recipientId === c.id)
+            ((m.senderId === c.id && m.recipientId === firebaseUser.uid && !m.deletedByRecipient) || 
+            (m.senderId === firebaseUser.uid && m.recipientId === c.id && !m.deletedBySender))
         );
         return hasMessages;
     });
@@ -206,40 +212,57 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [self, firestore]);
 
-  const deleteMessage = useCallback(async (messageId: string) => {
-    if (!firestore) return;
+  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
+    if (!firestore || !self) return;
     const messageRef = doc(firestore, 'messages', messageId);
-    setSentMessages(prev => prev.filter(m => m.id !== messageId));
-    setReceivedMessages(prev => prev.filter(m => m.id !== messageId));
-    deleteDoc(messageRef).catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: messageRef.path,
-            operation: 'delete',
+    const messageToDelete = messages.find(m => m.id === messageId);
+
+    if (!messageToDelete) return;
+
+    if (deleteForEveryone && messageToDelete.senderId === self.id) {
+        // Hard delete
+        deleteDoc(messageRef).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'delete' });
+            errorEmitter.emit('permission-error', permissionError);
         });
-        errorEmitter.emit('permission-error', permissionError);
-    });
-  }, [firestore, setSentMessages, setReceivedMessages]);
+    } else {
+        // Soft delete
+        const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
+        if (messageToDelete.senderId === self.id) {
+            updateData.deletedBySender = true;
+        } else {
+            updateData.deletedByRecipient = true;
+        }
+
+        updateDoc(messageRef, updateData).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'update', requestResourceData: updateData });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+    }
+  }, [firestore, self, messages]);
 
   const clearChat = useCallback(async (contactId: string) => {
     if (!self || !firestore) return;
     
-    const chatMessagesToDelete = messages.filter(
+    const chatMessagesToUpdate = messages.filter(
       msg => ((msg.senderId === contactId && msg.recipientId === self.id) || (msg.senderId === self.id && msg.recipientId === contactId))
     );
 
     const batch = writeBatch(firestore);
-    chatMessagesToDelete.forEach(msg => {
-      batch.delete(doc(firestore, 'messages', msg.id));
+    chatMessagesToUpdate.forEach(msg => {
+      const messageRef = doc(firestore, 'messages', msg.id);
+      if (msg.senderId === self.id) {
+        batch.update(messageRef, { deletedBySender: true });
+      } else {
+        batch.update(messageRef, { deletedByRecipient: true });
+      }
     });
-    await batch.commit();
     
-    // Optimistically update UI
-    const remainingSent = sentMessages.filter(m => !(m.recipientId === contactId || m.senderId === contactId));
-    const remainingReceived = receivedMessages.filter(m => !(m.recipientId === contactId || m.senderId === contactId));
-    setSentMessages(remainingSent);
-    setReceivedMessages(remainingReceived);
+    await batch.commit().catch(err => {
+        console.error("Failed to clear chat:", err);
+    });
 
-  }, [self, firestore, messages, sentMessages, receivedMessages, setSentMessages, setReceivedMessages]);
+  }, [self, firestore, messages]);
 
   const deleteChat = useCallback(async (contactId: string) => {
     await clearChat(contactId);

@@ -18,17 +18,17 @@ service cloud.firestore {
       // Only sender can create a message
       allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
 
-      // Only sender or recipient can update readStatus
+      // Only sender or recipient can update readStatus or soft-delete flags
       allow update: if isSignedIn() &&
         (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) &&
-        request.resource.data.readStatus is string &&
-        request.resource.data.senderId == resource.data.senderId &&
-        request.resource.data.recipientId == resource.data.recipientId &&
-        request.resource.data.message == resource.data.message;
+        request.resource.data.keys().hasOnly([
+          'readStatus',
+          'deletedBySender',
+          'deletedByRecipient'
+        ]);
 
-      // Sender or recipient can delete their own message copy
-      allow delete: if isSignedIn() &&
-        (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid);
+      // Only sender can fully delete message for everyone
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
     }
 
     // -------------------- ACTIVE CHATS --------------------

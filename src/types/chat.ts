@@ -29,6 +29,8 @@ export interface Message {
     fileUrl?: string;
     replyTo?: string; // ID of the message this is a reply to
     callType?: 'video' | 'voice';
+    deletedBySender?: boolean;
+    deletedByRecipient?: boolean;
 }
 
     
