@@ -175,7 +175,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore || !self) return;
     const messageRef = doc(firestore, 'messages', messageId);
     
-    await updateDoc(messageRef, {
+    updateDoc(messageRef, {
       content: newContent,
       readStatus: 'updated',
     }).catch(serverError => {
@@ -211,7 +211,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!messageToDelete) return;
   
     if (deleteForEveryone) {
-      // Only sender can delete for everyone
       if (messageToDelete.senderId === self.id) {
         await deleteDoc(messageRef)
           .catch(err => console.error("Delete for everyone failed:", err));
@@ -219,18 +218,26 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         console.warn("You are not allowed to delete this message for everyone.");
       }
     } else {
-      // Soft delete (just for me)
       const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
-      if (messageToDelete.senderId === self.id) {
+      const isSender = messageToDelete.senderId === self.id;
+      if (isSender) {
         updateData.deletedBySender = true;
       } else {
         updateData.deletedByRecipient = true;
       }
   
       await updateDoc(messageRef, updateData)
+        .then(() => {
+          setMessages(prev => prev.map(m => {
+            if (m.id === messageId) {
+              return { ...m, ...updateData };
+            }
+            return m;
+          }));
+        })
         .catch(err => console.error("Soft delete failed:", err));
     }
-  }, [firestore, self, messages]);
+  }, [firestore, self, messages, setMessages]);
 
 
   const clearChat = useCallback(async (contactId: string) => {
@@ -250,10 +257,21 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
     });
     
-    await batch.commit().catch(err => {
+    await batch.commit()
+      .then(() => {
+        setMessages(prev => prev.map(m => {
+          const shouldBeDeleted = chatMessagesToUpdate.some(del => del.id === m.id);
+          if (shouldBeDeleted) {
+            const isSender = m.senderId === self.id;
+            return { ...m, deletedBySender: isSender, deletedByRecipient: !isSender };
+          }
+          return m;
+        }));
+      })
+      .catch(err => {
         console.error("Failed to clear chat:", err);
     });
-  }, [self, firestore, messages]);
+  }, [self, firestore, messages, setMessages]);
 
   const deleteChat = useCallback(async (contactId: string) => {
     await clearChat(contactId);

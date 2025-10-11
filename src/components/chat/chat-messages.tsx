@@ -331,8 +331,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             <Reply className="mr-2 h-4 w-4" /><span>Reply</span>
           </DropdownMenuItem>
           {message.type === 'text' && (
-            <DropdownMenuItem onClick={() => handleAction('copy', message)}>
-                <Copy className="mr-2 h-4 w-4" /><span>Copy</span>
+            <DropdownMenuItem onClick={() => {setInputMessage(message.content)}}>
+                <Copy className="mr-2 h-4 w-4" /><span>Copy & Repost</span>
             </DropdownMenuItem>
           )}
           {canEdit && message.type === 'text' && (
@@ -678,6 +678,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
 
 
 
