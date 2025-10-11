@@ -18,7 +18,7 @@ interface ChatLayoutProps {
   selectedContact: Contact | null;
   onSelectContact: (contact: Contact | null) => void;
   onSendMessage: (message: string, type: 'text' | 'audio' | 'image' | 'file', data?: any) => void;
-  onDeleteMessage: (messageId: string) => void;
+  onDeleteMessage: (messageId: string, deleteForEveryone: boolean) => void;
   isProfileOpen: boolean;
   onToggleProfile: () => void;
 }
