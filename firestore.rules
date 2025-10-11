@@ -1,126 +1,155 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a user-ownership model for user profiles and their associated data (todos, reports).
- * Authenticated users can read and list user profiles. Only the owner of a profile can create, update, or delete it.
- * Chat messages are publicly readable, but writes are denied. Active Chats are only accessible to its owner.
- * To-do items and reports are strictly owned by the user; no shared access.
+ * @fileoverview Firestore Security Rules for the application.
  *
- * @dataStructure
- * - `/users/{userId}`: User profile data.
- * - `/messages/{messageId}`: Chat messages (publicly readable).
- * - `/chats/{userId}`: Active chat IDs for each user.
- * - `/users/{userId}/todos/{todoId}`: To-do items for a specific user.
- * - `/users/{userId}/reports/{reportId}`: Performance reports for a specific user.
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for private data, while allowing public read access to chat messages.
  *
- * @keySecurityDecisions
- * - Users can list all user profiles, but only read their own.
- * - Chat messages are readable by everyone.
- * - To-do items and reports are strictly owned by the user; no shared access.
- * - Unauthenticated access is entirely denied, except for reading chat messages.
+ * Data Structure:
+ * - User profiles are stored under `/users/{userId}` and are only accessible to the owning user.
+ * - Chat messages are stored under `/messages/{messageId}` and are publicly readable.
+ * - Active chat IDs are stored under `/chats/{userId}` and are only accessible to the owning user.
+ * - To-do items are stored under `/users/{userId}/todos/{todoId}` and are only accessible to the owning user.
+ * - Reports are stored under `/users/{userId}/reports/{reportId}` and are only accessible to the owning user.
  *
- * @denormalizationForAuthorization
- * - The `todo` documents at `/users/{userId}/todos/{todoId}` have a `userId` field which is validated to match the parent path.
- * - The `report` documents at `/users/{userId}/reports/{reportId}` have a `userId` field which is validated to match the parent path.
+ * Key Security Decisions:
+ * - User listing is disallowed to protect privacy.
+ * - Chat messages are publicly readable to enable open communication, but modification requires authentication.
  *
- * @structuralSegregation
- * - User profiles and their todos are stored under the `/users/{userId}` collection to enforce ownership.
+ * Denormalization for Authorization:
+ * - For to-dos and reports, the `userId` is denormalized into the document to simplify ownership checks.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Controls access to user profile data.
+     * @description Allows access to user profile data.
      * @path /users/{userId}
-     * @allow (get, list): Authenticated users can read and list all user profiles.
-     * @allow (create): A user can create their own profile if the userId matches their auth UID.
-     * @allow (update, delete): Only the user who owns the profile can update or delete it.
-     * @deny (create): A user cannot create a profile with a different userId than their auth UID.
-     * @deny (update, delete): A user cannot update or delete another user's profile.
-     * @principle Enforces document ownership for writes; allows public reads for authenticated users.
+     * @allow (create) - If the user ID in the path matches the authenticated user's ID.
+     * @allow (get, list) - If the user ID in the path matches the authenticated user's ID.
+     * @allow (update, delete) - If the user ID in the path matches the authenticated user's ID and the document exists.
+     * @deny (create) - If the user ID in the path does not match the authenticated user's ID.
+     * @deny (get, list) - If the user ID in the path does not match the authenticated user's ID.
+     * @deny (update, delete) - If the user ID in the path does not match the authenticated user's ID or the document doesn't exist.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      allow get: if isSignedIn();
-      allow list: if isSignedIn();
-      allow create: if request.auth.uid == userId;
-      allow update, delete: if isExistingOwner(userId);
-    }
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
 
-    /**
-     * @description Controls access to chat messages.  Messages are currently globally readable.
-     * @path /messages/{messageId}
-     * @allow (get, list): Anyone can read chat messages.
-     * @deny (create, update, delete): No one can create, update, or delete chat messages through security rules.
-     * @principle Allows public reads, but restricts writes for prototyping.
-     */
-    match /messages/{messageId} {
-      allow get, list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
-    }
+      allow get: if isOwner(userId);
+      allow list: if false; // Disallowing user listing
 
-    /**
-     * @description Controls access to active chat IDs for a user.
-     * @path /chats/{userId}
-     * @allow (get, list): Only the owner can read active chats.
-     * @allow (create): A user can create their own active chat document if the userId matches their auth UID.
-     * @allow (update, delete): Only the user who owns the active chat can update or delete it.
-     * @deny (create): A user cannot create an active chat document with a different userId than their auth UID.
-     * @deny (update, delete): A user cannot update or delete another user's active chat document.
-     * @principle Enforces document ownership.
-     */
-    match /chats/{userId} {
-      allow get, list: if isOwner(userId);
-      allow create: if request.auth.uid == userId;
-      allow update, delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Controls access to to-do items for a specific user.
-     * @path /users/{userId}/todos/{todoId}
-     * @allow (get, list): Only the owner of the user profile can read their to-do items.
-     * @allow (create): Only the owner can create to-do items under their profile and the userId is consistent.
-     * @allow (update, delete): Only the owner can update or delete their own to-do items, and the document must exist.
-     * @deny (create): A user cannot create to-do items for another user.
-     * @deny (update, delete): A user cannot update or delete another user's to-do items.
-     * @principle Enforces strict user ownership for all operations.  Validates relational integrity between the todo document and the user.
-     */
-    match /users/{userId}/todos/{todoId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
       allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Controls access to performance reports for a specific user.
+     * @description Allows public read access to chat messages, but only authenticated users can create, update, or delete messages.
+     * @path /messages/{messageId}
+     * @allow (get, list) - Anyone can read chat messages.
+     * @allow (create) - Only authenticated users can create chat messages.
+     * @allow (update) - Only authenticated users can update chat messages and the document exists.
+     * @allow (delete) - Only authenticated users can delete chat messages and the document exists.
+     * @deny (create) - If the user is not authenticated.
+     * @deny (update) - If the user is not authenticated or the document doesn't exist.
+     * @deny (delete) - If the user is not authenticated or the document doesn't exist.
+     * @principle Allows public reads with authentication required for writes.
+     */
+    match /messages/{messageId} {
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Allows access to active chat IDs for a specific user.
+     * @path /chats/{userId}
+     * @allow (create) - If the user ID in the path matches the authenticated user's ID.
+     * @allow (get, list) - If the user ID in the path matches the authenticated user's ID.
+     * @allow (update, delete) - If the user ID in the path matches the authenticated user's ID and the document exists.
+     * @deny (create) - If the user ID in the path does not match the authenticated user's ID.
+     * @deny (get, list) - If the user ID in the path does not match the authenticated user's ID.
+     * @deny (update, delete) - If the user ID in the path does not match the authenticated user's ID or the document doesn't exist.
+     * @principle Enforces document ownership for writes.
+     */
+    match /chats/{userId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if false;
+
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Allows access to to-do items for a specific user.
+     * @path /users/{userId}/todos/{todoId}
+     * @allow (create) - If the user ID in the path matches the authenticated user's ID.
+     * @allow (get, list) - If the user ID in the path matches the authenticated user's ID.
+     * @allow (update, delete) - If the user ID in the path matches the authenticated user's ID and the document exists.
+     * @deny (create) - If the user ID in the path does not match the authenticated user's ID.
+     * @deny (get, list) - If the user ID in the path does not match the authenticated user's ID.
+     * @deny (update, delete) - If the user ID in the path does not match the authenticated user's ID or the document doesn't exist.
+     * @principle Enforces document ownership for writes.
+     */
+    match /users/{userId}/todos/{todoId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId) && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Allows access to performance reports for a specific user.
      * @path /users/{userId}/reports/{reportId}
-     * @allow (get, list): Only the owner of the user profile can read their reports.
-     * @allow (create): Only the owner can create reports under their profile and the userId is consistent.
-     * @allow (update, delete): Only the owner can update or delete their own reports, and the document must exist.
-     * @deny (create): A user cannot create reports for another user.
-     * @deny (update, delete): A user cannot update or delete another user's reports.
-     * @principle Enforces strict user ownership for all operations.  Validates relational integrity between the report document and the user.
+     * @allow (create) - If the user ID in the path matches the authenticated user's ID.
+     * @allow (get, list) - If the user ID in the path matches the authenticated user's ID.
+     * @allow (update, delete) - If the user ID in the path matches the authenticated user's ID and the document exists.
+     * @deny (create) - If the user ID in the path does not match the authenticated user's ID.
+     * @deny (get, list) - If the user ID in the path does not match the authenticated user's ID.
+     * @deny (update, delete) - If the user ID in the path does not match the authenticated user's ID or the document doesn't exist.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/reports/{reportId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-        allow delete: if isExistingOwner(userId);
-    }
-
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      function isExistingOwner(userId) {
         return isOwner(userId) && resource != null;
+      }
+
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && resource.data.userId == userId;
+      allow delete: if isExistingOwner(userId) && resource.data.userId == userId;
     }
   }
 }
