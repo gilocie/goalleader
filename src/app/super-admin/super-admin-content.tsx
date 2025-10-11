@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -98,70 +98,61 @@ const OverviewPage = () => {
                     <CardTitle>Recent Client Instances</CardTitle>
                     <CardDescription>A list of the 5 most recently created companies.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Company</TableHead>
-                                <TableHead>Admin Contact</TableHead>
-                                <TableHead>Firebase Project</TableHead>
-                                <TableHead>Domain</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {clients.slice(0,5).map((client: Client) => (
-                                <TableRow key={client.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-muted rounded-md">
-                                                <Building className="h-5 w-5 text-muted-foreground" />
-                                            </div>
-                                            <div>
-                                                <div className="font-medium">{client.companyName}</div>
-                                                <div className="text-xs text-muted-foreground">{client.id}</div>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{client.adminEmail}</TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-mono text-xs">{client.firebaseProjectId}</span>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleCopy(client.firebaseProjectId, 'Project ID')}>
-                                                <Copy className="h-3 w-3" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <a href={`https://${client.domain}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary underline">
-                                            {client.domain}
-                                            <LinkIcon className="h-3 w-3" />
-                                        </a>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={client.status === 'Active' ? 'default' : 'destructive'} className={client.status === 'Active' ? 'bg-green-100 text-green-800' : ''}>
-                                            {client.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem>View Details</DropdownMenuItem>
-                                                <DropdownMenuItem>Manage Billing</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {clients.slice(0,5).map((client: Client) => (
+                        <Card key={client.id} className="p-4 space-y-4">
+                            <div className="flex items-start justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-muted rounded-lg">
+                                        <Building className="h-6 w-6 text-muted-foreground" />
+                                    </div>
+                                    <div>
+                                        <div className="font-semibold">{client.companyName}</div>
+                                        <div className="text-xs text-muted-foreground font-mono">{client.id}</div>
+                                    </div>
+                                </div>
+                                 <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                                        <DropdownMenuItem>Manage Billing</DropdownMenuItem>
+                                        <DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Admin:</span>
+                                    <span>{client.adminEmail}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">Domain:</span>
+                                     <a href={`https://${client.domain}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary underline">
+                                        {client.domain}
+                                        <LinkIcon className="h-3 w-3" />
+                                    </a>
+                                </div>
+                                 <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground">Project ID:</span>
+                                    <div className="flex items-center gap-1">
+                                        <span className="font-mono text-xs">{client.firebaseProjectId}</span>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(client.firebaseProjectId, 'Project ID')}>
+                                            <Copy className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                            <CardFooter className="p-0 pt-4">
+                                <Badge variant={client.status === 'Active' ? 'default' : 'destructive'} className={cn("w-full justify-center py-1", client.status === 'Active' ? 'bg-green-100 text-green-800' : '')}>
+                                    {client.status}
+                                </Badge>
+                            </CardFooter>
+                        </Card>
+                    ))}
                 </CardContent>
             </Card>
         </div>
@@ -318,7 +309,7 @@ export function SuperAdminContent() {
     }
 
     return (
-        <main className="p-4 md:p-8">
+        <main className="p-4 md:p-8 w-full">
             <div className="flex items-center gap-4 mb-8">
                 <Shield className="h-10 w-10 text-primary" />
                 <div>
@@ -337,3 +328,5 @@ export function SuperAdminContent() {
         </main>
     );
 }
+
+    
