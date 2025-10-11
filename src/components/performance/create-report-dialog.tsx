@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Dialog,
@@ -22,6 +22,8 @@ import { format } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
 import { useNotifications } from '@/context/notification-context';
 import { useUser } from '@/context/user-context';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
 
 interface CreateReportDialogProps {
   isOpen: boolean;
@@ -38,6 +40,7 @@ export function CreateReportDialog({
   tasks,
   period,
 }: CreateReportDialogProps) {
+  const [title, setTitle] = useState('');
   const [reportContent, setReportContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +48,13 @@ export function CreateReportDialog({
   const { addNotification } = useNotifications();
   const { user } = useUser();
   const router = useRouter();
+
+  useEffect(() => {
+    if (isOpen) {
+      const defaultTitle = `Performance Report - ${period} - ${format(new Date(), 'PP')}`;
+      setTitle(defaultTitle);
+    }
+  }, [isOpen, period]);
 
   const handleGenerateReport = async () => {
     setIsGenerating(true);
@@ -80,9 +90,8 @@ export function CreateReportDialog({
   };
 
   const submitReport = (finalReportContent: string) => {
-    const reportTitle = `Performance Report - ${period} - ${format(new Date(), 'PP')}`;
     addReport({
-        title: reportTitle,
+        title: title,
         content: finalReportContent,
     });
     
@@ -90,19 +99,21 @@ export function CreateReportDialog({
         addNotification({
             type: 'report',
             title: `New Report from ${user.name}`,
-            message: `A new performance report titled "${reportTitle}" is ready for your review.`,
+            message: `A new performance report titled "${title}" is ready for your review.`,
             author: user.name,
-            link: `/teams/${user.id}`
+            link: `/teams/${user.id}`,
+            reportContent: finalReportContent,
         });
     }
 
     onOpenChange(false);
     setReportContent('');
+    setTitle('');
     router.push('/reports');
   };
 
   const handleConfirm = async () => {
-    if (!reportContent.trim()) return;
+    if (!title.trim() || !reportContent.trim()) return;
 
     setIsSubmitting(true);
     try {
@@ -132,6 +143,7 @@ export function CreateReportDialog({
   const handleClose = (open: boolean) => {
     if (!open) {
       setReportContent('');
+      setTitle('');
     }
     onOpenChange(open);
   }
@@ -146,12 +158,25 @@ export function CreateReportDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-            <Textarea
-              value={reportContent}
-              onChange={(e) => setReportContent(e.target.value)}
-              placeholder="Write your performance summary here, or click 'Generate with AI' to get a draft..."
-              className="h-64"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="report-title">Report Title</Label>
+              <Input
+                id="report-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter a title for your report"
+              />
+            </div>
+            <div className="space-y-2">
+               <Label htmlFor="report-content">Report Content</Label>
+                <Textarea
+                  id="report-content"
+                  value={reportContent}
+                  onChange={(e) => setReportContent(e.target.value)}
+                  placeholder="Write your performance summary here, or click 'Generate with AI' to get a draft..."
+                  className="h-64"
+                />
+            </div>
           <Button onClick={handleGenerateReport} disabled={isGenerating}>
             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
             Generate with AI
@@ -161,7 +186,7 @@ export function CreateReportDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} disabled={!reportContent.trim() || isSubmitting}>
+          <Button onClick={handleConfirm} disabled={!title.trim() || !reportContent.trim() || isSubmitting}>
             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Confirm and Save Report
           </Button>

@@ -8,11 +8,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { format, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subDays } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MoreHorizontal, Edit, Trash2, FileDown } from 'lucide-react';
+import { Search, MoreHorizontal, Edit, Trash2, FileDown, Eye } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -27,6 +27,7 @@ export function ReportsPageContent() {
   const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
   const [reportToEdit, setReportToEdit] = useState<Report | null>(null);
   const [editedContent, setEditedContent] = useState('');
+  const [viewingReport, setViewingReport] = useState<Report | null>(null);
   const { user } = useUser();
 
   const filteredReports = useMemo(() => {
@@ -148,10 +149,16 @@ export function ReportsPageContent() {
                         </DropdownMenu>
                       </CardHeader>
                       <CardContent>
-                        <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-body bg-muted p-4 rounded-md">
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap font-body line-clamp-3 bg-muted p-4 rounded-md">
                           {report.content}
-                        </pre>
+                        </p>
                       </CardContent>
+                      <CardFooter>
+                        <Button variant="outline" onClick={() => setViewingReport(report)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Report
+                        </Button>
+                      </CardFooter>
                     </Card>
                   ))
                 )}
@@ -201,6 +208,27 @@ export function ReportsPageContent() {
           <EditDialogFooter>
             <Button variant="outline" onClick={() => setReportToEdit(null)}>Cancel</Button>
             <Button onClick={handleEditReport}>Save Changes</Button>
+          </EditDialogFooter>
+        </EditDialogContent>
+      </Dialog>
+
+      <Dialog open={!!viewingReport} onOpenChange={(open) => !open && setViewingReport(null)}>
+        <EditDialogContent className="max-h-[80vh] flex flex-col">
+          <EditDialogHeader>
+            <EditDialogTitle>{viewingReport?.title}</EditDialogTitle>
+            <EditDialogDescription>
+              Generated on {viewingReport && format(new Date(viewingReport.date), 'PPpp')}
+            </EditDialogDescription>
+          </EditDialogHeader>
+          <div className="py-4 flex-1 overflow-auto">
+            <pre className="text-sm text-muted-foreground whitespace-pre-wrap font-body">
+              {viewingReport?.content}
+            </pre>
+          </div>
+          <EditDialogFooter>
+            <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+            </DialogClose>
           </EditDialogFooter>
         </EditDialogContent>
       </Dialog>
