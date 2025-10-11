@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import { GEMINI_MODEL } from '@/lib/ai-models';
+import { googleAI } from '@genkit-ai/google-genai';
 
 const TaskSchema = z.object({
   name: z.string(),
@@ -41,7 +41,7 @@ export async function getPerformanceAdvice(input: PerformanceAdviceInput): Promi
 
 const prompt = ai.definePrompt({
   name: 'performanceAdvicePrompt',
-  model: GEMINI_MODEL,
+  model: googleAI('gemini-1.5-flash-latest'),
   input: { schema: PerformanceAdviceInputSchema.extend({ isHighPerformer: z.boolean(), performanceDifference: z.number() }) },
   output: { schema: PerformanceAdviceOutputSchema },
   prompt: `You are GoalLeader, an AI performance coach partnering with a Team Leader. Your goal is to provide a humanized, detailed, and actionable summary about a staff member's performance. The staff member's name is {{staffName}}.
@@ -133,6 +133,7 @@ const performanceAdviceFlow = ai.defineFlow(
     throw new Error('No output from prompt');
   }
 );
+
 
 
 
