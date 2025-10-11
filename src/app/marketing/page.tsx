@@ -14,7 +14,7 @@ import { ClientLeadsGrid } from '@/components/marketing/client-leads-grid';
 import { Logo } from '@/components/icons';
 import { useMarketing } from '@/context/marketing-context';
 
-export default function MarketingPage() {
+function MarketingPageContent() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
   const { approvedContent, approveContent, updateApprovedContent, deleteApprovedContent } = useMarketing();
 
@@ -31,7 +31,7 @@ export default function MarketingPage() {
   }
 
   return (
-    <AppLayout>
+    <>
       <main className="flex-grow p-4 md:p-8">
         <Card>
           <CardHeader>
@@ -97,6 +97,14 @@ export default function MarketingPage() {
         onOpenChange={setGenerateDialogOpen}
         onApprove={handleApproveContent}
       />
-    </AppLayout>
+    </>
   );
+}
+
+export default function MarketingPage() {
+    return (
+        <AppLayout>
+            <MarketingPageContent />
+        </AppLayout>
+    )
 }
