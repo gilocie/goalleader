@@ -1,23 +1,26 @@
 /**
  * @file Firestore Security Rules
- * @description This ruleset enforces a user-ownership model for user profiles and their associated data (todos).
+ * @description This ruleset enforces a user-ownership model for user profiles and their associated data (todos, reports).
  * Authenticated users can read and list user profiles. Only the owner of a profile can create, update, or delete it.
- * Chat messages are publicly readable, but writes are denied.  Active Chats are only accessible to its owner
+ * Chat messages are publicly readable, but writes are denied. Active Chats are only accessible to its owner.
+ * To-do items and reports are strictly owned by the user; no shared access.
  *
  * @dataStructure
  * - `/users/{userId}`: User profile data.
  * - `/messages/{messageId}`: Chat messages (publicly readable).
  * - `/chats/{userId}`: Active chat IDs for each user.
  * - `/users/{userId}/todos/{todoId}`: To-do items for a specific user.
+ * - `/users/{userId}/reports/{reportId}`: Performance reports for a specific user.
  *
  * @keySecurityDecisions
  * - Users can list all user profiles, but only read their own.
  * - Chat messages are readable by everyone.
- * - To-do items are strictly owned by the user; no shared access.
+ * - To-do items and reports are strictly owned by the user; no shared access.
  * - Unauthenticated access is entirely denied, except for reading chat messages.
  *
  * @denormalizationForAuthorization
  * - The `todo` documents at `/users/{userId}/todos/{todoId}` have a `userId` field which is validated to match the parent path.
+ * - The `report` documents at `/users/{userId}/reports/{reportId}` have a `userId` field which is validated to match the parent path.
  *
  * @structuralSegregation
  * - User profiles and their todos are stored under the `/users/{userId}` collection to enforce ownership.
@@ -88,6 +91,23 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Controls access to performance reports for a specific user.
+     * @path /users/{userId}/reports/{reportId}
+     * @allow (get, list): Only the owner of the user profile can read their reports.
+     * @allow (create): Only the owner can create reports under their profile and the userId is consistent.
+     * @allow (update, delete): Only the owner can update or delete their own reports, and the document must exist.
+     * @deny (create): A user cannot create reports for another user.
+     * @deny (update, delete): A user cannot update or delete another user's reports.
+     * @principle Enforces strict user ownership for all operations.  Validates relational integrity between the report document and the user.
+     */
+    match /users/{userId}/reports/{reportId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.userId == userId;
+        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(userId);
     }
 
     // Helper functions
