@@ -47,10 +47,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const usersQuery = React.useMemo(() => {
-    // Only run the query if the user is authenticated and firestore is available
-    if (!firestore || !firebaseUser) return null; // Fetch all users only if authenticated
+    if (!firestore) return null;
     return collection(firestore, 'users');
-  }, [firestore, firebaseUser]);
+  }, [firestore]);
   
   const { data: allTeamMembers, loading: usersLoading } = useCollection<TeamMember>(usersQuery);
 
@@ -65,12 +64,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
     
     if (firebaseUser && firestore) {
-        updateUserStatus(firebaseUser.uid, 'online');
         const userDocRef = doc(firestore, 'users', firebaseUser.uid);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
                 const data = doc.data();
-                setUser({
+                const currentUser: User = {
                     id: firebaseUser.uid,
                     name: data.name || firebaseUser.displayName || 'Anonymous',
                     role: data.role || 'Consultant',
@@ -79,7 +77,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                     branch: data.branch || '',
                     email: firebaseUser.email || '',
                     status: data.status || 'online',
-                });
+                };
+                setUser(currentUser);
+                if (currentUser.status !== 'online') {
+                    updateUserStatus(firebaseUser.uid, 'online');
+                }
             } else {
                  const newUserProfile: User = {
                     id: firebaseUser.uid,
@@ -93,6 +95,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                  };
                  setUser(newUserProfile);
             }
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching user document:", error);
             setLoading(false);
         });
 
@@ -145,15 +150,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           });
         }
         
-        localStorage.setItem('simulatedUserId', newUser.id);
-        
         toast({
             title: 'Profile Updated',
             description: `Your profile has been saved.`,
         });
 
         if (user?.id !== newUser.id) {
-            window.location.reload();
+             setUser(newUser);
         } else {
             setUser(newUser);
         }
