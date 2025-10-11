@@ -6,7 +6,7 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, where, writeBatch, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -24,6 +24,7 @@ interface ChatContextType {
   inputMessage: string;
   setInputMessage: Dispatch<SetStateAction<string>>;
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
+  updateMessage: (messageId: string, newContent: string) => void;
   deleteMessage: (messageId: string, deleteForEveryone: boolean) => void;
   clearChat: (contactId: string) => void;
   deleteChat: (contactId: string) => void;
@@ -170,6 +171,29 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [self, firestore]);
 
+  const updateMessage = useCallback(async (messageId: string, newContent: string) => {
+    if (!firestore || !self) return;
+    const messageRef = doc(firestore, 'messages', messageId);
+    
+    // Optimistically update local state
+    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, content: newContent, readStatus: 'updated' } : m));
+
+    // Update Firestore
+    await updateDoc(messageRef, {
+      content: newContent,
+      readStatus: 'updated',
+    }).catch(serverError => {
+      // Revert optimistic update on error
+      setMessages(prev => prev.map(m => m.id === messageId ? { ...m, content: messages.find(msg => msg.id === messageId)?.content || '', readStatus: 'sent' } : m));
+      const permissionError = new FirestorePermissionError({
+        path: messageRef.path,
+        operation: 'update',
+        requestResourceData: { content: newContent, readStatus: 'updated' },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
+  }, [firestore, self, messages]);
+
   const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self || !firestore) return;
     const systemMessage = {
@@ -193,19 +217,23 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!messageToDelete) return;
 
     if (deleteForEveryone && messageToDelete.senderId === self.id) {
-        // Hard delete for everyone (allowed by rules)
-        await deleteDoc(messageRef);
-        // The onSnapshot listener will handle removal from local state.
+        // Hard delete for everyone
+        await deleteDoc(messageRef).catch(serverError => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: messageRef.path,
+                operation: 'delete',
+            }));
+        });
+        // The onSnapshot listener will handle removal from local state automatically
     } else {
-        // Soft delete for self
+        // Soft delete (for self, or if recipient tries to delete for everyone)
         const updateField = messageToDelete.senderId === self.id ? { deletedBySender: true } : { deletedByRecipient: true };
         await updateDoc(messageRef, updateField).catch(serverError => {
-            const permissionError = new FirestorePermissionError({
+             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: messageRef.path,
                 operation: 'update',
-                requestResourceData: updateField,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+                requestResourceData: updateField
+            }));
         });
     }
   }, [firestore, self, messages]);
@@ -351,6 +379,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     selectedContact,
     setSelectedContact,
     addMessage,
+    updateMessage,
     deleteMessage,
     clearChat,
     deleteChat,

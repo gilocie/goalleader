@@ -9,7 +9,7 @@ export interface Contact {
     lastMessage: string;
     lastMessageTime: string;
     unreadCount?: number;
-    lastMessageReadStatus?: 'sent' | 'delivered' | 'read' | 'request_sent';
+    lastMessageReadStatus?: 'sent' | 'delivered' | 'read' | 'request_sent' | 'updated';
     lastMessageSenderId?: string;
 }
 

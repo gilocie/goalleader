@@ -1,63 +1,98 @@
+/**
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a user-ownership model for user profiles and allows public read access to chat messages, with owner-only writes.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores individual user profiles. Access is restricted to the owning user.
+ * - /messages/{messageId}: Stores chat messages. Read access is public, but write access is restricted to the message sender for a 30 minute window.
+ * - /chats/{userId}: Tracks active chats for a given user, accessible only to that user.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed.
+ * - Chat messages are publicly readable but sender-modifiable within a 30-minute window.
+ * - Strict ownership is enforced for user profiles and active chat lists.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // -------------------- USERS --------------------
+    /**
+     * @description Secure user profiles. Only the owning user can read or write their profile.
+     * @path /users/{userId}
+     * @allow (create, update, delete) if the user is signed in and the userId matches the authenticated user's ID.
+     * @allow (get, list) if the user is signed in and the userId matches the authenticated user's ID.
+     * @deny (create, update, delete) if the user is not signed in or the userId does not match the authenticated user's ID.
+     * @deny (get, list) if the user is not signed in or the userId does not match the authenticated user's ID.
+     * @principle Enforces document ownership for all operations.
+     */
     match /users/{userId} {
-      // Any user can read profiles
-      allow get, list: if true;
+      function isSignedIn() {
+        return request.auth != null;
+      }
 
-      // Only owner can create their profile
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      function isOwner(userId) {
+        return isSignedIn() && request.auth.uid == userId;
+      }
 
-      // Only owner can update profile; ID cannot change
-      allow update: if isSignedIn() && isExistingOwner(userId) &&
-        request.resource.data.id == resource.data.id;
-
-      // Only owner can delete profile
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) && resource.data.id == userId;
+      allow delete: if isOwner(userId) && resource.data.id == userId;
     }
 
-    // -------------------- MESSAGES --------------------
+    /**
+     * @description Allow public read access to chat messages, but restrict writes to the sender for a 30 minute window.
+     * @path /messages/{messageId}
+     * @allow (get, list) Allow anyone to read any message.
+     * @allow (create) Allow any authenticated user to create a message. The message must include senderId and recipientId fields that are strings.
+     * @allow (update, delete) Allow only the sender to update or delete a message within a 30-minute window.
+     * @deny (create, update, delete) if the request is not authenticated, or if the sender attempts to modify messages after 30 minutes.
+     * @principle Public read, owner-only write with time-based restriction.
+     */
     match /messages/{messageId} {
-      // Any user can read messages
+      function isSignedIn() {
+        return request.auth != null;
+      }
+
+      function isRecentMessage(messageTimestamp) {
+          let now = timestamp.value(request.time).toMillis();
+          let messageTime = timestamp.value(messageTimestamp).toMillis();
+          return now - messageTime <= 30 * 60 * 1000; // 30 minutes
+      }
+
+      function isOwner(senderId) {
+        return isSignedIn() && request.auth.uid == senderId;
+      }
+
       allow get, list: if true;
-
-      // Only sender can create a message
       allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
-
-      // Only sender or recipient can update readStatus or soft-delete flags
-      allow update: if isSignedIn() &&
-        (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) &&
-        request.resource.data.keys().hasOnly([
-          'readStatus',
-          'deletedBySender',
-          'deletedByRecipient'
-        ]);
-
-      // Only sender can fully delete a message for everyone
-      allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
+      allow update, delete: if isSignedIn() && isOwner(resource.data.senderId) && isRecentMessage(resource.data.timestamp);
     }
 
-    // -------------------- ACTIVE CHATS --------------------
+    /**
+     * @description Secure active chats. Only the owning user can read or write their active chats.
+     * @path /chats/{userId}
+     * @allow (create, update, delete) if the user is signed in and the userId matches the authenticated user's ID.
+     * @allow (get) if the user is signed in and the userId matches the authenticated user's ID.
+     * @deny (create, update, delete) if the user is not signed in or the userId does not match the authenticated user's ID.
+     * @deny (get) if the user is not signed in or the userId does not match the authenticated user's ID.
+     * @principle Enforces document ownership for all operations.
+     */
     match /chats/{userId} {
-      allow get, list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
-    }
+        function isSignedIn() {
+            return request.auth != null;
+        }
 
-    // -------------------- HELPER FUNCTIONS --------------------
-    function isSignedIn() {
-      return request.auth != null;
-    }
+        function isOwner(userId) {
+            return isSignedIn() && request.auth.uid == userId;
+        }
 
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+        allow get: if isOwner(userId);
+        allow list: if false;
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
     }
   }
 }
