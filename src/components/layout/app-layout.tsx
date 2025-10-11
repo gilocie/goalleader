@@ -110,11 +110,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <NotificationProvider>
                 <TimeTrackerProvider>
                     <ReportsProvider>
-                    <ChatProvider>
-                        <AISuggestionProvider>
-                            <LayoutWithTracker>{children}</LayoutWithTracker>
-                        </AISuggestionProvider>
-                    </ChatProvider>
+                        <ChatProvider>
+                            <AISuggestionProvider>
+                                <LayoutWithTracker>{children}</LayoutWithTracker>
+                            </AISuggestionProvider>
+                        </ChatProvider>
                     </ReportsProvider>
                 </TimeTrackerProvider>
             </NotificationProvider>
