@@ -194,6 +194,12 @@ export function ReportsPageContent() {
 
       <Dialog open={!!reportToEdit} onOpenChange={(open) => !open && setReportToEdit(null)}>
         <EditDialogContent>
+          <EditDialogHeader className="sr-only">
+            <EditDialogTitle>Edit Report</EditDialogTitle>
+            <EditDialogDescription>
+              Make changes to your report below.
+            </EditDialogDescription>
+          </EditDialogHeader>
           <div className="py-4 space-y-4">
              <div className='space-y-2'>
                 <Label htmlFor="edit-title">Title</Label>
