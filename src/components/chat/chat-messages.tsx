@@ -4,7 +4,7 @@
 import { CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon, Paperclip } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon, Paperclip, Edit } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -30,7 +30,7 @@ import { IncomingCallDialog } from './incoming-call-dialog';
 import { VideoCallDialog } from './video-call-dialog';
 import { IncomingVoiceCallDialog } from './incoming-voice-call-dialog';
 import { VoiceCallDialog } from './voice-call-dialog';
-import { format } from 'date-fns';
+import { format, formatDistanceToNowStrict } from 'date-fns';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { useUser } from '@/context/user-context';
 
@@ -210,7 +210,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     }
   };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
-  const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
+  const handleAction = (action: 'reply' | 'forward' | 'download' | 'edit', message: Message) => {
     if (action === 'reply') { setReplyTo(message); } 
     else if (action === 'forward') { setForwardMessage(message); }
   };
@@ -297,6 +297,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const MessageActions = ({ message }: { message: Message }) => {
     const isSelf = message.senderId === self.id;
     const hasAttachment = ['image', 'file', 'audio'].includes(message.type);
+    const canEdit = isSelf && (new Date().getTime() - message.timestamp.toDate().getTime()) < 30 * 60 * 1000;
+
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -308,6 +310,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           <DropdownMenuItem onClick={() => handleAction('reply', message)}>
             <Reply className="mr-2 h-4 w-4" /><span>Reply</span>
           </DropdownMenuItem>
+          {canEdit && (
+            <DropdownMenuItem onClick={() => handleAction('edit', message)}>
+                <Edit className="mr-2 h-4 w-4" /><span>Edit</span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onClick={() => handleAction('forward', message)}>
             <Forward className="mr-2 h-4 w-4" /><span>Forward</span>
           </DropdownMenuItem>
@@ -417,6 +424,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     const sender = contacts.find(c => c.id === message.senderId) || self;
                     const senderAvatar = PlaceHolderImages.find(p => p.id === sender.id);
                     const showUnreadMarker = index === firstUnreadIndex;
+                    const isEdited = message.readStatus === 'updated';
 
                     if (message.isSystem) {
                       const isVideo = message.callType === 'video';
@@ -500,7 +508,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                     </div>
                                 ) : null}
                                 {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
-                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp ? format(message.timestamp.toDate(), 'p') : ''}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
+                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
+                                    {isEdited && <span className="text-xs italic pr-1">Edited</span>}
+                                    <span>{message.timestamp ? format(message.timestamp.toDate(), 'p') : ''}</span>
+                                    {isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}
+                                </div>
                             </div>
 
                             {!isSelf && <MessageActions message={message} />}

@@ -188,23 +188,23 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const messageToDelete = messages.find(m => m.id === messageId);
     if (!messageToDelete) return;
 
-    if (deleteForEveryone && messageToDelete.senderId === self.id) {
-        // Hard delete for everyone if sender
-        deleteDoc(messageRef).catch(serverError => {
-            const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'delete' });
-            errorEmitter.emit('permission-error', permissionError);
-        });
+    if (deleteForEveryone) {
+        if (messageToDelete.senderId === self.id) {
+            // Hard delete for everyone
+            await deleteDoc(messageRef).catch(serverError => {
+                 const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'delete' });
+                 errorEmitter.emit('permission-error', permissionError);
+            });
+            // The onSnapshot listener will handle removal from local state
+        } else {
+            // Recipient cannot delete for everyone, only soft delete for themselves
+            await updateDoc(messageRef, { deletedByRecipient: true });
+        }
     } else {
         // Soft delete for self
-        const updateData = messageToDelete.senderId === self.id
-            ? { deletedBySender: true }
-            : { deletedByRecipient: true };
-        updateDoc(messageRef, updateData).catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: messageRef.path,
-                operation: 'update',
-                requestResourceData: updateData
-            });
+        const updateField = messageToDelete.senderId === self.id ? { deletedBySender: true } : { deletedByRecipient: true };
+        await updateDoc(messageRef, updateField).catch(serverError => {
+            const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'update', requestResourceData: updateField });
             errorEmitter.emit('permission-error', permissionError);
         });
     }

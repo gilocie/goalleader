@@ -19,7 +19,7 @@ export interface Message {
     recipientId: string;
     content: string;
     timestamp: Timestamp;
-    readStatus?: 'sent' | 'delivered' | 'read' | 'request_sent';
+    readStatus?: 'sent' | 'delivered' | 'read' | 'request_sent' | 'updated';
     isSystem?: boolean;
     type: 'text' | 'audio' | 'image' | 'file';
     audioUrl?: string;
