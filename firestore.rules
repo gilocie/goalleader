@@ -1,61 +1,100 @@
+/**
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user profiles and todos.
+ * Users can only read and write their own profile data and to-do items. Chat messages
+ * are publicly readable but writes are open.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information, accessible only to the user.
+ * - /users/{userId}/todos/{todoId}: Stores to-do items for a specific user, accessible only to the user.
+ * - /messages/{messageId}: Stores chat messages. Publicly readable, writes open.
+ * - /chats/{userId}: Stores active chat IDs for a user. Accessible only to that user.
+ *
+ * Key Security Decisions:
+ * - Users can only manage their own profiles and to-do lists.
+ * - Listing all users is disallowed.
+ * - Chat messages are publicly readable (for prototyping purposes).
+ *
+ * Denormalization for Authorization:
+ * - The `todo` documents contain a `userId` field, which is used to enforce ownership.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // -------------------- USERS --------------------
+    /**
+     * @description Controls access to user profile documents.
+     * @path /users/{userId}
+     * @allow (create) Authenticated user can create their own profile.
+     * @deny (create) Authenticated user cannot create a profile for another user.
+     * @allow (get, update, delete) Authenticated user can access their own profile.
+     * @deny (get, update, delete) Authenticated user cannot access another user's profile.
+     * @principle Enforces document ownership for user profiles.
+     */
     match /users/{userId} {
-      // Any user can read profiles
-      allow get, list: if true;
+      //function isSignedIn() {
+       // return request.auth != null;
+      //}
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
 
-      // Only owner can create their profile
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-
-      // Only owner can update profile; ID cannot change
-      allow update: if isSignedIn() && isExistingOwner(userId) &&
-        request.resource.data.id == resource.data.id;
-
-      // Only owner can delete profile
-      allow delete: if isSignedIn() && isExistingOwner(userId);
+      allow create: if isOwner(userId);
+      allow get, update, delete: if isOwner(userId) && resource != null;
+      allow list: if false;
     }
 
-    // -------------------- MESSAGES --------------------
+    /**
+     * @description Controls access to chat messages.
+     * @path /messages/{messageId}
+     * @allow (get, list) Anyone can read chat messages.
+     * @allow (create, update, delete) Writes are open.  This is for prototyping only and should be restricted later.
+     * @principle Allows public read access to chat messages for prototyping.
+     */
     match /messages/{messageId} {
-      // Any user can read messages
       allow get, list: if true;
-
-      // Only sender can create a message
-      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
-
-      // Sender or recipient can update soft-delete or readStatus
-      allow update: if isSignedIn() &&
-        (
-          (request.auth.uid == resource.data.senderId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readStatus', 'deletedBySender'])) ||
-          (request.auth.uid == resource.data.recipientId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readStatus', 'deletedByRecipient']))
-        );
-
-      // Only sender can fully delete a message for everyone
-      allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
+      allow create, update, delete: if true; // TODO: Restrict writes in production.
     }
-
-    // -------------------- ACTIVE CHATS --------------------
+        /**
+         * @description Controls access to active chat IDs for a user.
+         * @path /chats/{userId}
+         * @allow (create) Authenticated user can create their own active chat document.
+         * @deny (create) Authenticated user cannot create an active chat document for another user.
+         * @allow (get, update, delete) Authenticated user can access their own active chat document.
+         * @deny (get, update, delete) Authenticated user cannot access another user's active chat document.
+         */
     match /chats/{userId} {
-      allow get, list: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isExistingOwner(userId);
-      allow delete: if isSignedIn() && isExistingOwner(userId);
-    }
+         function isOwner(userId) {
+            return request.auth.uid == userId;
+          }
+          allow create: if isOwner(userId);
+          allow get, update, delete: if isOwner(userId) && resource != null;
+          allow list: if false;
+        }
 
-    // -------------------- HELPER FUNCTIONS --------------------
-    function isSignedIn() {
-      return request.auth != null;
-    }
 
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
+    /**
+     * @description Controls access to to-do items for a specific user.
+     * @path /users/{userId}/todos/{todoId}
+     * @allow (create) Authenticated user can create a to-do item for themselves, with matching userId.
+     * @deny (create) Authenticated user cannot create a to-do item for another user or with a mismatched userId.
+     * @allow (get, list, update, delete) Authenticated user can access and manage their own to-do items.
+     * @deny (get, list, update, delete) Authenticated user cannot access or manage another user's to-do items.
+     * @principle Enforces document ownership for to-do items, validating the userId field.
+     */
+    match /users/{userId}/todos/{todoId} {
 
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow update: if isOwner(userId) && resource != null;
+      allow delete: if isOwner(userId) && resource != null;
     }
   }
 }
