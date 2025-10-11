@@ -220,13 +220,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!messageToDelete) return;
 
     if (deleteForEveryone && messageToDelete.senderId === self.id) {
-        // Hard delete
+        // Hard delete for everyone
         deleteDoc(messageRef).catch(async (serverError) => {
             const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'delete' });
             errorEmitter.emit('permission-error', permissionError);
         });
+        // No need to update local state here, useCollection will handle it
     } else {
-        // Soft delete
+        // Soft delete (for me only)
         const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
         if (messageToDelete.senderId === self.id) {
             updateData.deletedBySender = true;
@@ -238,6 +239,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'update', requestResourceData: updateData });
             errorEmitter.emit('permission-error', permissionError);
         });
+         // No need to update local state here, useCollection will handle it
     }
   }, [firestore, self, messages]);
 
