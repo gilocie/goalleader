@@ -490,10 +490,18 @@ const SettingsPage = () => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [repeatPassword, setRepeatPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
     const handleRegisterAdmin = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (password !== repeatPassword) {
+            toast({
+                variant: 'destructive',
+                title: 'Passwords do not match',
+            });
+            return;
+        }
         if (!auth || !firestore) {
             toast({ variant: "destructive", title: "Firebase not initialized." });
             return;
@@ -515,6 +523,7 @@ const SettingsPage = () => {
             setFullName('');
             setEmail('');
             setPassword('');
+            setRepeatPassword('');
         } catch (error: any) {
             toast({ variant: "destructive", title: "Registration Failed", description: error.message });
         } finally {
@@ -570,30 +579,60 @@ const SettingsPage = () => {
                     </TabsContent>
                     <TabsContent value="register" className="mt-6">
                         <form onSubmit={handleRegisterAdmin} className="space-y-4 max-w-2xl">
-                            <h3 className="font-semibold">Register New Super Admin</h3>
+                           <Card className="w-full">
+                            <CardHeader className="text-center">
+                                <CardTitle className="text-2xl pt-2">Create a Super Admin</CardTitle>
+                                <CardDescription>Enter the information to create an account</CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid gap-4 px-6 pb-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="full-name">Full Name</Label>
-                                    <Input id="full-name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                                <div className="grid gap-2">
+                                <Label htmlFor="full-name">Full name</Label>
+                                <Input id="full-name" placeholder="Patrick Achitabwino" required value={fullName} onChange={e => setFullName(e.target.value)} />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                                <div className="grid gap-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} />
                                 </div>
                             </div>
-                            <div className="space-y-2">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
                                 <Label htmlFor="password">Password</Label>
                                 <div className="relative">
-                                    <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required />
-                                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
-                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    <Input id="password" type={showPassword ? 'text' : 'password'} required value={password} onChange={e => setPassword(e.target.value)} />
+                                    <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    >
+                                    {showPassword ? <EyeOff /> : <Eye />}
                                     </Button>
                                 </div>
+                                </div>
+                                <div className="grid gap-2">
+                                <Label htmlFor="repeat-password">Repeat password</Label>
+                                <div className="relative">
+                                    <Input id="repeat-password" type={showPassword ? 'text' : 'password'} required value={repeatPassword} onChange={e => setRepeatPassword(e.target.value)} />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground"
+                                    onClick={() => setShowPassword((prev) => !prev)}
+                                    >
+                                    {showPassword ? <EyeOff /> : <Eye />}
+                                    </Button>
+                                </div>
+                                </div>
                             </div>
-                            <Button type="submit" disabled={isRegistering}>
-                                {isRegistering ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
-                                Register Admin
+                            <Button type="submit" className="w-full" disabled={isRegistering}>
+                                {isRegistering && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Create Super Admin
                             </Button>
+                            </CardContent>
+                        </Card>
                         </form>
                     </TabsContent>
                 </Tabs>
