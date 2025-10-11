@@ -12,6 +12,7 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/
 import { useSidebar } from './sidebar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useUser } from '@/context/user-context';
+import { FolderKanban } from 'lucide-react';
 
 type NavLink = {
     href: string;
@@ -29,6 +30,7 @@ const links: NavLink[] = [
     icon: ListTodo, 
     label: 'Tasks',
     subItems: [
+        { href: '/projects', icon: FolderKanban, label: 'Projects' },
         { href: '/performance', icon: Package, label: 'Performance' },
         { href: '/reports', icon: FileText, label: 'Reports' },
         { href: '/analytics', icon: LineChart, label: 'Analytics' },

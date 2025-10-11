@@ -113,7 +113,7 @@ export function ProjectList() {
       <Card className="h-full flex flex-col">
         <CardHeader className="flex flex-row items-center justify-between">
             <div>
-                <CardTitle>ToDo List</CardTitle>
+                <CardTitle>Today's Tasks</CardTitle>
                 <CardDescription>A list of your ongoing tasks.</CardDescription>
             </div>
             <Button 
