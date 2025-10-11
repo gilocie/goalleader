@@ -51,12 +51,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const messagesSentQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'messages'), where('senderId', '==', firebaseUser.uid));
+    return query(collection(firestore, 'messages'), where('senderId', '==', firebaseUser.uid), orderBy('timestamp'));
   }, [firestore, firebaseUser]);
 
   const messagesReceivedQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid));
+    return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid), orderBy('timestamp'));
   }, [firestore, firebaseUser]);
 
   const { data: sentMessages, setData: setSentMessages } = useCollection<Message>(messagesSentQuery);
@@ -79,8 +79,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-
-  const activeChatIds = useMemo(() => new Set(activeChatsData?.ids || []), [activeChatsData]);
 
   const allContacts = useMemo(() => {
     if (!firebaseUser || !allTeamMembers) return [];
@@ -115,7 +113,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       const selfInList = allContacts.find(c => c.id === firebaseUser.uid);
       if (selfInList) return selfInList;
 
-      // Fallback if not in team members list (e.g. new anonymous user)
       return {
           id: firebaseUser.uid,
           name: firebaseUser.isAnonymous ? 'Guest User' : (firebaseUser.displayName || 'You'),
@@ -130,22 +127,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         updateUserStatus(firebaseUser.uid, 'online');
     }
   }, [firebaseUser, updateUserStatus]);
-
-  const updateActiveChatIds = async (newIds: Set<string>) => {
-    if (!firestore || !firebaseUser) return;
-    const activeChatsRef = doc(firestore, 'chats', firebaseUser.uid);
-    try {
-        await updateDoc(activeChatsRef, { ids: Array.from(newIds) });
-    } catch (e) {
-        console.error("Failed to update active chats in Firestore", e);
-    }
-  }
   
   const contacts = useMemo(() => {
     if (!firebaseUser) return [];
     const contactList = allContacts.filter(c => {
         if (c.id === firebaseUser.uid) return false;
-        // A chat is "active" if there are any messages between the two users.
         const hasMessages = messages.some(m => 
             ((m.senderId === c.id && m.recipientId === firebaseUser.uid && !m.deletedByRecipient) || 
             (m.senderId === firebaseUser.uid && m.recipientId === c.id && !m.deletedBySender))
@@ -189,7 +175,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         const permissionError = new FirestorePermissionError({
             path: messagesCollection.path,
             operation: 'create',
-            requestResourceData: {...newMessage, timestamp: new Date().toISOString() }, // Add a client-side timestamp for the error report
+            requestResourceData: {...newMessage, timestamp: new Date().toISOString() },
         });
         errorEmitter.emit('permission-error', permissionError);
     });
@@ -225,7 +211,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'delete' });
             errorEmitter.emit('permission-error', permissionError);
         });
-        // No need to update local state here, useCollection will handle it
     } else {
         // Soft delete (for me only)
         const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
@@ -239,7 +224,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'update', requestResourceData: updateData });
             errorEmitter.emit('permission-error', permissionError);
         });
-         // No need to update local state here, useCollection will handle it
     }
   }, [firestore, self, messages]);
 
