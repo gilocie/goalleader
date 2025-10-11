@@ -38,7 +38,9 @@ import {
 import { Task, useTimeTracker } from '@/context/time-tracker-context';
 import { ScrollArea } from '../ui/scroll-area';
 import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
-import { format, isWithinInterval, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { format, isWithinInterval } from 'date-fns';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import type { Timestamp } from 'firebase/firestore';
 
 type FilterType = 'recent' | 'thisWeek' | 'thisMonth';
 
@@ -63,6 +65,25 @@ export function CompletedProjectsTable() {
 
     return result.trim() || '0s';
   };
+  
+  const formatDate = (dateValue?: string | Timestamp) => {
+    if (!dateValue) return 'N/A';
+    
+    let date;
+    if (typeof dateValue === 'string') {
+        date = new Date(dateValue);
+    } else if (dateValue && typeof (dateValue as Timestamp).toDate === 'function') {
+        date = (dateValue as Timestamp).toDate();
+    } else {
+        return 'Invalid Date';
+    }
+
+    if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+    }
+
+    return format(date, 'PP');
+  };
 
   const filteredTasks = useMemo(() => {
     const completed = tasks.filter(t => t.status === 'Completed' && t.endTime);
@@ -70,18 +91,30 @@ export function CompletedProjectsTable() {
 
     switch (activeFilter) {
       case 'thisWeek':
-        return completed.filter(t => isWithinInterval(new Date(t.endTime!), {
-          start: startOfWeek(now),
-          end: endOfWeek(now),
-        }));
+        return completed.filter(t => {
+            if (!t.endTime) return false;
+            const endDate = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime);
+            return isWithinInterval(endDate, {
+                start: startOfWeek(now),
+                end: endOfWeek(now),
+            });
+        });
       case 'thisMonth':
-        return completed.filter(t => isWithinInterval(new Date(t.endTime!), {
-            start: startOfMonth(now),
-            end: endOfMonth(now),
-        }));
+        return completed.filter(t => {
+            if (!t.endTime) return false;
+            const endDate = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime);
+            return isWithinInterval(endDate, {
+                start: startOfMonth(now),
+                end: endOfMonth(now),
+            });
+        });
       case 'recent':
       default:
-        return completed.sort((a, b) => new Date(b.endTime!).getTime() - new Date(a.endTime!).getTime());
+        return completed.sort((a, b) => {
+            const timeA = (a.endTime as Timestamp)?.toMillis() || 0;
+            const timeB = (b.endTime as Timestamp)?.toMillis() || 0;
+            return timeB - timeA;
+        });
     }
   }, [tasks, activeFilter]);
 
@@ -119,7 +152,7 @@ export function CompletedProjectsTable() {
                   <TableRow key={task.name}>
                     <TableCell className="font-medium">{task.name}</TableCell>
                     <TableCell>
-                      {task.endTime ? format(new Date(task.endTime), 'PP') : 'N/A'}
+                      {formatDate(task.endTime)}
                     </TableCell>
                     <TableCell>{formatTime(task.duration)}</TableCell>
                     <TableCell className="text-right">
