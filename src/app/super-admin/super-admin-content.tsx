@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid, Mail, Phone, Calendar } from 'lucide-react';
+import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid, Mail, Phone, Calendar, Settings, LogOut, PanelLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 
 type NavItem = {
@@ -31,25 +32,91 @@ const navItems: NavItem[] = [
     { id: 'support', label: 'Support', icon: LifeBuoy },
 ];
 
-function SuperAdminSidebar({ activePage, setActivePage }: { activePage: string; setActivePage: (page: NavItem['id']) => void; }) {
+function SuperAdminSidebar({ activePage, setActivePage, isCollapsed, onToggleCollapse }: { activePage: string; setActivePage: (page: NavItem['id']) => void; isCollapsed: boolean; onToggleCollapse: () => void; }) {
+    const handleLogout = () => {
+        // In a real app, this would handle logout logic
+        console.log("Logout clicked");
+    }
+
+    const renderLink = (item: NavItem) => {
+        const isActive = activePage === item.id;
+        const commonClasses = "justify-start p-3 font-semibold text-base h-auto w-full transition-all";
+        
+        if (isCollapsed) {
+            return (
+                <TooltipProvider key={item.id} delayDuration={0}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <Button 
+                                variant={isActive ? 'default' : 'ghost'}
+                                className={cn(
+                                    commonClasses, 
+                                    'justify-center',
+                                    isActive 
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                        : 'hover:bg-accent hover:text-accent-foreground'
+                                )}
+                                onClick={() => setActivePage(item.id)}
+                            >
+                                 <item.icon className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                            <p>{item.label}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )
+        }
+        
+        return (
+            <Button 
+                key={item.id} 
+                variant={isActive ? 'default' : 'ghost'}
+                className={cn(
+                    commonClasses,
+                    isActive 
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                        : 'hover:bg-accent hover:text-accent-foreground'
+                )}
+                onClick={() => setActivePage(item.id)}
+            >
+                 <item.icon className="mr-3 h-5 w-5" />
+                 <span>{item.label}</span>
+            </Button>
+        )
+    }
+    
     return (
-        <aside className="hidden md:flex flex-col gap-2 p-4 bg-background rounded-lg border self-start">
-            {navItems.map(item => (
-                <Button 
-                    key={item.id} 
-                    variant={activePage === item.id ? 'default' : 'ghost'}
-                    className={cn(
-                        "justify-start p-3 font-semibold text-base h-auto",
-                        activePage === item.id 
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                            : 'hover:bg-accent hover:text-accent-foreground'
-                    )}
-                    onClick={() => setActivePage(item.id)}
-                >
-                     <item.icon className="mr-3 h-5 w-5" />
-                     {item.label}
-                </Button>
-            ))}
+        <aside className={cn("hidden md:flex flex-col gap-2 p-2 bg-background rounded-lg border self-start transition-all duration-300", isCollapsed ? 'items-center' : '')}>
+            <div className={cn("flex-1 w-full space-y-2", isCollapsed ? "flex flex-col items-center" : "")}>
+                {navItems.map(item => renderLink(item))}
+            </div>
+            <div className="mt-auto w-full space-y-2">
+                 <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" className={cn("w-full justify-start", isCollapsed && "justify-center")} >
+                                <Settings className={cn("h-5 w-5", !isCollapsed && "mr-3")} />
+                                {!isCollapsed && <span>Settings</span>}
+                            </Button>
+                        </TooltipTrigger>
+                        {isCollapsed && <TooltipContent side="right"><p>Settings</p></TooltipContent>}
+                    </Tooltip>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" className={cn("w-full justify-start", isCollapsed && "justify-center")} onClick={handleLogout}>
+                                <LogOut className={cn("h-5 w-5", !isCollapsed && "mr-3")} />
+                                {!isCollapsed && <span>Logout</span>}
+                            </Button>
+                        </TooltipTrigger>
+                        {isCollapsed && <TooltipContent side="right"><p>Logout</p></TooltipContent>}
+                    </Tooltip>
+                </TooltipProvider>
+            </div>
+            <Button variant="outline" size="icon" className="h-8 w-8 mt-4" onClick={onToggleCollapse}>
+                <PanelLeft className={cn("h-4 w-4 transition-transform", isCollapsed && 'rotate-180')} />
+            </Button>
         </aside>
     );
 }
@@ -412,6 +479,7 @@ const SupportPage = () => {
 
 export function SuperAdminContent() {
     const [activePage, setActivePage] = useState<NavItem['id']>('overview');
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     
     const renderContent = () => {
         switch(activePage) {
@@ -435,8 +503,13 @@ export function SuperAdminContent() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
-                <SuperAdminSidebar activePage={activePage} setActivePage={setActivePage} />
+            <div className={cn("grid grid-cols-1 gap-8", isSidebarCollapsed ? "md:grid-cols-[80px_1fr]" : "md:grid-cols-[250px_1fr]")}>
+                <SuperAdminSidebar 
+                    activePage={activePage} 
+                    setActivePage={setActivePage} 
+                    isCollapsed={isSidebarCollapsed}
+                    onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                />
 
                 <div className="md:col-span-1">
                     {renderContent()}
