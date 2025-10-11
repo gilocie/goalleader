@@ -107,17 +107,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <UserProvider>
         <SidebarProvider>
-        <TimeTrackerProvider>
-            <ReportsProvider>
-            <ChatProvider>
-                <NotificationProvider>
-                <AISuggestionProvider>
-                    <LayoutWithTracker>{children}</LayoutWithTracker>
-                </AISuggestionProvider>
-                </NotificationProvider>
-            </ChatProvider>
-            </ReportsProvider>
-        </TimeTrackerProvider>
+            <NotificationProvider>
+                <TimeTrackerProvider>
+                    <ReportsProvider>
+                    <ChatProvider>
+                        <AISuggestionProvider>
+                            <LayoutWithTracker>{children}</LayoutWithTracker>
+                        </AISuggestionProvider>
+                    </ChatProvider>
+                    </ReportsProvider>
+                </TimeTrackerProvider>
+            </NotificationProvider>
         </SidebarProvider>
     </UserProvider>
   );
