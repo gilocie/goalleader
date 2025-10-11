@@ -186,7 +186,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       });
       errorEmitter.emit('permission-error', permissionError);
     });
-  }, [firestore, self, messages, setMessages]);
+  }, [firestore, self]);
 
   const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self || !firestore) return;
