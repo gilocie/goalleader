@@ -43,7 +43,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const { user: firebaseUser, loading: authLoading } = useFirebaseAuthUser();
   const firestore = useFirestore();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const usersQuery = React.useMemo(() => {
@@ -56,68 +55,60 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // This is a client-side mock for fetching all users with emails.
   // In a real app, this should be a secure backend/admin operation.
   const [allUsersWithAuth, setAllUsersWithAuth] = useState<User[]>([]);
+  
+  const loading = authLoading || usersLoading;
 
   useEffect(() => {
-    if (authLoading || usersLoading) {
-        setLoading(true);
-        return;
-    }
-    
-    if (firebaseUser && firestore) {
-        const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-        const unsubscribe = onSnapshot(userDocRef, (doc) => {
-            if (doc.exists()) {
-                const data = doc.data();
-                const currentUser: User = {
-                    id: firebaseUser.uid,
-                    name: data.name || firebaseUser.displayName || 'Anonymous',
-                    role: data.role || 'Consultant',
-                    department: data.department || 'Customer Service',
-                    country: data.country || '',
-                    branch: data.branch || '',
-                    email: firebaseUser.email || '',
-                    status: data.status || 'online',
-                };
-                setUser(currentUser);
-                if (currentUser.status !== 'online') {
-                    updateUserStatus(firebaseUser.uid, 'online');
-                }
-            } else {
-                 const newUserProfile: User = {
-                    id: firebaseUser.uid,
-                    name: firebaseUser.displayName || `User-${firebaseUser.uid.slice(0,5)}`,
-                    role: 'Consultant',
-                    department: 'Customer Service',
-                    country: '',
-                    branch: '',
-                    email: firebaseUser.email || '',
-                    status: 'online',
-                 };
-                 setUser(newUserProfile);
-            }
-            setLoading(false);
-        }, (error) => {
-            console.error("Error fetching user document:", error);
-            setLoading(false);
-        });
-
-        const handleBeforeUnload = () => {
-          updateUserStatus(firebaseUser.uid, new Date().toISOString());
+    if (!loading && firebaseUser && allTeamMembers.length > 0) {
+      const currentUserData = allTeamMembers.find(member => member.id === firebaseUser.uid);
+      if (currentUserData) {
+        const currentUser: User = {
+          id: firebaseUser.uid,
+          name: currentUserData.name || firebaseUser.displayName || 'Anonymous',
+          role: currentUserData.role || 'Consultant',
+          department: currentUserData.department || 'Customer Service',
+          country: currentUserData.country || '',
+          branch: currentUserData.branch || '',
+          email: firebaseUser.email || '',
+          status: currentUserData.status || 'online',
         };
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        return () => {
-          if (firebaseUser) {
-            updateUserStatus(firebaseUser.uid, new Date().toISOString());
-          }
-          window.removeEventListener('beforeunload', handleBeforeUnload);
-          unsubscribe();
-        };
-    } else {
+        setUser(currentUser);
+        if (currentUser.status !== 'online') {
+            updateUserStatus(firebaseUser.uid, 'online');
+        }
+      } else if (!usersLoading) { // Ensure we're not in a loading state
+         const newUserProfile: User = {
+            id: firebaseUser.uid,
+            name: firebaseUser.displayName || `User-${firebaseUser.uid.slice(0,5)}`,
+            role: 'Consultant',
+            department: 'Customer Service',
+            country: '',
+            branch: '',
+            email: firebaseUser.email || '',
+            status: 'online',
+         };
+         setUser(newUserProfile);
+         // Optionally save this new profile to Firestore
+         saveUser(newUserProfile);
+      }
+    } else if (!loading && !firebaseUser) {
         setUser(null);
-        setLoading(false);
     }
-  }, [firebaseUser, firestore, authLoading, usersLoading]);
+  }, [firebaseUser, allTeamMembers, loading, usersLoading]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (firebaseUser) {
+        updateUserStatus(firebaseUser.uid, new Date().toISOString());
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [firebaseUser]);
+
 
   // Mock fetching all users with emails
   useEffect(() => {
