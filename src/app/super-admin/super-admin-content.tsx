@@ -18,10 +18,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Label } from '@/components/ui/label';
 
 
 type NavItem = {
-    id: 'overview' | 'clients' | 'support';
+    id: 'overview' | 'clients' | 'support' | 'settings';
     label: string;
     icon: React.ElementType;
 };
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'clients', label: 'Clients', icon: Users },
     { id: 'support', label: 'Support', icon: LifeBuoy },
+    { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 function SuperAdminSidebar({ activePage, setActivePage, isCollapsed, onToggleCollapse }: { activePage: string; setActivePage: (page: NavItem['id']) => void; isCollapsed: boolean; onToggleCollapse: () => void; }) {
@@ -94,15 +96,6 @@ function SuperAdminSidebar({ activePage, setActivePage, isCollapsed, onToggleCol
             </div>
             <div className="mt-auto w-full space-y-2">
                  <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" className={cn("w-full justify-start", isCollapsed && "justify-center")} >
-                                <Settings className={cn("h-5 w-5", !isCollapsed && "mr-3")} />
-                                {!isCollapsed && <span>Settings</span>}
-                            </Button>
-                        </TooltipTrigger>
-                        {isCollapsed && <TooltipContent side="right"><p>Settings</p></TooltipContent>}
-                    </Tooltip>
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <Button variant="ghost" className={cn("w-full justify-start", isCollapsed && "justify-center")} onClick={handleLogout}>
@@ -477,6 +470,72 @@ const SupportPage = () => {
     )
 }
 
+const SettingsPage = () => {
+    const { toast } = useToast();
+
+    const handleAction = (action: string) => {
+        toast({
+            title: 'Action Triggered',
+            description: `${action} functionality is not yet implemented.`,
+        });
+    };
+
+    return (
+        <div className="space-y-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Account Information</CardTitle>
+                    <CardDescription>Manage your super admin account details.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="admin-name">Name</Label>
+                        <Input id="admin-name" defaultValue="Super Admin" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="admin-email">Email</Label>
+                        <Input id="admin-email" type="email" defaultValue="super@goalleader.com" />
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={() => handleAction('Update Account')}>Save Changes</Button>
+                </CardFooter>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Security</CardTitle>
+                    <CardDescription>Manage your password and security settings.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="current-password">Current Password</Label>
+                        <Input id="current-password" type="password" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-password">New Password</Label>
+                        <Input id="new-password" type="password" />
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={() => handleAction('Change Password')}>Change Password</Button>
+                </CardFooter>
+            </Card>
+            
+             <Card>
+                <CardHeader>
+                    <CardTitle>Billing</CardTitle>
+                    <CardDescription>Manage your subscription and payment methods.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-sm">Your current plan: <strong>Super Admin Unlimited</strong></p>
+                    <Button variant="outline" onClick={() => handleAction('Manage Subscription')}>Manage Subscription</Button>
+                </CardContent>
+            </Card>
+        </div>
+    );
+};
+
 export function SuperAdminContent() {
     const [activePage, setActivePage] = useState<NavItem['id']>('overview');
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -487,6 +546,8 @@ export function SuperAdminContent() {
                 return <ClientsPage />;
             case 'support':
                 return <SupportPage />;
+            case 'settings':
+                return <SettingsPage />;
             case 'overview':
             default:
                 return <OverviewPage />;
