@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -28,9 +27,11 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
 
       // Sender or recipient can update soft-delete or readStatus
-      allow update: if isSignedIn() 
-        && (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) 
-        && onlyUpdatingAllowedFields();
+      allow update: if isSignedIn() &&
+        (
+          (request.auth.uid == resource.data.senderId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readStatus', 'deletedBySender'])) ||
+          (request.auth.uid == resource.data.recipientId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readStatus', 'deletedByRecipient']))
+        );
 
       // Only sender can fully delete a message for everyone
       allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
@@ -55,16 +56,6 @@ service cloud.firestore {
 
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
-    }
-
-    function isSenderOrRecipient(senderId, recipientId) {
-      return request.auth.uid == senderId || request.auth.uid == recipientId;
-    }
-
-    function onlyUpdatingAllowedFields() {
-      let allowedFields = ['readStatus', 'deletedBySender', 'deletedByRecipient'];
-      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
-      return affectedKeys.hasOnly(allowedFields);
     }
   }
 }
