@@ -192,7 +192,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       });
       errorEmitter.emit('permission-error', permissionError);
     });
-  }, [firestore, self, messages]);
+  }, [firestore, self, messages, setMessages]);
 
   const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self || !firestore) return;
@@ -211,32 +211,30 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [self, firestore]);
 
  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
-    if (!firestore || !self) return;
-    const messageRef = doc(firestore, 'messages', messageId);
-    const messageToDelete = messages.find(m => m.id === messageId);
-    if (!messageToDelete) return;
+  if (!firestore || !self) return;
+  const messageRef = doc(firestore, 'messages', messageId);
+  const messageToDelete = messages.find(m => m.id === messageId);
+  if (!messageToDelete) return;
 
-    if (deleteForEveryone && messageToDelete.senderId === self.id) {
-        // Hard delete for everyone
-        await deleteDoc(messageRef).catch(serverError => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: messageRef.path,
-                operation: 'delete',
-            }));
-        });
-        // The onSnapshot listener will handle removal from local state automatically
+  if (deleteForEveryone) {
+    // Only sender can delete for everyone
+    if (messageToDelete.senderId === self.id) {
+      await deleteDoc(messageRef)
+        .then(() => setMessages(prev => prev.filter(m => m.id !== messageId)))
+        .catch(err => console.error("Delete for everyone failed:", err));
     } else {
-        // Soft delete (for self, or if recipient tries to delete for everyone)
-        const updateField = messageToDelete.senderId === self.id ? { deletedBySender: true } : { deletedByRecipient: true };
-        await updateDoc(messageRef, updateField).catch(serverError => {
-             errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: messageRef.path,
-                operation: 'update',
-                requestResourceData: updateField
-            }));
-        });
+      console.warn("You are not allowed to delete this message for everyone.");
     }
-  }, [firestore, self, messages]);
+  } else {
+    // Soft delete (just for me)
+    const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
+    if (messageToDelete.senderId === self.id) updateData.deletedBySender = true;
+    else updateData.deletedByRecipient = true;
+
+    await updateDoc(messageRef, updateData)
+      .catch(err => console.error("Soft delete failed:", err));
+  }
+}, [firestore, self, messages, setMessages]);
 
 
   const clearChat = useCallback(async (contactId: string) => {
