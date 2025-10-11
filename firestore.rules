@@ -11,6 +11,8 @@
  * - /chats/{userId}: Tracks active chat IDs for each user, accessible and writable only by the owner.
  * - /users/{userId}/todos/{todoId}: Stores to-do items for each user, accessible and writable only by the owner.
  * - /users/{userId}/reports/{reportId}: Stores performance reports for each user, accessible and writable only by the owner.
+ * - /clientLeads/{leadId}: Stores client leads for the organization, accessible to any authenticated user.
+ * - /marketingContent/{contentId}: Stores marketing content for the organization, accessible to any authenticated user.
  *
  * Key Security Decisions:
  * - User listing is explicitly allowed to display user profiles.
@@ -160,6 +162,28 @@ service cloud.firestore {
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
       allow update: if isSignedIn() && isExistingOwner(userId) && resource.data.userId == userId;
       allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+    /**
+     * @description Grants read and write access to authenticated users for the client leads collection.
+     * @path /clientLeads/{leadId}
+     * @allow (get, list, create, update, delete) Any authenticated user can manage client leads.
+     *   - Request: auth.uid != null
+     * @principle Allows collaborative management of client leads across the organization.
+     */
+    match /clientLeads/{leadId} {
+      allow read, write: if isSignedIn();
+    }
+
+    /**
+     * @description Grants read and write access to authenticated users for the marketing content collection.
+     * @path /marketingContent/{contentId}
+     * @allow (get, list, create, update, delete) Any authenticated user can manage marketing content.
+     *   - Request: auth.uid != null
+     * @principle Allows collaborative management of marketing content across the organization.
+     */
+    match /marketingContent/{contentId} {
+      allow read, write: if isSignedIn();
     }
 
     function isSignedIn() {
