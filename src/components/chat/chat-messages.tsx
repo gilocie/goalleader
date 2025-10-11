@@ -215,12 +215,15 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     }
   };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
-  const handleAction = (action: 'reply' | 'forward' | 'download' | 'edit', message: Message) => {
+  const handleAction = (action: 'reply' | 'forward' | 'download' | 'edit' | 'copy', message: Message) => {
     if (action === 'reply') { setReplyTo(message); } 
     else if (action === 'forward') { setForwardMessage(message); }
     else if (action === 'edit' && message.type === 'text') {
         setEditingMessage(message);
         setEditedContent(message.content);
+    } else if (action === 'copy' && message.type === 'text') {
+      navigator.clipboard.writeText(message.content);
+      toast({ title: 'Message copied!' });
     }
   };
   const handleSendMessageWithContext = (content: string, type: 'text' | 'audio' | 'image' | 'file', data: any = {}) => {
@@ -327,6 +330,11 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           <DropdownMenuItem onClick={() => handleAction('reply', message)}>
             <Reply className="mr-2 h-4 w-4" /><span>Reply</span>
           </DropdownMenuItem>
+          {message.type === 'text' && (
+            <DropdownMenuItem onClick={() => handleAction('copy', message)}>
+                <Copy className="mr-2 h-4 w-4" /><span>Copy</span>
+            </DropdownMenuItem>
+          )}
           {canEdit && message.type === 'text' && (
             <DropdownMenuItem onClick={() => handleAction('edit', message)}>
                 <Edit className="mr-2 h-4 w-4" /><span>Edit</span>
@@ -670,4 +678,5 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
 
