@@ -121,11 +121,11 @@ export function ClientLeadsGrid() {
                                   Delete
                                 </DropdownMenuItem>
                                 <DropdownMenuLabel>Contact</DropdownMenuLabel>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.location.href = `mailto:${lead.email}`}>
                                   <Mail className="mr-2 h-4 w-4" />
                                   Send Email
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.location.href = `tel:${lead.phone}`}>
                                   <Phone className="mr-2 h-4 w-4" />
                                   Call
                                 </DropdownMenuItem>
