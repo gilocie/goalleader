@@ -38,7 +38,7 @@ function SuperAdminSidebar({ activePage, setActivePage, isCollapsed, onToggleCol
     const handleLogout = () => {
         // In a real app, this would handle logout logic
         console.log("Logout clicked");
-    }
+    };
 
     const renderLink = (item: NavItem) => {
         const isActive = activePage === item.id;
@@ -87,7 +87,7 @@ function SuperAdminSidebar({ activePage, setActivePage, isCollapsed, onToggleCol
                  <span>{item.label}</span>
             </Button>
         )
-    }
+    };
     
     return (
         <aside className={cn("hidden md:flex flex-col gap-2 p-2 bg-background rounded-lg border self-start transition-all duration-300", isCollapsed ? 'items-center' : '')}>
@@ -95,6 +95,17 @@ function SuperAdminSidebar({ activePage, setActivePage, isCollapsed, onToggleCol
                 {navItems.map(item => renderLink(item))}
             </div>
             <div className="mt-auto w-full space-y-2">
+                 <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" className={cn("w-full justify-start", isCollapsed && "justify-center")} onClick={() => setActivePage('settings')}>
+                                <Settings className={cn("h-5 w-5", !isCollapsed && "mr-3")} />
+                                {!isCollapsed && <span>Settings</span>}
+                            </Button>
+                        </TooltipTrigger>
+                        {isCollapsed && <TooltipContent side="right"><p>Settings</p></TooltipContent>}
+                    </Tooltip>
+                </TooltipProvider>
                  <TooltipProvider delayDuration={0}>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -488,10 +499,11 @@ const SettingsPage = () => {
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="account" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="account">Account</TabsTrigger>
                         <TabsTrigger value="security">Security</TabsTrigger>
                         <TabsTrigger value="billing">Billing</TabsTrigger>
+                        <TabsTrigger value="register">Register Admin</TabsTrigger>
                     </TabsList>
                     <TabsContent value="account" className="mt-6">
                         <div className="space-y-6 max-w-2xl">
@@ -523,6 +535,23 @@ const SettingsPage = () => {
                          <div className="space-y-6 max-w-2xl">
                             <p className="text-sm">Your current plan: <strong>Super Admin Unlimited</strong></p>
                             <Button variant="outline" onClick={() => handleAction('Manage Subscription')}>Manage Subscription</Button>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="register" className="mt-6">
+                        <div className="space-y-6 max-w-2xl">
+                             <div className="space-y-2">
+                                <Label htmlFor="new-admin-name">Full Name</Label>
+                                <Input id="new-admin-name" placeholder="Enter full name" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="new-admin-email">Email</Label>
+                                <Input id="new-admin-email" type="email" placeholder="Enter email address" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="new-admin-password">Password</Label>
+                                <Input id="new-admin-password" type="password" placeholder="Enter temporary password" />
+                            </div>
+                            <Button onClick={() => handleAction('Register New Admin')}>Register Admin</Button>
                         </div>
                     </TabsContent>
                 </Tabs>
@@ -574,3 +603,5 @@ export function SuperAdminContent() {
         </main>
     );
 }
+
+    
