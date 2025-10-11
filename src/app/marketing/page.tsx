@@ -1,62 +1,33 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Bot, PlusCircle } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
 import type { Suggestion } from '@/types/marketing';
 import { ApprovedContentActions } from '@/components/marketing/approved-content-actions';
 import { ClientLeadsGrid } from '@/components/marketing/client-leads-grid';
 import { Logo } from '@/components/icons';
+import { useMarketing } from '@/context/marketing-context';
 
 export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
-  const [approvedContent, setApprovedContent] = useState<Suggestion[]>([]);
-
-  useEffect(() => {
-    try {
-      const storedContent = localStorage.getItem('approvedMarketingContent');
-      if (storedContent) {
-        setApprovedContent(JSON.parse(storedContent));
-      }
-    } catch (error) {
-      console.error("Failed to load approved content from localStorage", error);
-    }
-  }, []);
+  const { approvedContent, approveContent, updateApprovedContent, deleteApprovedContent } = useMarketing();
 
   const handleApproveContent = (content: Suggestion) => {
-    const newContent = [content, ...approvedContent];
-    try {
-      localStorage.setItem('approvedMarketingContent', JSON.stringify(newContent));
-      setApprovedContent(newContent);
-    } catch (error) {
-      console.error("Failed to save approved content to localStorage", error);
-    }
+    approveContent(content);
   };
 
   const handleContentDeleted = (updatedContent: Suggestion[]) => {
-    setApprovedContent(updatedContent);
-     try {
-        localStorage.setItem('approvedMarketingContent', JSON.stringify(updatedContent));
-      } catch (error) {
-        console.error("Failed to save approved content to localStorage", error);
-      }
+    // This is now handled by the context directly via deleteApprovedContent
   }
 
   const handleContentUpdated = (updatedContent: Suggestion) => {
-    const newContent = approvedContent.map(c => 
-      c.blogTitle === updatedContent.blogTitle ? updatedContent : c
-    );
-    setApprovedContent(newContent);
-    try {
-        localStorage.setItem('approvedMarketingContent', JSON.stringify(newContent));
-    } catch (error) {
-        console.error("Failed to update approved content in localStorage", error);
-    }
+    updateApprovedContent(updatedContent.id!, updatedContent);
   }
 
   return (

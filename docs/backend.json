@@ -154,6 +154,35 @@
             }
         },
         "required": ["title", "content", "date", "userId"]
+    },
+    "clientLead": {
+        "title": "Client Lead",
+        "description": "Represents a single prospective client.",
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "company": { "type": "string" },
+            "email": { "type": "string" },
+            "phone": { "type": "string" },
+            "service": { "type": "string" },
+            "status": { "type": "string", "enum": ["New", "Contacted", "Qualified", "Proposal Sent", "Negotiation", "Won", "Lost"] }
+        },
+        "required": ["name", "company", "email", "phone", "service", "status"]
+    },
+    "marketingContent": {
+        "title": "Marketing Content",
+        "description": "Represents an AI-generated and approved piece of marketing content.",
+        "type": "object",
+        "properties": {
+            "blogTitle": { "type": "string" },
+            "blogOutline": { "type": "string" },
+            "socialMediaPost": { "type": "string" },
+            "emailSubject": { "type": "string" },
+            "scheduledAt": { "type": "string", "format": "date-time" },
+            "recipients": { "type": "array", "items": { "type": "string" } },
+            "approvedAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["blogTitle", "blogOutline", "socialMediaPost", "emailSubject", "approvedAt"]
     }
   },
   "auth": {
@@ -179,6 +208,14 @@
     "/users/{userId}/reports/{reportId}": {
         "schema": { "$ref": "#/entities/report" },
         "description": "Stores performance reports for a specific user."
+    },
+    "/clientLeads/{leadId}": {
+        "schema": { "$ref": "#/entities/clientLead" },
+        "description": "Stores all client leads for the organization."
+    },
+    "/marketingContent/{contentId}": {
+        "schema": { "$ref": "#/entities/marketingContent" },
+        "description": "Stores all approved marketing content."
     }
   }
 }

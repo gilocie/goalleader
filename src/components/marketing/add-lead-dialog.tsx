@@ -33,7 +33,7 @@ type LeadFormValues = z.infer<typeof leadSchema>;
 interface AddLeadDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onAddLead: (data: Lead) => void;
+  onAddLead: (data: Omit<Lead, 'id'>) => void;
 }
 
 export function AddLeadDialog({ isOpen, onOpenChange, onAddLead }: AddLeadDialogProps) {

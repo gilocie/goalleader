@@ -15,6 +15,7 @@ import { AISuggestionProvider } from '@/context/ai-suggestion-context';
 import { UserProvider } from '@/context/user-context';
 import { Skeleton } from '../ui/skeleton';
 import { useUser } from '@/firebase';
+import { MarketingProvider } from '@/context/marketing-context';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -111,9 +112,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <ReportsProvider>
                     <ChatProvider>
                         <AISuggestionProvider>
-                            <TimeTrackerProvider>
-                                <LayoutWithTracker>{children}</LayoutWithTracker>
-                            </TimeTrackerProvider>
+                            <MarketingProvider>
+                                <TimeTrackerProvider>
+                                    <LayoutWithTracker>{children}</LayoutWithTracker>
+                                </TimeTrackerProvider>
+                            </MarketingProvider>
                         </AISuggestionProvider>
                     </ChatProvider>
                 </ReportsProvider>

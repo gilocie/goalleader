@@ -11,8 +11,8 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, MoreHorizontal, Trash2, Send, Clock, Users, X } from "lucide-react";
-import type { Suggestion } from "@/types/marketing";
+import { Eye, MoreHorizontal, Trash2, Send, Clock, Users, X, Loader2 } from "lucide-react";
+import type { MarketingContent } from "@/context/marketing-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import { SendContentDialog } from './send-content-dialog';
@@ -27,13 +27,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { useMarketing } from '@/context/marketing-context';
 
 interface ApprovedContentActionsProps {
-  content: Suggestion[];
-  onContentDeleted: (updatedContent: Suggestion[]) => void;
-  onContentUpdated: (updatedContent: Suggestion) => void;
+  content: MarketingContent[];
+  onContentDeleted: (updatedContent: MarketingContent[]) => void;
+  onContentUpdated: (updatedContent: MarketingContent) => void;
 }
 
 const Countdown = ({ date }: { date: string }) => {
@@ -60,30 +60,30 @@ const Countdown = ({ date }: { date: string }) => {
 export function ApprovedContentActions({ content, onContentDeleted, onContentUpdated }: ApprovedContentActionsProps) {
   const [isSendDialogOpen, setSendDialogOpen] = useState(false);
   const [isViewDialogOpen, setViewDialogOpen] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<Suggestion | null>(null);
-  const [viewingContent, setViewingContent] = useState<Suggestion | null>(null);
+  const [selectedContent, setSelectedContent] = useState<MarketingContent | null>(null);
+  const [viewingContent, setViewingContent] = useState<MarketingContent | null>(null);
+  const { deleteApprovedContent, loading } = useMarketing();
 
-  const handleDelete = (titleToDelete: string) => {
-    const updatedContent = content.filter(c => c.blogTitle !== titleToDelete);
-    onContentDeleted(updatedContent);
+  const handleDelete = (contentId: string) => {
+    deleteApprovedContent(contentId);
   };
   
-  const handleSendClick = (item: Suggestion) => {
+  const handleSendClick = (item: MarketingContent) => {
     setSelectedContent(item);
     setSendDialogOpen(true);
   };
   
-  const handleViewClick = (item: Suggestion) => {
+  const handleViewClick = (item: MarketingContent) => {
     setViewingContent(item);
     setViewDialogOpen(true);
   };
   
-  const handleScheduleUpdate = (item: Suggestion) => {
+  const handleScheduleUpdate = (item: MarketingContent) => {
     onContentUpdated(item);
     setSendDialogOpen(false);
   }
 
-  const handleCancelSchedule = (item: Suggestion) => {
+  const handleCancelSchedule = (item: MarketingContent) => {
     onContentUpdated({
         ...item,
         scheduledAt: undefined,
@@ -94,7 +94,11 @@ export function ApprovedContentActions({ content, onContentDeleted, onContentUpd
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {content.length > 0 ? (
+            {loading ? (
+                <div className="col-span-full flex items-center justify-center p-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            ) : content.length > 0 ? (
                 content.map((item, index) => (
                     <Card key={index} className={cn(
                         "flex flex-col p-4 shadow-md hover:shadow-lg transition-shadow relative border-2",
@@ -110,7 +114,7 @@ export function ApprovedContentActions({ content, onContentDeleted, onContentUpd
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem
                                     className="text-destructive"
-                                    onClick={() => handleDelete(item.blogTitle)}
+                                    onClick={() => handleDelete(item.id!)}
                                 >
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Delete
@@ -129,7 +133,7 @@ export function ApprovedContentActions({ content, onContentDeleted, onContentUpd
                                 </div>
                             ) : (
                                 <CardDescription>
-                                    Approved on: {format(new Date(), 'PPP')}
+                                    Approved on: {format(new Date(item.approvedAt!), 'PPP')}
                                 </CardDescription>
                             )}
                         </CardHeader>
