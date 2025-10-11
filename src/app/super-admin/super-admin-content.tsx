@@ -481,58 +481,53 @@ const SettingsPage = () => {
     };
 
     return (
-        <div className="space-y-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Account Information</CardTitle>
-                    <CardDescription>Manage your super admin account details.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="admin-name">Name</Label>
-                        <Input id="admin-name" defaultValue="Super Admin" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="admin-email">Email</Label>
-                        <Input id="admin-email" type="email" defaultValue="super@goalleader.com" />
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button onClick={() => handleAction('Update Account')}>Save Changes</Button>
-                </CardFooter>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Security</CardTitle>
-                    <CardDescription>Manage your password and security settings.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-password">New Password</Label>
-                        <Input id="new-password" type="password" />
-                    </div>
-                </CardContent>
-                <CardFooter>
-                    <Button onClick={() => handleAction('Change Password')}>Change Password</Button>
-                </CardFooter>
-            </Card>
-            
-             <Card>
-                <CardHeader>
-                    <CardTitle>Billing</CardTitle>
-                    <CardDescription>Manage your subscription and payment methods.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <p className="text-sm">Your current plan: <strong>Super Admin Unlimited</strong></p>
-                    <Button variant="outline" onClick={() => handleAction('Manage Subscription')}>Manage Subscription</Button>
-                </CardContent>
-            </Card>
-        </div>
+        <Card>
+            <CardHeader>
+                <CardTitle>Settings</CardTitle>
+                <CardDescription>Manage global platform settings.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Tabs defaultValue="account" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="account">Account</TabsTrigger>
+                        <TabsTrigger value="security">Security</TabsTrigger>
+                        <TabsTrigger value="billing">Billing</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="account" className="mt-6">
+                        <div className="space-y-6 max-w-2xl">
+                             <div className="space-y-2">
+                                <Label htmlFor="admin-name">Name</Label>
+                                <Input id="admin-name" defaultValue="Super Admin" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="admin-email">Email</Label>
+                                <Input id="admin-email" type="email" defaultValue="super@goalleader.com" />
+                            </div>
+                            <Button onClick={() => handleAction('Update Account')}>Save Changes</Button>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="security" className="mt-6">
+                         <div className="space-y-6 max-w-2xl">
+                             <div className="space-y-2">
+                                <Label htmlFor="current-password">Current Password</Label>
+                                <Input id="current-password" type="password" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="new-password">New Password</Label>
+                                <Input id="new-password" type="password" />
+                            </div>
+                            <Button onClick={() => handleAction('Change Password')}>Change Password</Button>
+                        </div>
+                    </TabsContent>
+                    <TabsContent value="billing" className="mt-6">
+                         <div className="space-y-6 max-w-2xl">
+                            <p className="text-sm">Your current plan: <strong>Super Admin Unlimited</strong></p>
+                            <Button variant="outline" onClick={() => handleAction('Manage Subscription')}>Manage Subscription</Button>
+                        </div>
+                    </TabsContent>
+                </Tabs>
+            </CardContent>
+        </Card>
     );
 };
 
