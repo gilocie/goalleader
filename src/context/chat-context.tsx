@@ -5,7 +5,7 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, where, writeBatch, getDocs, onSnapshot } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -51,22 +51,28 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const messagesSentQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'messages'), where('senderId', '==', firebaseUser.uid), orderBy('timestamp'));
+    return query(collection(firestore, 'messages'), where('senderId', '==', firebaseUser.uid));
   }, [firestore, firebaseUser]);
 
   const messagesReceivedQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid), orderBy('timestamp'));
+    return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid));
   }, [firestore, firebaseUser]);
 
   const { data: sentMessages, setData: setSentMessages } = useCollection<Message>(messagesSentQuery);
   const { data: receivedMessages, setData: setReceivedMessages } = useCollection<Message>(messagesReceivedQuery);
   
-  const messages = useMemo(() => {
-    const allMessages = [...sentMessages, ...receivedMessages];
-    // Deduplicate and sort
-    const uniqueMessages = Array.from(new Map(allMessages.map(m => [m.id, m])).values());
-    return uniqueMessages.sort((a,b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    if (sentMessages.length === 0 && receivedMessages.length === 0 && messages.length > 0) {
+      // initial load from previous state, don't clear
+    } else {
+        const allMessages = [...sentMessages, ...receivedMessages];
+        const uniqueMessages = Array.from(new Map(allMessages.map(m => [m.id, m])).values());
+        uniqueMessages.sort((a,b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+        setMessages(uniqueMessages);
+    }
   }, [sentMessages, receivedMessages]);
 
 
@@ -159,7 +165,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     
     const messagesCollection = collection(firestore, 'messages');
 
-    const newMessage: Omit<Message, 'id' | 'timestamp'> = {
+    const newMessageData: Omit<Message, 'id' | 'timestamp'> = {
       senderId: self.id,
       recipientId,
       content,
@@ -169,13 +175,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     };
     
     addDoc(messagesCollection, {
-        ...newMessage,
+        ...newMessageData,
         timestamp: serverTimestamp()
     }).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
             path: messagesCollection.path,
             operation: 'create',
-            requestResourceData: {...newMessage, timestamp: new Date().toISOString() },
+            requestResourceData: {...newMessageData, timestamp: new Date().toISOString() },
         });
         errorEmitter.emit('permission-error', permissionError);
     });
@@ -211,6 +217,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'delete' });
             errorEmitter.emit('permission-error', permissionError);
         });
+        setMessages(prev => prev.filter(m => m.id !== messageId));
     } else {
         // Soft delete (for me only)
         const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
