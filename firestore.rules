@@ -1,105 +1,103 @@
 /**
- * @fileoverview Firestore Security Rules for Prototyping.
+ * @fileoverview Firestore Security Rules for the application.
  *
  * Core Philosophy:
- * This ruleset prioritizes secure authorization while permitting flexible data shapes
- * to enable rapid prototyping. It strictly enforces user-based access control
- * for private data and allows public read access where appropriate. Schema
- * validation is minimized to facilitate agile development.
+ * This ruleset enforces a user-ownership model for profiles and chats,
+ * while allowing public read access to messages. Message creation is
+ * restricted to the sender, and read status updates are allowed by either
+ * the sender or the recipient.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profile data, accessible only to the user themselves.
- * - /messages/{messageId}: Stores chat messages, accessible for reading and writing
- *   only by the sender or recipient.
- * - /chats/{userId}: Tracks active chat IDs for each user, only accessible to that user.
+ * - /users/{userId}: Stores user profile data, owned by the user.
+ * - /messages/{messageId}: Stores chat messages, readable by all, but writable only by the sender.
+ * - /chats/{userId}: Stores active chat IDs for a user, owned by the user.
  *
  * Key Security Decisions:
- * - User listing is disallowed to prevent information disclosure.
- * - `messages` and `chats` collections enforce sender/receiver access only.
- * - The rules explicitly deny any write operations with `if false` when no
- *   specific access is granted. This ensures a secure default posture.
- *
- * Denormalization for Authorization:
- * - The `/messages/{messageId}` documents use the `senderId` and `recipientId`
- *   fields to directly enforce access control, avoiding the need for complex
- *   lookups or separate membership collections.
- *   This allows for efficient and secure rules that scale well.
- *
- * Structural Segregation:
- * - The decision to store user profiles under `/users/{userId}` provides a clear
- *   separation between public and private data. This enables easier access
- *   control and prevents accidental exposure of sensitive information.
+ * - Public message read access is allowed.
+ * - Only the sender or recipient can update the read status of a message.
+ * - Message deletion is disallowed.
+ * - The 'id' field in /users/{userId} is validated for consistency on create and immutability on update.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secure user profiles, accessible only by the owning user.
+     * @description Controls access to user profile documents.
      * @path /users/{userId}
-     * @allow (create) - User 'user_abc' can create their profile if request.auth.uid == 'user_abc'.
-     * @allow (get, update, delete) - User 'user_abc' can read, update, or delete their profile if request.auth.uid == 'user_abc'.
-     * @deny (create) - User 'user_xyz' cannot create a profile with ID 'user_abc'.
-     * @deny (get, update, delete) - User 'user_xyz' cannot read, update, or delete profile 'user_abc'.
-     * @principle Enforces document ownership for all operations on user profiles.
+     * @allow (get, list) Any user can get and list users
+     * @allow (create) User can create their own profile if authenticated.
+     * @allow (update) User can update their own profile if authenticated and document exists.
+     * @allow (delete) User can delete their own profile if authenticated and document exists.
+     * @deny (create) User cannot create a profile with an ID that doesn't match their auth UID.
+     * @deny (update) User cannot update the 'id' field to a different value.
+     * @deny (delete) User cannot delete another user's profile.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow get, list: if true;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Secure chat messages, accessible only to the sender or recipient.
+     * @description Controls access to chat messages.
      * @path /messages/{messageId}
-     * @allow (create) - Any authenticated user can create a message.
-     * @allow (get) - User 'user_abc' can read message 'message_123' if they are the sender or recipient.
-     * @allow (update) - User 'user_abc' can update message 'message_123' if they are the sender or recipient.
-     * @allow (delete) - User 'user_abc' can delete message 'message_123' if they are the sender or recipient.
-     * @deny (get, update, delete) - User 'user_xyz' cannot read, update, or delete message 'message_123' if they are not the sender or recipient.
-     * @principle Enforces sender/recipient access for all operations on chat messages.
+     * @allow (get, list) Any user can read any message.
+     * @allow (create) Only the sender can create a message.
+     * @allow (update) Only the sender or recipient can update the readStatus.
+     * @deny (create) Only authenticated users can create messages.
+     * @deny (update) Users cannot modify any other fields except readStatus.
+     * @deny (delete) No one can delete messages.
+     * @principle Allows public reads but restricts writes to authorized users.
      */
     match /messages/{messageId} {
-      function isSenderOrRecipient(resource) {
-        return resource.data.senderId == request.auth.uid
-            || resource.data.recipientId == request.auth.uid;
-      }
+      // Any user can read messages
+      allow get, list: if true;
 
-      function isExistingSenderOrRecipient(resource) {
-        return resource != null && isSenderOrRecipient(resource);
-      }
+      // Only sender can create a message
+      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
 
-      allow get: if true;
-      allow list: if false;
-      allow create: if request.auth != null;
-      allow update: if isExistingSenderOrRecipient(resource);
-      allow delete: if isExistingSenderOrRecipient(resource);
+      // Allow update ONLY for `readStatus` by sender or recipient
+      allow update: if isSignedIn() &&
+        (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) &&
+        request.resource.data.keys().hasOnly(['readStatus']);
+
+      // No deletes allowed
+      allow delete: if false;
     }
 
     /**
-     * @description Secure active chat lists, accessible only to the owning user.
+     * @description Controls access to active chat documents.
      * @path /chats/{userId}
-     * @allow (create) - User 'user_abc' can create their active chat list if request.auth.uid == 'user_abc'.
-     * @allow (get, update, delete) - User 'user_abc' can read, update, or delete their active chat list if request.auth.uid == 'user_abc'.
-     * @deny (create) - User 'user_xyz' cannot create an active chat list with ID 'user_abc'.
-     * @deny (get, update, delete) - User 'user_xyz' cannot read, update, or delete active chat list 'user_abc'.
-     * @principle Enforces document ownership for all operations on active chat lists.
+     * @allow (get, list) User can get and list their own active chats if authenticated.
+     * @allow (create) User can create their own active chats if authenticated.
+     * @allow (update) User can update their own active chats if authenticated and document exists.
+     * @allow (delete) User can delete their own active chats if authenticated and document exists.
+     * @deny (create) User cannot create active chats for another user.
+     * @deny (update) User cannot update active chats for another user or change the user ID.
+     * @deny (delete) User cannot delete active chats for another user.
+     * @principle Enforces document ownership for active chats.
      */
     match /chats/{userId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow get, list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+    // -------------------- HELPER FUNCTIONS --------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
   }
 }
