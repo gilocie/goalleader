@@ -1,45 +1,88 @@
+/**
+ * @file Firestore Security Rules
+ * @description This ruleset implements a role-based access control system for a messaging application.
+ *
+ * Core Philosophy:
+ * The ruleset enforces a multi-layered security model. User profiles are protected by owner-only write access,
+ * while chat messages are restricted to participants. Administrative roles can override these restrictions
+ * for management purposes. Read access is generally more permissive than write access, but is still
+ * carefully controlled to prevent unauthorized data access.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information, including role and department.
+ * - /messages/{messageId}: Stores individual chat messages.
+ * - /chats/active: A singleton document that tracks active chat IDs (publicly readable).
+ *
+ * Key Security Decisions:
+ * - Users can only create, update, or delete their own profiles (owner-only).
+ * - Chat messages can only be created by participants (sender or recipient).
+ * - Admins have elevated privileges to read and manage user profiles and messages.
+ * - Team leaders can view messages related to their department.
+ * - Public read access is granted to the /chats/active document.
+ *
+ * Denormalization for Authorization:
+ * The `role` and `department` fields are stored directly in the `/users/{userId}` document to avoid costly
+ * `get()` calls when checking permissions. The `senderId` and `recipientId` fields are stored in the
+ * `/messages/{messageId}` document to determine chat participants without requiring separate lookups.
+ *
+ * Structural Segregation:
+ * The `/chats/active` document is intentionally separated as a public document. This allows it to be publicly readable without compromising the security of other collections.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * USERS COLLECTION
-     * All authenticated users can read (get/list) all user profiles.
-     * Only the profile owner can create or update their own profile.
+     * @description Controls access to user profile documents.
+     * @path /users/{userId}
+     * @allow (get, list): Any signed-in user can view profiles.
+     * @allow (create): Only the user themselves can create their profile.
+     * @allow (update, delete): Only the user themselves or an admin can modify their profile.
+     * @deny (create): A user tries to create a profile with a different user ID.
+     * @deny (update, delete): A user tries to modify another user's profile without admin rights.
+     * @principle Enforces document ownership for writes and allows admins to manage user profiles.
      */
     match /users/{userId} {
-      allow get, list: if isSignedIn();  // ✅ Allow all logged-in users to list everyone
+      allow get, list: if isSignedIn();
       allow create: if isOwner(userId);
-      allow update, delete: if isExistingOwner(userId);
+      allow update, delete: if isExistingOwner(userId) || isAdmin();
     }
 
     /**
-     * MESSAGES COLLECTION
-     * Only the sender or recipient can read or create messages.
+     * @description Controls access to chat message documents.
+     * @path /messages/{messageId}
+     * @allow (create): Only the sender or recipient of a message can create it.
+     * @allow (get, list): Only the sender, recipient, an admin, or a team leader over the sender's department can read the message.
+     * @deny (create): A user tries to create a message where they are neither the sender nor the recipient.
+     * @deny (update, delete): No one can update or delete messages.
+     * @principle Restricts message access to participants and allows admins/team leaders to view messages.
      */
     match /messages/{messageId} {
       allow create: if isSignedIn() && (
         request.resource.data.senderId == request.auth.uid ||
         request.resource.data.recipientId == request.auth.uid
       );
-
       allow get, list: if isSignedIn() &&
         (resource.data.senderId == request.auth.uid ||
-         resource.data.recipientId == request.auth.uid);
-
+         resource.data.recipientId == request.auth.uid ||
+         isAdmin() ||
+         isTeamLeaderOver(resource.data.senderId));
       allow update, delete: if false;
     }
 
     /**
-     * CHATS COLLECTION
-     * Everyone can read active chat lists but cannot modify them.
+     * @description Grants public read access to the active chats document.
+     * @path /chats/active
+     * @allow (get, list): Any user can read the active chats.
+     * @deny (create, update, delete): No one can modify the active chats.
+     * @principle Allows public listing of active chats.
      */
     match /chats/active {
       allow get, list: if true;
       allow create, update, delete: if false;
     }
 
-    // Helper functions
+    // --- Helper functions ---
     function isSignedIn() {
       return request.auth != null;
     }
@@ -50,6 +93,22 @@ service cloud.firestore {
 
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
+    }
+
+    // --- Role helpers ---
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function isTeamLeader() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "team_leader";
+    }
+
+    // For example, check if team leader is over same department
+    function isTeamLeaderOver(senderId) {
+        let dept = get(/databases/$(database)/documents/users/$(senderId)).data.department;
+      return isTeamLeader() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.department == dept;
     }
   }
 }

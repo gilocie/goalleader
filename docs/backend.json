@@ -102,9 +102,9 @@
         "schema": { "$ref": "#/entities/chatMessage" },
         "description": "Stores all chat messages."
     },
-    "/chats/active": {
+    "/chats/{userId}": {
         "schema": { "$ref": "#/entities/activeChats" },
-        "description": "Singleton document to track active chat IDs."
+        "description": "Document tracking active chat IDs for a specific user."
     }
   }
 }

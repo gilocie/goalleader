@@ -10,12 +10,25 @@ import { TeamMemberPerformanceCoach } from '@/components/performance/team-member
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useParams } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { allTeamMembers } from '@/lib/users';
+import { useUser } from '@/context/user-context';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function MemberPerformancePage() {
   const params = useParams();
+  const { allTeamMembers, loading } = useUser();
   const memberId = typeof params.memberId === 'string' ? params.memberId : '';
+  
+  if (loading) {
+    return (
+        <AppLayout>
+            <main className="flex-grow p-4 md:p-8">
+                 <Skeleton className="w-full h-screen" />
+            </main>
+        </AppLayout>
+    )
+  }
+  
   const member = allTeamMembers.find(m => m.id === memberId);
   const avatar = PlaceHolderImages.find(img => img.id === memberId);
 
