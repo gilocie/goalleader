@@ -215,7 +215,7 @@ export function ReportsPageContent() {
                     id="edit-content"
                     value={editedContent}
                     onChange={(e) => setEditedContent(e.target.value)}
-                    className="h-24"
+                    className="h-48"
                 />
             </div>
           </div>
