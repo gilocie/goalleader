@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText } from 'lucide-react';
+import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -159,10 +159,74 @@ const OverviewPage = () => {
     );
 };
 
+const ClientCard = ({ client, layout, onCopy }: { client: Client, layout: 'list' | 'grid', onCopy: (text: string, label: string) => void }) => {
+    if (layout === 'list') {
+        return (
+            <Card className="p-3">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 bg-muted rounded-lg">
+                        <Building className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 grid grid-cols-4 items-center gap-4">
+                        <div className="font-semibold truncate">{client.companyName}</div>
+                        <div className="text-sm text-muted-foreground truncate">{client.adminEmail}</div>
+                         <a href={`https://${client.domain}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary underline text-sm truncate">
+                            {client.domain} <LinkIcon className="h-3 w-3" />
+                        </a>
+                        <Badge variant={client.status === 'Active' ? 'default' : 'destructive'} className={cn("w-fit justify-center py-1", client.status === 'Active' ? 'bg-green-100 text-green-800' : '')}>
+                           {client.status}
+                        </Badge>
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end"><DropdownMenuItem>View Details</DropdownMenuItem><DropdownMenuItem>Manage Billing</DropdownMenuItem><DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem></DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </Card>
+        )
+    }
+
+    return (
+        <Card className="p-4 space-y-4">
+            <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="p-3 bg-muted rounded-lg"><Building className="h-6 w-6 text-muted-foreground" /></div>
+                    <div>
+                        <div className="font-semibold">{client.companyName}</div>
+                        <div className="text-xs text-muted-foreground font-mono">{client.id}</div>
+                    </div>
+                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                    <DropdownMenuContent align="end"><DropdownMenuItem>View Details</DropdownMenuItem><DropdownMenuItem>Manage Billing</DropdownMenuItem><DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem></DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            <div className="space-y-2 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Admin:</span><span>{client.adminEmail}</span></div>
+                <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Domain:</span>
+                    <a href={`https://${client.domain}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary underline">{client.domain}<LinkIcon className="h-3 w-3" /></a>
+                </div>
+                <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Project ID:</span>
+                    <div className="flex items-center gap-1">
+                        <span className="font-mono text-xs">{client.firebaseProjectId}</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onCopy(client.firebaseProjectId, 'Project ID')}><Copy className="h-3 w-3" /></Button>
+                    </div>
+                </div>
+            </div>
+            <CardFooter className="p-0 pt-4">
+                <Badge variant={client.status === 'Active' ? 'default' : 'destructive'} className={cn("w-full justify-center py-1", client.status === 'Active' ? 'bg-green-100 text-green-800' : '')}>{client.status}</Badge>
+            </CardFooter>
+        </Card>
+    )
+}
+
 const ClientsPage = () => {
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
+    const [layout, setLayout] = useState<'list' | 'grid'>('list');
   
     const filteredClients = clients.filter(client => {
       const statusMatch = activeTab === 'all' || client.status === activeTab;
@@ -192,70 +256,31 @@ const ClientsPage = () => {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Search clients..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
              </div>
-             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-               <TabsList>
+             <div className="flex items-center gap-2">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto hidden sm:block">
+                    <TabsList>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="Active">Active</TabsTrigger>
+                        <TabsTrigger value="Suspended">Suspended</TabsTrigger>
+                        <TabsTrigger value="Incomplete">Incomplete</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+                <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('list')}><List className="h-4 w-4" /></Button>
+                <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('grid')}><LayoutGrid className="h-4 w-4" /></Button>
+            </div>
+          </div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto sm:hidden">
+               <TabsList className='grid grid-cols-4 w-full'>
                   <TabsTrigger value="all">All</TabsTrigger>
                   <TabsTrigger value="Active">Active</TabsTrigger>
                   <TabsTrigger value="Suspended">Suspended</TabsTrigger>
                   <TabsTrigger value="Incomplete">Incomplete</TabsTrigger>
                </TabsList>
              </Tabs>
-          </div>
   
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={cn("gap-4", layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'space-y-2')}>
             {filteredClients.map((client: Client) => (
-                <Card key={client.id} className="p-4 space-y-4">
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="p-3 bg-muted rounded-lg">
-                                <Building className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                            <div>
-                                <div className="font-semibold">{client.companyName}</div>
-                                <div className="text-xs text-muted-foreground font-mono">{client.id}</div>
-                            </div>
-                        </div>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem>View Details</DropdownMenuItem>
-                                <DropdownMenuItem>Manage Billing</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Admin:</span>
-                            <span>{client.adminEmail}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Domain:</span>
-                            <a href={`https://${client.domain}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary underline">
-                                {client.domain}
-                                <LinkIcon className="h-3 w-3" />
-                            </a>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Project ID:</span>
-                            <div className="flex items-center gap-1">
-                                <span className="font-mono text-xs">{client.firebaseProjectId}</span>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(client.firebaseProjectId, 'Project ID')}>
-                                    <Copy className="h-3 w-3" />
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                    <CardFooter className="p-0 pt-4">
-                        <Badge variant={client.status === 'Active' ? 'default' : 'destructive'} className={cn("w-full justify-center py-1", client.status === 'Active' ? 'bg-green-100 text-green-800' : '')}>
-                            {client.status}
-                        </Badge>
-                    </CardFooter>
-                </Card>
+                <ClientCard key={client.id} client={client} layout={layout} onCopy={handleCopy} />
             ))}
             </div>
         </CardContent>
