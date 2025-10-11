@@ -10,6 +10,7 @@ import {
   Square,
   Eye,
   PlusCircle,
+  Trash2,
 } from 'lucide-react';
 import {
   Card,
@@ -83,6 +84,7 @@ export function TasksPageContent() {
     setSelectedTask,
     selectedTask,
     addTask,
+    deleteTask,
   } = useTimeTracker();
 
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
@@ -185,7 +187,9 @@ export function TasksPageContent() {
                               <Eye className="mr-2 h-4 w-4" /> View Details
                             </DropdownMenuItem>
                             <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => deleteTask(task.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

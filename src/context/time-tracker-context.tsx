@@ -14,7 +14,7 @@ import React, {
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { Timestamp } from 'firebase/firestore';
@@ -50,6 +50,7 @@ interface TimeTrackerContextType {
   startTask: (taskId: string) => void;
   handleStop: (taskId: string, description: string) => void;
   addTask: (task: Omit<Task, 'status' | 'id' | 'userId' | 'createdAt'>) => void;
+  deleteTask: (taskId: string) => void;
 }
 
 const TimeTrackerContext = createContext<TimeTrackerContextType | undefined>(
@@ -60,7 +61,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   const [time, setTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [activeTask, setActiveTask] = useState<string | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [localTasks, setLocalTasks] = useState<Task[]>([]);
   const [isCompleteTaskOpen, setCompleteTaskOpen] = useState(false);
   const [isTaskDetailsOpen, setTaskDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -76,21 +77,19 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   }, [firestore, firebaseUser]);
 
   const { data: firestoreTasks, loading: tasksLoading } = useCollection<Task>(todosQuery);
-  const completedTasksCount = useMemo(() => tasks.filter(t => t.status === 'Completed').length, [tasks]);
+  const completedTasksCount = useMemo(() => localTasks.filter(t => t.status === 'Completed').length, [localTasks]);
 
   useEffect(() => {
     if (!tasksLoading && firestoreTasks) {
-      setTasks(firestoreTasks);
+      setLocalTasks(firestoreTasks);
     }
   }, [firestoreTasks, tasksLoading]);
   
   useEffect(() => {
-    // Sync active task on initial load
-    const initiallyActiveTask = tasks.find((t) => t.status === 'In Progress');
+    const initiallyActiveTask = localTasks.find((t) => t.status === 'In Progress');
     if (initiallyActiveTask) {
       setActiveTask(initiallyActiveTask.id);
       setIsActive(true);
-      // If startTime is a Firestore Timestamp, calculate elapsed time
       if (initiallyActiveTask.startTime && (initiallyActiveTask.startTime as Timestamp).toDate) {
         const startTime = (initiallyActiveTask.startTime as Timestamp).toDate();
         const elapsedTime = Math.floor((new Date().getTime() - startTime.getTime()) / 1000);
@@ -103,7 +102,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
       setActiveTask(null);
       setTime(0);
     }
-  }, [tasks]);
+  }, [localTasks]);
 
   useEffect(() => {
     if (isActive) {
@@ -126,16 +125,15 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   const startTask = useCallback(async (taskId: string) => {
     if (!firestore || !firebaseUser) return;
     
-    // If another task is active, pause it
     if (activeTask && activeTask !== taskId) {
-      const currentActiveTask = tasks.find(t => t.id === activeTask);
+      const currentActiveTask = localTasks.find(t => t.id === activeTask);
       if (currentActiveTask) {
         const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', currentActiveTask.id);
         await updateDoc(taskDocRef, { status: 'Pending' });
       }
     }
 
-    const taskToStart = tasks.find(t => t.id === taskId);
+    const taskToStart = localTasks.find(t => t.id === taskId);
     if (!taskToStart) return;
 
     const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', taskId);
@@ -154,7 +152,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     setActiveTask(taskId);
     setTime(0);
     setIsActive(true);
-  }, [firestore, firebaseUser, activeTask, tasks]);
+  }, [firestore, firebaseUser, activeTask, localTasks]);
 
   const handleStop = useCallback(async (taskId: string, description: string) => {
     if (!firestore || !firebaseUser || !selectedTask) return;
@@ -205,6 +203,18 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [firestore, firebaseUser, toast]);
 
+    const deleteTask = useCallback(async (taskId: string) => {
+    if (!firestore || !firebaseUser) return;
+    const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', taskId);
+    await deleteDoc(taskDocRef).catch(serverError => {
+        const permissionError = new FirestorePermissionError({
+            path: taskDocRef.path,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
+  }, [firestore, firebaseUser]);
+
     const handleStartStop = () => {
         if (isActive) {
             setIsActive(false); // Pause
@@ -212,7 +222,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
             if (activeTask) {
                 setIsActive(true); // Resume
             } else {
-                const firstPending = tasks.find(t => t.status === 'Pending');
+                const firstPending = localTasks.find(t => t.status === 'Pending');
                 if (firstPending) {
                     startTask(firstPending.id);
                 } else {
@@ -236,12 +246,13 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     time,
     isActive,
     activeTask,
-    tasks,
+    tasks: localTasks,
     completedTasksCount,
     handleStartStop,
     handleReset,
     startTask,
     handleStop,
+    deleteTask,
     addTask: (task: any) => {
       const formattedTask = {
         ...task,
