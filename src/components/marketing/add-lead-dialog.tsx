@@ -19,6 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import type { Lead } from '@/lib/client-leads';
 import { useEffect } from 'react';
+import { useMarketing } from '@/context/marketing-context';
 
 const leadSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -39,6 +40,8 @@ interface AddLeadDialogProps {
 }
 
 export function AddLeadDialog({ isOpen, onOpenChange, onAddLead, lead = null }: AddLeadDialogProps) {
+  const { services, statuses } = useMarketing();
+  
   const form = useForm<LeadFormValues>({
     resolver: zodResolver(leadSchema),
     defaultValues: lead || {
@@ -60,11 +63,11 @@ export function AddLeadDialog({ isOpen, onOpenChange, onAddLead, lead = null }: 
         company: '',
         email: '',
         phone: '',
-        service: '',
-        status: 'New',
+        service: services[0] || '',
+        status: statuses.find(s => s === 'New') || statuses[0] || '',
       });
     }
-  }, [lead, form]);
+  }, [lead, form, services, statuses]);
 
   const onSubmit = (data: LeadFormValues) => {
     onAddLead(data);
@@ -157,11 +160,9 @@ export function AddLeadDialog({ isOpen, onOpenChange, onAddLead, lead = null }: 
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                            <SelectItem value="UX/UI Design">UX/UI Design</SelectItem>
-                            <SelectItem value="Frontend Dev">Frontend Dev</SelectItem>
-                            <SelectItem value="Backend Dev">Backend Dev</SelectItem>
-                            <SelectItem value="QA Testing">QA Testing</SelectItem>
-                            <SelectItem value="Cloud Services">Cloud Services</SelectItem>
+                              {services.map(service => (
+                                <SelectItem key={service} value={service}>{service}</SelectItem>
+                              ))}
                             </SelectContent>
                         </Select>
                         <FormMessage />
@@ -181,13 +182,9 @@ export function AddLeadDialog({ isOpen, onOpenChange, onAddLead, lead = null }: 
                             </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="New">New</SelectItem>
-                                <SelectItem value="Contacted">Contacted</SelectItem>
-                                <SelectItem value="Qualified">Qualified</SelectItem>
-                                <SelectItem value="Proposal Sent">Proposal Sent</SelectItem>
-                                <SelectItem value="Negotiation">Negotiation</SelectItem>
-                                <SelectItem value="Won">Won</SelectItem>
-                                <SelectItem value="Lost">Lost</SelectItem>
+                                {statuses.map(status => (
+                                  <SelectItem key={status} value={status}>{status}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                         <FormMessage />

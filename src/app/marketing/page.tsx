@@ -13,6 +13,7 @@ import { ApprovedContentActions } from '@/components/marketing/approved-content-
 import { ClientLeadsGrid } from '@/components/marketing/client-leads-grid';
 import { Logo } from '@/components/icons';
 import { useMarketing } from '@/context/marketing-context';
+import { LeadSettings } from '@/components/marketing/lead-settings';
 
 function MarketingPageContent() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
@@ -42,10 +43,11 @@ function MarketingPageContent() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="leads">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="leads">Client Leads</TabsTrigger>
                 <TabsTrigger value="content">Use GoalLeader</TabsTrigger>
                 <TabsTrigger value="campaigns">Campaign Ads</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>
               <TabsContent value="leads" className="mt-4">
                 <ClientLeadsGrid />
@@ -87,6 +89,9 @@ function MarketingPageContent() {
                     />
                   </CardContent>
                 </Card>
+              </TabsContent>
+              <TabsContent value="settings" className="mt-4">
+                <LeadSettings />
               </TabsContent>
             </Tabs>
           </CardContent>
