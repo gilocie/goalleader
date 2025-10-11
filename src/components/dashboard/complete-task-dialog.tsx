@@ -21,7 +21,7 @@ interface CompleteTaskDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   task: Task;
-  onConfirm: (taskName: string, description: string) => void;
+  onConfirm: (taskId: string, description: string) => void;
 }
 
 export function CompleteTaskDialog({
@@ -35,7 +35,7 @@ export function CompleteTaskDialog({
   const { time, tasks } = useTimeTracker();
 
   const handleConfirm = () => {
-    onConfirm(task.name, description);
+    onConfirm(task.id, description);
     onOpenChange(false);
     setDescription('');
   };
@@ -46,7 +46,7 @@ export function CompleteTaskDialog({
     try {
       const completedTasks = tasks
         .filter(t => t.status === 'Completed')
-        .map(t => ({ name: t.name, endTime: t.endTime }));
+        .map(t => ({ name: t.name, endTime: t.endTime?.toString() }));
 
       const input: RefineTextInput = {
         report: description,

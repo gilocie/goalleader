@@ -14,7 +14,7 @@ import React, {
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, updateDoc, query } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { Timestamp } from 'firebase/firestore';
@@ -30,9 +30,8 @@ export type Task = {
   endTime?: string | Timestamp;
   duration?: number;
   userId: string;
+  createdAt: Timestamp;
 };
-
-const initialTasks: Task[] = [];
 
 interface TimeTrackerContextType {
   time: number;
@@ -48,9 +47,9 @@ interface TimeTrackerContextType {
   setSelectedTask: (task: Task | null) => void;
   handleStartStop: () => void;
   handleReset: () => void;
-  startTask: (taskName: string) => void;
-  handleStop: (taskName: string, description: string) => void;
-  addTask: (task: Omit<Task, 'status' | 'id' | 'userId'>) => void;
+  startTask: (taskId: string) => void;
+  handleStop: (taskId: string, description: string) => void;
+  addTask: (task: Omit<Task, 'status' | 'id' | 'userId' | 'createdAt'>) => void;
 }
 
 const TimeTrackerContext = createContext<TimeTrackerContextType | undefined>(
@@ -72,7 +71,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
 
   const todosQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'users', firebaseUser.uid, 'todos'));
+    return query(collection(firestore, 'users', firebaseUser.uid, 'todos'), orderBy('createdAt', 'desc'));
   }, [firestore, firebaseUser]);
 
   const { data: tasks, loading: tasksLoading } = useCollection<Task>(todosQuery);
@@ -82,7 +81,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     // Sync active task on initial load
     const initiallyActiveTask = tasks.find((t) => t.status === 'In Progress');
     if (initiallyActiveTask) {
-      setActiveTask(initiallyActiveTask.name);
+      setActiveTask(initiallyActiveTask.id);
       // You might want to calculate elapsed time if startTime is stored
     }
   }, [tasks]);
@@ -163,7 +162,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   }, [firestore, firebaseUser, activeTask, time]);
 
 
-  const addTask = useCallback(async (task: Omit<Task, 'status' | 'id' | 'userId'>) => {
+  const addTask = useCallback(async (task: Omit<Task, 'status' | 'id' | 'userId' | 'createdAt'>) => {
     if (!firestore || !firebaseUser) {
         toast({ title: "Error", description: "You must be logged in to add a task.", variant: "destructive" });
         return;
@@ -173,6 +172,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
         ...task,
         userId: firebaseUser.uid,
         status: 'Pending',
+        createdAt: serverTimestamp(),
     };
     await addDoc(todosCollection, newTaskData).catch(serverError => {
         const permissionError = new FirestorePermissionError({
@@ -214,17 +214,14 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     time,
     isActive,
-    activeTask: activeTask ? tasks.find(t => t.id === activeTask)?.name || null : null,
+    activeTask,
     tasks,
     completedTasksCount,
     handleStartStop,
     handleReset,
     startTask,
-    handleStop: (taskName, description) => {
-        const task = tasks.find(t => t.name === taskName);
-        if (task) handleStop(task.id, description);
-    },
-    addTask: (task) => {
+    handleStop,
+    addTask: (task: any) => {
       const formattedTask = {
         ...task,
         dueDate: format(task.dueDate as Date, 'yyyy-MM-dd'),
