@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -146,7 +147,7 @@ export function ProjectList() {
                 </TableHeader>
                 <TableBody>
                   {ongoingTasks.map((task) => (
-                    <TableRow key={task.name}>
+                    <TableRow key={task.id}>
                       <TableCell className="font-medium">{task.name}</TableCell>
                       <TableCell>
                         <StatusIndicator status={task.status} />
@@ -156,7 +157,7 @@ export function ProjectList() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => startTask(task.name)}
+                            onClick={() => startTask(task.id)}
                           >
                             <Play className="mr-2 h-4 w-4" />
                             Start
@@ -201,7 +202,7 @@ export function ProjectList() {
               </Table>
               <div className="grid gap-4 md:hidden">
                 {ongoingTasks.map((task) => (
-                  <Card key={task.name} className="flex flex-col">
+                  <Card key={task.id} className="flex flex-col">
                     <CardContent className="p-4 space-y-3">
                       <div className="flex justify-between items-start">
                           <span className="font-medium flex-1">{task.name}</span>
@@ -232,7 +233,7 @@ export function ProjectList() {
                               <Button
                                   variant="outline"
                                   size="icon"
-                                  onClick={() => startTask(task.name)}
+                                  onClick={() => startTask(task.id)}
                                   className="h-8 w-8 text-primary border-primary"
                               >
                                   <Play className="h-4 w-4 text-primary" />

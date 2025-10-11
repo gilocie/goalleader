@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Task } from '@/context/time-tracker-context';
 import { format, formatDistance } from 'date-fns';
+import type { Timestamp } from 'firebase/firestore';
 
 interface TaskDetailsDialogProps {
   isOpen: boolean;
@@ -35,14 +36,25 @@ export function TaskDetailsDialog({
     return result.trim();
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    // Check if it's a full ISO string or just time
-    if (dateString.includes('T')) {
-      return format(new Date(dateString), 'PPpp');
+  const formatDate = (dateValue?: string | Timestamp) => {
+    if (!dateValue) return 'N/A';
+    
+    let date;
+    if (typeof dateValue === 'string') {
+        // Handle ISO string or simple time string
+        if (dateValue.includes('T')) {
+            date = new Date(dateValue);
+        } else {
+            return dateValue; // It's just a time string like "10:00"
+        }
+    } else if (dateValue && typeof dateValue.toDate === 'function') {
+        // Handle Firestore Timestamp
+        date = dateValue.toDate();
+    } else {
+        return 'Invalid Date';
     }
-    // If it's just a time string like "10:00", display it directly
-    return dateString;
+
+    return format(date, 'PPpp');
   };
 
   return (

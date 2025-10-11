@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -41,9 +42,9 @@ interface AddTaskDialogProps {
 }
 
 const taskSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
+  name: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  date: z.date({ required_error: "A date is required." }),
+  dueDate: z.date({ required_error: "A date is required." }),
   startTime: z.string().min(1, 'Start time is required'),
   endTime: z.string().min(1, 'End time is required'),
 });
@@ -65,9 +66,9 @@ export function AddTaskDialog({
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
-      title: '',
+      name: '',
       description: '',
-      date: new Date(),
+      dueDate: new Date(),
       startTime: '',
       endTime: '',
     }
@@ -75,9 +76,9 @@ export function AddTaskDialog({
 
   const onSubmit = (data: TaskFormValues) => {
     onTaskAdd({
-      name: data.title,
+      name: data.name,
       description: data.description,
-      dueDate: data.date,
+      dueDate: data.dueDate,
       startTime: data.startTime,
       endTime: data.endTime,
     });
@@ -93,7 +94,7 @@ export function AddTaskDialog({
     try {
       const pendingTasks = tasks
         .filter(t => t.status === 'Pending' || t.status === 'In Progress')
-        .map(t => ({ name: t.name, endTime: t.endTime || '00:00' }));
+        .map(t => ({ name: t.name, endTime: t.endTime?.toString() || '00:00' }));
 
       const input: TaskSuggestionInput = {
         department: 'Engineering',
@@ -114,9 +115,9 @@ export function AddTaskDialog({
   }
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
-    form.setValue('title', suggestion.title);
+    form.setValue('name', suggestion.title);
     form.setValue('description', suggestion.description);
-    form.setValue('date', new Date()); // Default to today's date
+    form.setValue('dueDate', new Date()); // Default to today's date
     form.setValue('startTime', suggestion.startTime);
     form.setValue('endTime', suggestion.endTime);
     setSelectedSuggestion(suggestion);
@@ -173,7 +174,7 @@ export function AddTaskDialog({
                 <div className="space-y-4 px-6 py-4">
                   <FormField
                     control={form.control}
-                    name="title"
+                    name="name"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
@@ -198,7 +199,7 @@ export function AddTaskDialog({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
-                      name="date"
+                      name="dueDate"
                       render={({ field }) => (
                         <FormItem>
                           <Popover>

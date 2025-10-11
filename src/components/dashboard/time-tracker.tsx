@@ -164,7 +164,3 @@ export function TimeTracker({ isMobileFooter = false, layout = 'card' }: TimeTra
     </Card>
   );
 }
-
-
-
-

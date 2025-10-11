@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "userProfile": {
@@ -88,6 +89,46 @@
             }
         },
         "required": ["ids"]
+    },
+    "todo": {
+      "title": "To-Do Item",
+      "description": "Represents a single to-do item or task for a user.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name or title of the task."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the task."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Pending", "In Progress", "Completed"]
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "startTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "endTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "duration": {
+          "type": "number",
+          "description": "The duration of the task in seconds."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who owns this task."
+        }
+      },
+      "required": ["name", "status", "dueDate", "userId"]
     }
   },
   "auth": {
@@ -105,6 +146,10 @@
     "/chats/{userId}": {
         "schema": { "$ref": "#/entities/activeChats" },
         "description": "Document tracking active chat IDs for a specific user."
+    },
+    "/users/{userId}/todos/{todoId}": {
+      "schema": { "$ref": "#/entities/todo" },
+      "description": "Stores to-do items for a specific user."
     }
   }
 }

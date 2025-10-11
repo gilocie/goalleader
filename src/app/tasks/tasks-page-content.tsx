@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -136,7 +137,7 @@ export function TasksPageContent() {
                 </TableHeader>
                 <TableBody>
                   {ongoingTasks.map((task) => (
-                    <TableRow key={task.name}>
+                    <TableRow key={task.id}>
                       <TableCell className="font-medium">{task.name}</TableCell>
                       <TableCell>
                         <StatusIndicator status={task.status} />
@@ -146,7 +147,7 @@ export function TasksPageContent() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => startTask(task.name)}
+                            onClick={() => startTask(task.id)}
                           >
                             <Play className="mr-2 h-4 w-4" />
                             Start
