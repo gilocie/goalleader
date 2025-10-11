@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
@@ -20,6 +21,8 @@ interface ChatContextType {
   unreadMessagesCount: number;
   selectedContact: Contact | null;
   setSelectedContact: Dispatch<SetStateAction<Contact | null>>;
+  inputMessage: string;
+  setInputMessage: Dispatch<SetStateAction<string>>;
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
   deleteMessage: (messageId: string, deleteForEveryone: boolean) => void;
   clearChat: (contactId: string) => void;
@@ -51,7 +54,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const messagesQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'messages'), orderBy('timestamp'));
+    return query(collection(firestore, 'messages'), orderBy('timestamp', 'asc'));
   }, [firestore]);
 
   const { data: messages, setData: setMessages } = useCollection<Message>(messagesQuery);
@@ -64,6 +67,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [inputMessage, setInputMessage] = useState('');
 
   const allContacts = useMemo(() => {
     if (!firebaseUser || !allTeamMembers) return [];
@@ -127,7 +131,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     contactList.sort((a, b) => {
         if (!firebaseUser) return 0;
         const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
-        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m1.timestamp?.toMillis() || 0) - (m2.timestamp?.toMillis() || 0))[0];
+        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m1.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
         return (lastMessageB.timestamp?.toMillis() || 0) - (lastMessageA.timestamp?.toMillis() || 0);
@@ -182,33 +186,30 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [self, firestore]);
 
-  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
+ const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
     if (!firestore || !self) return;
     const messageRef = doc(firestore, 'messages', messageId);
     const messageToDelete = messages.find(m => m.id === messageId);
     if (!messageToDelete) return;
 
-    if (deleteForEveryone) {
-        if (messageToDelete.senderId === self.id) {
-            // Hard delete for everyone
-            await deleteDoc(messageRef).catch(serverError => {
-                 const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'delete' });
-                 errorEmitter.emit('permission-error', permissionError);
-            });
-            // The onSnapshot listener will handle removal from local state
-        } else {
-            // Recipient cannot delete for everyone, only soft delete for themselves
-            await updateDoc(messageRef, { deletedByRecipient: true });
-        }
+    if (deleteForEveryone && messageToDelete.senderId === self.id) {
+        // Hard delete for everyone (allowed by rules)
+        await deleteDoc(messageRef);
+        // The onSnapshot listener will handle removal from local state.
     } else {
         // Soft delete for self
         const updateField = messageToDelete.senderId === self.id ? { deletedBySender: true } : { deletedByRecipient: true };
         await updateDoc(messageRef, updateField).catch(serverError => {
-            const permissionError = new FirestorePermissionError({ path: messageRef.path, operation: 'update', requestResourceData: updateField });
+            const permissionError = new FirestorePermissionError({
+                path: messageRef.path,
+                operation: 'update',
+                requestResourceData: updateField,
+            });
             errorEmitter.emit('permission-error', permissionError);
         });
     }
-}, [firestore, self, messages]);
+  }, [firestore, self, messages]);
+
 
   const clearChat = useCallback(async (contactId: string) => {
     if (!self || !firestore) return;
@@ -369,6 +370,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     declineVoiceCall,
     acceptedVoiceCallContact,
     setAcceptedVoiceCallContact,
+    inputMessage,
+    setInputMessage
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
@@ -381,3 +384,5 @@ export const useChat = () => {
   }
   return context;
 };
+
+    

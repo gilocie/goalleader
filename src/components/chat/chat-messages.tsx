@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon, Paperclip, Edit } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon, Paperclip, Edit, Copy } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -158,7 +159,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat, setInputMessage } = useChat();
   const { user } = useUser();
 
   if (!user) {
@@ -210,9 +211,13 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     }
   };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
-  const handleAction = (action: 'reply' | 'forward' | 'download' | 'edit', message: Message) => {
+  const handleAction = (action: 'reply' | 'forward' | 'download' | 'copy', message: Message) => {
     if (action === 'reply') { setReplyTo(message); } 
     else if (action === 'forward') { setForwardMessage(message); }
+    else if (action === 'copy' && message.content) {
+        setInputMessage(message.content);
+        toast({ title: "Message copied to input." });
+    }
   };
   const handleSendMessageWithContext = (content: string, type: 'text' | 'audio' | 'image' | 'file', data: any = {}) => {
     const messageData = { ...data };
@@ -297,7 +302,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const MessageActions = ({ message }: { message: Message }) => {
     const isSelf = message.senderId === self.id;
     const hasAttachment = ['image', 'file', 'audio'].includes(message.type);
-    const canEdit = isSelf && (new Date().getTime() - message.timestamp.toDate().getTime()) < 30 * 60 * 1000;
 
     return (
       <DropdownMenu>
@@ -310,9 +314,9 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           <DropdownMenuItem onClick={() => handleAction('reply', message)}>
             <Reply className="mr-2 h-4 w-4" /><span>Reply</span>
           </DropdownMenuItem>
-          {canEdit && (
-            <DropdownMenuItem onClick={() => handleAction('edit', message)}>
-                <Edit className="mr-2 h-4 w-4" /><span>Edit</span>
+          {isSelf && message.type === 'text' && (
+            <DropdownMenuItem onClick={() => handleAction('copy', message)}>
+                <Copy className="mr-2 h-4 w-4" /><span>Copy & Repost</span>
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={() => handleAction('forward', message)}>
@@ -640,3 +644,5 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
+    

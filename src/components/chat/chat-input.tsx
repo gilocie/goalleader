@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
@@ -219,7 +220,7 @@ const ImagePreviewDialog = ({
   };
 
 export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputProps) {
-  const [message, setMessage] = useState('');
+  const { self, selectedContact, inputMessage, setInputMessage } = useChat();
   const [recordingState, setRecordingState] = useState<'idle' | 'recording'>('idle');
   const [recordingTime, setRecordingTime] = useState(0);
   const [showRecordingDialog, setShowRecordingDialog] = useState(false);
@@ -230,14 +231,13 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { self, selectedContact } = useChat();
 
   const { toast } = useToast();
 
   const handleSendMessage = () => {
-    if (message.trim()) {
-      onSendMessage(message, 'text');
-      setMessage('');
+    if (inputMessage.trim()) {
+      onSendMessage(inputMessage, 'text');
+      setInputMessage('');
     }
   };
 
@@ -398,8 +398,8 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
         <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className={cn("relative", replyTo && 'border-t-0 rounded-t-none')}>
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*, application/pdf, .doc, .docx, .xls, .xlsx" multiple />
             <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             className={cn("pr-24 pl-20 min-h-[40px] h-10 max-h-40 resize-none", replyTo && "rounded-t-none")}
@@ -416,7 +416,7 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
             <Button 
             type="submit" 
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground hover:bg-primary/90" 
-            disabled={!message.trim()}
+            disabled={!inputMessage.trim()}
             >
             <Send className="h-4 w-4 mr-2" />
             Send
@@ -440,3 +440,5 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
     </>
   );
 }
+
+    
