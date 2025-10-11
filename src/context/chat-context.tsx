@@ -213,9 +213,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (deleteForEveryone) {
       if (messageToDelete.senderId === self.id) {
         deleteDoc(messageRef)
-          .then(() => {
-            setMessages(prev => prev.filter(m => m.id !== messageId));
-          })
           .catch(err => {
             const permissionError = new FirestorePermissionError({
               path: messageRef.path,
@@ -227,11 +224,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } else {
         const isSender = messageToDelete.senderId === self.id;
         const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
-
         if (isSender) {
             updateData.deletedBySender = true;
+            updateData.deletedByRecipient = messageToDelete.deletedByRecipient || false;
         } else {
             updateData.deletedByRecipient = true;
+            updateData.deletedBySender = messageToDelete.deletedBySender || false;
         }
         
         await updateDoc(messageRef, updateData)
