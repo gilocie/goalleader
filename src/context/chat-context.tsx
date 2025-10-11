@@ -223,7 +223,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       }
     } else {
         const isSender = messageToDelete.senderId === self.id;
-        const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
+        const updateData: Partial<Message> = {};
 
         if (isSender) {
             updateData.deletedBySender = true;
@@ -259,25 +259,27 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (chatMessagesToUpdate.length === 0) return;
 
     const batch = writeBatch(firestore);
+    
     chatMessagesToUpdate.forEach(msg => {
       const messageRef = doc(firestore, 'messages', msg.id);
-      const isSender = msg.senderId === self.id;
-      
-      const updateData = {
-          deletedBySender: isSender || msg.deletedBySender || false,
-          deletedByRecipient: !isSender || msg.deletedByRecipient || false,
-      };
-
-      batch.update(messageRef, updateData);
+      if (msg.senderId === self.id) {
+        batch.update(messageRef, { deletedBySender: true });
+      } else {
+        batch.update(messageRef, { deletedByRecipient: true });
+      }
     });
     
     await batch.commit()
       .then(() => {
+        // Update local state to immediately reflect the change
+        const updatedMessageIds = chatMessagesToUpdate.map(m => m.id);
         setMessages(prev => prev.map(m => {
-          const shouldBeDeleted = chatMessagesToUpdate.some(del => del.id === m.id);
-          if (shouldBeDeleted) {
-            const isSender = m.senderId === self.id;
-            return { ...m, deletedBySender: isSender || m.deletedBySender, deletedByRecipient: !isSender || m.deletedByRecipient };
+          if (updatedMessageIds.includes(m.id)) {
+            if (m.senderId === self.id) {
+              return { ...m, deletedBySender: true };
+            } else {
+              return { ...m, deletedByRecipient: true };
+            }
           }
           return m;
         }));
