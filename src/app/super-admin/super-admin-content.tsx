@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid, Mail, Phone, Calendar, Settings, LogOut, PanelLeft } from 'lucide-react';
+import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid, Mail, Phone, Calendar, Settings, LogOut, PanelLeft, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { format } from 'date-fns';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Label } from '@/components/ui/label';
+import { useAuth, useFirestore } from '@/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 
 type NavItem = {
@@ -31,7 +34,6 @@ const navItems: NavItem[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'clients', label: 'Clients', icon: Users },
     { id: 'support', label: 'Support', icon: LifeBuoy },
-    { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
 function SuperAdminSidebar({ activePage, setActivePage, isCollapsed, onToggleCollapse }: { activePage: string; setActivePage: (page: NavItem['id']) => void; isCollapsed: boolean; onToggleCollapse: () => void; }) {
@@ -83,7 +85,7 @@ function SuperAdminSidebar({ activePage, setActivePage, isCollapsed, onToggleCol
                 )}
                 onClick={() => setActivePage(item.id)}
             >
-                 <item.icon className="mr-3 h-5 w-5" />
+                 <item.icon className={cn("mr-3 h-5 w-5")} />
                  <span>{item.label}</span>
             </Button>
         )
@@ -483,6 +485,14 @@ const SupportPage = () => {
 
 const SettingsPage = () => {
     const { toast } = useToast();
+    const auth = useAuth();
+    const firestore = useFirestore();
+
+    const [newAdminName, setNewAdminName] = useState('');
+    const [newAdminEmail, setNewAdminEmail] = useState('');
+    const [newAdminPassword, setNewAdminPassword] = useState('');
+    const [isRegistering, setIsRegistering] = useState(false);
+
 
     const handleAction = (action: string) => {
         toast({
@@ -490,6 +500,43 @@ const SettingsPage = () => {
             description: `${action} functionality is not yet implemented.`,
         });
     };
+
+    const handleRegisterAdmin = async () => {
+        if (!auth || !firestore) {
+            toast({ variant: "destructive", title: "Firebase not initialized" });
+            return;
+        }
+        if (!newAdminName || !newAdminEmail || !newAdminPassword) {
+            toast({ variant: "destructive", title: "All fields are required" });
+            return;
+        }
+
+        setIsRegistering(true);
+        try {
+            // Create user in Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, newAdminEmail, newAdminPassword);
+            const adminUser = userCredential.user;
+
+            // Create admin profile in Firestore
+            const adminProfile = {
+                name: newAdminName,
+                role: 'admin',
+            };
+            const adminDocRef = doc(firestore, 'admins', adminUser.uid);
+            await setDoc(adminDocRef, adminProfile);
+
+            toast({ title: "Admin Registered", description: `${newAdminName} has been added as a super admin.` });
+            setNewAdminName('');
+            setNewAdminEmail('');
+            setNewAdminPassword('');
+
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Registration Failed", description: error.message });
+        } finally {
+            setIsRegistering(false);
+        }
+    };
+
 
     return (
         <Card>
@@ -541,17 +588,20 @@ const SettingsPage = () => {
                         <div className="space-y-6 max-w-2xl">
                              <div className="space-y-2">
                                 <Label htmlFor="new-admin-name">Full Name</Label>
-                                <Input id="new-admin-name" placeholder="Enter full name" />
+                                <Input id="new-admin-name" placeholder="Enter full name" value={newAdminName} onChange={(e) => setNewAdminName(e.target.value)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="new-admin-email">Email</Label>
-                                <Input id="new-admin-email" type="email" placeholder="Enter email address" />
+                                <Input id="new-admin-email" type="email" placeholder="Enter email address" value={newAdminEmail} onChange={(e) => setNewAdminEmail(e.target.value)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="new-admin-password">Password</Label>
-                                <Input id="new-admin-password" type="password" placeholder="Enter temporary password" />
+                                <Input id="new-admin-password" type="password" placeholder="Enter temporary password" value={newAdminPassword} onChange={(e) => setNewAdminPassword(e.target.value)} />
                             </div>
-                            <Button onClick={() => handleAction('Register New Admin')}>Register Admin</Button>
+                            <Button onClick={handleRegisterAdmin} disabled={isRegistering}>
+                                {isRegistering && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Register Admin
+                            </Button>
                         </div>
                     </TabsContent>
                 </Tabs>
@@ -561,7 +611,7 @@ const SettingsPage = () => {
 };
 
 export function SuperAdminContent() {
-    const [activePage, setActivePage] = useState<NavItem['id']>('overview');
+    const [activePage, setActivePage] = useState<NavItem['id'] | 'settings'>('overview');
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     
     const renderContent = () => {
@@ -603,5 +653,3 @@ export function SuperAdminContent() {
         </main>
     );
 }
-
-    
