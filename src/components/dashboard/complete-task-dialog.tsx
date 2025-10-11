@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,12 @@ export function CompleteTaskDialog({
   const [description, setDescription] = useState('');
   const [isRefining, setIsRefining] = useState(false);
   const { time, tasks } = useTimeTracker();
+
+  useEffect(() => {
+    if (task) {
+        setDescription(task.description || '');
+    }
+  }, [task]);
 
   const handleConfirm = () => {
     onConfirm(task.id, description);

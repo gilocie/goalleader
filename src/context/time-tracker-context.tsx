@@ -72,7 +72,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
 
   const todosQuery = useMemo(() => {
     if (!firestore || !firebaseUser) return null;
-    return query(collection(firestore, 'users', firebaseUser.uid, 'todos'), orderBy('createdAt', 'desc'));
+    return query(collection(firestore, 'users', firebaseUser.uid, 'todos'), orderBy('createdAt', 'asc'));
   }, [firestore, firebaseUser]);
 
   const { data: firestoreTasks, loading: tasksLoading } = useCollection<Task>(todosQuery);
@@ -157,9 +157,9 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
   }, [firestore, firebaseUser, activeTask, tasks]);
 
   const handleStop = useCallback(async (taskId: string, description: string) => {
-    if (!firestore || !firebaseUser || activeTask !== taskId) return;
+    if (!firestore || !firebaseUser || !selectedTask) return;
     
-    const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', taskId);
+    const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', selectedTask.id);
     const endTime = serverTimestamp();
     
     await updateDoc(taskDocRef, {
@@ -179,7 +179,8 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     setIsActive(false);
     setActiveTask(null);
     setTime(0);
-  }, [firestore, firebaseUser, activeTask, time]);
+    setSelectedTask(null);
+  }, [firestore, firebaseUser, time, selectedTask]);
 
 
   const addTask = useCallback(async (task: Omit<Task, 'status' | 'id' | 'userId' | 'createdAt'>) => {
