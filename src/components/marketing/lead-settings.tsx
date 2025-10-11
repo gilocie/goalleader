@@ -72,7 +72,7 @@ export function LeadSettings() {
                                 <TableRow key={index}>
                                     <TableCell>{service}</TableCell>
                                     <TableCell className="text-right">
-                                        <Dialog>
+                                        <Dialog onOpenChange={(isOpen) => !isOpen && setEditingService(null)}>
                                             <DialogTrigger asChild>
                                                 <Button variant="ghost" size="icon" onClick={() => setEditingService({ index, value: service })}>
                                                     <Edit className="h-4 w-4" />
@@ -80,7 +80,7 @@ export function LeadSettings() {
                                             </DialogTrigger>
                                             <DialogContent>
                                                 <DialogHeader><DialogTitle>Edit Service</DialogTitle></DialogHeader>
-                                                <Input value={editingService?.value} onChange={(e) => setEditingService(prev => prev ? {...prev, value: e.target.value} : null)} />
+                                                <Input value={editingService?.value || ''} onChange={(e) => setEditingService(prev => prev ? {...prev, value: e.target.value} : null)} />
                                                 <DialogFooter>
                                                     <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
                                                     <DialogClose asChild><Button onClick={handleUpdateService}>Save</Button></DialogClose>
@@ -131,7 +131,7 @@ export function LeadSettings() {
                                 <TableRow key={index}>
                                     <TableCell>{status}</TableCell>
                                     <TableCell className="text-right">
-                                       <Dialog>
+                                       <Dialog onOpenChange={(isOpen) => !isOpen && setEditingStatus(null)}>
                                             <DialogTrigger asChild>
                                                 <Button variant="ghost" size="icon" onClick={() => setEditingStatus({ index, value: status })}>
                                                     <Edit className="h-4 w-4" />
@@ -139,7 +139,7 @@ export function LeadSettings() {
                                             </DialogTrigger>
                                             <DialogContent>
                                                 <DialogHeader><DialogTitle>Edit Status</DialogTitle></DialogHeader>
-                                                <Input value={editingStatus?.value} onChange={(e) => setEditingStatus(prev => prev ? {...prev, value: e.target.value} : null)} />
+                                                <Input value={editingStatus?.value || ''} onChange={(e) => setEditingStatus(prev => prev ? {...prev, value: e.target.value} : null)} />
                                                 <DialogFooter>
                                                     <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
                                                     <DialogClose asChild><Button onClick={handleUpdateStatus}>Save</Button></DialogClose>
