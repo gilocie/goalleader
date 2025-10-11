@@ -211,11 +211,22 @@
     },
     "/clientLeads/{leadId}": {
         "schema": { "$ref": "#/entities/clientLead" },
-        "description": "Stores all client leads for the organization."
+        "description": "Stores all client leads for the organization.",
+        "permissions": {
+            "read": "request.auth != null",
+            "write": "request.auth != null"
+        }
     },
     "/marketingContent/{contentId}": {
         "schema": { "$ref": "#/entities/marketingContent" },
-        "description": "Stores all approved marketing content."
+        "description": "Stores all approved marketing content.",
+        "permissions": {
+            "list": "request.auth != null",
+            "read": "request.auth != null",
+            "create": "request.auth != null",
+            "update": "request.auth != null",
+            "delete": "request.auth != null"
+        }
     }
   }
 }
