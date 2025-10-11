@@ -1,107 +1,63 @@
-/**
- * @file Firestore Security Rules
- * @description This ruleset enforces a user-centric security model for a chat application.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profile information, accessible only to the user themselves.
- * - /messages/{messageId}: Stores chat messages. Read access is public, but write access is restricted to the sender, with specific conditions for updates and deletes.
- * - /chats/{userId}: Tracks active chat IDs for each user, accessible only to the user themselves.
- *
- * Key Security Decisions:
- * - Users can only read their own profile data.
- * - Users can create a message, and edit their own content.
- * - Users can update readStatus or soft-delete flags only.
- * - Only the sender can fully delete a message for everyone.
- * - Users can only manage their own active chats list.
- * - Read access to messages is public to allow for simpler prototyping.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Controls access to user profile documents.
-     * @path /users/{userId}
-     * @allow (get, list) User with ID 'user123' can read their own profile.
-     * @allow (create) User with ID 'user123' can create their own profile.
-     * @allow (update) User with ID 'user123' can update their own profile.
-     * @allow (delete) User with ID 'user123' can delete their own profile.
-     * @deny (create) User with ID 'user456' cannot create a profile with ID 'user123'.
-     * @principle Enforces document ownership for user profiles.
-     */
+    // -------------------- USERS --------------------
     match /users/{userId} {
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
+      // Anyone (signed in or not) can read/list users
+      allow get, list: if true;
+
+      // Only owner can create their profile
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+
+      // Only owner can update profile; ID cannot change
+      allow update: if isSignedIn() && isExistingOwner(userId) &&
+        request.resource.data.id == resource.data.id;
+
+      // Only owner can delete profile
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
-    /**
-     * @description Controls access to chat messages.
-     * @path /messages/{messageId}
-     * @allow (get, list) Any user can read any message.
-     * @allow (create) User with ID 'user123' can create a message with senderId 'user123'.
-     * @allow (update) User with ID 'user123' can update a message they sent to change the 'content' field.
-     * @allow (update) User with ID 'user123' can update a message they sent or received to change the 'readStatus' field.
-     * @allow (delete) User with ID 'user123' can delete a message they sent.
-     * @deny (create) User with ID 'user456' cannot create a message with senderId 'user123'.
-     * @deny (update) User with ID 'user456' cannot update a message sent by 'user123' to change the 'content' field.
-     * @deny (delete) User with ID 'user456' cannot delete a message sent by 'user123'.
-     * @principle Enforces sender-based ownership for message creation and deletion, with conditional updates allowed for content and read status.
-     */
+    // -------------------- MESSAGES --------------------
     match /messages/{messageId} {
-      allow get: if true;
-      allow list: if true;
+      // Any user can read messages
+      allow get, list: if true;
 
+      // Only sender can create a message
       allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
 
+      // Sender can edit content; sender or recipient can update readStatus or soft-delete flags
       allow update: if isSignedIn() &&
         (
-          request.auth.uid == resource.data.senderId && request.resource.data.keys().hasAny(['content', 'readStatus', 'deletedBySender', 'deletedByRecipient']) ||
-          (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.recipientId) && request.resource.data.keys().hasOnly(['readStatus', 'deletedBySender', 'deletedByRecipient'])
+          // Sender editing content
+          (request.auth.uid == resource.data.senderId &&
+            request.resource.data.keys().hasOnly(['content','readStatus','deletedBySender','deletedByRecipient'])) ||
+          // Sender or recipient updating readStatus or soft-delete flags only
+          ((request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.recipientId) &&
+            request.resource.data.keys().hasOnly(['readStatus','deletedBySender','deletedByRecipient']))
         );
 
-      allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId && resource != null;
+      // Only sender can fully delete a message for everyone
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
     }
 
-    /**
-     * @description Controls access to active chat lists for users.
-     * @path /chats/{userId}
-     * @allow (get, list) User with ID 'user123' can read their own active chat list.
-     * @allow (create) User with ID 'user123' can create their own active chat list.
-     * @allow (update) User with ID 'user123' can update their own active chat list.
-     * @allow (delete) User with ID 'user123' can delete their own active chat list.
-     * @deny (create) User with ID 'user456' cannot create an active chat list with ID 'user123'.
-     * @principle Enforces document ownership for active chat lists.
-     */
+    // -------------------- ACTIVE CHATS --------------------
     match /chats/{userId} {
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if isSignedIn() && isOwner(userId);
+      allow get, list: if isSignedIn() && isOwner(userId);
       allow create: if isSignedIn() && isOwner(userId);
       allow update: if isSignedIn() && isExistingOwner(userId);
       allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
-    /**
-     * @description Checks if the user is signed in.
-     */
+    // -------------------- HELPER FUNCTIONS --------------------
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * @description Checks if the authenticated user is the owner of the resource based on the provided userId.
-     * @param {string} userId - The user ID to compare against the authenticated user's ID.
-     */
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
-    /**
-     * @description Checks if the authenticated user is the owner of the resource and if the resource exists.
-     * @param {string} userId - The user ID to compare against the authenticated user's ID.
-     */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }

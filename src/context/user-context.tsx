@@ -48,9 +48,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const usersQuery = React.useMemo(() => {
     // Only run the query if the user is authenticated and firestore is available
-    if (!firestore) return null; // Fetch all users regardless of auth state to get statuses
+    if (!firestore || !firebaseUser) return null; // Fetch all users only if authenticated
     return collection(firestore, 'users');
-  }, [firestore]);
+  }, [firestore, firebaseUser]);
   
   const { data: allTeamMembers, loading: usersLoading } = useCollection<TeamMember>(usersQuery);
 
