@@ -19,6 +19,7 @@ import { generateReport, GenerateReportInput } from '@/ai/flows/generate-report-
 import { refineText, RefineTextInput } from '@/ai/flows/refine-text-flow';
 import { Bot, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import type { Timestamp } from 'firebase/firestore';
 
 interface CreateReportDialogProps {
   isOpen: boolean;
@@ -46,13 +47,20 @@ export function CreateReportDialog({
     try {
       const performance = tasks.length > 0 ? 100 : 0; // Simplified for now
       const input: GenerateReportInput = {
-        tasks: tasks.map(t => ({
-          name: t.name,
-          status: t.status,
-          dueDate: t.dueDate,
-          duration: t.duration,
-          endTime: t.endTime ? format(new Date(t.endTime), 'MMM d, yy') : undefined
-        })),
+        tasks: tasks.map(t => {
+            let endTimeFormatted = 'N/A';
+            if (t.endTime) {
+                const date = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime as string);
+                endTimeFormatted = format(date, 'MMM d, yy');
+            }
+            return {
+                name: t.name,
+                status: t.status,
+                dueDate: t.dueDate,
+                duration: t.duration,
+                endTime: endTimeFormatted
+            }
+        }),
         period,
         kpi: COMPANY_KPI,
         performance,
@@ -74,7 +82,14 @@ export function CreateReportDialog({
     try {
         const refineInput: RefineTextInput = {
             report: reportContent,
-            tasks: tasks.map(t => ({ name: t.name, endTime: t.endTime ? format(new Date(t.endTime), 'MMM d, yy') : 'N/A' })),
+            tasks: tasks.map(t => {
+                let endTimeFormatted = 'N/A';
+                if (t.endTime) {
+                    const date = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime as string);
+                    endTimeFormatted = format(date, 'MMM d, yy');
+                }
+                return { name: t.name, endTime: endTimeFormatted };
+            }),
         };
         const finalReport = await refineText(refineInput);
 
