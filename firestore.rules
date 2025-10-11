@@ -1,55 +1,61 @@
 /**
- * @file Firestore Security Rules
- * @core-philosophy This ruleset enforces a strict user-ownership model for user profiles and a sender/recipient-based authorization for chat messages.
- * @data-structure
- *   - /users/{userId}: Stores individual user profiles, accessible only to the owning user.
- *   - /messages/{messageId}: Stores all chat messages, accessible to the sender and recipient for read/write, sender for delete.
- *   - /chats/{userId}: Tracks active chat IDs for each user, only accessible by the user.
- * @key-security-decisions
- *   - User profiles are strictly private; only the owner can read or write their profile.
- *   - Listing of users is disallowed to prevent information leakage.
- *   - Chat messages can only be created by the sender, and soft-deleted/marked as read by either the sender or recipient.
- *   - Only the sender can permanently delete messages.
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model for profiles and active chats.
+ * Messages have read access for everyone, but creation is restricted to the sender,
+ * and deletion to the original sender. Updates to messages are limited to read status and soft-delete flags
+ * for either sender or recipient.
+ *
+ * Data Structure:
+ * - /users/{userId}: User profile data, accessible and modifiable only by the user.
+ * - /messages/{messageId}: Chat messages, readable by everyone but with restricted write access.
+ * - /chats/{userId}: Active chat tracking, owned and managed by each user.
+ *
+ * Key Security Decisions:
+ * - Public read access for messages.
+ * - Strict ownership for user profiles and active chats.
+ * - Limited message updates for read status and soft-delete flags.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secure user profiles, ensuring only the owning user can read and write their data.
+     * @description Manages access to user profiles.
      * @path /users/{userId}
-     * @allow (get, create, update, delete) - User with matching {userId} (isOwner).
-     * @deny (get, create, update, delete) - Any other user or unauthenticated user.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) if true
+     * @allow (create) if isSignedIn() && isOwner(userId) && request.resource.data.id == userId
+     * @allow (update) if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id
+     * @allow (delete) if isSignedIn() && isExistingOwner(userId)
+     * @deny (create) if !isSignedIn() || !isOwner(userId) || request.resource.data.id != userId
+     * @deny (update) if !isSignedIn() || !isExistingOwner(userId) || request.resource.data.id != resource.data.id
+     * @deny (delete) if !isSignedIn() || !isExistingOwner(userId)
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId} {
-      // Only allow access if the user is signed in and the userId matches the authenticated user's ID.
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow get, list: if true;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) &&
+        request.resource.data.id == resource.data.id;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description Secure chat messages, allowing senders to create and delete, and senders/recipients to update read status or soft-delete flags.
+     * @description Manages access to chat messages.
      * @path /messages/{messageId}
-     * @allow (get, list) - Any signed-in user.
-     * @allow (create) - Sender with matching request.auth.uid.
-     * @allow (update) - Sender or recipient updating only 'readStatus', 'deletedBySender', and 'deletedByRecipient' fields.
-     * @allow (delete) - Sender of the message.
-     * @deny (create) - Non-sender.
-     * @deny (update) - Unauthorized user or attempt to update other fields.
-     * @deny (delete) - Non-sender.
-     * @principle Enforces sender-based creation and deletion, and shared access for updates between sender and recipient.
+     * @allow (get, list) if true
+     * @allow (create) if isSignedIn() && request.resource.data.senderId == request.auth.uid
+     * @allow (update) if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) && request.resource.data.keys().hasOnly(['readStatus', 'deletedBySender', 'deletedByRecipient'])
+     * @allow (delete) if isSignedIn() && request.auth.uid == resource.data.senderId
+     * @deny (create) if !isSignedIn() || request.resource.data.senderId != request.auth.uid
+     * @deny (update) if !isSignedIn() || !(resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) || !request.resource.data.keys().hasOnly(['readStatus', 'deletedBySender', 'deletedByRecipient'])
+     * @deny (delete) if !isSignedIn() || request.auth.uid != resource.data.senderId
+     * @principle Allows public read access but restricts writes to authorized users.
      */
     match /messages/{messageId} {
-      allow get, list: if isSignedIn();
-
-      // Only sender can create a message
+      allow get, list: if true;
       allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
-
-      // Sender or recipient can update soft-delete or readStatus
       allow update: if isSignedIn() &&
         (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) &&
         request.resource.data.keys().hasOnly([
@@ -57,37 +63,39 @@ service cloud.firestore {
           'deletedBySender',
           'deletedByRecipient'
         ]);
-
-      // Only sender can fully delete a message
-      allow delete: if isSignedIn() && resource.data.senderId == request.auth.uid && resource != null;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
     }
 
-     /**
-      * @description Secure active chat tracking, ensuring only the owning user can read and write their active chat IDs.
-      * @path /chats/{userId}
-      * @allow (get, create, update, delete) - User with matching {userId} (isOwner).
-      * @deny (get, create, update, delete) - Any other user or unauthenticated user.
-      * @principle Enforces document ownership for all operations.
-      */
+    /**
+     * @description Manages access to active chat tracking.
+     * @path /chats/{userId}
+     * @allow (get, list) if isSignedIn() && isOwner(userId)
+     * @allow (create) if isSignedIn() && isOwner(userId)
+     * @allow (update) if isSignedIn() && isExistingOwner(userId)
+     * @allow (delete) if isSignedIn() && isExistingOwner(userId)
+     * @deny (get, list) if !isSignedIn() || !isOwner(userId)
+     * @deny (create) if !isSignedIn() || !isOwner(userId)
+     * @deny (update) if !isSignedIn() || !isExistingOwner(userId)
+     * @deny (delete) if !isSignedIn() || !isExistingOwner(userId)
+     * @principle Enforces document ownership for all operations.
+     */
     match /chats/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get, list: if isSignedIn() && isOwner(userId);
       allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow update: if isSignedIn() && isExistingOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
-    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
 
     function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
+      return isOwner(userId) && resource != null;
     }
   }
 }

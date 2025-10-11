@@ -227,13 +227,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } else {
         const isSender = messageToDelete.senderId === self.id;
         const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
+
         if (isSender) {
             updateData.deletedBySender = true;
         } else {
             updateData.deletedByRecipient = true;
         }
-
-        updateDoc(messageRef, updateData)
+        
+        await updateDoc(messageRef, updateData)
             .then(() => {
                 setMessages(prev => prev.map(m =>
                     m.id === messageId ? { ...m, ...updateData } : m
