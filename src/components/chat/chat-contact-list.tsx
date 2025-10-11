@@ -155,7 +155,6 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
     <NewChatDialog 
         isOpen={isNewChatOpen}
         onOpenChange={setIsNewChatOpen}
-        allMembers={allCompanyMembers}
         onStartChat={handleStartChat}
     />
     </>

@@ -28,7 +28,6 @@ interface NewChatDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onStartChat: (contact: Contact) => void;
-  // allMembers is removed from props as it's now from context
 }
 
 export function NewChatDialog({
