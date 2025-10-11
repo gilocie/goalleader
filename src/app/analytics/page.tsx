@@ -15,10 +15,12 @@ import { format, parseISO, isBefore, startOfMonth, endOfMonth, getMonth } from '
 
 function AnalyticsPageContent() {
     const { tasks } = useTimeTracker();
-    const { allTeamMembers } = useUser();
+    const { user, allTeamMembers } = useUser();
 
+    // Personal stats
     const stats = useMemo(() => {
-        const completedTasks = tasks.filter(t => t.status === 'Completed');
+        const userTasks = user ? tasks.filter(t => t.userId === user.id) : [];
+        const completedTasks = userTasks.filter(t => t.status === 'Completed');
         const onTimeTasks = completedTasks.filter(t => {
             if (!t.endTime || !t.dueDate) return false;
             const completionDate = (t.endTime as any).toDate ? (t.endTime as any).toDate() : new Date(t.endTime as any);
@@ -32,16 +34,32 @@ function AnalyticsPageContent() {
         return {
             tasksCompleted: completedTasks.length,
             onTimeRate: completedTasks.length > 0 ? (onTimeTasks.length / completedTasks.length) * 100 : 0,
-            projectsInProgress: tasks.filter(t => t.status === 'In Progress').length,
+            projectsInProgress: userTasks.filter(t => t.status === 'In Progress').length,
             avgTaskDuration: avgDurationHours.toFixed(1),
         };
-    }, [tasks]);
+    }, [tasks, user]);
+
+    // Filtered data for team/department/branch/country
+    const filteredTeamMemberIds = useMemo(() => {
+        if (!user) return [];
+        return allTeamMembers
+            .filter(member => 
+                member.department === user.department &&
+                member.branch === user.branch &&
+                member.country === user.country
+            )
+            .map(member => member.id);
+    }, [allTeamMembers, user]);
+
+    const filteredTasks = useMemo(() => {
+        return tasks.filter(task => filteredTeamMemberIds.includes(task.userId));
+    }, [tasks, filteredTeamMemberIds]);
 
     const kpiData = [
-        { title: 'Tasks Completed', value: stats.tasksCompleted.toLocaleString(), trend: '+15.2%', trendDirection: 'up' as const, icon: <CheckCircle className="text-primary" /> },
-        { title: 'On-Time Rate', value: `${stats.onTimeRate.toFixed(1)}%`, trend: '-1.5%', trendDirection: 'down' as const, icon: <Clock className="text-blue-500" /> },
-        { title: 'Projects in Progress', value: stats.projectsInProgress, trend: '+2', trendDirection: 'up' as const, icon: <Activity className="text-yellow-500" /> },
-        { title: 'Avg. Task Duration', value: `${stats.avgTaskDuration}h`, trend: '+0.5h', trendDirection: 'down' as const, icon: <Hourglass className="text-red-500" /> },
+        { title: 'My Tasks Completed', value: stats.tasksCompleted.toLocaleString(), trend: '+15.2%', trendDirection: 'up' as const, icon: <CheckCircle className="text-primary" /> },
+        { title: 'My On-Time Rate', value: `${stats.onTimeRate.toFixed(1)}%`, trend: '-1.5%', trendDirection: 'down' as const, icon: <Clock className="text-blue-500" /> },
+        { title: 'My Projects in Progress', value: stats.projectsInProgress, trend: '+2', trendDirection: 'up' as const, icon: <Activity className="text-yellow-500" /> },
+        { title: 'My Avg. Task Duration', value: `${stats.avgTaskDuration}h`, trend: '+0.5h', trendDirection: 'down' as const, icon: <Hourglass className="text-red-500" /> },
     ]
 
     const taskTrendData = useMemo(() => {
@@ -52,7 +70,7 @@ function AnalyticsPageContent() {
             completed: 0
         }));
 
-        tasks.forEach(task => {
+        filteredTasks.forEach(task => {
             const createdAt = (task.createdAt as any)?.toDate();
             if (createdAt) {
                 const month = getMonth(createdAt);
@@ -67,17 +85,16 @@ function AnalyticsPageContent() {
                 }
             }
         });
-        // Return data for the last 6 months
         const currentMonth = new Date().getMonth();
         return Array.from({ length: 6 }, (_, i) => {
             const monthIndex = (currentMonth - 5 + i + 12) % 12;
             return monthlyData[monthIndex];
         });
-    }, [tasks]);
+    }, [filteredTasks]);
 
     const projectDistributionData = useMemo(() => {
         const distribution: { [key: string]: number } = {};
-        tasks.forEach(task => {
+        filteredTasks.forEach(task => {
             const department = allTeamMembers.find(m => m.id === task.userId)?.department || 'Unassigned';
             if (distribution[department]) {
                 distribution[department]++;
@@ -85,20 +102,18 @@ function AnalyticsPageContent() {
                 distribution[department] = 1;
             }
         });
-
         return Object.entries(distribution).map(([name, value]) => ({ name, value }));
-
-    }, [tasks, allTeamMembers]);
+    }, [filteredTasks, allTeamMembers]);
 
     const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
     const recentActivities = useMemo(() => {
-        return tasks.sort((a,b) => {
+        return filteredTasks.sort((a,b) => {
             const timeA = (a.createdAt as any)?.toMillis() || 0;
             const timeB = (b.createdAt as any)?.toMillis() || 0;
             return timeB - timeA;
         }).slice(0, 5).map((task, index) => {
-            const user = allTeamMembers.find(u => u.id === task.userId);
+            const taskUser = allTeamMembers.find(u => u.id === task.userId);
             let action = '';
             if (task.status === 'Completed') action = `completed the task "${task.name}".`;
             else if (task.status === 'In Progress') action = `started the task "${task.name}".`;
@@ -106,13 +121,13 @@ function AnalyticsPageContent() {
 
             return {
                 id: task.id,
-                user: user?.name || 'Unknown User',
+                user: taskUser?.name || 'Unknown User',
                 action: action,
                 time: format(new Date((task.createdAt as any).toDate()), 'p'),
-                avatarId: user?.id || `user-${index}`
+                avatarId: taskUser?.id || `user-${index}`
             };
         });
-    }, [tasks, allTeamMembers]);
+    }, [filteredTasks, allTeamMembers]);
 
 
   return (
@@ -120,7 +135,7 @@ function AnalyticsPageContent() {
         <Card>
             <CardHeader>
                 <CardTitle>Analytics Dashboard</CardTitle>
-                <CardDescription>An overview of team productivity and project performance.</CardDescription>
+                <CardDescription>An overview of personal and team productivity.</CardDescription>
             </CardHeader>
         </Card>
 
@@ -146,7 +161,7 @@ function AnalyticsPageContent() {
             <Card className="col-span-12 lg:col-span-4">
                 <CardHeader>
                     <CardTitle>Task Completion Trends</CardTitle>
-                    <CardDescription>Tasks created vs. completed over the last 6 months.</CardDescription>
+                    <CardDescription>Team's tasks created vs. completed over the last 6 months.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -181,7 +196,7 @@ function AnalyticsPageContent() {
             <Card className="col-span-12 lg:col-span-3">
                 <CardHeader>
                     <CardTitle>Project Workload Distribution</CardTitle>
-                    <CardDescription>Breakdown of tasks across departments.</CardDescription>
+                    <CardDescription>Breakdown of team tasks across departments.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -215,8 +230,8 @@ function AnalyticsPageContent() {
 
          <Card>
             <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>A log of significant team events.</CardDescription>
+                <CardTitle>Recent Team Activity</CardTitle>
+                <CardDescription>A log of significant events from your team.</CardDescription>
             </CardHeader>
             <CardContent>
                 <ScrollArea className="h-64">
