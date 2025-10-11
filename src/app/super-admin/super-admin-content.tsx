@@ -69,10 +69,12 @@ export function SuperAdminContent() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] lg:grid-cols-[250px_1fr] gap-8">
-                <SuperAdminSidebar />
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="md:col-span-2 lg:col-span-2">
+                    <SuperAdminSidebar />
+                </div>
 
-                <div className="space-y-8">
+                <div className="md:col-span-10 lg:col-span-10 space-y-8">
                     {/* Stat Cards */}
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <StatCard title="Total Clients" value={clients.length} icon={Users} description="All registered client instances." />
