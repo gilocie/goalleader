@@ -209,10 +209,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const messageRef = doc(firestore, 'messages', messageId);
     const messageToDelete = messages.find(m => m.id === messageId);
     if (!messageToDelete) return;
-  
+
     if (deleteForEveryone) {
       if (messageToDelete.senderId === self.id) {
-        await deleteDoc(messageRef)
+        deleteDoc(messageRef)
           .then(() => {
             setMessages(prev => prev.filter(m => m.id !== messageId));
           })
@@ -227,14 +227,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } else {
         const isSender = messageToDelete.senderId === self.id;
         const updateData = {
-            deletedBySender: isSender || messageToDelete.deletedBySender || false,
-            deletedByRecipient: !isSender || messageToDelete.deletedByRecipient || false,
-            readStatus: messageToDelete.readStatus
+            deletedBySender: isSender || messageToDelete.deletedBySender,
+            deletedByRecipient: !isSender || messageToDelete.deletedByRecipient,
         };
 
         updateDoc(messageRef, updateData)
             .then(() => {
-                setMessages(prev => prev.map(m => 
+                setMessages(prev => prev.map(m =>
                     m.id === messageId ? { ...m, ...updateData } : m
                 ));
             })
@@ -247,7 +246,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 errorEmitter.emit('permission-error', permissionError);
             });
     }
-  }, [firestore, self, messages, setMessages]);
+}, [firestore, self, messages, setMessages]);
 
 
   const clearChat = useCallback(async (contactId: string) => {
@@ -264,8 +263,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       const messageRef = doc(firestore, 'messages', msg.id);
       const isSender = msg.senderId === self.id;
        const updateData = {
-          deletedBySender: isSender || msg.deletedBySender || false,
-          deletedByRecipient: !isSender || msg.deletedByRecipient || false,
+          deletedBySender: isSender || msg.deletedBySender,
+          deletedByRecipient: !isSender || msg.deletedByRecipient,
           readStatus: msg.readStatus
        };
       batch.update(messageRef, updateData);

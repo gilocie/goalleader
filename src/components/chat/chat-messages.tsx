@@ -1,11 +1,10 @@
 
-
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon, Paperclip, Edit, Copy, Save, XCircle } from 'lucide-react';
+import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, Pause, Download, MoreHorizontal, Reply, Forward, Plus, VideoIcon, Paperclip } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
@@ -31,10 +30,9 @@ import { IncomingCallDialog } from './incoming-call-dialog';
 import { VideoCallDialog } from './video-call-dialog';
 import { IncomingVoiceCallDialog } from './incoming-voice-call-dialog';
 import { VoiceCallDialog } from './voice-call-dialog';
-import { format, formatDistanceToNowStrict } from 'date-fns';
+import { format } from 'date-fns';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { useUser } from '@/context/user-context';
-import { Textarea } from '../ui/textarea';
 
 
 interface AudioPlayerProps {
@@ -160,7 +158,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat, setInputMessage, updateMessage } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat } = useChat();
   const { user } = useUser();
 
   if (!user) {
@@ -172,9 +170,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const { toast } = useToast();
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-  
-  const [editingMessage, setEditingMessage] = useState<Message | null>(null);
-  const [editedContent, setEditedContent] = useState('');
   
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
@@ -215,16 +210,9 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     }
   };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
-  const handleAction = (action: 'reply' | 'forward' | 'download' | 'edit' | 'copy', message: Message) => {
+  const handleAction = (action: 'reply' | 'forward' | 'download', message: Message) => {
     if (action === 'reply') { setReplyTo(message); } 
     else if (action === 'forward') { setForwardMessage(message); }
-    else if (action === 'edit' && message.type === 'text') {
-        setEditingMessage(message);
-        setEditedContent(message.content);
-    } else if (action === 'copy' && message.type === 'text') {
-      navigator.clipboard.writeText(message.content);
-      toast({ title: 'Message copied!' });
-    }
   };
   const handleSendMessageWithContext = (content: string, type: 'text' | 'audio' | 'image' | 'file', data: any = {}) => {
     const messageData = { ...data };
@@ -245,14 +233,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     setDeleteConfirmationOpen(false);
     setMessageToDelete(null);
   }
-
-  const handleSaveEdit = () => {
-    if (editingMessage && editedContent.trim()) {
-        updateMessage(editingMessage.id, editedContent);
-    }
-    setEditingMessage(null);
-    setEditedContent('');
-  };
 
   const handleClearChat = () => {
     setConfirmation({
@@ -317,8 +297,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const MessageActions = ({ message }: { message: Message }) => {
     const isSelf = message.senderId === self.id;
     const hasAttachment = ['image', 'file', 'audio'].includes(message.type);
-    const canEdit = isSelf && message.timestamp && (new Date().getTime() - message.timestamp.toDate().getTime()) < 30 * 60 * 1000;
-
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -330,16 +308,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
           <DropdownMenuItem onClick={() => handleAction('reply', message)}>
             <Reply className="mr-2 h-4 w-4" /><span>Reply</span>
           </DropdownMenuItem>
-          {message.type === 'text' && (
-            <DropdownMenuItem onClick={() => {setInputMessage(message.content)}}>
-                <Copy className="mr-2 h-4 w-4" /><span>Copy & Repost</span>
-            </DropdownMenuItem>
-          )}
-          {canEdit && message.type === 'text' && (
-            <DropdownMenuItem onClick={() => handleAction('edit', message)}>
-                <Edit className="mr-2 h-4 w-4" /><span>Edit</span>
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem onClick={() => handleAction('forward', message)}>
             <Forward className="mr-2 h-4 w-4" /><span>Forward</span>
           </DropdownMenuItem>
@@ -449,8 +417,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     const sender = contacts.find(c => c.id === message.senderId) || self;
                     const senderAvatar = PlaceHolderImages.find(p => p.id === sender.id);
                     const showUnreadMarker = index === firstUnreadIndex;
-                    const isEdited = message.readStatus === 'updated';
-                    const isEditingThisMessage = editingMessage?.id === message.id;
 
                     if (message.isSystem) {
                       const isVideo = message.callType === 'video';
@@ -533,24 +499,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                         </div>
                                     </div>
                                 ) : null}
-
-                                {isEditingThisMessage ? (
-                                  <div className="p-2 space-y-2">
-                                    <Textarea value={editedContent} onChange={(e) => setEditedContent(e.target.value)} className="bg-background text-foreground h-20" autoFocus />
-                                    <div className="flex justify-end gap-2">
-                                      <Button variant="ghost" size="sm" onClick={() => setEditingMessage(null)}>Cancel</Button>
-                                      <Button size="sm" onClick={handleSaveEdit}>Save</Button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )
-                                )}
-
-                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}>
-                                    {isEdited && <span className="text-xs italic pr-1">Edited</span>}
-                                    <span>{message.timestamp ? format(message.timestamp.toDate(), 'p') : ''}</span>
-                                    {isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}
-                                </div>
+                                {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
+                                <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp ? format(message.timestamp.toDate(), 'p') : ''}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
                             </div>
 
                             {!isSelf && <MessageActions message={message} />}
@@ -678,8 +628,3 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
-
-
-
-
-

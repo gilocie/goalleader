@@ -7,7 +7,7 @@ service cloud.firestore {
       // Any user can read profiles
       allow get, list: if true;
 
-      // Only authenticated owner can create profile
+      // Only owner can create their profile
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
 
       // Only owner can update profile; ID cannot change
@@ -23,14 +23,19 @@ service cloud.firestore {
       // Any user can read messages
       allow get, list: if true;
 
-      // Only sender can create message
+      // Only sender can create a message
       allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
 
       // Only sender or recipient can update readStatus or soft-delete flags
-      allow update: if isSignedIn() && isSenderOrRecipient(resource.data.senderId, resource.data.recipientId) &&
-        request.resource.data.keys().hasOnly(['readStatus','deletedBySender','deletedByRecipient']);
+      allow update: if isSignedIn() &&
+        (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid) &&
+        request.resource.data.keys().hasOnly([
+          'readStatus',
+          'deletedBySender',
+          'deletedByRecipient'
+        ]);
 
-      // Only sender can fully delete a message
+      // Only sender can fully delete a message for everyone
       allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
     }
 
@@ -53,10 +58,6 @@ service cloud.firestore {
 
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
-    }
-
-    function isSenderOrRecipient(senderId, recipientId) {
-      return request.auth.uid == senderId || request.auth.uid == recipientId;
     }
   }
 }
