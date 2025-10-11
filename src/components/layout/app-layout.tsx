@@ -108,15 +108,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <UserProvider>
         <SidebarProvider>
             <NotificationProvider>
-                <TimeTrackerProvider>
-                    <ReportsProvider>
-                        <ChatProvider>
-                            <AISuggestionProvider>
+                <ReportsProvider>
+                    <ChatProvider>
+                        <AISuggestionProvider>
+                            <TimeTrackerProvider>
                                 <LayoutWithTracker>{children}</LayoutWithTracker>
-                            </AISuggestionProvider>
-                        </ChatProvider>
-                    </ReportsProvider>
-                </TimeTrackerProvider>
+                            </TimeTrackerProvider>
+                        </AISuggestionProvider>
+                    </ChatProvider>
+                </ReportsProvider>
             </NotificationProvider>
         </SidebarProvider>
     </UserProvider>
