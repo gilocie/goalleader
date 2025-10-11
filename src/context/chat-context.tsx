@@ -204,28 +204,33 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [self, firestore]);
 
- const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
-  if (!firestore || !self) return;
-  const messageRef = doc(firestore, 'messages', messageId);
-  const messageToDelete = messages.find(m => m.id === messageId);
-  if (!messageToDelete) return;
-
-  if (deleteForEveryone) {
-    if (messageToDelete.senderId === self.id) {
-      // Hard delete for everyone (allowed by rules)
-      await deleteDoc(messageRef);
+  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
+    if (!firestore || !self) return;
+    const messageRef = doc(firestore, 'messages', messageId);
+    const messageToDelete = messages.find(m => m.id === messageId);
+    if (!messageToDelete) return;
+  
+    if (deleteForEveryone) {
+      // Only sender can delete for everyone
+      if (messageToDelete.senderId === self.id) {
+        await deleteDoc(messageRef)
+          .catch(err => console.error("Delete for everyone failed:", err));
+      } else {
+        console.warn("You are not allowed to delete this message for everyone.");
+      }
     } else {
-      console.warn("You are not allowed to delete this message for everyone.");
+      // Soft delete (just for me)
+      const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
+      if (messageToDelete.senderId === self.id) {
+        updateData.deletedBySender = true;
+      } else {
+        updateData.deletedByRecipient = true;
+      }
+  
+      await updateDoc(messageRef, updateData)
+        .catch(err => console.error("Soft delete failed:", err));
     }
-  } else {
-    // Soft delete for self
-    if (messageToDelete.senderId === self.id) {
-      await updateDoc(messageRef, { deletedBySender: true });
-    } else {
-      await updateDoc(messageRef, { deletedByRecipient: true });
-    }
-  }
-}, [firestore, self, messages]);
+  }, [firestore, self, messages]);
 
 
   const clearChat = useCallback(async (contactId: string) => {
