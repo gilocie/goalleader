@@ -41,17 +41,26 @@ import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
 import { format, isWithinInterval } from 'date-fns';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 type FilterType = 'recent' | 'thisWeek' | 'thisMonth';
 
 export function CompletedProjectsTable() {
-  const { tasks, setTaskDetailsOpen, setSelectedTask, selectedTask, isTaskDetailsOpen } = useTimeTracker();
+  const { tasks, setTaskDetailsOpen, setSelectedTask, selectedTask, isTaskDetailsOpen, deleteTask } = useTimeTracker();
   const [activeFilter, setActiveFilter] = useState<FilterType>('recent');
+  const { toast } = useToast();
 
   const handleViewDetailsClick = (task: Task) => {
     setSelectedTask(task);
     setTaskDetailsOpen(true);
   };
+
+  const handleArchive = () => {
+    toast({
+      title: 'Coming Soon',
+      description: 'Archiving tasks will be available in a future update.',
+    });
+  }
 
   const formatTime = (totalSeconds: number = 0) => {
     const hours = Math.floor(totalSeconds / 3600);
@@ -149,7 +158,7 @@ export function CompletedProjectsTable() {
               </TableHeader>
               <TableBody>
                 {filteredTasks.map((task) => (
-                  <TableRow key={task.name}>
+                  <TableRow key={task.id}>
                     <TableCell className="font-medium">{task.name}</TableCell>
                     <TableCell>
                       {formatDate(task.endTime)}
@@ -176,8 +185,8 @@ export function CompletedProjectsTable() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>Archive</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleArchive}>Archive</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onClick={() => deleteTask(task.id)}>Delete</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                     </TableCell>
