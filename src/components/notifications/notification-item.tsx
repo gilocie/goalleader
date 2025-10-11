@@ -6,6 +6,7 @@ import { Notification, getNotificationIcon, useNotifications } from "@/context/n
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from 'date-fns';
 import { useRouter } from 'next/navigation';
+import { Button } from "../ui/button";
 
 interface NotificationItemProps {
     notification: Notification;
@@ -20,9 +21,6 @@ export function NotificationItem({ notification }: NotificationItemProps) {
         if (!notification.read) {
             markAsRead(notification.id);
         }
-        if (notification.link) {
-            router.push(notification.link);
-        }
     };
 
     return (
@@ -33,14 +31,30 @@ export function NotificationItem({ notification }: NotificationItemProps) {
                 !notification.read && "bg-accent"
             )}
             onClick={handleClick}
+            asChild
         >
-            <div className="mt-1">{icon}</div>
-            <div className="flex-1 space-y-1">
-                <p className="font-semibold text-sm text-accent-foreground">{notification.title}</p>
-                <p className="text-xs text-accent-foreground/80 line-clamp-2">{notification.message}</p>
-                <p className="text-xs text-accent-foreground/80">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+            <div className="w-full">
+                <div className="flex items-start gap-3">
+                    <div className="mt-1">{icon}</div>
+                    <div className="flex-1 space-y-1">
+                        <p className="font-semibold text-sm text-accent-foreground">{notification.title}</p>
+                        <p className="text-xs text-accent-foreground/80 line-clamp-2">{notification.message}</p>
+                        <p className="text-xs text-accent-foreground/80">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</p>
+                    </div>
+                    {!notification.read && <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1 self-center" />}
+                </div>
+                {notification.link && notification.type === 'report' && (
+                     <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-xs mt-2" 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(notification.link!);
+                        }}>
+                        View Report
+                    </Button>
+                )}
             </div>
-            {!notification.read && <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1 self-center" />}
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-white/10" />
         </>

@@ -20,6 +20,8 @@ import { refineText, RefineTextInput } from '@/ai/flows/refine-text-flow';
 import { Bot, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Timestamp } from 'firebase/firestore';
+import { useNotifications } from '@/context/notification-context';
+import { useUser } from '@/context/user-context';
 
 interface CreateReportDialogProps {
   isOpen: boolean;
@@ -40,6 +42,8 @@ export function CreateReportDialog({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addReport } = useReports();
+  const { addNotification } = useNotifications();
+  const { user } = useUser();
   const router = useRouter();
 
   const handleGenerateReport = async () => {
@@ -75,6 +79,28 @@ export function CreateReportDialog({
     }
   };
 
+  const submitReport = (finalReportContent: string) => {
+    const reportTitle = `Performance Report - ${period} - ${format(new Date(), 'PP')}`;
+    addReport({
+        title: reportTitle,
+        content: finalReportContent,
+    });
+    
+    if (user) {
+        addNotification({
+            type: 'report',
+            title: `New Report from ${user.name}`,
+            message: `A new performance report titled "${reportTitle}" is ready for your review.`,
+            author: user.name,
+            link: `/teams/${user.id}`
+        });
+    }
+
+    onOpenChange(false);
+    setReportContent('');
+    router.push('/reports');
+  };
+
   const handleConfirm = async () => {
     if (!reportContent.trim()) return;
 
@@ -92,25 +118,12 @@ export function CreateReportDialog({
             }),
         };
         const finalReport = await refineText(refineInput);
+        submitReport(finalReport);
 
-        addReport({
-            title: `Performance Report - ${period} - ${format(new Date(), 'PP')}`,
-            content: finalReport,
-        });
-        
-        onOpenChange(false);
-        setReportContent('');
-        router.push('/reports');
     } catch (error) {
-        console.error('Failed to refine and save report:', error);
-        // Fallback to saving the original content if refinement fails
-        addReport({
-            title: `Performance Report - ${period} - ${format(new Date(), 'PP')}`,
-            content: reportContent,
-        });
-        onOpenChange(false);
-        setReportContent('');
-        router.push('/reports');
+        console.error('Failed to refine report:', error);
+        // If AI refinement fails, save the original content.
+        submitReport(reportContent);
     } finally {
         setIsSubmitting(false);
     }

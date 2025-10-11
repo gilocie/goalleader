@@ -8,7 +8,7 @@ import { DailyTodoList } from '@/components/teams/daily-todo-list';
 import { ManagerFeedback } from '@/components/teams/manager-feedback';
 import { TeamMemberPerformanceCoach } from '@/components/performance/team-member-performance-coach';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUser } from '@/context/user-context';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,8 +16,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MemberPerformancePage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const { allTeamMembers, loading } = useUser();
   const memberId = typeof params.memberId === 'string' ? params.memberId : '';
+  const reportContent = searchParams.get('reportContent');
   
   if (loading) {
     return (
@@ -54,7 +56,7 @@ export default function MemberPerformancePage() {
             </div>
             <div className="space-y-8">
               <TeamMemberPerformanceCoach member={member} />
-              <ManagerFeedback />
+              <ManagerFeedback reportContent={reportContent} />
             </div>
           </div>
         </main>

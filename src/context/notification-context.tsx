@@ -52,7 +52,7 @@ const initialNotifications: Notification[] = [
 
 interface NotificationContextType {
   notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'> & { reportContent?: string }) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotifications: (ids: string[]) => void;
@@ -64,12 +64,20 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const { toast } = useToast();
 
-  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'> & { reportContent?: string }) => {
+    const { reportContent, ...rest } = notification;
+    
+    let link = notification.link;
+    if (reportContent && link) {
+      link = `${link}?reportContent=${encodeURIComponent(reportContent)}`;
+    }
+    
     const newNotification: Notification = {
-      ...notification,
+      ...rest,
       id: new Date().toISOString() + Math.random(),
       timestamp: new Date().toISOString(),
       read: false,
+      link: link
     };
     setNotifications(prev => [newNotification, ...prev]);
 
