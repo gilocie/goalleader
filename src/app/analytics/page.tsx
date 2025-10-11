@@ -13,7 +13,7 @@ import { useUser } from '@/context/user-context';
 import { useMemo } from 'react';
 import { format, parseISO, isBefore, startOfMonth, endOfMonth, getMonth } from 'date-fns';
 
-export default function AnalyticsPage() {
+function AnalyticsPageContent() {
     const { tasks } = useTimeTracker();
     const { allTeamMembers } = useUser();
 
@@ -116,7 +116,6 @@ export default function AnalyticsPage() {
 
 
   return (
-    <AppLayout>
       <main className="flex-grow p-4 md:p-8 space-y-8">
         <Card>
             <CardHeader>
@@ -243,6 +242,13 @@ export default function AnalyticsPage() {
         </Card>
 
       </main>
-    </AppLayout>
   );
+}
+
+export default function AnalyticsPage() {
+    return (
+        <AppLayout>
+            <AnalyticsPageContent />
+        </AppLayout>
+    );
 }
