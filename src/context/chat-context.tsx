@@ -71,11 +71,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [inputMessage, setInputMessage] = useState('');
 
   const allContacts = useMemo(() => {
-    if (!firebaseUser || !allTeamMembers) return [];
+    if (!allTeamMembers) return [];
     return allTeamMembers.map(member => {
         const relevantMessages = messages.filter(
-            msg => (msg.senderId === member.id && msg.recipientId === firebaseUser.uid) ||
-                   (msg.senderId === firebaseUser.uid && msg.recipientId === member.id)
+            msg => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
+                   (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
         );
         const lastMessage = relevantMessages.sort((a, b) => {
             const timeA = a.timestamp?.toMillis() || 0;
@@ -83,7 +83,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             return timeB - timeA;
         })[0];
         
-        const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === firebaseUser.uid && msg.readStatus !== 'read').length;
+        const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === firebaseUser?.uid && msg.readStatus !== 'read').length;
 
         return {
             ...member,
@@ -91,7 +91,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
             lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
-            lastMessageReadStatus: lastMessage?.senderId === firebaseUser.uid ? lastMessage.readStatus : undefined,
+            lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage.readStatus : undefined,
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
@@ -204,7 +204,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [self, firestore]);
 
-  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
+ const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
     if (!firestore || !self) return;
     const messageRef = doc(firestore, 'messages', messageId);
     const messageToDelete = messages.find(m => m.id === messageId);
@@ -267,7 +267,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
        const updateData = {
           deletedBySender: isSender || msg.deletedBySender,
           deletedByRecipient: !isSender || msg.deletedByRecipient,
-          readStatus: msg.readStatus
        };
       batch.update(messageRef, updateData);
     });

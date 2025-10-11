@@ -22,7 +22,6 @@ import type { TeamMember } from '@/lib/users';
 import type { Contact } from '@/types/chat';
 import { useUser } from '@/context/user-context';
 import { ViewProfileDialog } from './view-profile-dialog';
-import { useChat } from '@/context/chat-context';
 
 interface NewChatDialogProps {
   isOpen: boolean;
@@ -36,8 +35,7 @@ export function NewChatDialog({
   onStartChat,
 }: NewChatDialogProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const { user: self } = useUser();
-  const { allContacts: allTeamMembers } = useChat();
+  const { user: self, allTeamMembers } = useUser();
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
   const [viewingProfile, setViewingProfile] = useState<TeamMember | null>(null);
 
