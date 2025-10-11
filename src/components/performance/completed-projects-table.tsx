@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -32,6 +33,8 @@ import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
 import { format, isWithinInterval, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { CreateReportDialog } from './create-report-dialog';
+import type { Timestamp } from 'firebase/firestore';
+
 
 export type FilterType = 'recent' | 'thisWeek' | 'thisMonth';
 
@@ -58,6 +61,25 @@ export function CompletedProjectsTable() {
 
     return result.trim() || '0s';
   };
+  
+  const formatDate = (dateValue?: string | Timestamp) => {
+    if (!dateValue) return 'N/A';
+    
+    let date;
+    if (typeof dateValue === 'string') {
+        date = new Date(dateValue);
+    } else if (dateValue && typeof (dateValue as Timestamp).toDate === 'function') {
+        date = (dateValue as Timestamp).toDate();
+    } else {
+        return 'Invalid Date';
+    }
+
+    if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+    }
+
+    return format(date, 'MMM d, yy');
+  };
 
   const filteredTasks = useMemo(() => {
     const completed = tasks.filter(t => t.status === 'Completed' && t.endTime);
@@ -65,18 +87,24 @@ export function CompletedProjectsTable() {
 
     switch (activeFilter) {
       case 'thisWeek':
-        return completed.filter(t => isWithinInterval(new Date(t.endTime!), {
-          start: startOfWeek(now),
-          end: endOfWeek(now),
-        }));
+        return completed.filter(t => {
+            if (!t.endTime) return false;
+            const endDate = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime as string);
+            return isWithinInterval(endDate, { start: startOfWeek(now), end: endOfWeek(now) });
+        });
       case 'thisMonth':
-        return completed.filter(t => isWithinInterval(new Date(t.endTime!), {
-            start: startOfMonth(now),
-            end: endOfMonth(now),
-        }));
+        return completed.filter(t => {
+            if (!t.endTime) return false;
+            const endDate = (t.endTime as Timestamp).toDate ? (t.endTime as Timestamp).toDate() : new Date(t.endTime as string);
+            return isWithinInterval(endDate, { start: startOfMonth(now), end: endOfMonth(now) });
+        });
       case 'recent':
       default:
-        return completed.sort((a, b) => new Date(b.endTime!).getTime() - new Date(a.endTime!).getTime());
+        return completed.sort((a, b) => {
+            const timeA = (a.endTime as Timestamp)?.toMillis() || 0;
+            const timeB = (b.endTime as Timestamp)?.toMillis() || 0;
+            return timeB - timeA;
+        });
     }
   }, [tasks, activeFilter]);
 
@@ -134,7 +162,7 @@ export function CompletedProjectsTable() {
                           </Tooltip>
                         </TooltipProvider>
                         <div className='col-span-1'>
-                        {task.endTime ? format(new Date(task.endTime), 'MMM d, yy') : 'N/A'}
+                        {formatDate(task.endTime)}
                         </div>
                         <div className='col-span-1'>{formatTime(task.duration)}</div>
                     </div>
