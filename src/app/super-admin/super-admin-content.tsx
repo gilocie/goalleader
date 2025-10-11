@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid, Mail, Phone, Calendar, Settings, LogOut, PanelLeft, Loader2 } from 'lucide-react';
+import { Building, Copy, GitBranch, Link as LinkIcon, MoreVertical, Shield, Users, AlertTriangle, CheckCircle, LayoutDashboard, LifeBuoy, DollarSign, TrendingUp, Download, Search, FileText, List, LayoutGrid, Mail, Phone, Calendar, Settings, LogOut, PanelLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/comp
 import { Label } from '@/components/ui/label';
 import { useAuth, useFirestore } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 
 type NavItem = {
@@ -485,41 +486,42 @@ const SettingsPage = () => {
     const { toast } = useToast();
     const auth = useAuth();
     const firestore = useFirestore();
-    const [isCreating, setIsCreating] = useState(false);
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
-    const handleAction = (action: string) => {
-        toast({
-            title: 'Action Triggered',
-            description: `${action} functionality is not yet implemented.`,
-        });
-    };
-
-    const handleCreateAdminProfile = async () => {
-        if (!auth?.currentUser || !firestore) {
-            toast({ variant: "destructive", title: "Not Authenticated", description: "You must be logged in to perform this action." });
+    const handleRegisterAdmin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!auth || !firestore) {
+            toast({ variant: "destructive", title: "Firebase not initialized." });
             return;
         }
-
-        setIsCreating(true);
+        setIsRegistering(true);
         try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
             const adminData = {
-                name: auth.currentUser.displayName || "Super Admin",
+                name: fullName,
                 role: "admin",
-                email: auth.currentUser.email
             };
-
-            const adminDocRef = doc(firestore, "admins", auth.currentUser.uid);
+            
+            const adminDocRef = doc(firestore, "admins", user.uid);
             await setDoc(adminDocRef, adminData);
-
-            toast({ title: "Profile Created", description: "Your super admin profile has been saved in Firestore." });
+            
+            toast({ title: "Admin Registered", description: `User ${fullName} has been registered as a super admin.` });
+            setFullName('');
+            setEmail('');
+            setPassword('');
         } catch (error: any) {
-            toast({ variant: "destructive", title: "Error", description: error.message });
+            toast({ variant: "destructive", title: "Registration Failed", description: error.message });
         } finally {
-            setIsCreating(false);
+            setIsRegistering(false);
         }
     };
-
-
+    
     return (
         <Card>
             <CardHeader>
@@ -544,7 +546,7 @@ const SettingsPage = () => {
                                 <Label htmlFor="admin-email">Email</Label>
                                 <Input id="admin-email" type="email" defaultValue="super@goalleader.com" />
                             </div>
-                            <Button onClick={() => handleAction('Update Account')}>Save Changes</Button>
+                            <Button>Save Changes</Button>
                         </div>
                     </TabsContent>
                     <TabsContent value="security" className="mt-6">
@@ -557,27 +559,42 @@ const SettingsPage = () => {
                                 <Label htmlFor="new-password">New Password</Label>
                                 <Input id="new-password" type="password" />
                             </div>
-                            <Button onClick={() => handleAction('Change Password')}>Change Password</Button>
+                            <Button>Change Password</Button>
                         </div>
                     </TabsContent>
                     <TabsContent value="billing" className="mt-6">
                          <div className="space-y-6 max-w-2xl">
                             <p className="text-sm">Your current plan: <strong>Super Admin Unlimited</strong></p>
-                            <Button variant="outline" onClick={() => handleAction('Manage Subscription')}>Manage Subscription</Button>
+                            <Button variant="outline">Manage Subscription</Button>
                         </div>
                     </TabsContent>
                     <TabsContent value="register" className="mt-6">
-                        <div className="space-y-4 max-w-2xl">
-                            <h3 className="font-semibold">Create Your Super Admin Profile</h3>
-                            <p className="text-sm text-muted-foreground">
-                                Click the button below to create your official super admin document in Firestore. 
-                                This is a one-time action to verify your account within the database.
-                            </p>
-                            <Button onClick={handleCreateAdminProfile} disabled={isCreating}>
-                                {isCreating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
-                                Create My Admin Profile
+                        <form onSubmit={handleRegisterAdmin} className="space-y-4 max-w-2xl">
+                            <h3 className="font-semibold">Register New Super Admin</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="full-name">Full Name</Label>
+                                    <Input id="full-name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="email">Email</Label>
+                                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <div className="relative">
+                                    <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required />
+                                    <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={() => setShowPassword(!showPassword)}>
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                            </div>
+                            <Button type="submit" disabled={isRegistering}>
+                                {isRegistering ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shield className="mr-2 h-4 w-4" />}
+                                Register Admin
                             </Button>
-                        </div>
+                        </form>
                     </TabsContent>
                 </Tabs>
             </CardContent>
