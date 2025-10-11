@@ -160,85 +160,108 @@ const OverviewPage = () => {
 };
 
 const ClientsPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+    const { toast } = useToast();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [activeTab, setActiveTab] = useState('all');
+  
+    const filteredClients = clients.filter(client => {
+      const statusMatch = activeTab === 'all' || client.status === activeTab;
+      const searchMatch = client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          client.adminEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          client.firebaseProjectId.toLowerCase().includes(searchTerm.toLowerCase());
+      return statusMatch && searchMatch;
+    });
 
-  const filteredClients = clients.filter(client => {
-    const statusMatch = activeTab === 'all' || client.status === activeTab;
-    const searchMatch = client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        client.adminEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        client.firebaseProjectId.toLowerCase().includes(searchTerm.toLowerCase());
-    return statusMatch && searchMatch;
-  });
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Client Management</CardTitle>
-        <CardDescription>View, search, and manage all client instances.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-           <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search clients..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-           </div>
-           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-             <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="Active">Active</TabsTrigger>
-                <TabsTrigger value="Suspended">Suspended</TabsTrigger>
-                <TabsTrigger value="Incomplete">Incomplete</TabsTrigger>
-             </TabsList>
-           </Tabs>
-        </div>
-
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Admin</TableHead>
-                    <TableHead>Domain</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {filteredClients.map((client: Client) => (
-                    <TableRow key={client.id}>
-                        <TableCell>
-                            <div className="font-medium">{client.companyName}</div>
-                            <div className="text-xs text-muted-foreground font-mono">{client.firebaseProjectId}</div>
-                        </TableCell>
-                        <TableCell>{client.adminEmail}</TableCell>
-                        <TableCell>
-                            <a href={`https://${client.domain}`} target="_blank" rel="noopener noreferrer" className="text-primary underline flex items-center gap-1">
-                                {client.domain} <LinkIcon className="h-3 w-3" />
+    const handleCopy = (text: string, label: string) => {
+        navigator.clipboard.writeText(text);
+        toast({
+            title: `${label} Copied`,
+            description: `The ${label.toLowerCase()} has been copied to your clipboard.`,
+        });
+    };
+  
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Client Management</CardTitle>
+          <CardDescription>View, search, and manage all client instances.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+             <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search clients..." className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+             </div>
+             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+               <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="Active">Active</TabsTrigger>
+                  <TabsTrigger value="Suspended">Suspended</TabsTrigger>
+                  <TabsTrigger value="Incomplete">Incomplete</TabsTrigger>
+               </TabsList>
+             </Tabs>
+          </div>
+  
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredClients.map((client: Client) => (
+                <Card key={client.id} className="p-4 space-y-4">
+                    <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-muted rounded-lg">
+                                <Building className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                            <div>
+                                <div className="font-semibold">{client.companyName}</div>
+                                <div className="text-xs text-muted-foreground font-mono">{client.id}</div>
+                            </div>
+                        </div>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem>View Details</DropdownMenuItem>
+                                <DropdownMenuItem>Manage Billing</DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                            <span className="text-muted-foreground">Admin:</span>
+                            <span>{client.adminEmail}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Domain:</span>
+                            <a href={`https://${client.domain}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-primary underline">
+                                {client.domain}
+                                <LinkIcon className="h-3 w-3" />
                             </a>
-                        </TableCell>
-                         <TableCell>
-                            <Badge variant={client.status === 'Active' ? 'default' : 'destructive'} className={client.status === 'Active' ? 'bg-green-100 text-green-800' : ''}>
-                                {client.status}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                           <DropdownMenu>
-                                <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>View Details</DropdownMenuItem>
-                                    <DropdownMenuItem>Manage Billing</DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  )
-}
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Project ID:</span>
+                            <div className="flex items-center gap-1">
+                                <span className="font-mono text-xs">{client.firebaseProjectId}</span>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(client.firebaseProjectId, 'Project ID')}>
+                                    <Copy className="h-3 w-3" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                    <CardFooter className="p-0 pt-4">
+                        <Badge variant={client.status === 'Active' ? 'default' : 'destructive'} className={cn("w-full justify-center py-1", client.status === 'Active' ? 'bg-green-100 text-green-800' : '')}>
+                            {client.status}
+                        </Badge>
+                    </CardFooter>
+                </Card>
+            ))}
+            </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
 const supportTickets = [
     { id: 'TICKET-001', client: 'Innovate Inc.', subject: 'Billing issue', status: 'Open', lastUpdate: '2 hours ago' },
@@ -328,5 +351,3 @@ export function SuperAdminContent() {
         </main>
     );
 }
-
-    
