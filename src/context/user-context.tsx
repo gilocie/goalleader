@@ -23,6 +23,7 @@ interface User {
   country?: string;
   branch?: string;
   email?: string;
+  status: 'online' | string;
 }
 
 interface UserContextType {
@@ -47,9 +48,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const usersQuery = React.useMemo(() => {
     // Only run the query if the user is authenticated and firestore is available
-    if (!firestore || !firebaseUser) return null;
+    if (!firestore) return null; // Fetch all users regardless of auth state to get statuses
     return collection(firestore, 'users');
-  }, [firestore, firebaseUser]);
+  }, [firestore]);
   
   const { data: allTeamMembers, loading: usersLoading } = useCollection<TeamMember>(usersQuery);
 
@@ -64,6 +65,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
     
     if (firebaseUser && firestore) {
+        updateUserStatus(firebaseUser.uid, 'online');
         const userDocRef = doc(firestore, 'users', firebaseUser.uid);
         const unsubscribe = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
@@ -76,6 +78,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                     country: data.country || '',
                     branch: data.branch || '',
                     email: firebaseUser.email || '',
+                    status: data.status || 'online',
                 });
             } else {
                  const newUserProfile: User = {
@@ -86,12 +89,25 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                     country: '',
                     branch: '',
                     email: firebaseUser.email || '',
+                    status: 'online',
                  };
                  setUser(newUserProfile);
             }
             setLoading(false);
         });
-        return () => unsubscribe();
+
+        const handleBeforeUnload = () => {
+          updateUserStatus(firebaseUser.uid, new Date().toISOString());
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        return () => {
+          if (firebaseUser) {
+            updateUserStatus(firebaseUser.uid, new Date().toISOString());
+          }
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+          unsubscribe();
+        };
     } else {
         setUser(null);
         setLoading(false);
@@ -106,9 +122,11 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
               const email = member.id === firebaseUser.uid
                   ? firebaseUser.email
                   : `${member.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`;
-              return { ...member, email: email || '' };
+              return { ...member, email: email || '', status: member.status || 'offline' };
           });
           setAllUsersWithAuth(combined);
+      } else if (allTeamMembers) {
+         setAllUsersWithAuth(allTeamMembers.map(m => ({ ...m, email: `${m.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`, status: m.status || 'offline' })));
       }
   }, [allTeamMembers, firebaseUser]);
 
@@ -154,12 +172,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore) return;
     const userDocRef = doc(firestore, 'users', userId);
     updateDoc(userDocRef, { status }).catch(serverError => {
-        const permissionError = new FirestorePermissionError({
-            path: userDocRef.path,
-            operation: 'update',
-            requestResourceData: { status }
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        // We don't want to show an error for this as it's a background task
+        console.error("Could not update user status:", serverError);
     });
   };
 
@@ -177,7 +191,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     updateUserStatus,
     getUserStatus,
     allTeamMembers: allTeamMembers || [],
-    allUsersWithAuth,
+    allUsersWithAuth: allUsersWithAuth || [],
   };
 
   return (

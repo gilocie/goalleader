@@ -37,11 +37,13 @@ export function useCollection<T>(query: Query<DocumentData> | null) {
       },
       (err: FirestoreError) => {
         // Create and emit a contextual error for better debugging
-        const permissionError = new FirestorePermissionError({
-            path: (query as any)._query.path.segments.join('/'),
-            operation: 'list'
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        if (err.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: (query as any)._query.path.segments.join('/'),
+                operation: 'list'
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
         
         setError(err); // Still set the original error for local component state
         setLoading(false);
@@ -51,5 +53,5 @@ export function useCollection<T>(query: Query<DocumentData> | null) {
     return () => unsubscribe();
   }, [query]);
 
-  return { data, loading, error };
+  return { data, loading, error, setData };
 }

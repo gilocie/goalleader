@@ -5,7 +5,7 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, where } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -59,8 +59,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     return query(collection(firestore, 'messages'), where('recipientId', '==', firebaseUser.uid));
   }, [firestore, firebaseUser]);
 
-  const { data: sentMessages } = useCollection<Message>(messagesSentQuery);
-  const { data: receivedMessages } = useCollection<Message>(messagesReceivedQuery);
+  const { data: sentMessages, setData: setSentMessages } = useCollection<Message>(messagesSentQuery);
+  const { data: receivedMessages, setData: setReceivedMessages } = useCollection<Message>(messagesReceivedQuery);
   
   const messages = useMemo(() => {
     const allMessages = [...sentMessages, ...receivedMessages];
@@ -129,7 +129,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore || !firebaseUser) return;
     const activeChatsRef = doc(firestore, 'chats', firebaseUser.uid);
     try {
-        await setDoc(activeChatsRef, { ids: Array.from(newIds) }, { merge: true });
+        await updateDoc(activeChatsRef, { ids: Array.from(newIds) });
     } catch (e) {
         console.error("Failed to update active chats in Firestore", e);
     }
@@ -209,6 +209,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const deleteMessage = useCallback(async (messageId: string) => {
     if (!firestore) return;
     const messageRef = doc(firestore, 'messages', messageId);
+    setSentMessages(prev => prev.filter(m => m.id !== messageId));
+    setReceivedMessages(prev => prev.filter(m => m.id !== messageId));
     deleteDoc(messageRef).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
             path: messageRef.path,
@@ -216,31 +218,41 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         });
         errorEmitter.emit('permission-error', permissionError);
     });
-  }, [firestore]);
+  }, [firestore, setSentMessages, setReceivedMessages]);
 
   const clearChat = useCallback(async (contactId: string) => {
     if (!self || !firestore) return;
-    const chatMessages = messages.filter(
+    
+    const chatMessagesToDelete = messages.filter(
       msg => ((msg.senderId === contactId && msg.recipientId === self.id) || (msg.senderId === self.id && msg.recipientId === contactId))
     );
-    for (const msg of chatMessages) {
-      await deleteDoc(doc(firestore, 'messages', msg.id));
-    }
-  }, [self, firestore, messages]);
+
+    const batch = writeBatch(firestore);
+    chatMessagesToDelete.forEach(msg => {
+      batch.delete(doc(firestore, 'messages', msg.id));
+    });
+    await batch.commit();
+    
+    // Optimistically update UI
+    const remainingSent = sentMessages.filter(m => !(m.recipientId === contactId || m.senderId === contactId));
+    const remainingReceived = receivedMessages.filter(m => !(m.recipientId === contactId || m.senderId === contactId));
+    setSentMessages(remainingSent);
+    setReceivedMessages(remainingReceived);
+
+  }, [self, firestore, messages, sentMessages, receivedMessages, setSentMessages, setReceivedMessages]);
 
   const deleteChat = useCallback(async (contactId: string) => {
     await clearChat(contactId);
     if (self) {
-        const newIds = new Set(activeChatIds);
-        const chatIdsToDelete = messages.filter(m => (m.senderId === contactId && m.recipientId === self.id) || (m.senderId === self.id && m.recipientId === contactId)).map(m => [m.senderId, m.recipientId].sort().join('--'));
-        chatIdsToDelete.forEach(id => newIds.delete(id));
-        await updateActiveChatIds(newIds);
+        setSelectedContact(null);
     }
-  }, [clearChat, self, messages, activeChatIds]);
+  }, [clearChat, self]);
 
   const forwardMessage = useCallback(async (message: Message, recipientIds: string[]) => {
     if (!self || !firestore) return;
     
+    const batch = writeBatch(firestore);
+
     for (const recipientId of recipientIds) {
         const forwardedMessage = {
             ...message,
@@ -251,11 +263,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         delete forwardedMessage.id;
         delete forwardedMessage.timestamp;
 
-        await addDoc(collection(firestore, 'messages'), {
-            ...forwardedMessage,
-            timestamp: serverTimestamp()
-        });
+        const newDocRef = doc(collection(firestore, 'messages'));
+        batch.set(newDocRef, { ...forwardedMessage, timestamp: serverTimestamp() });
     }
+    await batch.commit();
   }, [self, firestore]);
 
   const startCall = useCallback((contact: Contact) => {
@@ -310,20 +321,25 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     if (selectedContact && self && firestore) {
-        messages.forEach(async (m) => {
+        const batch = writeBatch(firestore);
+        let hasUnread = false;
+        messages.forEach((m) => {
             if (m.senderId === selectedContact.id && m.recipientId === self.id && m.readStatus !== 'read') {
                 const messageRef = doc(firestore, 'messages', m.id);
-                const updateData = { readStatus: 'read' };
-                updateDoc(messageRef, updateData).catch(async (serverError) => {
-                    const permissionError = new FirestorePermissionError({
-                        path: messageRef.path,
-                        operation: 'update',
-                        requestResourceData: updateData,
-                    });
-                    errorEmitter.emit('permission-error', permissionError);
-                });
+                batch.update(messageRef, { readStatus: 'read' });
+                hasUnread = true;
             }
         });
+        if (hasUnread) {
+            batch.commit().catch(serverError => {
+                const permissionError = new FirestorePermissionError({
+                    path: `messages/[multiple]`,
+                    operation: 'update',
+                    requestResourceData: { readStatus: 'read' },
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
+        }
     }
   }, [selectedContact, self, messages, firestore]);
 
@@ -352,7 +368,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     incomingVoiceCallFrom,
     startVoiceCall,
     endVoiceCall,
-    acceptVoiceCall,
+acceptVoiceCall,
     declineVoiceCall,
     acceptedVoiceCallContact,
     setAcceptedVoiceCallContact,
