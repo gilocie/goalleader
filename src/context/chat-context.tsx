@@ -213,29 +213,39 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (deleteForEveryone) {
       if (messageToDelete.senderId === self.id) {
         await deleteDoc(messageRef)
-          .catch(err => console.error("Delete for everyone failed:", err));
-      } else {
-        console.warn("You are not allowed to delete this message for everyone.");
+          .then(() => {
+            setMessages(prev => prev.filter(m => m.id !== messageId));
+          })
+          .catch(err => {
+            const permissionError = new FirestorePermissionError({
+              path: messageRef.path,
+              operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+          });
       }
     } else {
-      const updateData: { deletedBySender?: boolean; deletedByRecipient?: boolean } = {};
-      const isSender = messageToDelete.senderId === self.id;
-      if (isSender) {
-        updateData.deletedBySender = true;
-      } else {
-        updateData.deletedByRecipient = true;
-      }
-  
-      await updateDoc(messageRef, updateData)
-        .then(() => {
-          setMessages(prev => prev.map(m => {
-            if (m.id === messageId) {
-              return { ...m, ...updateData };
-            }
-            return m;
-          }));
-        })
-        .catch(err => console.error("Soft delete failed:", err));
+        const isSender = messageToDelete.senderId === self.id;
+        const updateData = {
+            deletedBySender: isSender || messageToDelete.deletedBySender || false,
+            deletedByRecipient: !isSender || messageToDelete.deletedByRecipient || false,
+            readStatus: messageToDelete.readStatus
+        };
+
+        updateDoc(messageRef, updateData)
+            .then(() => {
+                setMessages(prev => prev.map(m => 
+                    m.id === messageId ? { ...m, ...updateData } : m
+                ));
+            })
+            .catch(serverError => {
+                const permissionError = new FirestorePermissionError({
+                    path: messageRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
     }
   }, [firestore, self, messages, setMessages]);
 
@@ -247,14 +257,18 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       msg => ((msg.senderId === contactId && msg.recipientId === self.id) || (msg.senderId === self.id && msg.recipientId === contactId))
     );
 
+    if (chatMessagesToUpdate.length === 0) return;
+
     const batch = writeBatch(firestore);
     chatMessagesToUpdate.forEach(msg => {
       const messageRef = doc(firestore, 'messages', msg.id);
-      if (msg.senderId === self.id) {
-        batch.update(messageRef, { deletedBySender: true });
-      } else {
-        batch.update(messageRef, { deletedByRecipient: true });
-      }
+      const isSender = msg.senderId === self.id;
+       const updateData = {
+          deletedBySender: isSender || msg.deletedBySender || false,
+          deletedByRecipient: !isSender || msg.deletedByRecipient || false,
+          readStatus: msg.readStatus
+       };
+      batch.update(messageRef, updateData);
     });
     
     await batch.commit()
@@ -263,13 +277,18 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           const shouldBeDeleted = chatMessagesToUpdate.some(del => del.id === m.id);
           if (shouldBeDeleted) {
             const isSender = m.senderId === self.id;
-            return { ...m, deletedBySender: isSender, deletedByRecipient: !isSender };
+            return { ...m, deletedBySender: isSender || m.deletedBySender, deletedByRecipient: !isSender || m.deletedByRecipient };
           }
           return m;
         }));
       })
-      .catch(err => {
-        console.error("Failed to clear chat:", err);
+      .catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: 'messages/[batch]',
+                operation: 'update',
+                requestResourceData: { deletedBySender: true, deletedByRecipient: true },
+            });
+            errorEmitter.emit('permission-error', permissionError);
     });
   }, [self, firestore, messages, setMessages]);
 
@@ -425,5 +444,3 @@ export const useChat = () => {
   }
   return context;
 };
-
-    
