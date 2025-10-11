@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Bot, PlusCircle } from 'lucide-react';
 import { GenerateContentDialog } from '@/components/marketing/generate-content-dialog';
 import type { Suggestion } from '@/types/marketing';
-import { Logo } from '@/components/icons';
 import { ApprovedContentActions } from '@/components/marketing/approved-content-actions';
-import { ClientLeadsGrid } from '@/components/marketing/client-leads-table';
+import { ClientLeadsGrid } from '@/components/marketing/client-leads-grid';
+import { Logo } from '@/components/icons';
 
 export default function MarketingPage() {
   const [isGenerateDialogOpen, setGenerateDialogOpen] = useState(false);
@@ -91,12 +91,14 @@ export default function MarketingPage() {
                       Generate New Content
                     </Button>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <ApprovedContentActions 
-                      content={approvedContent} 
-                      onContentDeleted={handleContentDeleted}
-                      onContentUpdated={handleContentUpdated}
-                    />
+                  <CardContent>
+                    <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50">
+                        <Logo className="h-12 w-12 text-primary" />
+                        <h3 className="font-semibold">Approve Content to Manage Campaigns</h3>
+                        <p className="text-muted-foreground max-w-md">
+                            Once you generate and approve content, it will appear in the "Campaign Ads" tab where you can schedule and send it.
+                        </p>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -104,20 +106,14 @@ export default function MarketingPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>GoalLeader-Generated Campaign Ads</CardTitle>
-                    <CardDescription>Effortlessly create blog posts, social media updates, and email newsletters.</CardDescription>
+                    <CardDescription>Effortlessly create and manage blog posts, social media updates, and email newsletters.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 rounded-lg bg-muted/50">
-                            <Logo className="h-12 w-12 text-primary" />
-                            <h3 className="font-semibold">Create Ad Campaigns</h3>
-                            <p className="text-muted-foreground max-w-md">
-                                Design and launch effective ad campaigns to maximize your reach and impact.
-                            </p>
-                            <Button>
-                                <Logo className="mr-2 h-4 w-4 text-primary" />
-                                Create with GoalLeader
-                            </Button>
-                        </div>
+                    <ApprovedContentActions 
+                      content={approvedContent} 
+                      onContentDeleted={handleContentDeleted}
+                      onContentUpdated={handleContentUpdated}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>
