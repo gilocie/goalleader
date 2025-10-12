@@ -8,15 +8,23 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
 import { cn } from '@/lib/utils';
+import { isToday, parseISO } from 'date-fns';
 
 export function DailyTodoList() {
     const { tasks } = useTimeTracker();
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [isDetailsOpen, setDetailsOpen] = useState(false);
     
-    // For demo purposes, we'll show a mix of tasks regardless of date.
-    // In a real app, you would filter for tasks assigned to the specific user and for today.
-    const todaysTasks = tasks.slice(0, 5);
+    const todaysTasks = tasks.filter(task => {
+        try {
+            const isTaskForToday = isToday(parseISO(task.dueDate));
+            const isTaskIncomplete = task.status === 'Pending' || task.status === 'In Progress';
+            return isTaskForToday && isTaskIncomplete;
+        } catch (error) {
+            // Handle cases where dueDate might not be a valid ISO string
+            return false;
+        }
+    });
 
     const handleTaskClick = (task: Task) => {
         setSelectedTask(task);
@@ -33,9 +41,10 @@ export function DailyTodoList() {
                 <CardContent>
                     <ScrollArea className="h-64">
                         <div className="space-y-4">
-                            {todaysTasks.map(task => (
+                            {todaysTasks.length > 0 ? (
+                                todaysTasks.map(task => (
                                 <div 
-                                    key={task.name} 
+                                    key={task.id} 
                                     className="flex items-center gap-4 p-2 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
                                     onClick={() => handleTaskClick(task)}
                                     role="button"
@@ -44,21 +53,23 @@ export function DailyTodoList() {
                                 >
                                     <div onClick={(e) => e.stopPropagation()}>
                                         <Checkbox 
-                                            id={`task-${task.name}`} 
+                                            id={`task-${task.id}`} 
                                             checked={task.status === 'Completed'} 
                                             aria-label={`Mark ${task.name} as complete`}
                                         />
                                     </div>
-                                    <label htmlFor={`task-${task.name}`} className="flex-1 cursor-pointer">
+                                    <label htmlFor={`task-${task.id}`} className="flex-1 cursor-pointer">
                                         <p className={cn("font-medium", task.status === 'Completed' && 'line-through text-muted-foreground')}>
                                             {task.name}
                                         </p>
                                         <p className="text-sm text-muted-foreground">Due: {task.dueDate}</p>
                                     </label>
                                 </div>
-                            ))}
-                            {todaysTasks.length === 0 && (
-                                <p className="text-muted-foreground text-center py-8">No tasks for today.</p>
+                            ))
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-muted-foreground">
+                                    No tasks for today.
+                                </div>
                             )}
                         </div>
                     </ScrollArea>
