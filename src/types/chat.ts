@@ -1,5 +1,6 @@
 
-import type { Timestamp } from 'firebase/firestore';
+
+import type { Timestamp, FieldValue } from 'firebase/firestore';
 
 export interface Contact {
     id: string;
@@ -33,4 +34,13 @@ export interface Message {
     deletedByRecipient?: boolean;
 }
 
+export interface Call {
+    id: string;
+    callerId: string;
+    recipientId: string;
+    status: 'ringing' | 'active' | 'ended' | 'declined' | 'missed';
+    type: 'voice' | 'video';
+    createdAt: Timestamp | FieldValue;
+    endedAt?: Timestamp | FieldValue;
+}
     

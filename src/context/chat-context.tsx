@@ -6,12 +6,13 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, onSnapshot, where, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useCollection, useDoc } from '@/firebase';
 import { useUser as useUserContext } from './user-context';
+import type { Call } from '@/types/chat';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -62,13 +63,46 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const [activeChats, setActiveChats] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
-  const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
-  const [incomingVoiceCallFrom, setIncomingVoiceCallFrom] = useState<Contact | null>(null);
-  const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [inputMessage, setInputMessage] = useState('');
+
+  // Voice Call State
+  const [currentCall, setCurrentCall] = useState<Call | null>(null);
+  const [incomingVoiceCallFrom, setIncomingVoiceCallFrom] = useState<Contact | null>(null);
+  const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
+  
+  // Video Call State (not fully implemented with signaling yet)
+  const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
+  const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
+
+
+  // --- Real-time call listener ---
+  useEffect(() => {
+    if (!firestore || !firebaseUser) return;
+
+    const callsRef = collection(firestore, 'calls');
+    const q = query(callsRef, where('recipientId', '==', firebaseUser.uid), where('status', '==', 'ringing'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+            const callDoc = snapshot.docs[0];
+            const callData = { id: callDoc.id, ...callDoc.data() } as Call;
+            const caller = allContacts.find(c => c.id === callData.callerId);
+            
+            if (caller) {
+                setCurrentCall(callData);
+                if (callData.type === 'voice') {
+                    setIncomingVoiceCallFrom(caller);
+                } else {
+                    setIncomingCallFrom(caller);
+                }
+            }
+        }
+    });
+
+    return () => unsubscribe();
+  }, [firestore, firebaseUser, allContacts]);
 
   const allContacts = useMemo(() => {
     if (!allTeamMembers) return [];
@@ -319,6 +353,45 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     await batch.commit();
   }, [self, firestore]);
 
+   const startVoiceCall = useCallback(async (contact: Contact) => {
+    if (!self || !firestore) return;
+    const callData: Omit<Call, 'id'> = {
+        callerId: self.id,
+        recipientId: contact.id,
+        status: 'ringing',
+        type: 'voice',
+        createdAt: serverTimestamp(),
+    };
+    const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
+    setCurrentCall({ id: callDocRef.id, ...callData });
+    setAcceptedVoiceCallContact(contact);
+    addSystemMessage(`Calling ${contact.name}...`, contact.id, 'voice');
+  }, [self, firestore, addSystemMessage]);
+  
+  const endVoiceCall = useCallback(async (contactId: string) => {
+    if (!firestore || !currentCall) return;
+    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'ended' });
+    addSystemMessage(`Voice call ended`, contactId, 'voice');
+    setAcceptedVoiceCallContact(null);
+    setCurrentCall(null);
+  }, [firestore, currentCall, addSystemMessage]);
+  
+  const acceptVoiceCall = useCallback(async () => {
+    if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
+    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'active' });
+    addSystemMessage(`Voice call with ${incomingVoiceCallFrom.name} started`, incomingVoiceCallFrom.id, 'voice');
+    setAcceptedVoiceCallContact(incomingVoiceCallFrom);
+    setIncomingVoiceCallFrom(null);
+  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
+  
+  const declineVoiceCall = useCallback(async () => {
+    if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
+    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
+    addSystemMessage(`Missed voice call from ${incomingVoiceCallFrom.name}`, incomingVoiceCallFrom.id, 'voice');
+    setIncomingVoiceCallFrom(null);
+    setCurrentCall(null);
+  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
+
   const startCall = useCallback((contact: Contact) => {
     setAcceptedCallContact(contact);
     addSystemMessage(`Calling ${contact.name}...`, contact.id, 'video');
@@ -343,31 +416,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         setIncomingCallFrom(null);
     }
   }, [incomingCallFrom, addSystemMessage]);
-
-  const startVoiceCall = useCallback((contact: Contact) => {
-    setAcceptedVoiceCallContact(contact);
-    addSystemMessage(`Calling ${contact.name}...`, contact.id, 'voice');
-  }, [addSystemMessage]);
-  
-  const endVoiceCall = useCallback((contactId: string) => {
-    addSystemMessage(`Voice call ended`, contactId, 'voice');
-    setAcceptedVoiceCallContact(null);
-  }, [addSystemMessage]);
-  
-  const acceptVoiceCall = useCallback(() => {
-    if (incomingVoiceCallFrom) {
-      addSystemMessage(`Voice call with ${incomingVoiceCallFrom.name} started`, incomingVoiceCallFrom.id, 'voice');
-      setAcceptedVoiceCallContact(incomingVoiceCallFrom);
-      setIncomingVoiceCallFrom(null);
-    }
-  }, [incomingVoiceCallFrom, addSystemMessage]);
-  
-  const declineVoiceCall = useCallback(() => {
-    if (incomingVoiceCallFrom) {
-      addSystemMessage(`Missed voice call from ${incomingVoiceCallFrom.name}`, incomingVoiceCallFrom.id, 'voice');
-      setIncomingVoiceCallFrom(null);
-    }
-  }, [incomingVoiceCallFrom, addSystemMessage]);
   
   useEffect(() => {
     if (!self || !firestore) return;
