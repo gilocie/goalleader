@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
 import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
-const TaskCard = ({ task, onStart, onView, onDelete }: { task: Task, onStart: (id: string) => void, onView: (task: Task) => void, onDelete: (id: string) => void }) => {
+
+const TaskCard = ({ task, onStart, onView, onDelete }: { task: Task, onStart: (id: string) => void, onView: (task: Task) => void, onDelete: (task: Task) => void }) => {
     const isExpired = isPast(new Date(task.dueDate)) && task.status !== 'Completed';
     return (
         <Card className={cn("p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4", isExpired && "border-destructive")}>
@@ -47,7 +49,7 @@ const TaskCard = ({ task, onStart, onView, onDelete }: { task: Task, onStart: (i
                         <DropdownMenuItem onClick={() => onView(task)}>
                             <Eye className="mr-2 h-4 w-4" /> View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive">
+                        <DropdownMenuItem onClick={() => onDelete(task)} className="text-destructive">
                             <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -60,6 +62,7 @@ const TaskCard = ({ task, onStart, onView, onDelete }: { task: Task, onStart: (i
 export function ProjectsView() {
     const { tasks, startTask, deleteTask } = useTimeTracker();
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const { pending, running, expired } = useMemo(() => {
@@ -92,6 +95,17 @@ export function ProjectsView() {
         setIsDetailsOpen(true);
     };
 
+    const handleDeleteRequest = (task: Task) => {
+        setTaskToDelete(task);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (taskToDelete) {
+            deleteTask(taskToDelete.id);
+            setTaskToDelete(null);
+        }
+    };
+
     return (
         <>
             <Card>
@@ -110,7 +124,7 @@ export function ProjectsView() {
                             <ScrollArea className="h-[400px]">
                                 <div className="space-y-3">
                                     {running.length > 0 ? running.map(task => (
-                                        <TaskCard key={task.id} task={task} onStart={startTask} onView={handleViewDetails} onDelete={deleteTask} />
+                                        <TaskCard key={task.id} task={task} onStart={startTask} onView={handleViewDetails} onDelete={handleDeleteRequest} />
                                     )) : <p className="text-center text-muted-foreground p-4">No tasks are currently in progress.</p>}
                                 </div>
                             </ScrollArea>
@@ -119,7 +133,7 @@ export function ProjectsView() {
                             <ScrollArea className="h-[400px]">
                                 <div className="space-y-3">
                                     {pending.length > 0 ? pending.map(task => (
-                                        <TaskCard key={task.id} task={task} onStart={startTask} onView={handleViewDetails} onDelete={deleteTask} />
+                                        <TaskCard key={task.id} task={task} onStart={startTask} onView={handleViewDetails} onDelete={handleDeleteRequest} />
                                     )) : <p className="text-center text-muted-foreground p-4">No pending tasks.</p>}
                                 </div>
                             </ScrollArea>
@@ -128,7 +142,7 @@ export function ProjectsView() {
                             <ScrollArea className="h-[400px]">
                                 <div className="space-y-3">
                                     {expired.length > 0 ? expired.map(task => (
-                                        <TaskCard key={task.id} task={task} onStart={startTask} onView={handleViewDetails} onDelete={deleteTask} />
+                                        <TaskCard key={task.id} task={task} onStart={startTask} onView={handleViewDetails} onDelete={handleDeleteRequest} />
                                     )) : <p className="text-center text-muted-foreground p-4">No expired tasks.</p>}
                                 </div>
                             </ScrollArea>
@@ -143,6 +157,20 @@ export function ProjectsView() {
                     task={selectedTask}
                 />
             )}
+             <AlertDialog open={!!taskToDelete} onOpenChange={() => setTaskToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the task "{taskToDelete?.name}".
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
