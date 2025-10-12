@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { Contact } from "@/types/chat";
+import { cn } from "@/lib/utils";
 
 
 export function ChatDropdown({ children }: { children: React.ReactNode }) {
@@ -47,7 +48,7 @@ export function ChatDropdown({ children }: { children: React.ReactNode }) {
                                 return (
                                 <DropdownMenuItem 
                                     key={contact.id}
-                                    className="flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto bg-accent text-accent-foreground"
+                                    className={cn("flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto hover:bg-primary hover:text-primary-foreground", "bg-primary text-primary-foreground")}
                                     onClick={() => handleNotificationClick(contact)}
                                 >
                                     <Avatar className="h-8 w-8">
@@ -56,7 +57,7 @@ export function ChatDropdown({ children }: { children: React.ReactNode }) {
                                     </Avatar>
                                     <div className="flex-1 space-y-1">
                                         <p className="font-semibold text-sm">{contact.name}</p>
-                                        <p className="text-xs text-accent-foreground/80 line-clamp-2">{contact.lastMessage}</p>
+                                        <p className="text-xs text-primary-foreground/80 line-clamp-2">{contact.lastMessage}</p>
                                     </div>
                                 </DropdownMenuItem>
                             )})

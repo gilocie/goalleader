@@ -50,7 +50,7 @@ export function LibraryDropdown({ children }: { children: React.ReactNode }) {
                                 <React.Fragment key={item.id}>
                                 <DropdownMenuItem 
                                     className={cn(
-                                        "flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto",
+                                        "flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto hover:bg-primary hover:text-primary-foreground",
                                         !item.read && "bg-primary text-primary-foreground"
                                     )}
                                     onClick={() => handleItemClick(item.id, item.link)}
