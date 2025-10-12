@@ -73,10 +73,10 @@ export function ProjectsView() {
                 running.push(task);
             } else if (task.status === 'Pending') {
                 const dueDate = new Date(task.dueDate);
-                // Check if the due date itself is in the past, ignoring time for this logic.
-                const isDatePast = isPast(new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate() + 1));
+                // Set time to the end of the day to include today's tasks as not expired
+                dueDate.setHours(23, 59, 59, 999); 
                 
-                if (isDatePast) {
+                if (isPast(dueDate)) {
                     expired.push(task);
                 } else {
                     pending.push(task);
