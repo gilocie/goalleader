@@ -1,35 +1,12 @@
 
 'use client';
 
+import { useMemo } from 'react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const dailyData = [
-  { name: 'Mon', value: 80 },
-  { name: 'Tue', value: 92 },
-  { name: 'Wed', value: 75 },
-  { name: 'Thu', value: 88 },
-  { name: 'Fri', value: 95 },
-  { name: 'Sat', value: 60 },
-  { name: 'Sun', value: 70 },
-];
-
-const weeklyData = [
-    { name: 'W1', value: 85 },
-    { name: 'W2', value: 88 },
-    { name: 'W3', value: 90 },
-    { name: 'W4', value: 82 },
-];
-
-const monthlyData = [
-    { name: 'Jan', value: 88 },
-    { name: 'Feb', value: 91 },
-    { name: 'Mar', value: 85 },
-    { name: 'Apr', value: 93 },
-    { name: 'May', value: 89 },
-    { name: 'Jun', value: 94 },
-];
+import { useTimeTracker } from '@/context/time-tracker-context';
+import { eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, format, getDay, getWeek, getMonth } from 'date-fns';
 
 const Chart = ({ data }: { data: {name: string, value: number}[] }) => (
     <ResponsiveContainer width="100%" height={300}>
@@ -48,6 +25,51 @@ const Chart = ({ data }: { data: {name: string, value: number}[] }) => (
 
 
 export function PerformanceOverview() {
+  const { tasks } = useTimeTracker();
+
+  const completedTasks = useMemo(() => tasks.filter(task => task.status === 'Completed' && task.endTime), [tasks]);
+
+  const dailyData = useMemo(() => {
+    const now = new Date();
+    const lastSevenDays = eachDayOfInterval({ start: startOfWeek(now), end: endOfWeek(now) });
+    return lastSevenDays.map(day => {
+        const dayTasks = tasks.filter(task => new Date(task.dueDate).toDateString() === day.toDateString());
+        const completedDayTasks = completedTasks.filter(task => new Date(task.dueDate).toDateString() === day.toDateString());
+        const percentage = dayTasks.length > 0 ? (completedDayTasks.length / dayTasks.length) * 100 : 0;
+        return { name: format(day, 'EEE'), value: Math.round(percentage) };
+    });
+  }, [tasks, completedTasks]);
+
+  const weeklyData = useMemo(() => {
+      const now = new Date();
+      const lastFourWeeks = eachWeekOfInterval({ start: startOfMonth(now), end: endOfMonth(now) });
+      return lastFourWeeks.map((week, index) => {
+          const weekTasks = tasks.filter(task => {
+              const taskWeek = getWeek(new Date(task.dueDate));
+              return taskWeek === getWeek(week);
+          });
+          const completedWeekTasks = completedTasks.filter(task => {
+              const taskWeek = getWeek(new Date(task.dueDate));
+              return taskWeek === getWeek(week);
+          });
+          const percentage = weekTasks.length > 0 ? (completedWeekTasks.length / weekTasks.length) * 100 : 0;
+          return { name: `W${index + 1}`, value: Math.round(percentage) };
+      });
+  }, [tasks, completedTasks]);
+
+  const monthlyData = useMemo(() => {
+      const now = new Date();
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      const months = eachMonthOfInterval({ start: yearStart, end: now });
+      return months.map(month => {
+          const monthTasks = tasks.filter(task => getMonth(new Date(task.dueDate)) === getMonth(month));
+          const completedMonthTasks = completedTasks.filter(task => getMonth(new Date(task.dueDate)) === getMonth(month));
+          const percentage = monthTasks.length > 0 ? (completedMonthTasks.length / monthTasks.length) * 100 : 0;
+          return { name: format(month, 'MMM'), value: Math.round(percentage) };
+      });
+  }, [tasks, completedTasks]);
+
+
   return (
     <Card>
       <CardHeader>
@@ -59,9 +81,8 @@ export function PerformanceOverview() {
           <TabsList>
             <TabsTrigger value="daily">Daily</TabsTrigger>
             <TabsTrigger value="weekly">Weekly</TabsTrigger>
-
             <TabsTrigger value="monthly">Monthly</TabsTrigger>
-            <TabsTrigger value="yearly">Yearly</TabsTrigger>
+            <TabsTrigger value="yearly" disabled>Yearly</TabsTrigger>
           </TabsList>
           <TabsContent value="daily">
             <Chart data={dailyData} />
