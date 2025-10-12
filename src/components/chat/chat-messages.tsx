@@ -377,7 +377,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div>
-                            <Button variant="outline" size="icon" onClick={handleCallClick} disabled={!isChatEstablished}><Phone className="h-4 w-4" /></Button>
+                            <Button variant="outline" size="icon" onClick={handleCallClick} disabled={!isChatEstablished} className="hover:bg-primary hover:text-primary-foreground"><Phone className="h-4 w-4" /></Button>
                         </div>
                     </TooltipTrigger>
                     {!isChatEstablished && <TooltipContent>Reply to message to enable calls</TooltipContent>}
@@ -385,7 +385,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 <Tooltip>
                     <TooltipTrigger asChild>
                        <div>
-                         <Button variant="outline" size="icon" onClick={handleVideoClick} disabled={!isChatEstablished}><Video className="h-4 w-4" /></Button>
+                         <Button variant="outline" size="icon" onClick={handleVideoClick} disabled={!isChatEstablished} className="hover:bg-primary hover:text-primary-foreground"><Video className="h-4 w-4" /></Button>
                        </div>
                     </TooltipTrigger>
                     {!isChatEstablished && <TooltipContent>Reply to message to enable calls</TooltipContent>}
