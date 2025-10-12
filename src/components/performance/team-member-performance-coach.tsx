@@ -41,6 +41,8 @@ export function TeamMemberPerformanceCoach({ member }: TeamMemberPerformanceCoac
       : 0;
 
   useEffect(() => {
+    if (!user) return; // Don't run if user is not loaded yet
+
     const fetchAdvice = async () => {
       setIsLoading(true);
       try {
@@ -65,7 +67,7 @@ export function TeamMemberPerformanceCoach({ member }: TeamMemberPerformanceCoac
     };
 
     fetchAdvice();
-  }, [member.name, performance, JSON.stringify(completedTasks), user.name]);
+  }, [member.name, performance, JSON.stringify(completedTasks), user]);
 
   const getPerformanceInfo = () => {
     if (performance >= COMPANY_KPI) return {
@@ -89,6 +91,16 @@ export function TeamMemberPerformanceCoach({ member }: TeamMemberPerformanceCoac
   };
 
   const { badge, emoji, titleClass, gradient } = getPerformanceInfo();
+
+  if (!user) {
+    return (
+        <Card className="h-full max-h-[460px] flex flex-col">
+            <CardContent className="flex-1 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </CardContent>
+        </Card>
+    )
+  }
 
   return (
     <Card className="h-full max-h-[460px] flex flex-col">
