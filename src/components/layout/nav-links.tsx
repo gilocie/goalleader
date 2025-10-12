@@ -111,7 +111,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                     <AccordionTrigger
                         className={cn(
                             "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:no-underline font-semibold",
-                             'hover:bg-muted/50 shadow-sm hover:shadow-md',
+                             'hover:text-primary-foreground hover:bg-primary shadow-sm hover:shadow-md',
                             (isActive && href !== '/') || isParentActive
                                 ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
                                 : 'bg-card'
@@ -175,7 +175,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                         isActive && 'bg-primary-foreground/20 text-primary-foreground'
                       )
                     : cn(
-                        'text-muted-foreground hover:bg-muted/50',
+                        'text-muted-foreground hover:bg-primary hover:text-primary-foreground',
                         (isActive && href !== '/') ? 'bg-primary text-primary-foreground' : 'bg-card'
                       )
             )}
