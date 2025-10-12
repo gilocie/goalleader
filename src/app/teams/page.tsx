@@ -105,7 +105,7 @@ function TeamsPageContent() {
                    )}
                   <Tooltip>
                       <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" asChild>
+                          <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground" asChild>
                               <Link href="/chat">
                                   <MessageSquare className="h-4 w-4" />
                                   <span className="sr-only">Start Team Chat</span>
@@ -116,7 +116,7 @@ function TeamsPageContent() {
                   </Tooltip>
                    <Tooltip>
                       <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon">
+                          <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground">
                               <Video className="h-4 w-4" />
                               <span className="sr-only">Start Meeting</span>
                           </Button>
@@ -125,11 +125,11 @@ function TeamsPageContent() {
                   </Tooltip>
               </TooltipProvider>
             <Separator orientation="vertical" className="h-6 mx-2" />
-            <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('grid')}>
+            <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" className="hover:bg-primary hover:text-primary-foreground" onClick={() => setLayout('grid')}>
               <LayoutGrid className="h-4 w-4" />
               <span className="sr-only">Grid View</span>
             </Button>
-            <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setLayout('list')}>
+            <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" className="hover:bg-primary hover:text-primary-foreground" onClick={() => setLayout('list')}>
               <List className="h-4 w-4" />
               <span className="sr-only">List View</span>
             </Button>
