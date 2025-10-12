@@ -76,34 +76,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
 
-
-  // --- Real-time call listener ---
-  useEffect(() => {
-    if (!firestore || !firebaseUser) return;
-
-    const callsRef = collection(firestore, 'calls');
-    const q = query(callsRef, where('recipientId', '==', firebaseUser.uid), where('status', '==', 'ringing'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-            const callDoc = snapshot.docs[0];
-            const callData = { id: callDoc.id, ...callDoc.data() } as Call;
-            const caller = allContacts.find(c => c.id === callData.callerId);
-            
-            if (caller) {
-                setCurrentCall(callData);
-                if (callData.type === 'voice') {
-                    setIncomingVoiceCallFrom(caller);
-                } else {
-                    setIncomingCallFrom(caller);
-                }
-            }
-        }
-    });
-
-    return () => unsubscribe();
-  }, [firestore, firebaseUser, allContacts]);
-
   const allContacts = useMemo(() => {
     if (!allTeamMembers) return [];
     return allTeamMembers.map(member => {
@@ -131,6 +103,32 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [messages, selectedContact, firebaseUser, allTeamMembers]);
 
+  // --- Real-time call listener ---
+  useEffect(() => {
+    if (!firestore || !firebaseUser || allContacts.length === 0) return;
+
+    const callsRef = collection(firestore, 'calls');
+    const q = query(callsRef, where('recipientId', '==', firebaseUser.uid), where('status', '==', 'ringing'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+            const callDoc = snapshot.docs[0];
+            const callData = { id: callDoc.id, ...callDoc.data() } as Call;
+            const caller = allContacts.find(c => c.id === callData.callerId);
+            
+            if (caller) {
+                setCurrentCall(callData);
+                if (callData.type === 'voice') {
+                    setIncomingVoiceCallFrom(caller);
+                } else {
+                    setIncomingCallFrom(caller);
+                }
+            }
+        }
+    });
+
+    return () => unsubscribe();
+  }, [firestore, firebaseUser, allContacts]);
 
   const self = useMemo(() => {
       if (!firebaseUser) return undefined;
