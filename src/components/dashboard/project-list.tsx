@@ -10,6 +10,8 @@ import {
   Eye,
   Pause,
   PlusCircle,
+  Edit,
+  Trash2,
 } from 'lucide-react';
 import {
   Card,
@@ -34,11 +36,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useTimeTracker } from '@/context/time-tracker-context';
+import { useTimeTracker, Task } from '@/context/time-tracker-context';
 import { ScrollArea } from '../ui/scroll-area';
 import { CompleteTaskDialog } from './complete-task-dialog';
 import { TaskDetailsDialog } from './task-details-dialog';
 import { AddTaskDialog } from './add-task-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '../ui/alert-dialog';
 
 const StatusIndicator = ({ status }: { status: string }) => {
   switch (status) {
@@ -86,9 +89,14 @@ export function ProjectList() {
     handleStartStop,
     isActive,
     addTask,
+    updateTask,
+    deleteTask,
   } = useTimeTracker();
 
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+
 
   const handleStopClick = (taskName: string) => {
     const task = tasks.find((t) => t.name === taskName);
@@ -98,13 +106,32 @@ export function ProjectList() {
     }
   };
 
-  const handleViewDetailsClick = (taskName: string) => {
-    const task = tasks.find((t) => t.name === taskName);
-    if (task) {
-      setSelectedTask(task);
-      setTaskDetailsOpen(true);
-    }
+  const handleViewDetailsClick = (task: Task) => {
+    setSelectedTask(task);
+    setTaskDetailsOpen(true);
   };
+  
+  const handleEditClick = (task: Task) => {
+    setTaskToEdit(task);
+    setAddTaskOpen(true);
+  }
+
+  const handleDeleteConfirm = () => {
+    if (taskToDelete) {
+        deleteTask(taskToDelete.id);
+        setTaskToDelete(null);
+    }
+  }
+
+  const handleTaskDialogSubmit = (taskData: any) => {
+    if (taskToEdit) {
+        updateTask({ ...taskToEdit, ...taskData });
+    } else {
+        addTask(taskData);
+    }
+    setAddTaskOpen(false);
+    setTaskToEdit(null);
+  }
 
   const ongoingTasks = tasks.filter((task) => task.status !== 'Completed');
 
@@ -117,7 +144,10 @@ export function ProjectList() {
                 <CardDescription>A list of your ongoing tasks.</CardDescription>
             </div>
             <Button 
-                onClick={() => setAddTaskOpen(true)}
+                onClick={() => {
+                    setTaskToEdit(null);
+                    setAddTaskOpen(true);
+                }}
             >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New
@@ -191,8 +221,15 @@ export function ProjectList() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>Delete</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetailsClick(task)}>
+                                <Eye className="mr-2 h-4 w-4" /> View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditClick(task)}>
+                                <Edit className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setTaskToDelete(task)}>
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -219,9 +256,16 @@ export function ProjectList() {
                               </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>Edit</DropdownMenuItem>
-                              <DropdownMenuItem>Delete</DropdownMenuItem>
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleViewDetailsClick(task)}>
+                                    <Eye className="mr-2 h-4 w-4" /> View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditClick(task)}>
+                                    <Edit className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setTaskToDelete(task)}>
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                           </DropdownMenu>
                       </div>
@@ -266,10 +310,8 @@ export function ProjectList() {
       <AddTaskDialog 
         isOpen={isAddTaskOpen}
         onOpenChange={setAddTaskOpen}
-        onTaskAdd={(task) => {
-            addTask(task);
-            setAddTaskOpen(false);
-        }}
+        onTaskSubmit={handleTaskDialogSubmit}
+        taskToEdit={taskToEdit}
       />
       {selectedTask && (
         <>
@@ -286,6 +328,21 @@ export function ProjectList() {
           />
         </>
       )}
+       <AlertDialog open={!!taskToDelete} onOpenChange={() => setTaskToDelete(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the task "{taskToDelete?.name}".
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteConfirm}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
+

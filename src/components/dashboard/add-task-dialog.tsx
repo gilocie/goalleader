@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -33,12 +33,13 @@ import { Textarea } from '../ui/textarea';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Card, CardContent, CardHeader, CardFooter } from '../ui/card';
-import { useTimeTracker } from '@/context/time-tracker-context';
+import { useTimeTracker, Task } from '@/context/time-tracker-context';
 
 interface AddTaskDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onTaskAdd: (task: any) => void;
+  onTaskSubmit: (task: any) => void;
+  taskToEdit?: Task | null;
 }
 
 const taskSchema = z.object({
@@ -55,7 +56,8 @@ type Suggestion = TaskSuggestionOutput['suggestions'][0];
 export function AddTaskDialog({
   isOpen,
   onOpenChange,
-  onTaskAdd,
+  onTaskSubmit,
+  taskToEdit,
 }: AddTaskDialogProps) {
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -74,14 +76,29 @@ export function AddTaskDialog({
     }
   });
 
+  useEffect(() => {
+    if (taskToEdit) {
+      form.reset({
+        name: taskToEdit.name,
+        description: taskToEdit.description || '',
+        dueDate: new Date(taskToEdit.dueDate),
+        startTime: taskToEdit.startTime?.toString() || '',
+        endTime: taskToEdit.endTime?.toString() || '',
+      });
+    } else {
+      form.reset({
+        name: '',
+        description: '',
+        dueDate: new Date(),
+        startTime: '',
+        endTime: '',
+      });
+    }
+  }, [taskToEdit, form, isOpen]);
+
+
   const onSubmit = (data: TaskFormValues) => {
-    onTaskAdd({
-      name: data.name,
-      description: data.description,
-      dueDate: data.dueDate,
-      startTime: data.startTime,
-      endTime: data.endTime,
-    });
+    onTaskSubmit(data);
     form.reset();
     setSuggestions([]);
     setShowSuggestions(false);
@@ -127,6 +144,7 @@ export function AddTaskDialog({
     if (!open) {
       setShowSuggestions(false);
       setSelectedSuggestion(null);
+      form.reset();
     }
     onOpenChange(open);
   };
@@ -146,9 +164,9 @@ export function AddTaskDialog({
               <DialogHeader className="p-6 pb-2">
                 <div className="flex justify-between items-start">
                   <div>
-                    <DialogTitle>Add New Task</DialogTitle>
+                    <DialogTitle>{taskToEdit ? 'Edit Task' : 'Add New Task'}</DialogTitle>
                     <DialogDescription>
-                      Fill in the details for the new task.
+                      {taskToEdit ? 'Update the details for this task.' : 'Fill in the details for the new task.'}
                     </DialogDescription>
                   </div>
                   <div className="flex items-center gap-2 -mt-2">
@@ -267,7 +285,7 @@ export function AddTaskDialog({
                   type="submit"
                   className="bg-primary text-primary-foreground hover:bg-primary/90 w-full"
                 >
-                  Add Task
+                  {taskToEdit ? 'Save Changes' : 'Add Task'}
                 </Button>
               </DialogFooter>
             </form>
@@ -355,3 +373,4 @@ export function AddTaskDialog({
     </Dialog>
   );
 }
+

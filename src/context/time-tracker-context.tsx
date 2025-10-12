@@ -51,6 +51,7 @@ interface TimeTrackerContextType {
   startTask: (taskId: string) => void;
   handleStop: (taskId: string, description: string) => void;
   addTask: (task: Omit<Task, 'status' | 'id' | 'userId' | 'createdAt'>) => void;
+  updateTask: (task: Task) => void;
   deleteTask: (taskId: string) => void;
 }
 
@@ -234,6 +235,21 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [firestore, firebaseUser, toast]);
 
+  const updateTask = useCallback(async (task: Task) => {
+    if (!firestore || !firebaseUser) return;
+    const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', task.id);
+    const { id, ...taskData } = task;
+    await updateDoc(taskDocRef, taskData).catch(serverError => {
+        const permissionError = new FirestorePermissionError({
+            path: taskDocRef.path,
+            operation: 'update',
+            requestResourceData: taskData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
+  }, [firestore, firebaseUser]);
+
+
     const deleteTask = useCallback(async (taskId: string) => {
     if (!firestore || !firebaseUser) return;
     const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', taskId);
@@ -291,6 +307,13 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
       };
       addTask(formattedTask as any);
     },
+    updateTask: (task: any) => {
+        const formattedTask = {
+          ...task,
+          dueDate: format(task.dueDate as Date, 'yyyy-MM-dd'),
+        };
+        updateTask(formattedTask as any);
+      },
     isCompleteTaskOpen,
     setCompleteTaskOpen,
     isTaskDetailsOpen,
