@@ -392,12 +392,25 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                 </Tooltip>
             </TooltipProvider>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild><Button variant="outline" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleArchiveChat}><Archive className="mr-2 h-4 w-4" /><span>Archive</span></DropdownMenuItem>
-                <DropdownMenuItem onClick={handleClearChat}><Eraser className="mr-2 h-4 w-4" /><span>Clear Chat</span></DropdownMenuItem>
+                <DropdownMenuItem onClick={handleArchiveChat} className="hover:!bg-primary hover:!text-primary-foreground">
+                  <Archive className="mr-2 h-4 w-4" />
+                  <span>Archive</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleClearChat} className="hover:!bg-primary hover:!text-primary-foreground">
+                  <Eraser className="mr-2 h-4 w-4" />
+                  <span>Clear Chat</span>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDeleteChat} className="text-destructive focus:text-destructive"><Trash2 className="mr-2 h-4 w-4" /><span>Delete Chat</span></DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDeleteChat} className="text-destructive focus:text-destructive hover:!bg-primary hover:!text-primary-foreground">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Delete Chat</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
