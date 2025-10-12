@@ -12,7 +12,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useBranding } from '@/context/branding-context';
-import { useAuth, useFirestore, useUser as useUserContext } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -64,15 +64,10 @@ export default function RegisterPage() {
         };
 
         const userDocRef = doc(firestore, 'users', user.uid);
-        setDoc(userDocRef, userProfileData).catch(serverError => {
-          const permissionError = new FirestorePermissionError({
-            path: userDocRef.path,
-            operation: 'create',
-            requestResourceData: userProfileData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-
+        // We are intentionally NOT catching the error here.
+        // The FirebaseErrorListener will catch it and display a helpful overlay.
+        await setDoc(userDocRef, userProfileData);
+        
         toast({ title: 'Registration Successful', description: "Please complete your profile." });
         router.push('/profile');
 

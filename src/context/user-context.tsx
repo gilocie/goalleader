@@ -77,18 +77,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             updateUserStatus(firebaseUser.uid, 'online');
         }
       } else if (!usersLoading) { // Ensure we're not in a loading state
+         // User is authenticated but has no profile, create a default one
          const newUserProfile: User = {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || `User-${firebaseUser.uid.slice(0,5)}`,
             role: 'Consultant',
-            department: 'Customer Service',
+            department: 'Unassigned', // Start as unassigned
             country: '',
             branch: '',
             email: firebaseUser.email || '',
             status: 'online',
          };
          setUser(newUserProfile);
-         // Optionally save this new profile to Firestore
+         // Save this new profile to Firestore
          saveUser(newUserProfile);
       }
     } else if (!loading && !firebaseUser) {
