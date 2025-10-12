@@ -91,7 +91,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
             lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
             unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
-            lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage.readStatus : undefined,
+            lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage?.readStatus : undefined,
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
