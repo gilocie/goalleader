@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTimeTracker, Task } from '@/context/time-tracker-context';
 import { ScrollArea } from '../ui/scroll-area';
 import { Button } from '../ui/button';
-import { Play, MoreHorizontal, Eye, Trash2 } from 'lucide-react';
+import { Play, MoreHorizontal, Eye, Trash2, AlertTriangle } from 'lucide-react';
 import { format, isPast } from 'date-fns';
 import {
   DropdownMenu,
@@ -16,15 +16,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { TaskDetailsDialog } from '../dashboard/task-details-dialog';
+import { cn } from '@/lib/utils';
 
 const TaskCard = ({ task, onStart, onView, onDelete }: { task: Task, onStart: (id: string) => void, onView: (task: Task) => void, onDelete: (id: string) => void }) => {
+    const isExpired = isPast(new Date(task.dueDate)) && task.status !== 'Completed';
     return (
-        <Card className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex-1">
-                <h4 className="font-semibold">{task.name}</h4>
-                <p className="text-sm text-muted-foreground">
-                    Due: {format(new Date(task.dueDate), 'PP')} | Starts: {task.startTime?.toString()}
-                </p>
+        <Card className={cn("p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4", isExpired && "border-destructive")}>
+            <div className="flex-1 flex items-start gap-3">
+                 {isExpired && <AlertTriangle className="h-5 w-5 text-destructive flex-shrink-0 mt-1" />}
+                <div>
+                    <h4 className="font-semibold">{task.name}</h4>
+                    <p className={cn("text-sm", isExpired ? "text-destructive" : "text-muted-foreground")}>
+                        Due: {format(new Date(task.dueDate), 'PP')} | Starts: {task.startTime?.toString()}
+                    </p>
+                </div>
             </div>
             <div className="flex items-center gap-2">
                 {task.status === 'Pending' && (
@@ -67,16 +72,12 @@ export function ProjectsView() {
             if (task.status === 'In Progress') {
                 running.push(task);
             } else if (task.status === 'Pending') {
-                const startTimeStr = task.startTime?.toString();
-                if (startTimeStr) {
-                    const [hours, minutes] = startTimeStr.split(':').map(Number);
-                    const startDate = new Date(task.dueDate);
-                    startDate.setHours(hours, minutes);
-                    if (isPast(startDate)) {
-                        expired.push(task);
-                    } else {
-                        pending.push(task);
-                    }
+                const dueDate = new Date(task.dueDate);
+                // Check if the due date itself is in the past, ignoring time for this logic.
+                const isDatePast = isPast(new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate() + 1));
+                
+                if (isDatePast) {
+                    expired.push(task);
                 } else {
                     pending.push(task);
                 }
@@ -145,4 +146,3 @@ export function ProjectsView() {
         </>
     );
 }
-
