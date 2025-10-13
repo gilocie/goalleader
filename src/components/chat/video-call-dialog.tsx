@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Phone, Video, VideoOff, Maximize, Minimize, Loader2 } from 'lucide-react';
+import { Mic, MicOff, Phone, Video, VideoOff, Maximize, Minimize, Loader2, FlipHorizontal } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
@@ -35,6 +35,8 @@ export function VideoCallDialog({
   const [localCallEnded, setLocalCallEnded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [hasAccepted, setHasAccepted] = useState(false);
+  const [isMirrored, setIsMirrored] = useState(true);
+
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -43,7 +45,6 @@ export function VideoCallDialog({
   const initializationAttemptedRef = useRef(false);
   
   const { toast } = useToast();
-  const firestore = useFirestore();
   const { currentCall, endCall, acceptCall, self } = useChat();
 
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
@@ -99,11 +100,6 @@ export function VideoCallDialog({
     if (!firestore || !self || !currentCall || !contact) {
       console.log('[VideoCallDialog] Missing required data for initialization');
       return;
-    }
-
-    if (isReceivingCall && currentCall.status === 'ringing') {
-        console.log('[VideoCallDialog] Waiting for call to be accepted before initializing WebRTC');
-        return;
     }
 
     const isInitiator = currentCall.callerId === self.id;
@@ -374,7 +370,7 @@ export function VideoCallDialog({
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover transform scale-x-[-1]"
+                className={cn("w-full h-full object-cover", isMirrored && "transform scale-x-[-1]")}
               />
             )}
             <div className="absolute bottom-1 left-1 text-xs bg-black/50 px-2 py-0.5 rounded">
@@ -451,6 +447,17 @@ export function VideoCallDialog({
                 </Button>
 
                 <Button
+                  onClick={() => setIsMirrored(!isMirrored)}
+                  size="icon"
+                  variant="secondary"
+                  className="rounded-full h-12 w-12 bg-white/20 hover:bg-white/30"
+                  disabled={isVideoOff}
+                  aria-label="Mirror video"
+                >
+                  <FlipHorizontal className="h-5 w-5" />
+                </Button>
+
+                <Button
                   onClick={toggleFullscreen}
                   size="icon"
                   className="rounded-full h-14 w-14 bg-white/20 hover:bg-white/30 shadow-lg"
@@ -466,3 +473,5 @@ export function VideoCallDialog({
     </Dialog>
   );
 }
+
+  
