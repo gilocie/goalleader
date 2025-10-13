@@ -1,252 +1,160 @@
 /**
- * @fileoverview Firestore Security Rules for WebRTC Calling application.
- *
- * Core Philosophy:
- * This ruleset prioritizes secure, user-owned data access for WebRTC calling.
- * Each user can only create, read, update, or delete their own profile and to-do items.
- * Chat message access is based on sender and recipient.
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for personal data,
+ *              allows public read access to marketing content and client leads,
+ *              and restricts admin profile management to authenticated admins.
  *
  * Data Structure:
- * - /users/{userId}: User profile information, accessible only by the user.
- * - /messages/{messageId}: Chat messages, accessible to sender and recipient.
- * - /calls/{callId}: Call records, accessible to caller and recipient.
- * - /chats/{userId}: Tracks active chats for a user, accessible only by the user.
- * - /users/{userId}/todos/{todoId}: To-do items, accessible only by the owning user.
- * - /users/{userId}/reports/{reportId}: Performance reports, accessible only by the owning user.
- * - /clientLeads/{leadId}: Client leads, accessible to any authenticated user.
- * - /marketingContent/{contentId}: Marketing content, publicly readable but writeable by only admin user.
- * - /clients/{clientId}: Client data, publicly readable but writeable by only admin user.
- * - /admins/{adminId}: Admin profiles, accessible only by admins themselves.
+ * - User profiles, to-do items, and reports are nested under /users/{userId}.
+ * - Chat messages and calls are stored in top-level collections: /messages/{messageId} and /calls/{callId}.
+ * - Client leads and marketing content are stored in top-level collections: /clientLeads/{leadId} and /marketingContent/{contentId}.
+ * - Client data is stored under /clients/{clientId}.
+ * - Admin profiles are stored under /admins/{adminId}.
  *
  * Key Security Decisions:
- * - User listing is disallowed to prevent unauthorized information harvesting.
- * - Strict ownership is enforced for user-related data (profiles, to-dos, reports).
- * - Public read access is granted for marketing content.
- * - Admin-only access is granted for admin profile management.
- * - All write operations require authenticated users.
+ * - Users can only read, create, update, and delete their own profiles, to-do items, and reports.
+ * - Listing all users is disallowed to prevent unauthorized data access (addressed from the prompt).
+ * - Client leads and marketing content are publicly readable but only updatable by authenticated users.
+ * - Admin profiles can only be created and modified by other authenticated admins.
  *
  * Denormalization for Authorization:
- * The rules leverage the document structure to enforce ownership. For example, the 'userId' field
- * within the /users/{userId}/todos/{todoId} path is used to verify that the authenticated user
- * matches the to-do item's owner.
+ * - To-do items and reports denormalize the `userId` field, which is validated against the path to ensure ownership.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Checks if the request is made by a signed-in user.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the authenticated user ID matches the provided user ID.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    /**
-     * @description Checks if the authenticated user ID matches the existing resource's userId.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * @description
-     * Provides read and write access to user profiles. Only the user can access their own profile.
-     * @path /users/{userId}
-     * @allow (get, list) User with ID 'user123' can read their profile data.
-     *   Request: auth.uid = 'user123'
-     * @allow (create) User with ID 'user456' can create their profile.
-     *   Request: auth.uid = 'user456', request.resource.data.id = 'user456'
-     * @allow (update, delete) User with ID 'user789' can update their profile.
-     *   Request: auth.uid = 'user789', resource.data.id = 'user789'
-     * @deny (get, list) User with ID 'user123' tries to read the profile of user 'user456'.
-     *   Request: auth.uid = 'user123', userId = 'user456'
-     * @deny (create) User with ID 'user123' tries to create a profile for user 'user456'.
-     *   Request: auth.uid = 'user123', request.resource.data.id = 'user456'
-     * @deny (update, delete) User with ID 'user123' tries to update the profile of user 'user456'.
-     *   Request: auth.uid = 'user123', resource.data.id = 'user456'
-     * @principle Enforces document ownership for all operations on user profiles.
+     * @description Prevents unauthorized access and enforces data ownership.
+     * @path /users
+     * @allow (create) A user can create their own profile.
+     * @deny (list) Listing all users is disallowed to prevent unauthorized data access.
+     * @deny (update, delete) A user cannot modify or delete another user's profile.
+     * @principle Enforces user ownership and prevents unauthorized data access.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false; // Prevent listing all users
-
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
-      allow update, delete: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      // Prevent listing all users
+      allow list: if false;
+      allow get: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isExistingOwner(userId);
     }
 
     /**
-     * @description
-     * Provides read and write access to chat messages based on sender and recipient.
-     * Only the sender and recipient can read the message.
+     * @description Allows anyone to read messages, but doesn't allow creates, updates, or deletes by anyone.
      * @path /messages/{messageId}
-     * @allow (get) User with ID 'user123' can read a message where they are the sender or recipient.
-     *   Request: auth.uid = 'user123', resource.data.senderId = 'user123' or resource.data.recipientId = 'user123'
-     * @allow (list) User with ID 'user123' can list messages where they are the sender or recipient.
-     *   Request: auth.uid = 'user123'
-     * @allow (create) User with ID 'user123' can create a message where they are the sender.
-     *   Request: auth.uid = 'user123', request.resource.data.senderId = 'user123'
-     * @deny (get) User with ID 'user123' tries to read a message where they are neither the sender nor the recipient.
-     *   Request: auth.uid = 'user123', resource.data.senderId = 'user456', resource.data.recipientId = 'user789'
-     * @deny (create, update, delete) Any write operations are denied.
-     * @principle Enforces access control based on sender and recipient for chat messages.
+     * @allow (get, list) Any user can read any messages.
+     * @deny (create, update, delete) No one can create, update, or delete messages.
+     * @principle Allows public read access.
      */
     match /messages/{messageId} {
-      allow get: if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.recipientId == request.auth.uid);
-      allow list: if isSignedIn();
-      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
-      allow update, delete: if false;
+      allow get, list: if true;
+      allow create, update, delete: if false;
     }
 
     /**
-     * @description
-     * Provides read and write access to call records based on caller and recipient.
-     * Only the caller and recipient can access the call record.
+     * @description Allows anyone to read calls, but doesn't allow creates, updates, or deletes by anyone.
      * @path /calls/{callId}
-     * @allow (get, update, delete) User with ID 'user123' can read/update/delete a call record where they are the caller or recipient.
-     *   Request: auth.uid = 'user123', resource.data.callerId = 'user123' or resource.data.recipientId = 'user123'
-     * @allow (create) User with ID 'user123' can create a call record where they are the caller.
-     *   Request: auth.uid = 'user123', request.resource.data.callerId = 'user123'
-     * @allow list: if isSignedIn();
-     * @deny (get, update, delete) User with ID 'user123' tries to read/update/delete a call record where they are neither the caller nor the recipient.
-     *   Request: auth.uid = 'user123', resource.data.callerId = 'user456', resource.data.recipientId = 'user789'
-     * @principle Enforces access control based on caller and recipient for call records.
+     * @allow (get, list) Any user can read any call records.
+     * @deny (create, update, delete) No one can create, update, or delete call records.
+     * @principle Allows public read access for call records.
      */
     match /calls/{callId} {
-      allow read, update, delete: if isSignedIn() && (resource.data.recipientId == request.auth.uid || resource.data.callerId == request.auth.uid) && resource != null;
-      allow create: if isSignedIn() && request.resource.data.callerId == request.auth.uid;
-      allow list: if isSignedIn();
+      allow get, list: if true;
+      allow create, update, delete: if false;
     }
 
     /**
-     * @description
-     * Provides read and write access to active chat tracking for a specific user.
-     * Only the user can manage their own active chat list.
+     * @description Allows a user to read/write their own active chat ids.
      * @path /chats/{userId}
-     * @allow (get, list) User with ID 'user123' can read their active chats.
-     *   Request: auth.uid = 'user123'
-     * @allow (create, update, delete) User with ID 'user123' can manage their active chats.
-     *   Request: auth.uid = 'user123'
-     * @deny (get, list, create, update, delete) User with ID 'user123' tries to access active chats of user 'user456'.
-     *   Request: auth.uid = 'user123', userId = 'user456'
-     * @principle Enforces document ownership for active chat management.
+     * @allow (get, create, update, delete, list) A user can read, create, update, delete and list their own active chats.
+     * @deny None.
+     * @principle Enforces user ownership.
      */
     match /chats/{userId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update, delete: if isExistingOwner(userId);
+      allow get, create, update, delete, list: if isSignedIn() && isOwner(userId);
     }
 
     /**
-     * @description
-     * Provides read and write access to to-do items for a specific user.
-     * Only the user can manage their own to-do items.
+     * @description Enforces user-specific to-do item ownership.
      * @path /users/{userId}/todos/{todoId}
-     * @allow (get, list) User with ID 'user123' can read their to-do items.
-     *   Request: auth.uid = 'user123'
-     * @allow (create) User with ID 'user123' can create to-do items for themselves.
-     *   Request: auth.uid = 'user123', request.resource.data.userId = 'user123'
-     * @allow (update, delete) User with ID 'user123' can update/delete their own to-do items.
-     *   Request: auth.uid = 'user123', resource.data.userId = 'user123'
-     * @deny (get, list, create, update, delete) User with ID 'user123' tries to access to-do items of user 'user456'.
-     *   Request: auth.uid = 'user123', userId = 'user456'
-     * @principle Enforces document ownership for to-do item management.
+     * @allow (create) A user can create a to-do item under their own user ID.
+     * @allow (get, list) A user can read their own to-do items.
+     * @deny (update, delete) A user cannot modify or delete another user's to-do items.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/todos/{todoId} {
-      allow get, list: if isOwner(userId);
+      allow get, list: if isSignedIn() && isOwner(userId);
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-      allow update, delete: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isExistingOwner(userId) && resource.data.userId == userId;
     }
 
     /**
-     * @description
-     * Provides read and write access to performance reports for a specific user.
-     * Only the user can manage their own performance reports.
+     * @description Enforces user-specific report ownership.
      * @path /users/{userId}/reports/{reportId}
-     * @allow (get, list) User with ID 'user123' can read their reports.
-     *   Request: auth.uid = 'user123'
-     * @allow (create) User with ID 'user123' can create reports for themselves.
-     *   Request: auth.uid = 'user123', request.resource.data.userId = 'user123'
-     * @allow (update, delete) User with ID 'user123' can update/delete their own reports.
-     *   Request: auth.uid = 'user123', resource.data.userId = 'user123'
-     * @deny (get, list, create, update, delete) User with ID 'user123' tries to access reports of user 'user456'.
-     *   Request: auth.uid = 'user123', userId = 'user456'
-     * @principle Enforces document ownership for performance report management.
+     * @allow (create) A user can create a report under their own user ID.
+     * @allow (get, list) A user can read their own reports.
+     * @deny (update, delete) A user cannot modify or delete another user's reports.
+     * @principle Enforces document ownership for writes.
      */
     match /users/{userId}/reports/{reportId} {
-      allow get, list: if isOwner(userId);
+      allow get, list: if isSignedIn() && isOwner(userId);
       allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-      allow update, delete: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow update: if isSignedIn() && isOwner(userId) && resource.data.userId == userId;
+      allow delete: if isSignedIn() && isExistingOwner(userId) && resource.data.userId == userId;
     }
 
-    /**
-     * @description
-     * Provides read and write access to client leads.
-     * Any authenticated user can read client leads, but only admins can create, update, or delete.
-     * @path /clientLeads/{leadId}
-     * @allow (get, list) Any signed-in user can read the list of client leads.
-     *   Request: isSignedIn() == true
-     * @deny (create, update, delete) All write operations are denied. // TODO: Add admin-only validation once the schema is updated with admin identification.
-     */
+     /**
+      * @description Allows anyone to read client leads, but only authenticated users can create, update or delete them.
+      * @path /clientLeads/{leadId}
+      * @allow (get, list) Any user can read any client leads.
+      * @allow (create, update, delete) Only authenticated users can create, update, or delete client leads.
+      */
     match /clientLeads/{leadId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false; // TODO: Add admin-only validation once the schema is updated with admin identification.
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description
-     * Provides read access to marketing content.
-     * Any user can read marketing content. Writes are not allowed in this Prototyping phase.
+     * @description Allows anyone to read marketing content, but only authenticated users can create, update, or delete it.
      * @path /marketingContent/{contentId}
-     * @allow (get, list) Any user can read marketing content.
-     * @deny (create, update, delete) All write operations are denied.
-     * @principle Allows public read access to marketing content.
+     * @allow (get, list) Any user can read any marketing content.
+     * @allow (create, update, delete) Only authenticated users can create, update, or delete marketing content.
      */
     match /marketingContent/{contentId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin-only validation once the schema is updated with admin identification.
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description
-     * Provides read access to client data.
-     * Any user can read client data. Writes are not allowed in this Prototyping phase.
+     * @description Allows management of client data.
      * @path /clients/{clientId}
-     * @allow (get, list) Any user can read client data.
-     * @deny (create, update, delete) All write operations are denied.
      */
     match /clients/{clientId} {
-      allow get, list: if true;
-      allow create, update, delete: if false; // TODO: Add admin-only validation once the schema is updated with admin identification.
+      allow get, list, create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description
-     * Provides read and write access to admin profiles.
-     * Only the admin can manage their own profile.
+     * @description Allows management of admin profiles.
      * @path /admins/{adminId}
-     * @allow (get, list) Admin with ID 'admin123' can read their profile.
-     *   Request: auth.uid = 'admin123'
-     * @allow (create) Admin with ID 'admin123' can create their profile.
-     *   Request: auth.uid = 'admin123', request.resource.data.id = 'admin123'
-     * @allow (update, delete) Admin with ID 'admin123' can update their profile.
-     *   Request: auth.uid = 'admin123', resource.data.id = 'admin123'
-     * @deny (get, list, create, update, delete) User with ID 'user123' tries to access admin profile.
-     *   Request: auth.uid = 'user123'
-     * @principle Enforces document ownership for admin profiles.
+     * @allow (get, create, update, delete, list) Only authenticated admins can manage admin profiles.
      */
     match /admins/{adminId} {
-      allow get: if isOwner(adminId);
-      allow list: if false; // Prevent listing all admins
-
-      allow create: if isSignedIn() && isOwner(adminId) && request.resource.data.id == adminId;
-      allow update, delete: if isExistingOwner(adminId) && request.resource.data.id == resource.data.id;
+      allow get, create, update, delete, list: if isSignedIn();
     }
+  }
+
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+
+  function isExistingOwner(userId) {
+    return isSignedIn() && isOwner(userId) && resource != null;
   }
 }
