@@ -179,25 +179,17 @@ export class WebRTCService {
       const data = snapshot.data();
       if (!data || !this.peerConnection) return;
 
-      // If we're the caller and we receive an answer
-      if (this.isInitiator && data.answer && !this.peerConnection.currentRemoteDescription) {
-        try {
-          await this.peerConnection.setRemoteDescription(
-            new RTCSessionDescription(data.answer)
-          );
+      // If we are the caller, we only care about the answer.
+      if (this.isInitiator && data.answer) {
+        if (this.peerConnection.signalingState !== 'stable') {
+          await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
           console.log('Answer received and set');
-        } catch (error) {
-          console.error('Failed to set remote description:', error);
         }
       }
-
-      // If we're the receiver and we receive an offer
-      if (!this.isInitiator && data.offer && !this.peerConnection.currentRemoteDescription) {
-        try {
-          await this.createAnswer(data.offer);
-        } catch (error) {
-          console.error('Failed to create answer:', error);
-        }
+      
+      // If we are the receiver, we only care about the offer.
+      if (!this.isInitiator && data.offer && !this.peerConnection.remoteDescription) {
+        await this.createAnswer(data.offer);
       }
     });
   }
@@ -236,16 +228,17 @@ export class WebRTCService {
     );
 
     this.iceCandidateUnsubscribe = onSnapshot(candidatesRef, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
+      snapshot.docChanges().forEach(async (change) => {
         if (change.type === 'added') {
           const data = change.doc.data();
           
-          // Only process candidates from the other user
-          if (data.fromUser !== this.userId && this.peerConnection) {
+          if (data.fromUser !== this.userId && this.peerConnection && this.peerConnection.remoteDescription) {
             const candidate = new RTCIceCandidate(data.candidate);
-            this.peerConnection.addIceCandidate(candidate).catch((error) => {
-              console.error('Failed to add ICE candidate:', error);
-            });
+            try {
+              await this.peerConnection.addIceCandidate(candidate);
+            } catch (error) {
+              console.error('Error adding received ICE candidate', error);
+            }
           }
         }
       });
