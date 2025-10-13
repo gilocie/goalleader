@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -97,6 +96,11 @@ export function VideoCallDialog({
           return;
       }
   
+      if (isReceivingCall && currentCall.status === 'ringing') {
+        console.log('[VideoCallDialog] Waiting for call to be accepted before initializing WebRTC');
+        return;
+      }
+
       if (webrtcServiceRef.current || isInitializing) {
           return;
       }
@@ -149,8 +153,10 @@ export function VideoCallDialog({
   }, [
       firestore, 
       self, 
-      currentCall?.id, 
-      contact?.id, 
+      currentCall?.id,
+      currentCall?.status,
+      contact?.id,
+      isReceivingCall,
       handleRemoteStream, 
       handleConnectionStateChange,
       isInitializing
@@ -178,7 +184,7 @@ export function VideoCallDialog({
       webrtcServiceRef.current.toggleAudio(!!currentlyEnabled);
       setIsMuted(!currentlyEnabled);
     }
-  }, [isMuted]);
+  }, []);
 
   const toggleVideo = useCallback(() => {
     if (webrtcServiceRef.current) {
@@ -187,7 +193,7 @@ export function VideoCallDialog({
       webrtcServiceRef.current.toggleVideo(!!currentlyEnabled);
       setIsVideoOff(!currentlyEnabled);
     }
-  }, [isVideoOff]);
+  }, []);
 
   const toggleFullscreen = useCallback(async () => {
     try {

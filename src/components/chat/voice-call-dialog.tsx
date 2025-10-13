@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -94,6 +93,11 @@ export function VoiceCallDialog({
       return;
     }
 
+    if (isReceivingCall && currentCall.status === 'ringing') {
+        console.log('[VoiceCallDialog] Waiting for call to be accepted before initializing WebRTC');
+        return;
+    }
+
     if (webrtcServiceRef.current || isInitializing) {
         return;
     }
@@ -144,8 +148,10 @@ export function VoiceCallDialog({
 }, [
     firestore, 
     self, 
-    currentCall?.id, 
-    contact?.id, 
+    currentCall?.id,
+    currentCall?.status,
+    contact?.id,
+    isReceivingCall,
     handleRemoteStream, 
     handleConnectionStateChange,
     isInitializing
@@ -176,7 +182,7 @@ export function VoiceCallDialog({
         webrtcServiceRef.current.toggleAudio(!currentlyEnabled);
         setIsMuted(currentlyEnabled || false);
     }
-  }, [isMuted]);
+  }, []);
 
   // Toggle speaker
   const toggleSpeaker = useCallback(() => {
@@ -349,9 +355,9 @@ export function VoiceCallDialog({
               <div className="flex gap-1">
                 <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '0ms' }} />
                 <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '300ms'
+                }} />
               </div>
-              Establishing connection...
             </div>
           )}
         </div>

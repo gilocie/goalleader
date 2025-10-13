@@ -90,8 +90,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                    (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
         );
         const lastMessage = relevantMessages.sort((a, b) => {
-            const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : new Date(a.timestamp as any).getTime();
-            const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : new Date(b.timestamp as any).getTime();
+            const timeA = a.timestamp?.toMillis() || new Date(a.timestamp as any).getTime();
+            const timeB = b.timestamp?.toMillis() || new Date(b.timestamp as any).getTime();
             return timeB - timeA;
         })[0];
         
@@ -107,7 +107,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [allTeamMembers, messages, selectedContact, firebaseUser]);
+  }, [messages, selectedContact, firebaseUser, allTeamMembers]);
 
   // --- Real-time call listener ---
   useEffect(() => {
@@ -132,7 +132,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         snapshot.forEach((docSnapshot) => {
           const data = docSnapshot.data();
           if (!data) return;
-          
+        
           const callData: Call = { 
             id: docSnapshot.id, 
             callerId: data.callerId,
@@ -202,7 +202,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         // Process the current call
         if (currentCallDoc) {
           const callDocToProcess: Call = currentCallDoc; // Create a new reference to help TypeScript
-          
+        
           const otherParticipantId = callDocToProcess.callerId === firebaseUser.uid 
             ? callDocToProcess.recipientId 
             : callDocToProcess.callerId;
@@ -290,21 +290,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     
     contactList.sort((a, b) => {
         if (!firebaseUser || !messages) return 0;
-        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => {
-            const time1 = m1.timestamp?.toMillis ? m1.timestamp.toMillis() : new Date(m1.timestamp as any).getTime();
-            const time2 = m2.timestamp?.toMillis ? m2.timestamp.toMillis() : new Date(m2.timestamp as any).getTime();
-            return time2 - time1;
-        })[0];
-        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => {
-            const time1 = m1.timestamp?.toMillis ? m1.timestamp.toMillis() : new Date(m1.timestamp as any).getTime();
-            const time2 = m2.timestamp?.toMillis ? m2.timestamp.toMillis() : new Date(m2.timestamp as any).getTime();
-            return time2 - time1;
-        })[0];
+        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
-        const timeA = lastMessageA.timestamp?.toMillis ? lastMessageA.timestamp.toMillis() : new Date(lastMessageA.timestamp as any).getTime();
-        const timeB = lastMessageB.timestamp?.toMillis ? lastMessageB.timestamp.toMillis() : new Date(lastMessageB.timestamp as any).getTime();
-        return timeB - timeA;
+        return (lastMessageB.timestamp?.toMillis() || 0) - (lastMessageA.timestamp?.toMillis() || 0);
     });
 
     return contactList;
