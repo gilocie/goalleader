@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -84,9 +85,15 @@ export function VideoCallDialog({
   }, [isOpen, isActive, isConnected]);
 
   const handleRemoteStream = useCallback((stream: MediaStream) => {
-    console.log('[VideoCallDialog] Received remote stream');
+    console.log('[VideoCallDialog] Received remote stream with tracks:', {
+      audio: stream.getAudioTracks().length,
+      video: stream.getVideoTracks().length
+    });
+    
     if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = stream;
+        // Force video to play (important for some browsers)
+        remoteVideoRef.current.play().catch(e => console.log('Remote video play error:', e));
     }
   }, []);
 
@@ -151,8 +158,11 @@ export function VideoCallDialog({
             );
 
             if (stream) {
+                console.log('[VideoCallDialog] Setting local video stream');
                 if (localVideoRef.current) {
                   localVideoRef.current.srcObject = stream;
+                  // Force video to play
+                  localVideoRef.current.play().catch(e => console.log('Local video play error:', e));
                 }
                 console.log('[VideoCallDialog] WebRTC initialized successfully');
             } else {
@@ -189,7 +199,7 @@ export function VideoCallDialog({
     };
   }, [
       firestore, 
-      self, 
+      self?.id,
       currentCall?.id,
       currentCall?.status,
       currentCall?.callerId,
@@ -266,7 +276,6 @@ export function VideoCallDialog({
   const [shouldClose, setShouldClose] = useState(false);
 
   useEffect(() => {
-    // Fixed: Close when status is NOT ringing AND NOT active
     if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
         setShouldClose(true);
     } else {
@@ -469,7 +478,7 @@ export function VideoCallDialog({
                 <Button
                   onClick={handleAcceptCall}
                   size="icon"
-                  className="rounded-full h-16 w-16 bg-green-600 hover:bg-green-700 shadow-lg transition-transform hover:scale-105"
+                  className="rounded-full h-16 w-16 bg-green-600 hover:bg-green-600 shadow-lg transition-transform hover:scale-105"
                   aria-label="Accept call"
                 >
                   <Phone className="h-7 w-7" />
