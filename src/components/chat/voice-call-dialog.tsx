@@ -126,7 +126,7 @@ export function VoiceCallDialog({
       webrtcServiceRef.current?.cleanup();
       webrtcServiceRef.current = null;
     };
-  }, [isOpen, currentCall, callStatus, firestore, self, toast]);
+  }, [isOpen, currentCall, callStatus, firestore, self, toast, handleEndCall]);
 
   // Handle accepting incoming call
   const handleAcceptCall = useCallback(async () => {
