@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, useCallback } from 'react';
@@ -46,12 +47,14 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
     };
     
     addDoc(reportsCollection, newReportData).catch(serverError => {
-        const permissionError = new FirestorePermissionError({
-            path: reportsCollection.path,
-            operation: 'create',
-            requestResourceData: newReportData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        if (serverError.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: reportsCollection.path,
+                operation: 'create',
+                requestResourceData: newReportData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     });
   }, [firestore, firebaseUser]);
 
@@ -62,12 +65,14 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
         content: report.content,
         title: report.title,
     }).catch(serverError => {
-        const permissionError = new FirestorePermissionError({
-            path: reportDocRef.path,
-            operation: 'update',
-            requestResourceData: { content: report.content, title: report.title },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        if (serverError.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: reportDocRef.path,
+                operation: 'update',
+                requestResourceData: { content: report.content, title: report.title },
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     });
   }, [firestore, firebaseUser]);
 
@@ -75,11 +80,13 @@ export const ReportsProvider = ({ children }: { children: ReactNode }) => {
       if (!firestore || !firebaseUser) return;
       const reportDocRef = doc(firestore, 'users', firebaseUser.uid, 'reports', reportId);
       deleteDoc(reportDocRef).catch(serverError => {
-          const permissionError = new FirestorePermissionError({
-              path: reportDocRef.path,
-              operation: 'delete',
-          });
-          errorEmitter.emit('permission-error', permissionError);
+          if (serverError.code === 'permission-denied') {
+              const permissionError = new FirestorePermissionError({
+                  path: reportDocRef.path,
+                  operation: 'delete',
+              });
+              errorEmitter.emit('permission-error', permissionError);
+          }
       });
   }, [firestore, firebaseUser]);
 

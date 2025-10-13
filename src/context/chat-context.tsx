@@ -205,7 +205,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           department: 'Customer Service',
           status: 'online',
           lastMessage: '',
-          lastMessageTime: ''
+          lastMessageTime: '',
       }
   }, [allContacts, firebaseUser]);
 
@@ -276,12 +276,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       content: newContent,
       readStatus: 'updated',
     }).catch(serverError => {
-      const permissionError = new FirestorePermissionError({
-        path: messageRef.path,
-        operation: 'update',
-        requestResourceData: { content: newContent, readStatus: 'updated' },
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: messageRef.path,
+          operation: 'update',
+          requestResourceData: { content: newContent, readStatus: 'updated' },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
     });
   }, [firestore, self]);
 
@@ -311,11 +313,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       if (messageToDelete.senderId === self.id) {
         await deleteDoc(messageRef)
           .catch(err => {
-            const permissionError = new FirestorePermissionError({
-              path: messageRef.path,
-              operation: 'delete',
-            });
-            errorEmitter.emit('permission-error', permissionError);
+            if (err.code === 'permission-denied') {
+              const permissionError = new FirestorePermissionError({
+                path: messageRef.path,
+                operation: 'delete',
+              });
+              errorEmitter.emit('permission-error', permissionError);
+            }
           });
       }
     } else {
@@ -335,12 +339,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 ));
             })
             .catch(serverError => {
+              if (serverError.code === 'permission-denied') {
                 const permissionError = new FirestorePermissionError({
                     path: messageRef.path,
                     operation: 'update',
                     requestResourceData: updateData,
                 });
                 errorEmitter.emit('permission-error', permissionError);
+              }
             });
     }
 }, [firestore, self, messages, setMessages]);
@@ -382,12 +388,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         }));
       })
       .catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: 'messages/[batch]',
-                operation: 'update',
-                requestResourceData: { deletedBySender: true, deletedByRecipient: true },
-            });
-            errorEmitter.emit('permission-error', permissionError);
+            if (serverError.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                    path: 'messages/[batch]',
+                    operation: 'update',
+                    requestResourceData: { deletedBySender: true, deletedByRecipient: true },
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            }
     });
   }, [self, firestore, messages, setMessages]);
 
@@ -645,12 +653,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
     if (updatesMade) {
       batch.commit().catch(serverError => {
-        const permissionError = new FirestorePermissionError({
-          path: `messages/[multiple]`,
-          operation: 'update',
-          requestResourceData: { readStatus: 'read/delivered' },
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        if (serverError.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: `messages/[batch]`,
+                operation: 'update',
+                requestResourceData: { readStatus: 'read/delivered' },
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
       });
     }
   }, [messages, selectedContact, self, firestore]);

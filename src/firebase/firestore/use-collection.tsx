@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -24,6 +25,7 @@ export function useCollection<T>(query: Query<DocumentData> | null) {
         return;
     }
 
+    setLoading(true);
     const unsubscribe = onSnapshot(
       query,
       (snapshot: QuerySnapshot<DocumentData>) => {

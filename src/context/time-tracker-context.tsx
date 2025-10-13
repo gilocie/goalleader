@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, {
@@ -173,12 +174,14 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
       status: 'In Progress',
       startTime: serverTimestamp() 
     }).catch(serverError => {
+      if (serverError.code === 'permission-denied') {
         const permissionError = new FirestorePermissionError({
             path: taskDocRef.path,
             operation: 'update',
             requestResourceData: { status: 'In Progress', startTime: new Date().toISOString() },
         });
         errorEmitter.emit('permission-error', permissionError);
+      }
     });
 
     setActiveTask(taskId);
@@ -198,12 +201,14 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
       endTime,
       duration: time,
     }).catch(serverError => {
-      const permissionError = new FirestorePermissionError({
-          path: taskDocRef.path,
-          operation: 'update',
-          requestResourceData: { status: 'Completed', description, endTime: new Date().toISOString(), duration: time },
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+            path: taskDocRef.path,
+            operation: 'update',
+            requestResourceData: { status: 'Completed', description, endTime: new Date().toISOString(), duration: time },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
     });
 
     setIsActive(false);
@@ -226,12 +231,14 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
         createdAt: serverTimestamp(),
     };
     await addDoc(todosCollection, newTaskData).catch(serverError => {
-        const permissionError = new FirestorePermissionError({
-            path: todosCollection.path,
-            operation: 'create',
-            requestResourceData: newTaskData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        if (serverError.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: todosCollection.path,
+                operation: 'create',
+                requestResourceData: newTaskData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     });
   }, [firestore, firebaseUser, toast]);
 
@@ -240,12 +247,14 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', task.id);
     const { id, ...taskData } = task;
     await updateDoc(taskDocRef, taskData).catch(serverError => {
-        const permissionError = new FirestorePermissionError({
-            path: taskDocRef.path,
-            operation: 'update',
-            requestResourceData: taskData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        if (serverError.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: taskDocRef.path,
+                operation: 'update',
+                requestResourceData: taskData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     });
   }, [firestore, firebaseUser]);
 
@@ -254,11 +263,13 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore || !firebaseUser) return;
     const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', taskId);
     await deleteDoc(taskDocRef).catch(serverError => {
-        const permissionError = new FirestorePermissionError({
-            path: taskDocRef.path,
-            operation: 'delete',
-        });
-        errorEmitter.emit('permission-error', permissionError);
+        if (serverError.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: taskDocRef.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        }
     });
   }, [firestore, firebaseUser]);
 

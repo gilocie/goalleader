@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useEffect, useMemo } from 'react';
@@ -133,12 +134,14 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           const { email, ...firestoreData } = newUser; // Don't save email to Firestore profile
           const userDocRef = doc(firestore, 'users', newUser.id);
           setDoc(userDocRef, firestoreData, { merge: true }).catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: userDocRef.path,
-                operation: 'update',
-                requestResourceData: firestoreData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+            if (serverError.code === 'permission-denied') {
+              const permissionError = new FirestorePermissionError({
+                  path: userDocRef.path,
+                  operation: 'update',
+                  requestResourceData: firestoreData,
+              });
+              errorEmitter.emit('permission-error', permissionError);
+            }
           });
         }
         
@@ -167,8 +170,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore) return;
     const userDocRef = doc(firestore, 'users', userId);
     updateDoc(userDocRef, { status }).catch(serverError => {
-        // We don't want to show an error for this as it's a background task
-        console.error("Could not update user status:", serverError);
+        // We don't want to show a detailed error for this as it's a background task
+        if (serverError.code === 'permission-denied') {
+          console.error("Permission denied updating user status. Check Firestore rules for the 'users' collection.");
+        }
     });
   };
 

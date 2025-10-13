@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, useCallback, useEffect } from 'react';
@@ -121,12 +122,14 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore) return;
     const leadsCollection = collection(firestore, 'clientLeads');
     addDoc(leadsCollection, lead).catch(serverError => {
-      const permissionError = new FirestorePermissionError({
-        path: leadsCollection.path,
-        operation: 'create',
-        requestResourceData: lead,
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: leadsCollection.path,
+          operation: 'create',
+          requestResourceData: lead,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
     });
   }, [firestore]);
 
@@ -134,12 +137,14 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore) return;
     const leadDocRef = doc(firestore, 'clientLeads', leadId);
     updateDoc(leadDocRef, updates).catch(serverError => {
-      const permissionError = new FirestorePermissionError({
-        path: leadDocRef.path,
-        operation: 'update',
-        requestResourceData: updates,
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: leadDocRef.path,
+          operation: 'update',
+          requestResourceData: updates,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
     });
   }, [firestore]);
 
@@ -147,11 +152,13 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore) return;
     const leadDocRef = doc(firestore, 'clientLeads', leadId);
     deleteDoc(leadDocRef).catch(serverError => {
-      const permissionError = new FirestorePermissionError({
-        path: leadDocRef.path,
-        operation: 'delete',
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: leadDocRef.path,
+          operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
     });
   }, [firestore]);
 
@@ -165,12 +172,14 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
     addDoc(marketingContentCollection, newContent).then(() => {
         toast({ title: 'Content Approved', description: `"${content.blogTitle}" is now available in Campaign Ads.` });
     }).catch(serverError => {
-      const permissionError = new FirestorePermissionError({
-        path: marketingContentCollection.path,
-        operation: 'create',
-        requestResourceData: newContent,
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: marketingContentCollection.path,
+          operation: 'create',
+          requestResourceData: newContent,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
     });
   }, [firestore, toast]);
 
@@ -178,12 +187,14 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore) return;
     const contentDocRef = doc(firestore, 'marketingContent', contentId);
     updateDoc(contentDocRef, updates).catch(serverError => {
-      const permissionError = new FirestorePermissionError({
-        path: contentDocRef.path,
-        operation: 'update',
-        requestResourceData: updates,
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: contentDocRef.path,
+          operation: 'update',
+          requestResourceData: updates,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
     });
   }, [firestore]);
 
@@ -191,11 +202,13 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore) return;
     const contentDocRef = doc(firestore, 'marketingContent', contentId);
     deleteDoc(contentDocRef).catch(serverError => {
-      const permissionError = new FirestorePermissionError({
-        path: contentDocRef.path,
-        operation: 'delete',
-      });
-      errorEmitter.emit('permission-error', permissionError);
+      if (serverError.code === 'permission-denied') {
+        const permissionError = new FirestorePermissionError({
+          path: contentDocRef.path,
+          operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      }
     });
   }, [firestore]);
 
