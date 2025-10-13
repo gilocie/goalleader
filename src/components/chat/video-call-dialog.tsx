@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -34,6 +35,7 @@ export function VideoCallDialog({
   const [isInitializing, setIsInitializing] = useState(false);
   const [hasAccepted, setHasAccepted] = useState(false);
   const [isMirrored, setIsMirrored] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -101,47 +103,23 @@ export function VideoCallDialog({
       return;
     }
 
-    const isInitiator = currentCall.callerId === self.id;
-    const shouldInitialize = isInitiator || (isActive && (hasAccepted || !isReceivingCall));
-    
-    console.log('[VideoCallDialog] Initialization check:', {
-      isInitiator,
-      isActive,
-      hasAccepted,
-      isReceivingCall,
-      shouldInitialize,
-      alreadyHasService: !!webrtcServiceRef.current,
-      isInitializing,
-      initializationAttempted: initializationAttemptedRef.current
-    });
-
-    if (!shouldInitialize) {
-      console.log('[VideoCallDialog] Waiting for call to be accepted or activated');
-      return;
-    }
-
-    if (webrtcServiceRef.current) {
-        console.log('[VideoCallDialog] WebRTC service already exists');
+    // KEY FIX: Don't initialize if receiving call and haven't accepted yet
+    if (isReceivingCall && currentCall.status === 'ringing') {
+        console.log('[VideoCallDialog] Waiting for call to be accepted before initializing WebRTC');
         return;
     }
 
-    if (isInitializing || initializationAttemptedRef.current) {
-        console.log('[VideoCallDialog] Already initializing or attempted');
+    if (webrtcServiceRef.current || isInitializing) {
         return;
     }
 
     const initializeWebRTC = async () => {
-        initializationAttemptedRef.current = true;
         setIsInitializing(true);
         try {
-            console.log('[VideoCallDialog] Creating WebRTC service, Role:', isInitiator ? 'Initiator' : 'Receiver');
+            const isInitiator = currentCall.callerId === self.id;
+            console.log('[VideoCallDialog] Creating WebRTC service');
             const service = new WebRTCService(firestore, currentCall.id, self.id, isInitiator);
             webrtcServiceRef.current = service;
-
-            if (!isInitiator) {
-              console.log('[VideoCallDialog] Receiver waiting 500ms for offer to be ready...');
-              await new Promise(resolve => setTimeout(resolve, 500));
-            }
 
             console.log('[VideoCallDialog] Initializing WebRTC service');
             const stream = await service.initialize(
@@ -152,25 +130,18 @@ export function VideoCallDialog({
 
             if (stream) {
                 if (localVideoRef.current) {
-                  localVideoRef.current.srcObject = stream;
+                    localVideoRef.current.srcObject = stream;
                 }
                 console.log('[VideoCallDialog] WebRTC initialized successfully');
             } else {
                 console.warn('[VideoCallDialog] WebRTC initialization returned null (likely aborted)');
                 webrtcServiceRef.current = null;
-                initializationAttemptedRef.current = false;
             }
         } catch (error: any) {
             if (!error.message?.includes('aborted')) {
                 console.error('[VideoCallDialog] Failed to initialize WebRTC:', error);
-                 toast({
-                  variant: 'destructive',
-                  title: 'Connection Error',
-                  description: 'Failed to establish call connection. Please try again.',
-                });
             }
             webrtcServiceRef.current = null;
-            initializationAttemptedRef.current = false;
         } finally {
             setIsInitializing(false);
         }
@@ -189,16 +160,14 @@ export function VideoCallDialog({
     };
   }, [
       firestore, 
-      self?.id, 
+      self, 
       currentCall?.id,
       currentCall?.status,
-      currentCall?.callerId,
       contact?.id,
       isReceivingCall,
-      hasAccepted,
       handleRemoteStream, 
       handleConnectionStateChange,
-      toast
+      isInitializing
   ]);
   
   const handleAcceptCall = useCallback(async () => {
