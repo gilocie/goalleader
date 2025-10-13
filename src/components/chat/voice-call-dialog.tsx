@@ -45,6 +45,17 @@ export function VoiceCallDialog({
   const isActive = callStatus === 'active';
   const isConnected = connectionState === 'connected';
 
+  // Handle ending call
+  const handleEndCall = useCallback(() => {
+    webrtcServiceRef.current?.cleanup();
+    
+    if (currentCall) {
+      endVoiceCall(contact.id);
+    }
+    
+    onClose();
+  }, [currentCall, contact.id, endVoiceCall, onClose]);
+
   // Format elapsed time
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -62,17 +73,6 @@ export function VoiceCallDialog({
     return () => clearInterval(timer);
   }, [isOpen, isActive, isConnected]);
 
-  // Handle ending call
-  const handleEndCall = useCallback(() => {
-    webrtcServiceRef.current?.cleanup();
-    
-    if (currentCall) {
-      endVoiceCall(contact.id);
-    }
-    
-    onClose();
-  }, [currentCall, contact.id, endVoiceCall, onClose]);
-
   // Initialize WebRTC when call becomes active
   useEffect(() => {
     if (!isOpen || !currentCall || !firestore || !self) return;
@@ -80,7 +80,6 @@ export function VoiceCallDialog({
 
     const initializeWebRTC = async () => {
       try {
-        // Create WebRTC service
         const isInitiator = currentCall.callerId === self.id;
         webrtcServiceRef.current = new WebRTCService(
           firestore,
@@ -89,16 +88,13 @@ export function VoiceCallDialog({
           isInitiator
         );
 
-        // Initialize with audio only
         await webrtcServiceRef.current.initialize(
           // On remote stream
           (remoteStream) => {
-            console.log('Remote stream received');
-            if (remoteAudioRef.current) {
+            console.log('Remote audio stream received');
+            if (remoteAudioRef.current && remoteStream.getAudioTracks().length > 0) {
               remoteAudioRef.current.srcObject = remoteStream;
-              remoteAudioRef.current.play().catch(e => {
-                console.error('Failed to play remote audio:', e);
-              });
+              // Don't call play() - let autoplay handle it
             }
           },
           // On connection state change
@@ -214,7 +210,7 @@ export function VoiceCallDialog({
         </DialogHeader>
 
         {/* Hidden audio element for remote stream */}
-        <audio ref={remoteAudioRef} autoPlay />
+        <audio ref={remoteAudioRef} autoPlay playsInline />
 
         <div className="flex flex-col items-center justify-center space-y-6">
           {/* Contact Avatar */}

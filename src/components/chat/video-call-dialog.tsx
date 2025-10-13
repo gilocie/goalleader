@@ -97,12 +97,10 @@ export function VideoCallDialog({
         const localStream = await webrtcServiceRef.current.initialize(
           // On remote stream
           (remoteStream) => {
-            console.log('Remote stream received');
-            if (remoteVideoRef.current) {
+            console.log('Remote stream received with tracks:', remoteStream.getTracks().length);
+            if (remoteVideoRef.current && remoteStream.getTracks().length > 0) {
               remoteVideoRef.current.srcObject = remoteStream;
-              remoteVideoRef.current.play().catch(e => {
-                console.error('Failed to play remote video:', e);
-              });
+              // Don't call play() immediately, let it autoplay
             }
           },
           // On connection state change
@@ -119,9 +117,9 @@ export function VideoCallDialog({
         );
 
         // Set local video
-        if (localVideoRef.current) {
+        if (localVideoRef.current && localStream) {
           localVideoRef.current.srcObject = localStream;
-          localVideoRef.current.play().catch(e => console.error("Local video play failed:", e));
+          // Don't call play() - let autoplay handle it
         }
 
         console.log('WebRTC initialized successfully');
@@ -243,6 +241,7 @@ export function VideoCallDialog({
                 ref={remoteVideoRef}
                 autoPlay
                 playsInline
+                muted={false} 
                 className="w-full h-full object-contain"
               />
             ) : (
