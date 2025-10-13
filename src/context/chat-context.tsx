@@ -47,6 +47,10 @@ interface ChatContextType {
   declineVoiceCall: () => void;
   acceptedVoiceCallContact: Contact | null;
   setAcceptedVoiceCallContact: Dispatch<SetStateAction<Contact | null>>;
+  isVideoCallOpen: boolean;
+  setIsVideoCallOpen: Dispatch<SetStateAction<boolean>>;
+  isVoiceCallOpen: boolean;
+  setIsVoiceCallOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -75,6 +79,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
+  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
+  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
   const allContacts = useMemo(() => {
     if (!allTeamMembers) return [];
@@ -449,6 +455,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       
       const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
       setCurrentCall({ id: callDocRef.id, ...callData });
+      setIsVoiceCallOpen(true);
       
       addSystemMessage(`Calling ${contact.name}...`, contact.id, 'voice');
       
@@ -504,6 +511,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setAcceptedVoiceCallContact(null);
       setCurrentCall(null);
       setIncomingVoiceCallFrom(null);
+      setIsVoiceCallOpen(false);
       
       setTimeout(async () => {
         try {
@@ -550,6 +558,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       
       const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
       setCurrentCall({ id: callDocRef.id, ...callData });
+      setIsVideoCallOpen(true);
       
       addSystemMessage(`Calling ${contact.name}...`, contact.id, 'video');
       
@@ -604,6 +613,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setAcceptedCallContact(null);
       setCurrentCall(null);
       setIncomingCallFrom(null);
+      setIsVideoCallOpen(false);
       
       setTimeout(async () => {
         try {
@@ -700,6 +710,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     declineVoiceCall,
     acceptedVoiceCallContact,
     setAcceptedVoiceCallContact,
+    isVideoCallOpen,
+    setIsVideoCallOpen,
+    isVoiceCallOpen,
+    setIsVoiceCallOpen,
     inputMessage,
     setInputMessage
   };
@@ -714,3 +728,4 @@ export const useChat = () => {
   }
   return context;
 };
+

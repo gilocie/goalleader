@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -158,7 +159,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat, isVideoCallOpen, setIsVideoCallOpen, isVoiceCallOpen, setIsVoiceCallOpen, } = useChat();
   const { user } = useUser();
 
   if (!user) {
@@ -173,9 +174,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
-  const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isReceivingCall, setIsReceivingCall] = useState(false);
-  const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const [isReceivingVoiceCall, setIsReceivingVoiceCall] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const firstUnreadRef = useRef<HTMLDivElement>(null);
@@ -641,3 +640,4 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
