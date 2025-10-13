@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -45,6 +44,7 @@ export function VideoCallDialog({
   const initializationAttemptedRef = useRef(false);
   
   const { toast } = useToast();
+  const firestore = useFirestore();
   const { currentCall, endCall, acceptCall, self } = useChat();
 
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
@@ -473,5 +473,3 @@ export function VideoCallDialog({
     </Dialog>
   );
 }
-
-  
