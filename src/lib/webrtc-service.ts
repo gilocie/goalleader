@@ -102,6 +102,11 @@ export class WebRTCService {
       // Listen for call document changes (offer/answer)
       this.listenForSignaling();
 
+      // If initiator, create the offer now that connection is initialized
+      if (this.isInitiator) {
+          await this.createOffer();
+      }
+
       return this.localStream;
     } catch (error) {
       console.error('Failed to initialize WebRTC:', error);

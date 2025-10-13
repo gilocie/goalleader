@@ -111,11 +111,6 @@ export function VideoCallDialog({
           localVideoRef.current.srcObject = localStream;
         }
 
-        // If initiator, create offer
-        if (isInitiator) {
-          await webrtcServiceRef.current.createOffer();
-        }
-
         console.log('WebRTC initialized successfully');
       } catch (error) {
         console.error('Failed to initialize WebRTC:', error);
