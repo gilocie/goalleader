@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -111,6 +112,11 @@ export function VideoCallDialog({
           localVideoRef.current.srcObject = localStream;
         }
 
+        // If initiator, create offer
+        if (isInitiator) {
+          await webrtcServiceRef.current.createOffer();
+        }
+
         console.log('WebRTC initialized successfully');
       } catch (error) {
         console.error('Failed to initialize WebRTC:', error);
@@ -129,7 +135,7 @@ export function VideoCallDialog({
       webrtcServiceRef.current?.cleanup();
       webrtcServiceRef.current = null;
     };
-  }, [isOpen, currentCall, callStatus, firestore, self]);
+  }, [isOpen, currentCall, callStatus, firestore, self, toast, handleEndCall]);
 
   // Handle accepting incoming call
   const handleAcceptCall = useCallback(async () => {
