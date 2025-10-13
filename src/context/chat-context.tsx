@@ -31,6 +31,7 @@ interface ChatContextType {
   deleteChat: (contactId: string) => void;
   forwardMessage: (message: Message, recipientIds: string[]) => void;
   isTyping: boolean;
+  currentCall: Call | null;
   incomingCallFrom: Contact | null;
   startCall: (contact: Contact) => void;
   endCall: (contactId: string) => void;
@@ -67,12 +68,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [inputMessage, setInputMessage] = useState('');
 
-  // Voice Call State
+  // Voice & Video Call State
   const [currentCall, setCurrentCall] = useState<Call | null>(null);
   const [incomingVoiceCallFrom, setIncomingVoiceCallFrom] = useState<Contact | null>(null);
   const [acceptedVoiceCallContact, setAcceptedVoiceCallContact] = useState<Contact | null>(null);
-  
-  // Video Call State (not fully implemented with signaling yet)
   const [incomingCallFrom, setIncomingCallFrom] = useState<Contact | null>(null);
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
 
@@ -129,7 +128,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     (error: FirestoreError) => {
         if (error.code === 'permission-denied') {
             const permissionError = new FirestorePermissionError({
-                path: (q as any)._query.path.segments.join('/'),
+                path: 'calls',
                 operation: 'list',
             });
             errorEmitter.emit('permission-error', permissionError);
@@ -401,30 +400,44 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     setCurrentCall(null);
   }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
 
-  const startCall = useCallback((contact: Contact) => {
+  const startCall = useCallback(async (contact: Contact) => {
+    if (!self || !firestore) return;
+    const callData: Omit<Call, 'id'> = {
+        callerId: self.id,
+        recipientId: contact.id,
+        status: 'ringing',
+        type: 'video',
+        createdAt: serverTimestamp(),
+    };
+    const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
+    setCurrentCall({ id: callDocRef.id, ...callData });
     setAcceptedCallContact(contact);
     addSystemMessage(`Calling ${contact.name}...`, contact.id, 'video');
-  }, [addSystemMessage]);
+  }, [self, firestore, addSystemMessage]);
 
-  const endCall = useCallback((contactId: string) => {
-        addSystemMessage(`Video call ended`, contactId, 'video');
-        setAcceptedCallContact(null);
-  }, [addSystemMessage]);
+  const endCall = useCallback(async (contactId: string) => {
+    if (!firestore || !currentCall) return;
+    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'ended' });
+    addSystemMessage(`Video call ended`, contactId, 'video');
+    setAcceptedCallContact(null);
+    setCurrentCall(null);
+  }, [firestore, currentCall, addSystemMessage]);
 
-  const acceptCall = useCallback(() => {
-    if (incomingCallFrom) {
-        addSystemMessage(`Video call with ${incomingCallFrom.name} started`, incomingCallFrom.id, 'video');
-        setAcceptedCallContact(incomingCallFrom);
-        setIncomingCallFrom(null);
-    }
-  }, [incomingCallFrom, addSystemMessage]);
+  const acceptCall = useCallback(async () => {
+    if (!firestore || !currentCall || !incomingCallFrom) return;
+    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'active' });
+    addSystemMessage(`Video call with ${incomingCallFrom.name} started`, incomingCallFrom.id, 'video');
+    setAcceptedCallContact(incomingCallFrom);
+    setIncomingCallFrom(null);
+  }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
 
-  const declineCall = useCallback(() => {
-    if (incomingCallFrom) {
-        addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id, 'video');
-        setIncomingCallFrom(null);
-    }
-  }, [incomingCallFrom, addSystemMessage]);
+  const declineCall = useCallback(async () => {
+    if (!firestore || !currentCall || !incomingCallFrom) return;
+    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
+    addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id, 'video');
+    setIncomingCallFrom(null);
+    setCurrentCall(null);
+  }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
   
   useEffect(() => {
     if (!self || !firestore) return;
@@ -475,6 +488,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     deleteChat,
     forwardMessage,
     isTyping,
+    currentCall,
     incomingCallFrom,
     startCall,
     endCall,

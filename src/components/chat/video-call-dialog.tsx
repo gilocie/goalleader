@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -69,7 +70,7 @@ const DraggableFrame = ({
     isSpeakerMuted: boolean;
   };
   isSelf: boolean;
-  callStatus: 'connecting' | 'ringing' | 'calling' | 'connected';
+  callStatus: 'connecting' | 'ringing' | 'calling' | 'active' | 'ended' | 'declined' | 'missed';
 }) => {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -127,14 +128,10 @@ const DraggableFrame = ({
         )}
       </div>
 
-       {isMain && callStatus !== 'connected' && (
+       {isMain && callStatus !== 'active' && (
         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-40">
           <p className="text-2xl font-semibold tracking-wide capitalize">
-            {callStatus === 'calling'
-              ? 'Calling...'
-              : callStatus === 'ringing'
-              ? 'Ringing...'
-              : 'Connecting...'}
+            {callStatus}...
           </p>
         </div>
       )}
@@ -201,7 +198,7 @@ const DraggableFrame = ({
         </div>
       )}
 
-      {callStatus === 'connected' && (
+      {callStatus === 'active' && (
         <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
           <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
           <span>{formatTime(elapsedTime)}</span>
@@ -225,7 +222,9 @@ export function VideoCallDialog({ isOpen, onClose, contact, isReceivingCall }: V
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mainView, setMainView] = useState<'self' | 'contact'>('contact');
-  const [callStatus, setCallStatus] = useState<'calling' | 'connecting' | 'ringing' | 'connected'>('connecting');
+  
+  const { self, acceptedCallContact, currentCall } = useChat();
+  const callStatus = currentCall?.status || (isReceivingCall ? 'connecting' : 'ringing');
 
 
   const [mainFrame, setMainFrame] = useState<DraggableState>({
@@ -247,39 +246,16 @@ export function VideoCallDialog({ isOpen, onClose, contact, isReceivingCall }: V
   const dragOffsetRef = useRef({ x: 0, y: 0 });
 
   const { toast } = useToast();
-  const { self, acceptedCallContact } = useChat();
 
   const selfAvatar = self
     ? PlaceHolderImages.find((img) => img.id === self.id)
     : undefined;
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
 
-  // ---- Call Status Simulation ----
-  useEffect(() => {
-    if (isOpen) {
-      if (isReceivingCall) {
-        setCallStatus('connecting');
-        const t1 = setTimeout(() => setCallStatus('connected'), 2500);
-        return () => clearTimeout(t1);
-      } else {
-        setCallStatus('calling');
-        const t1 = setTimeout(() => setCallStatus('ringing'), 2000);
-        const t2 = setTimeout(() => setCallStatus('connecting'), 4000);
-        const t3 = setTimeout(() => setCallStatus('connected'), 6000);
-        return () => {
-          clearTimeout(t1);
-          clearTimeout(t2);
-          clearTimeout(t3);
-        };
-      }
-    }
-  }, [isOpen, isReceivingCall]);
-
-
   // ---- Elapsed time ----
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isOpen && callStatus === 'connected') {
+    if (isOpen && callStatus === 'active') {
       setElapsedTime(0);
       timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
     }

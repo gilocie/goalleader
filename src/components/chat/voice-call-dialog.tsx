@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -29,37 +30,19 @@ export function VoiceCallDialog({ isOpen, onClose, contact, isReceivingCall }: V
   const [isMuted, setIsMuted] = useState(false);
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [callStatus, setCallStatus] = useState<'calling' | 'ringing' | 'connected' | 'connecting'>('calling');
 
   const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
+  const { currentCall } = useChat();
 
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
 
-  // Call Status Simulation
-  useEffect(() => {
-    if (isOpen) {
-      if (isReceivingCall) {
-        setCallStatus('connecting');
-        const t1 = setTimeout(() => setCallStatus('connected'), 2000);
-        return () => clearTimeout(t1);
-      } else {
-        setCallStatus('calling');
-        const t1 = setTimeout(() => setCallStatus('ringing'), 2000);
-        const t2 = setTimeout(() => setCallStatus('connected'), 5000);
-        return () => {
-          clearTimeout(t1);
-          clearTimeout(t2);
-        };
-      }
-    }
-  }, [isOpen, isReceivingCall]);
-
+  const callStatus = currentCall?.status || (isReceivingCall ? 'connecting' : 'calling');
 
   // Elapsed time
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isOpen && callStatus === 'connected') {
+    if (isOpen && callStatus === 'active') {
       setElapsedTime(0);
       timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
     }
@@ -126,7 +109,7 @@ export function VoiceCallDialog({ isOpen, onClose, contact, isReceivingCall }: V
 
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold">{contact.name}</h2>
-            {callStatus === 'connected' ? (
+            {callStatus === 'active' ? (
               <p className="text-lg text-gray-300 font-mono">{formatTime(elapsedTime)}</p>
             ) : (
               <p className="text-lg text-gray-300 capitalize flex items-center gap-2">
