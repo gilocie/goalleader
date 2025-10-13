@@ -35,12 +35,15 @@ export interface Message {
 }
 
 export interface Call {
-    id: string;
-    callerId: string;
-    recipientId: string;
-    status: 'ringing' | 'active' | 'ended' | 'declined' | 'missed';
-    type: 'voice' | 'video';
-    createdAt: Timestamp | FieldValue;
-    endedAt?: Timestamp | FieldValue;
+  id: string;
+  callerId: string;
+  recipientId: string;
+  type: 'voice' | 'video';
+  status: 'ringing' | 'active' | 'ended' | 'declined' | 'missed';
+  createdAt: any; // Firestore Timestamp
+  acceptedAt?: any;
+  endedAt?: any;
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
 }
     

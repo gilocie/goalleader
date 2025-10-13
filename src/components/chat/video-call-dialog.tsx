@@ -1,536 +1,393 @@
 
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Mic,
-  MicOff,
-  Phone,
-  Volume2,
-  Maximize,
-  Minimize,
-  Expand,
-  Loader2,
-  VolumeX,
-} from 'lucide-react';
+import { Mic, MicOff, Phone, Video, VideoOff, Maximize, Minimize, Loader2 } from 'lucide-react';
 import type { Contact } from '@/types/chat';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useChat } from '@/context/chat-context';
+import { WebRTCService } from '@/lib/webrtc-service';
+import { useFirestore } from '@/firebase';
 
-// ---------- Types ----------
-interface DraggableState {
-  position: { x: number; y: number };
-  size: { width: number; height: number };
-  isDragging: boolean;
-}
-
-// ---------- Draggable Frame ----------
-const DraggableFrame = ({
-  frameState,
-  videoRef,
-  avatar,
-  name,
-  isMain,
-  stream,
-  elapsedTime,
-  onDragStart,
-  onSwap,
-  mainControls,
-  isSelf,
-  callStatus,
-}: {
-  frameState: DraggableState;
-  videoRef: React.RefObject<HTMLVideoElement>;
-  avatar?: { imageUrl?: string; imageHint?: string };
-  name: string;
-  isMain: boolean;
-  stream: MediaStream | null;
-  elapsedTime: number;
-  onDragStart: (e: React.MouseEvent<HTMLDivElement>) => void;
-  onSwap?: () => void;
-  mainControls?: {
-    toggleMic: () => void;
-    isMuted: boolean;
-    onClose: () => void;
-    toggleFullscreen: () => void;
-    isFullscreen: boolean;
-    toggleSpeakerMute: () => void;
-    isSpeakerMuted: boolean;
-  };
-  isSelf: boolean;
-  callStatus: 'connecting' | 'ringing' | 'calling' | 'active' | 'ended' | 'declined' | 'missed';
-}) => {
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs
-      .toString()
-      .padStart(2, '0')}`;
-  };
-
-  useEffect(() => {
-    if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-    }
-  }, [stream, videoRef]);
-
-
-  return (
-    <div
-      className={cn(
-        'absolute bg-black rounded-lg overflow-hidden border-2 border-white/20 shadow-2xl group transition-all duration-300 ease-in-out',
-        isMain && mainControls?.isFullscreen && 'fullscreen-main'
-      )}
-      style={{
-        top: `${frameState.position.y}px`,
-        left: `${frameState.position.x}px`,
-        width: `${frameState.size.width}px`,
-        height: `${frameState.size.height}px`
-      }}
-    >
-      <div
-        className="absolute top-0 left-0 right-0 h-8 cursor-move bg-black/50 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
-        onMouseDown={onDragStart}
-      />
-
-      <div className="w-full h-full flex items-center justify-center bg-gray-800">
-        {stream ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted={isSelf} // Mute self view to prevent feedback
-            className="w-full h-full object-cover"
-            style={{ transform: isSelf ? 'scaleX(-1)' : 'none' }}
-          />
-        ) : (
-          <Avatar className={cn(isMain ? 'w-32 h-32' : 'w-20 h-20')}>
-            <AvatarImage
-              src={avatar?.imageUrl}
-              data-ai-hint={avatar?.imageHint}
-            />
-            <AvatarFallback className="text-4xl">
-              {name.slice(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-        )}
-      </div>
-
-       {isMain && callStatus !== 'active' && (
-        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-40">
-          <p className="text-2xl font-semibold tracking-wide capitalize">
-            {callStatus}...
-          </p>
-        </div>
-      )}
-
-      {!isSelf && (
-        <div className="absolute bottom-2 left-2 text-white text-sm bg-black/50 px-2 py-1 rounded z-10">
-            {name}
-        </div>
-      )}
-
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-30 flex gap-2">
-        {onSwap && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full bg-black/50 text-white"
-            onClick={onSwap}
-          >
-            <Expand className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
-      {isMain && mainControls && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex justify-center items-center gap-4 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <Button
-            onClick={mainControls.toggleMic}
-            variant="secondary"
-            size="icon"
-            className={cn(
-              'rounded-full h-14 w-14',
-              mainControls.isMuted ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'
-            )}
-          >
-            {mainControls.isMuted ? <MicOff /> : <Mic />}
-          </Button>
-          <Button
-            onClick={mainControls.toggleSpeakerMute}
-            variant="secondary"
-            size="icon"
-            className={cn(
-              'rounded-full h-14 w-14',
-              mainControls.isSpeakerMuted ? 'bg-destructive text-destructive-foreground' : 'bg-primary text-primary-foreground hover:bg-primary/90'
-            )}
-          >
-            {mainControls.isSpeakerMuted ? <VolumeX /> : <Volume2 />}
-          </Button>
-          <Button
-            onClick={mainControls.onClose}
-            variant="destructive"
-            size="icon"
-            className="rounded-full h-14 w-14"
-          >
-            <Phone className="transform -scale-x-100" />
-          </Button>
-          <Button
-            onClick={mainControls.toggleFullscreen}
-            variant="secondary"
-            size="icon"
-            className="rounded-full h-14 w-14 bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            {mainControls.isFullscreen ? <Minimize /> : <Maximize />}
-          </Button>
-        </div>
-      )}
-
-      {callStatus === 'active' && (
-        <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full z-30">
-          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-          <span>{formatTime(elapsedTime)}</span>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ---------- Main Dialog ----------
 interface VideoCallDialogProps {
   isOpen: boolean;
   onClose: () => void;
   contact: Contact;
-  isReceivingCall: boolean;
+  isReceivingCall?: boolean;
 }
 
-export function VideoCallDialog({ isOpen, onClose, contact, isReceivingCall }: VideoCallDialogProps) {
+export function VideoCallDialog({ 
+  isOpen, 
+  onClose, 
+  contact, 
+  isReceivingCall = false 
+}: VideoCallDialogProps) {
   const [isMuted, setIsMuted] = useState(false);
-  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
+  const [isVideoOff, setIsVideoOff] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mainView, setMainView] = useState<'self' | 'contact'>('contact');
+
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const webrtcServiceRef = useRef<WebRTCService | null>(null);
   
-  const { self, acceptedCallContact, currentCall } = useChat();
-  const callStatus = currentCall?.status || (isReceivingCall ? 'connecting' : 'ringing');
-
-
-  const [mainFrame, setMainFrame] = useState<DraggableState>({
-    position: { x: 0, y: 0 },
-    size: { width: 640, height: 340 },
-    isDragging: false
-  });
-
-  const [pipFrame, setPipFrame] = useState<DraggableState>({
-    position: { x: 0, y: 0 },
-    size: { width: 192, height: 144 },
-    isDragging: false
-  });
-
-  const videoContainerRef = useRef<HTMLDivElement>(null);
-  const selfVideoRef = useRef<HTMLVideoElement>(null);
-  const contactVideoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const dragOffsetRef = useRef({ x: 0, y: 0 });
-
   const { toast } = useToast();
+  const firestore = useFirestore();
+  const { currentCall, endCall, acceptCall, declineCall, self } = useChat();
 
-  const selfAvatar = self
-    ? PlaceHolderImages.find((img) => img.id === self.id)
-    : undefined;
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
+  const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
+  
+  const callStatus = currentCall?.status || 'ringing';
+  const isActive = callStatus === 'active';
+  const isConnected = connectionState === 'connected';
 
-  // ---- Elapsed time ----
+  // Format elapsed time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Timer for elapsed time
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (isOpen && callStatus === 'active') {
+    if (isOpen && isActive && isConnected) {
       setElapsedTime(0);
       timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
     }
     return () => clearInterval(timer);
-  }, [isOpen, callStatus]);
+  }, [isOpen, isActive, isConnected]);
 
-  // ---- Camera and mic setup ----
+  // Initialize WebRTC when call becomes active
   useEffect(() => {
-    const getMedia = async () => {
-      if (isOpen) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: true
-          });
-          streamRef.current = stream;
-        } catch {
-          toast({
-            variant: 'destructive',
-            title: 'Media Access Denied',
-            description: 'Please allow camera and microphone access.'
-          });
-          onClose();
-        }
-      }
-    };
+    if (!isOpen || !currentCall || !firestore || !self) return;
+    if (callStatus !== 'active') return;
 
-    getMedia();
+    const initializeWebRTC = async () => {
+      try {
+        const isInitiator = currentCall.callerId === self.id;
+        webrtcServiceRef.current = new WebRTCService(
+          firestore,
+          currentCall.id,
+          self.id,
+          isInitiator
+        );
 
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-        streamRef.current = null;
-      }
-    };
-  }, [isOpen, onClose, toast]);
-
-    useEffect(() => {
-    const container = videoContainerRef.current;
-    if (container) {
-      const centerFrames = () => {
-        const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
-        
-        let newWidth = Math.min(containerWidth * 0.7, 800);
-        let newHeight = newWidth * (9/16);
-
-        if (newHeight > containerHeight * 0.8) {
-            newHeight = containerHeight * 0.8;
-            newWidth = newHeight * (16/9);
-        }
-
-        setMainFrame(prev => ({
-          ...prev,
-          size: { width: newWidth, height: 340 },
-          position: {
-            x: (containerWidth - newWidth) / 2,
-            y: (containerHeight - 340) / 2
-          }
-        }));
-      };
-
-      centerFrames();
-      window.addEventListener('resize', centerFrames);
-      return () => window.removeEventListener('resize', centerFrames);
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-      setPipFrame(prev => ({
-          ...prev,
-          position: {
-              x: mainFrame.position.x,
-              y: mainFrame.position.y
-          }
-      }))
-  }, [mainFrame.position]);
-
-
-  const toggleMic = () => {
-    streamRef.current?.getAudioTracks().forEach((track) => {
-      track.enabled = !track.enabled;
-      setIsMuted(!track.enabled);
-    });
-  };
-
-  const toggleSpeakerMute = () => {
-    setIsSpeakerMuted(prev => !prev);
-  }
-
-  const handleSwapViews = () => {
-    setMainView((v) => (v === 'self' ? 'contact' : 'self'));
-  };
-
-  // ---- Drag setup ----
-  const handleDragStart = (
-    e: React.MouseEvent<HTMLDivElement>,
-    target: 'main' | 'pip'
-  ) => {
-    e.preventDefault();
-    const isMain = target === 'main';
-    const frameState = isMain ? mainFrame : pipFrame;
-    const setFrame = isMain ? setMainFrame : setPipFrame;
-    setFrame((p) => ({ ...p, isDragging: true }));
-    dragOffsetRef.current = {
-      x: e.clientX - frameState.position.x,
-      y: e.clientY - frameState.position.y
-    };
-  };
-
-  const handleDrag = useCallback(
-    (e: MouseEvent) => {
-      const isMainDragging = mainFrame.isDragging;
-      const isPipDragging = pipFrame.isDragging;
-      if (!isMainDragging && !isPipDragging) return;
-      const containerRect = videoContainerRef.current?.getBoundingClientRect();
-      if (!containerRect) return;
-      
-      const isMain = isMainDragging;
-      const targetFrame = isMain ? mainFrame : pipFrame;
-      const setTargetFrame = isMain ? setMainFrame : setPipFrame;
-      let newX = e.clientX - dragOffsetRef.current.x;
-      let newY = e.clientY - dragOffsetRef.current.y;
-      newX = Math.max(0, Math.min(newX, containerRect.width - targetFrame.size.width));
-      newY = Math.max(0, Math.min(newY, containerRect.height - targetFrame.size.height));
-      setTargetFrame((p) => ({ ...p, position: { x: newX, y: newY } }));
-    },
-    [mainFrame, pipFrame]
-  );
-
-  const handleDragEnd = useCallback(() => {
-    setMainFrame((p) => ({ ...p, isDragging: false }));
-    setPipFrame((p) => ({ ...p, isDragging: false }));
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('mousemove', handleDrag);
-    window.addEventListener('mouseup', handleDragEnd);
-    return () => {
-      window.removeEventListener('mousemove', handleDrag);
-      window.removeEventListener('mouseup', handleDragEnd);
-    };
-  }, [handleDrag, handleDragEnd]);
-
-  // ---- Fullscreen ----
-  const toggleFullscreen = async () => {
-    const container = document.documentElement; // Target the whole document
-    try {
-        if (!document.fullscreenElement) {
-            if (container.requestFullscreen) {
-                await container.requestFullscreen();
+        // Initialize with audio and video
+        const localStream = await webrtcServiceRef.current.initialize(
+          // On remote stream
+          (remoteStream) => {
+            console.log('Remote stream received');
+            if (remoteVideoRef.current) {
+              remoteVideoRef.current.srcObject = remoteStream;
+              remoteVideoRef.current.play().catch(e => {
+                console.error('Failed to play remote video:', e);
+              });
             }
-        } else {
-            if (document.exitFullscreen) {
-                await document.exitFullscreen();
+          },
+          // On connection state change
+          (state) => {
+            console.log('Connection state:', state);
+            setConnectionState(state);
+            
+            if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+              handleEndCall();
             }
+          },
+          // Media constraints (audio and video)
+          { audio: true, video: true }
+        );
+
+        // Set local video
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStream;
         }
-    } catch (error) {
+
+        // If initiator, create offer
+        if (isInitiator) {
+          await webrtcServiceRef.current.createOffer();
+        }
+
+        console.log('WebRTC initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize WebRTC:', error);
         toast({
-            variant: "destructive",
-            title: "Fullscreen Error",
-            description: "Could not enter fullscreen mode.",
+          variant: 'destructive',
+          title: 'Call Failed',
+          description: 'Could not establish video connection.',
         });
-    }
-  };
+        handleEndCall();
+      }
+    };
 
-  useEffect(() => {
-    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    initializeWebRTC();
+
+    return () => {
+      webrtcServiceRef.current?.cleanup();
+      webrtcServiceRef.current = null;
+    };
+  }, [isOpen, currentCall, callStatus, firestore, self]);
+
+  // Handle accepting incoming call
+  const handleAcceptCall = useCallback(async () => {
+    if (!currentCall || !isReceivingCall) return;
+    
+    try {
+      await acceptCall();
+    } catch (error) {
+      console.error('Failed to accept call:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to accept call.',
+      });
+    }
+  }, [currentCall, isReceivingCall, acceptCall, toast]);
+
+  // Handle declining incoming call
+  const handleDeclineCall = useCallback(async () => {
+    if (!currentCall || !isReceivingCall) return;
+    
+    try {
+      await declineCall();
+      onClose();
+    } catch (error) {
+      console.error('Failed to decline call:', error);
+    }
+  }, [currentCall, isReceivingCall, declineCall, onClose]);
+
+  // Handle ending call
+  const handleEndCall = useCallback(() => {
+    webrtcServiceRef.current?.cleanup();
+    
+    if (currentCall) {
+      endCall(contact.id);
+    }
+    
+    onClose();
+  }, [currentCall, contact.id, endCall, onClose]);
+
+  // Toggle microphone
+  const toggleMic = useCallback(() => {
+    if (webrtcServiceRef.current) {
+      const newMutedState = !isMuted;
+      webrtcServiceRef.current.toggleAudio(!newMutedState);
+      setIsMuted(newMutedState);
+    }
+  }, [isMuted]);
+
+  // Toggle video
+  const toggleVideo = useCallback(() => {
+    if (webrtcServiceRef.current) {
+      const newVideoOffState = !isVideoOff;
+      webrtcServiceRef.current.toggleVideo(!newVideoOffState);
+      setIsVideoOff(newVideoOffState);
+    }
+  }, [isVideoOff]);
+
+  // Toggle fullscreen
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await containerRef.current?.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
   }, []);
 
-  const mainControls = {
-    toggleMic,
-    isMuted,
-    onClose,
-    toggleFullscreen,
-    isFullscreen,
-    toggleSpeakerMute,
-    isSpeakerMuted,
-  };
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
-  const MainViewComponent = mainView === 'self' ? (
-    <DraggableFrame
-      frameState={mainFrame}
-      videoRef={selfVideoRef}
-      avatar={selfAvatar}
-      name={self?.name || 'You'}
-      isMain={true}
-      isSelf={true}
-      stream={streamRef.current}
-      elapsedTime={elapsedTime}
-      onDragStart={(e) => handleDragStart(e, 'main')}
-      mainControls={mainControls}
-      callStatus={callStatus}
-    />
-  ) : (
-    <DraggableFrame
-      frameState={mainFrame}
-      videoRef={contactVideoRef}
-      avatar={contactAvatar}
-      name={contact.name}
-      isMain={true}
-      isSelf={false}
-      stream={null} // No stream for contact
-      elapsedTime={elapsedTime}
-      onDragStart={(e) => handleDragStart(e, 'main')}
-      mainControls={mainControls}
-      callStatus={callStatus}
-    />
-  );
-
-  const PipViewComponent = mainView === 'self' ? (
-    <DraggableFrame
-      frameState={pipFrame}
-      videoRef={contactVideoRef}
-      avatar={contactAvatar}
-      name={contact.name}
-      isMain={false}
-      isSelf={false}
-      stream={null}
-      elapsedTime={elapsedTime}
-      onDragStart={(e) => handleDragStart(e, 'pip')}
-      onSwap={handleSwapViews}
-      callStatus={callStatus}
-    />
-  ) : (
-    <DraggableFrame
-      frameState={pipFrame}
-      videoRef={selfVideoRef}
-      avatar={selfAvatar}
-      name={self?.name || 'You'}
-      isMain={false}
-      isSelf={true}
-      stream={streamRef.current}
-      elapsedTime={elapsedTime}
-      onDragStart={(e) => handleDragStart(e, 'pip')}
-      onSwap={handleSwapViews}
-      callStatus={callStatus}
-    />
-  );
-
+  // Auto-close if call ends remotely
+  useEffect(() => {
+    if (callStatus === 'ended' || callStatus === 'declined') {
+      toast({
+        title: callStatus === 'declined' ? 'Call Declined' : 'Call Ended',
+        description: `The call with ${contact.name} has ended.`,
+      });
+      setTimeout(() => onClose(), 1000);
+    }
+  }, [callStatus, contact.name, onClose, toast]);
 
   return (
-    <>
-      <style jsx global>{`
-        .fullscreen-main {
-          top: 0 !important;
-          left: 0 !important;
-          width: 100% !important;
-          height: 100% !important;
-          border: none !important;
-          border-radius: 0 !important;
-        }
-      `}</style>
+    <Dialog open={isOpen} onOpenChange={handleEndCall}>
+      <DialogContent 
+        ref={containerRef}
+        className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-black"
+      >
+        <DialogHeader className="sr-only">
+          <DialogTitle>Video Call with {contact.name}</DialogTitle>
+          <DialogDescription>Video call interface</DialogDescription>
+        </DialogHeader>
 
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent
-          id="video-call-dialog-content"
-          className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-transparent shadow-none"
-        >
-          <DialogHeader className="sr-only">
-            <DialogTitle>Video Call with {contact.name}</DialogTitle>
-            <DialogDescription>Video call interface</DialogDescription>
-          </DialogHeader>
-
-          <div
-            ref={videoContainerRef}
-            id="video-call-container"
-            className="flex-1 relative overflow-hidden"
-          >
-            {MainViewComponent}
-            {PipViewComponent}
+        <div className="relative flex-1 overflow-hidden">
+          {/* Remote Video (Main view) */}
+          <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+            {isConnected && remoteVideoRef.current?.srcObject ? (
+              <video
+                ref={remoteVideoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-4">
+                <Avatar className="h-40 w-40 border-4 border-purple-500/30">
+                  <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
+                  <AvatarFallback className="text-5xl bg-gradient-to-br from-purple-600 to-blue-600">
+                    {contact.name.slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold mb-2">{contact.name}</h2>
+                  {isActive && !isConnected && (
+                    <p className="text-gray-400 flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Connecting...
+                    </p>
+                  )}
+                  {isReceivingCall && callStatus === 'ringing' && (
+                    <p className="text-green-400 text-lg font-semibold animate-pulse">
+                      Incoming Call...
+                    </p>
+                  )}
+                  {!isActive && !isReceivingCall && (
+                    <p className="text-gray-400 flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Calling...
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+
+          {/* Local Video (PiP) */}
+          <div className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/20 z-10">
+            {isVideoOff ? (
+              <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={selfAvatar?.imageUrl} data-ai-hint={selfAvatar?.imageHint} />
+                  <AvatarFallback className="text-2xl">
+                    {self?.name?.slice(0, 2) || 'ME'}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            ) : (
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover transform scale-x-[-1]"
+              />
+            )}
+            <div className="absolute bottom-1 left-1 text-xs bg-black/50 px-2 py-0.5 rounded">
+              You
+            </div>
+          </div>
+
+          {/* Call timer */}
+          {isActive && isConnected && (
+            <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-sm text-white px-3 py-1.5 rounded-full z-10">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="font-mono text-sm tabular-nums">{formatTime(elapsedTime)}</span>
+            </div>
+          )}
+
+          {/* Call Controls */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20">
+            {isReceivingCall && callStatus === 'ringing' ? (
+              <>
+                <Button
+                  onClick={handleDeclineCall}
+                  size="icon"
+                  className="rounded-full h-16 w-16 bg-red-600 hover:bg-red-700 shadow-lg"
+                  aria-label="Decline call"
+                >
+                  <Phone className="h-7 w-7 rotate-[135deg]" />
+                </Button>
+                <Button
+                  onClick={handleAcceptCall}
+                  size="icon"
+                  className="rounded-full h-16 w-16 bg-green-600 hover:bg-green-700 shadow-lg"
+                  aria-label="Accept call"
+                >
+                  <Phone className="h-7 w-7" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={toggleMic}
+                  size="icon"
+                  className={cn(
+                    'rounded-full h-14 w-14 transition-all shadow-lg',
+                    isMuted 
+                      ? 'bg-red-600 hover:bg-red-700' 
+                      : 'bg-white/20 hover:bg-white/30'
+                  )}
+                  disabled={!isActive}
+                  aria-label={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+                </Button>
+
+                <Button
+                  onClick={toggleVideo}
+                  size="icon"
+                  className={cn(
+                    'rounded-full h-14 w-14 transition-all shadow-lg',
+                    isVideoOff 
+                      ? 'bg-red-600 hover:bg-red-700' 
+                      : 'bg-white/20 hover:bg-white/30'
+                  )}
+                  disabled={!isActive}
+                  aria-label={isVideoOff ? "Turn on camera" : "Turn off camera"}
+                >
+                  {isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
+                </Button>
+
+                <Button
+                  onClick={handleEndCall}
+                  size="icon"
+                  className="rounded-full h-16 w-16 bg-red-600 hover:bg-red-700 shadow-lg"
+                  aria-label="End call"
+                >
+                  <Phone className="h-7 w-7 rotate-[135deg]" />
+                </Button>
+
+                <Button
+                  onClick={toggleFullscreen}
+                  size="icon"
+                  className="rounded-full h-14 w-14 bg-white/20 hover:bg-white/30 shadow-lg"
+                  aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  {isFullscreen ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

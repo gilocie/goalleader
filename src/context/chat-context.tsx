@@ -6,7 +6,7 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, onSnapshot, where, getDocs, FirestoreError } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, onSnapshot, where, getDocs, FirestoreError, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -105,40 +105,112 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   // --- Real-time call listener ---
   useEffect(() => {
     if (!firestore || !firebaseUser || allContacts.length === 0) return;
-
+  
     const callsRef = collection(firestore, 'calls');
-    const q = query(callsRef, where('recipientId', '==', firebaseUser.uid), where('status', '==', 'ringing'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    
+    // Listen for incoming calls (where I'm the recipient)
+    const incomingQuery = query(
+      callsRef, 
+      where('recipientId', '==', firebaseUser.uid),
+      where('status', 'in', ['ringing', 'active'])
+    );
+    
+    // Listen for outgoing calls (where I'm the caller)
+    const outgoingQuery = query(
+      callsRef,
+      where('callerId', '==', firebaseUser.uid),
+      where('status', 'in', ['ringing', 'active'])
+    );
+  
+    const unsubIncoming = onSnapshot(
+      incomingQuery, 
+      (snapshot) => {
         if (!snapshot.empty) {
-            const callDoc = snapshot.docs[0];
-            const callData = { id: callDoc.id, ...callDoc.data() } as Call;
-            const caller = allContacts.find(c => c.id === callData.callerId);
+          const callDoc = snapshot.docs[0];
+          const callData = { id: callDoc.id, ...callDoc.data() } as Call;
+          const caller = allContacts.find(c => c.id === callData.callerId);
+          
+          if (caller) {
+            setCurrentCall(callData);
             
-            if (caller) {
-                setCurrentCall(callData);
-                if (callData.type === 'voice') {
-                    setIncomingVoiceCallFrom(caller);
-                } else {
-                    setIncomingCallFrom(caller);
-                }
+            // Only show incoming notification if status is still 'ringing'
+            if (callData.status === 'ringing') {
+              if (callData.type === 'voice') {
+                setIncomingVoiceCallFrom(caller);
+              } else {
+                setIncomingCallFrom(caller);
+              }
+            } else if (callData.status === 'active') {
+              // Call was accepted
+              if (callData.type === 'voice') {
+                setAcceptedVoiceCallContact(caller);
+                setIncomingVoiceCallFrom(null);
+              } else {
+                setAcceptedCallContact(caller);
+                setIncomingCallFrom(null);
+              }
             }
-        }
-    },
-    (error: FirestoreError) => {
-        if (error.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: 'calls',
-                operation: 'list',
-            });
-            errorEmitter.emit('permission-error', permissionError);
+          }
         } else {
-            console.error("Call listener error:", error);
+          // No incoming calls
+          setIncomingVoiceCallFrom(null);
+          setIncomingCallFrom(null);
         }
-    });
-
-    return () => unsubscribe();
-  }, [firestore, firebaseUser, allContacts]);
+      },
+      (error: FirestoreError) => {
+        if (error.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: 'calls',
+            operation: 'list',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        } else {
+          console.error("Incoming call listener error:", error);
+        }
+      }
+    );
+  
+    const unsubOutgoing = onSnapshot(
+      outgoingQuery,
+      (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'added' || change.type === 'modified') {
+            const callData = { id: change.doc.id, ...change.doc.data() } as Call;
+            
+            // Only update if this is our current call
+            if (!currentCall || currentCall.id === callData.id) {
+              setCurrentCall(callData);
+              
+              // If call was accepted by recipient
+              if (callData.status === 'active') {
+                const recipient = allContacts.find(c => c.id === callData.recipientId);
+                if (recipient) {
+                  if (callData.type === 'voice') {
+                    setAcceptedVoiceCallContact(recipient);
+                  } else {
+                    setAcceptedCallContact(recipient);
+                  }
+                }
+              } else if (callData.status === 'declined' || callData.status === 'missed') {
+                // Call was declined/missed
+                setCurrentCall(null);
+                setAcceptedVoiceCallContact(null);
+                setAcceptedCallContact(null);
+              }
+            }
+          }
+        });
+      },
+      (error) => {
+        console.error("Outgoing call listener error:", error);
+      }
+    );
+  
+    return () => {
+      unsubIncoming();
+      unsubOutgoing();
+    };
+  }, [firestore, firebaseUser, allContacts, currentCall]);
 
   const self = useMemo(() => {
       if (!firebaseUser) return undefined;
@@ -361,36 +433,98 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     await batch.commit();
   }, [self, firestore]);
 
-   const startVoiceCall = useCallback(async (contact: Contact) => {
+  const startVoiceCall = useCallback(async (contact: Contact) => {
     if (!self || !firestore) return;
-    const callData: Omit<Call, 'id'> = {
+    
+    try {
+      const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
         status: 'ringing',
         type: 'voice',
         createdAt: serverTimestamp(),
-    };
-    const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
-    setCurrentCall({ id: callDocRef.id, ...callData });
-    setAcceptedVoiceCallContact(contact);
-    addSystemMessage(`Calling ${contact.name}...`, contact.id, 'voice');
+      };
+      
+      const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
+      setCurrentCall({ id: callDocRef.id, ...callData });
+      
+      addSystemMessage(`Calling ${contact.name}...`, contact.id, 'voice');
+      
+      // Auto-timeout after 30 seconds
+      setTimeout(async () => {
+        const currentCallSnapshot = await getDoc(doc(firestore, 'calls', callDocRef.id));
+        if (currentCallSnapshot.exists() && currentCallSnapshot.data()?.status === 'ringing') {
+          await updateDoc(doc(firestore, 'calls', callDocRef.id), { 
+            status: 'missed' 
+          });
+          addSystemMessage(`Missed call to ${contact.name}`, contact.id, 'voice');
+        }
+      }, 30000);
+      
+    } catch (error) {
+      console.error('Failed to start voice call:', error);
+    }
   }, [self, firestore, addSystemMessage]);
-  
-  const endVoiceCall = useCallback(async (contactId: string) => {
-    if (!firestore || !currentCall) return;
-    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'ended' });
-    addSystemMessage(`Voice call ended`, contactId, 'voice');
-    setAcceptedVoiceCallContact(null);
-    setCurrentCall(null);
-  }, [firestore, currentCall, addSystemMessage]);
   
   const acceptVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
-    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'active' });
-    addSystemMessage(`Voice call with ${incomingVoiceCallFrom.name} started`, incomingVoiceCallFrom.id, 'voice');
-    setAcceptedVoiceCallContact(incomingVoiceCallFrom);
-    setIncomingVoiceCallFrom(null);
+    
+    try {
+      await updateDoc(doc(firestore, 'calls', currentCall.id), { 
+        status: 'active',
+        acceptedAt: serverTimestamp()
+      });
+      
+      addSystemMessage(
+        `Voice call with ${incomingVoiceCallFrom.name} started`, 
+        incomingVoiceCallFrom.id, 
+        'voice'
+      );
+      
+      setAcceptedVoiceCallContact(incomingVoiceCallFrom);
+      setIncomingVoiceCallFrom(null);
+    } catch (error) {
+      console.error('Failed to accept voice call:', error);
+    }
   }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
+
+  const endVoiceCall = useCallback(async (contactId: string) => {
+    if (!firestore || !currentCall) return;
+    
+    try {
+      await updateDoc(doc(firestore, 'calls', currentCall.id), { 
+        status: 'ended',
+        endedAt: serverTimestamp()
+      });
+      
+      addSystemMessage(`Voice call ended`, contactId, 'voice');
+      
+      setAcceptedVoiceCallContact(null);
+      setCurrentCall(null);
+      setIncomingVoiceCallFrom(null);
+      
+      setTimeout(async () => {
+        try {
+          const callDocRef = doc(firestore, 'calls', currentCall.id);
+          const callSnapshot = await getDoc(callDocRef);
+          
+          if (callSnapshot.exists() && callSnapshot.data()?.status === 'ended') {
+            await deleteDoc(callDocRef);
+            
+            const iceCandidatesRef = collection(firestore, 'calls', currentCall.id, 'iceCandidates');
+            const iceCandidatesSnapshot = await getDocs(iceCandidatesRef);
+            const deletePromises = iceCandidatesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+          }
+        } catch (err) {
+          console.log('Call cleanup: Document already deleted or permission denied');
+        }
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Failed to end voice call:', error);
+    }
+  }, [firestore, currentCall, addSystemMessage]);
   
   const declineVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
@@ -402,34 +536,95 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const startCall = useCallback(async (contact: Contact) => {
     if (!self || !firestore) return;
-    const callData: Omit<Call, 'id'> = {
+    
+    try {
+      const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
         status: 'ringing',
         type: 'video',
         createdAt: serverTimestamp(),
-    };
-    const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
-    setCurrentCall({ id: callDocRef.id, ...callData });
-    setAcceptedCallContact(contact);
-    addSystemMessage(`Calling ${contact.name}...`, contact.id, 'video');
+      };
+      
+      const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
+      setCurrentCall({ id: callDocRef.id, ...callData });
+      
+      addSystemMessage(`Calling ${contact.name}...`, contact.id, 'video');
+      
+      setTimeout(async () => {
+        const currentCallSnapshot = await getDoc(doc(firestore, 'calls', callDocRef.id));
+        if (currentCallSnapshot.exists() && currentCallSnapshot.data()?.status === 'ringing') {
+          await updateDoc(doc(firestore, 'calls', callDocRef.id), { 
+            status: 'missed' 
+          });
+          addSystemMessage(`Missed video call to ${contact.name}`, contact.id, 'video');
+        }
+      }, 30000);
+      
+    } catch (error) {
+      console.error('Failed to start video call:', error);
+    }
   }, [self, firestore, addSystemMessage]);
-
-  const endCall = useCallback(async (contactId: string) => {
-    if (!firestore || !currentCall) return;
-    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'ended' });
-    addSystemMessage(`Video call ended`, contactId, 'video');
-    setAcceptedCallContact(null);
-    setCurrentCall(null);
-  }, [firestore, currentCall, addSystemMessage]);
 
   const acceptCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingCallFrom) return;
-    await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'active' });
-    addSystemMessage(`Video call with ${incomingCallFrom.name} started`, incomingCallFrom.id, 'video');
-    setAcceptedCallContact(incomingCallFrom);
-    setIncomingCallFrom(null);
+    
+    try {
+      await updateDoc(doc(firestore, 'calls', currentCall.id), { 
+        status: 'active',
+        acceptedAt: serverTimestamp()
+      });
+      
+      addSystemMessage(
+        `Video call with ${incomingCallFrom.name} started`, 
+        incomingCallFrom.id, 
+        'video'
+      );
+      
+      setAcceptedCallContact(incomingCallFrom);
+      setIncomingCallFrom(null);
+    } catch (error) {
+      console.error('Failed to accept video call:', error);
+    }
   }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
+  
+  const endCall = useCallback(async (contactId: string) => {
+    if (!firestore || !currentCall) return;
+    
+    try {
+      await updateDoc(doc(firestore, 'calls', currentCall.id), { 
+        status: 'ended',
+        endedAt: serverTimestamp()
+      });
+      
+      addSystemMessage(`Video call ended`, contactId, 'video');
+      
+      setAcceptedCallContact(null);
+      setCurrentCall(null);
+      setIncomingCallFrom(null);
+      
+      setTimeout(async () => {
+        try {
+          const callDocRef = doc(firestore, 'calls', currentCall.id);
+          const callSnapshot = await getDoc(callDocRef);
+          
+          if (callSnapshot.exists() && callSnapshot.data()?.status === 'ended') {
+            await deleteDoc(callDocRef);
+            
+            const iceCandidatesRef = collection(firestore, 'calls', currentCall.id, 'iceCandidates');
+            const iceCandidatesSnapshot = await getDocs(iceCandidatesRef);
+            const deletePromises = iceCandidatesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+            await Promise.all(deletePromises);
+          }
+        } catch (err) {
+          console.log('Call cleanup: Document already deleted or permission denied');
+        }
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Failed to end video call:', error);
+    }
+  }, [firestore, currentCall, addSystemMessage]);
 
   const declineCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingCallFrom) return;
