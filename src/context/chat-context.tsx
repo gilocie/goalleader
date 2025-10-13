@@ -111,27 +111,36 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   // --- Real-time call listener ---
   useEffect(() => {
-    if (!firestore || !firebaseUser || !allContacts || allContacts.length === 0) return;
+    if (!firestore || !firebaseUser || allContacts.length === 0) return;
   
     const callsRef = collection(firestore, 'calls');
     
     // Listen for calls where the current user is a participant
     const callsQuery = query(
       callsRef, 
-      where('participantIds', 'array-contains', firebaseUser.uid)
+      where('participantIds', 'array-contains', firebaseUser.uid),
+      where('status', 'in', ['ringing', 'active', 'ended', 'declined', 'missed'])
     );
   
     const unsubscribe = onSnapshot(
       callsQuery, 
       (snapshot) => {
-        let activeCallDoc: Call | null = null;
+        // Track if we have any active/ringing calls
+        let hasActiveCall = false;
+        let currentCallDoc: Call | null = null;
         
         snapshot.forEach((doc) => {
           const callData = { id: doc.id, ...doc.data() } as Call;
+          
+          // Only consider ringing or active calls as "current"
           if (callData.status === 'ringing' || callData.status === 'active') {
-            activeCallDoc = callData;
-          } else {
-             // Handle ended/declined/missed calls
+            hasActiveCall = true;
+            currentCallDoc = callData;
+          }
+          
+          // Handle ended/declined/missed calls
+          if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
+            // Clear all call-related states when call ends
             if (currentCall?.id === callData.id) {
               console.log('[Chat Context] Call ended/declined/missed, clearing states');
               
@@ -160,29 +169,48 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                 }
               }, 3000);
             }
+            return; // Don't process ended calls further
           }
         });
         
-        if (activeCallDoc) {
-          const otherParticipantId = activeCallDoc.callerId === firebaseUser.uid 
-            ? activeCallDoc.recipientId 
-            : activeCallDoc.callerId;
+        // If no active calls, clear everything
+        if (!hasActiveCall) {
+          console.log('[Chat Context] No active calls, clearing all states');
+          setCurrentCall(null);
+          setAcceptedCallContact(null);
+          setAcceptedVoiceCallContact(null);
+          setIncomingCallFrom(null);
+          setIncomingVoiceCallFrom(null);
+          setIsVideoCallOpen(false);
+          setIsVoiceCallOpen(false);
+          return;
+        }
+        
+        // Process the current call
+        if (currentCallDoc) {
+          const otherParticipantId = currentCallDoc.callerId === firebaseUser.uid 
+            ? currentCallDoc.recipientId 
+            : currentCallDoc.callerId;
           const otherParticipant = allContacts.find(c => c.id === otherParticipantId);
           
           if (!otherParticipant) return;
           
-          setCurrentCall(activeCallDoc);
+          setCurrentCall(currentCallDoc);
           
-          if (activeCallDoc.recipientId === firebaseUser.uid && activeCallDoc.status === 'ringing') {
-            if (activeCallDoc.type === 'voice') {
+          // Handle incoming calls
+          if (currentCallDoc.recipientId === firebaseUser.uid && currentCallDoc.status === 'ringing') {
+            if (currentCallDoc.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
             } else {
               setIncomingCallFrom(otherParticipant);
               setIsVideoCallOpen(true);
             }
-          } else if (activeCallDoc.status === 'active') {
-            if (activeCallDoc.type === 'voice') {
+          }
+          
+          // Handle accepted calls
+          else if (currentCallDoc.status === 'active') {
+            if (currentCallDoc.type === 'voice') {
               setAcceptedVoiceCallContact(otherParticipant);
               setIncomingVoiceCallFrom(null);
             } else {
@@ -190,15 +218,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
               setIncomingCallFrom(null);
             }
           }
-        } else if (!activeCallDoc && currentCall) {
-            // If there's no active call in the snapshot but we have one in state, it means it was deleted/ended
-            setCurrentCall(null);
-            setAcceptedCallContact(null);
-            setAcceptedVoiceCallContact(null);
-            setIncomingCallFrom(null);
-            setIncomingVoiceCallFrom(null);
-            setIsVideoCallOpen(false);
-            setIsVoiceCallOpen(false);
         }
       },
       (error: FirestoreError) => {
@@ -215,7 +234,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     );
   
     return () => unsubscribe();
-  }, [firestore, firebaseUser, allContacts]);
+  }, [firestore, firebaseUser, allContacts, currentCall]);
 
   const self = useMemo(() => {
       if (!firebaseUser) return undefined;
@@ -531,6 +550,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       // Add system message
       addSystemMessage(`Voice call ended`, contactId, 'voice');
       
+      // The listener will handle clearing states
+      
     } catch (error) {
       console.error('Failed to end voice call:', error);
       // Even if update fails, clear local states
@@ -618,6 +639,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       // Add system message
       addSystemMessage(`Video call ended`, contactId, 'video');
       
+      // The listener will handle clearing states
+      
     } catch (error) {
       console.error('Failed to end video call:', error);
       // Even if update fails, clear local states
@@ -672,7 +695,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [messages, selectedContact, self, firestore]);
 
   const isCallActive = useCallback(() => {
-    return currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active');
+    return !!(currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active'));
   }, [currentCall]);
 
 
@@ -725,6 +748,3 @@ export const useChat = () => {
   }
   return context;
 };
-
-
-    
