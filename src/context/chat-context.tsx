@@ -68,7 +68,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const { data: messages, setData: setMessages } = useCollection<Message>(messagesQuery);
   
-  const [activeChats, setActiveChats] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
@@ -84,15 +83,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
   const allContacts = useMemo(() => {
-    if (!allTeamMembers) return [];
+    if (!allTeamMembers || !messages) return [];
     return allTeamMembers.map(member => {
         const relevantMessages = messages.filter(
             msg => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
                    (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
         );
         const lastMessage = relevantMessages.sort((a, b) => {
-            const timeA = a.timestamp?.toMillis() || 0;
-            const timeB = b.timestamp?.toMillis() || 0;
+            const timeA = a.timestamp?.toMillis ? a.timestamp.toMillis() : new Date(a.timestamp as any).getTime();
+            const timeB = b.timestamp?.toMillis ? b.timestamp.toMillis() : new Date(b.timestamp as any).getTime();
             return timeB - timeA;
         })[0];
         
@@ -108,40 +107,31 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact, firebaseUser, allTeamMembers]);
+  }, [messages, selectedContact?.id, firebaseUser?.uid, allTeamMembers]);
 
   // --- Real-time call listener ---
   useEffect(() => {
-    if (!firestore || !firebaseUser || allContacts.length === 0) return;
+    if (!firestore || !firebaseUser || !allContacts || allContacts.length === 0) return;
   
     const callsRef = collection(firestore, 'calls');
     
     // Listen for calls where the current user is a participant
     const callsQuery = query(
       callsRef, 
-      where('participantIds', 'array-contains', firebaseUser.uid),
-      where('status', 'in', ['ringing', 'active', 'ended', 'declined', 'missed'])
+      where('participantIds', 'array-contains', firebaseUser.uid)
     );
   
     const unsubscribe = onSnapshot(
       callsQuery, 
       (snapshot) => {
-        // Track if we have any active/ringing calls
-        let hasActiveCall = false;
-        let currentCallDoc: Call | null = null;
+        let activeCallDoc: Call | null = null;
         
         snapshot.forEach((doc) => {
           const callData = { id: doc.id, ...doc.data() } as Call;
-          
-          // Only consider ringing or active calls as "current"
           if (callData.status === 'ringing' || callData.status === 'active') {
-            hasActiveCall = true;
-            currentCallDoc = callData;
-          }
-          
-          // Handle ended/declined/missed calls
-          if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
-            // Clear all call-related states when call ends
+            activeCallDoc = callData;
+          } else {
+             // Handle ended/declined/missed calls
             if (currentCall?.id === callData.id) {
               console.log('[Chat Context] Call ended/declined/missed, clearing states');
               
@@ -163,55 +153,36 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                   // Clean up ICE candidates
                   const iceCandidatesRef = collection(firestore, 'calls', callData.id, 'iceCandidates');
                   const iceCandidatesSnapshot = await getDocs(iceCandidatesRef);
-                  const deletePromises = iceCandidatesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+                  const deletePromises = iceCandidatesSnapshot.docs.map(iceDoc => deleteDoc(iceDoc.ref));
                   await Promise.all(deletePromises);
                 } catch (err) {
                   console.log('Call cleanup: Document already deleted or permission denied');
                 }
               }, 3000);
             }
-            return; // Don't process ended calls further
           }
         });
         
-        // If no active calls, clear everything
-        if (!hasActiveCall) {
-          console.log('[Chat Context] No active calls, clearing all states');
-          setCurrentCall(null);
-          setAcceptedCallContact(null);
-          setAcceptedVoiceCallContact(null);
-          setIncomingCallFrom(null);
-          setIncomingVoiceCallFrom(null);
-          setIsVideoCallOpen(false);
-          setIsVoiceCallOpen(false);
-          return;
-        }
-        
-        // Process the current call
-        if (currentCallDoc) {
-          const otherParticipantId = currentCallDoc.callerId === firebaseUser.uid 
-            ? currentCallDoc.recipientId 
-            : currentCallDoc.callerId;
+        if (activeCallDoc) {
+          const otherParticipantId = activeCallDoc.callerId === firebaseUser.uid 
+            ? activeCallDoc.recipientId 
+            : activeCallDoc.callerId;
           const otherParticipant = allContacts.find(c => c.id === otherParticipantId);
           
           if (!otherParticipant) return;
           
-          setCurrentCall(currentCallDoc);
+          setCurrentCall(activeCallDoc);
           
-          // Handle incoming calls
-          if (currentCallDoc.recipientId === firebaseUser.uid && currentCallDoc.status === 'ringing') {
-            if (currentCallDoc.type === 'voice') {
+          if (activeCallDoc.recipientId === firebaseUser.uid && activeCallDoc.status === 'ringing') {
+            if (activeCallDoc.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
             } else {
               setIncomingCallFrom(otherParticipant);
               setIsVideoCallOpen(true);
             }
-          }
-          
-          // Handle accepted calls
-          else if (currentCallDoc.status === 'active') {
-            if (currentCallDoc.type === 'voice') {
+          } else if (activeCallDoc.status === 'active') {
+            if (activeCallDoc.type === 'voice') {
               setAcceptedVoiceCallContact(otherParticipant);
               setIncomingVoiceCallFrom(null);
             } else {
@@ -219,6 +190,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
               setIncomingCallFrom(null);
             }
           }
+        } else if (!activeCallDoc && currentCall) {
+            // If there's no active call in the snapshot but we have one in state, it means it was deleted/ended
+            setCurrentCall(null);
+            setAcceptedCallContact(null);
+            setAcceptedVoiceCallContact(null);
+            setIncomingCallFrom(null);
+            setIncomingVoiceCallFrom(null);
+            setIsVideoCallOpen(false);
+            setIsVoiceCallOpen(false);
         }
       },
       (error: FirestoreError) => {
@@ -235,7 +215,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     );
   
     return () => unsubscribe();
-  }, [firestore, firebaseUser, allContacts, currentCall]);
+  }, [firestore, firebaseUser, allContacts]);
 
   const self = useMemo(() => {
       if (!firebaseUser) return undefined;
@@ -260,7 +240,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [firebaseUser, updateUserStatus]);
   
   const contacts = useMemo(() => {
-    if (!firebaseUser) return [];
+    if (!firebaseUser || !messages) return [];
     const contactList = allContacts.filter(c => {
         if (c.id === firebaseUser.uid) return false;
         const hasMessages = messages.some(m => 
@@ -271,12 +251,22 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     });
     
     contactList.sort((a, b) => {
-        if (!firebaseUser) return 0;
-        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
-        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        if (!firebaseUser || !messages) return 0;
+        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => {
+            const time1 = m1.timestamp?.toMillis ? m1.timestamp.toMillis() : 0;
+            const time2 = m2.timestamp?.toMillis ? m2.timestamp.toMillis() : 0;
+            return time2 - time1;
+        })[0];
+        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => {
+            const time1 = m1.timestamp?.toMillis ? m1.timestamp.toMillis() : 0;
+            const time2 = m2.timestamp?.toMillis ? m2.timestamp.toMillis() : 0;
+            return time2 - time1;
+        })[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
-        return (lastMessageB.timestamp?.toMillis() || 0) - (lastMessageA.timestamp?.toMillis() || 0);
+        const timeA = lastMessageA.timestamp?.toMillis ? lastMessageA.timestamp.toMillis() : 0;
+        const timeB = lastMessageB.timestamp?.toMillis ? lastMessageB.timestamp.toMillis() : 0;
+        return timeB - timeA;
     });
 
     return contactList;
@@ -348,7 +338,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [self, firestore]);
 
  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
-    if (!firestore || !self) return;
+    if (!firestore || !self || !messages) return;
     const messageRef = doc(firestore, 'messages', messageId);
     const messageToDelete = messages.find(m => m.id === messageId);
     if (!messageToDelete) return;
@@ -378,9 +368,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
         await updateDoc(messageRef, updateData)
             .then(() => {
-                setMessages(prev => prev.map(m =>
-                    m.id === messageId ? { ...m, ...updateData } : m
-                ));
+                if (setMessages) {
+                    setMessages(prev => prev.map(m =>
+                        m.id === messageId ? { ...m, ...updateData } : m
+                    ));
+                }
             })
             .catch(serverError => {
               if (serverError.code === 'permission-denied') {
@@ -397,7 +389,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
 
   const clearChat = useCallback(async (contactId: string) => {
-    if (!self || !firestore) return;
+    if (!self || !firestore || !messages) return;
     
     const chatMessagesToUpdate = messages.filter(
       msg => ((msg.senderId === contactId && msg.recipientId === self.id) || (msg.senderId === self.id && msg.recipientId === contactId))
@@ -419,17 +411,19 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     await batch.commit()
       .then(() => {
         // Update local state to immediately reflect the change
-        const updatedMessageIds = chatMessagesToUpdate.map(m => m.id);
-        setMessages(prev => prev.map(m => {
-          if (updatedMessageIds.includes(m.id)) {
-            if (m.senderId === self.id) {
-              return { ...m, deletedBySender: true };
-            } else {
-              return { ...m, deletedByRecipient: true };
+        if (setMessages) {
+            const updatedMessageIds = chatMessagesToUpdate.map(m => m.id);
+            setMessages(prev => prev.map(m => {
+            if (updatedMessageIds.includes(m.id)) {
+                if (m.senderId === self.id) {
+                return { ...m, deletedBySender: true };
+                } else {
+                return { ...m, deletedByRecipient: true };
+                }
             }
-          }
-          return m;
-        }));
+            return m;
+            }));
+        }
       })
       .catch(serverError => {
             if (serverError.code === 'permission-denied') {
@@ -537,8 +531,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       // Add system message
       addSystemMessage(`Voice call ended`, contactId, 'voice');
       
-      // The listener will handle clearing states
-      
     } catch (error) {
       console.error('Failed to end voice call:', error);
       // Even if update fails, clear local states
@@ -626,8 +618,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       // Add system message
       addSystemMessage(`Video call ended`, contactId, 'video');
       
-      // The listener will handle clearing states
-      
     } catch (error) {
       console.error('Failed to end video call:', error);
       // Even if update fails, clear local states
@@ -647,7 +637,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
   
   useEffect(() => {
-    if (!self || !firestore) return;
+    if (!self || !firestore || !messages) return;
   
     const batch = writeBatch(firestore);
     let updatesMade = false;
@@ -690,7 +680,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     self,
     contacts,
     allContacts,
-    messages,
+    messages: messages || [],
     unreadMessagesCount,
     selectedContact,
     setSelectedContact,
@@ -736,3 +726,5 @@ export const useChat = () => {
   return context;
 };
 
+
+    
