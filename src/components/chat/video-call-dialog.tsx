@@ -30,7 +30,6 @@ export function VideoCallDialog({
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [localCallEnded, setLocalCallEnded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [hasAccepted, setHasAccepted] = useState(false);
@@ -263,7 +262,7 @@ export function VideoCallDialog({
     const [shouldClose, setShouldClose] = useState(false);
 
     useEffect(() => {
-        if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
+        if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status === 'active')) {
             setShouldClose(true);
         } else {
             setShouldClose(false);
@@ -309,15 +308,29 @@ export function VideoCallDialog({
 
         <div className="relative flex-1 overflow-hidden">
           <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
-            {isConnected && remoteVideoRef.current?.srcObject ? (
+            {/* Background: Local Video or Fallback */}
+            {isVideoOff ? (
+              <div className="h-full w-full flex flex-col items-center justify-center bg-gray-800">
+                <Avatar className="h-40 w-40">
+                  <AvatarImage src={selfAvatar?.imageUrl} data-ai-hint={selfAvatar?.imageHint} />
+                  <AvatarFallback className="text-5xl">
+                    {self?.name?.slice(0, 2) || 'ME'}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            ) : (
               <video
-                ref={remoteVideoRef}
+                ref={localVideoRef}
                 autoPlay
                 playsInline
-                className="w-full h-full object-contain"
+                muted
+                className={cn("w-full h-full object-cover", isMirrored && "transform scale-x-[-1]")}
               />
-            ) : (
-              <div className="flex flex-col items-center gap-4">
+            )}
+            
+            {/* Central Info Overlay (when not connected) */}
+            {!isConnected && (
+              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-4">
                 <Avatar className="h-40 w-40 border-4 border-purple-500/30">
                   <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
                   <AvatarFallback className="text-5xl bg-gradient-to-br from-purple-600 to-blue-600">
@@ -326,7 +339,7 @@ export function VideoCallDialog({
                 </Avatar>
                 <div className="text-center">
                   <h2 className="text-2xl font-bold mb-2">{contact.name}</h2>
-                  {isInitializing && (
+                   {isInitializing && (
                      <p className="text-gray-400 flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Initializing...
@@ -354,29 +367,21 @@ export function VideoCallDialog({
             )}
           </div>
 
-          <div className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/20 z-10">
-            {isVideoOff ? (
-              <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={selfAvatar?.imageUrl} data-ai-hint={selfAvatar?.imageHint} />
-                  <AvatarFallback className="text-2xl">
-                    {self?.name?.slice(0, 2) || 'ME'}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-            ) : (
+          {/* Remote Video (PiP) - Only appears when connected */}
+          {isConnected && (
+            <div className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/20 z-10">
               <video
-                ref={localVideoRef}
+                ref={remoteVideoRef}
                 autoPlay
                 playsInline
-                muted
-                className={cn("w-full h-full object-cover", isMirrored && "transform scale-x-[-1]")}
+                className="w-full h-full object-cover"
               />
-            )}
-            <div className="absolute bottom-1 left-1 text-xs bg-black/50 px-2 py-0.5 rounded">
-              You
+              <div className="absolute bottom-1 left-1 text-xs bg-black/50 px-2 py-0.5 rounded">
+                {contact.name}
+              </div>
             </div>
-          </div>
+          )}
+
 
           {isActive && isConnected && (
             <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-sm text-white px-3 py-1.5 rounded-full z-10">
