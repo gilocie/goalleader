@@ -8,26 +8,125 @@
  * Data Structure:
  * - /users/{userId}: Stores user profile data, accessible for reading by any user, but writable only by the owner.
  * - /messages/{messageId}: Stores chat messages. Accessible for reading by any user, but only the sender can create. Only the sender and recipient can update message status. Only the sender can delete messages.
- * - /calls/{callId}: Represents a voice or video call. Accessible to participants only.
+ * - /calls/{callId}: Stores call signaling documents for real-time communication.
  * - /chats/{userId}: Tracks active chat IDs for each user, accessible and writable only by the owner.
  * - /users/{userId}/todos/{todoId}: Stores to-do items for each user, accessible and writable only by the owner.
  * - /users/{userId}/reports/{reportId}: Stores performance reports for each user, accessible and writable only by the owner.
  * - /clientLeads/{leadId}: Stores client leads for the organization, accessible to any authenticated user.
  * - /marketingContent/{contentId}: Stores marketing content for the organization, accessible to any authenticated user.
+ * - /clients/{clientId}: Stores SaaS client data, only accessible by super admins.
+ * - /admins/{adminId}: Stores super admin profiles.
  *
  * Key Security Decisions:
  * - User listing is explicitly allowed to display user profiles.
  * - Users have full CRUD access only to data under their own /users/{userId} subcollection.
  * - Active chats, to-do items and reports are secured under the owner's user ID.
- * - The `calls` collection is readable/writable only by the two participants of the call.
  *
  * Denormalization for Authorization:
  * - To-Do and Report documents denormalize the `userId` to simplify ownership checks.
- * - Call documents contain a `participantIds` array to simplify list queries.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    /**
+     * @description Grants read access to all authenticated users and restricts write access to the owner of the user profile.
+     * @path /users/{userId}
+     */
+    match /users/{userId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update, delete: if isSignedIn() && isOwner(userId);
+    }
+
+    /**
+     * @description Grants read access to all users and restricts write access to participants of the message.
+     * @path /messages/{messageId}
+     */
+    match /messages/{messageId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
+      allow update: if isSignedIn() &&
+        (
+          (request.auth.uid == resource.data.senderId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readStatus', 'deletedBySender'])) ||
+          (request.auth.uid == resource.data.recipientId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readStatus', 'deletedByRecipient']))
+        );
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.senderId;
+    }
+    
+    /**
+     * @description Restricts access to call documents to participants of the call.
+     * @path /calls/{callId}
+     */
+    match /calls/{callId} {
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.callerId;
+        allow update: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+        allow delete: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+
+        match /iceCandidates/{candidateId} {
+            allow read, create: if isSignedIn();
+        }
+    }
+
+
+    /**
+     * @description Restricts access to active chat documents to the owner of the user ID.
+     * @path /chats/{userId}
+     */
+    match /chats/{userId} {
+      allow read, write: if isSignedIn() && isOwner(userId);
+    }
+
+    /**
+     * @description Restricts access to to-do items to the owner of the user ID.
+     * @path /users/{userId}/todos/{todoId}
+     */
+    match /users/{userId}/todos/{todoId} {
+        allow read, write: if isSignedIn() && isOwner(userId);
+    }
+
+
+    /**
+     * @description Restricts access to performance reports to the owner of the user ID.
+     * @path /users/{userId}/reports/{reportId}
+     */
+    match /users/{userId}/reports/{reportId} {
+        allow read, write: if isSignedIn() && isOwner(userId);
+    }
+
+    /**
+     * @description Grants read and write access to authenticated users for the client leads collection.
+     * @path /clientLeads/{leadId}
+     */
+    match /clientLeads/{leadId} {
+      allow read, write: if isSignedIn();
+    }
+    
+    /**
+     * @description Grants read and write access to authenticated users for the marketing content collection.
+     * @path /marketingContent/{contentId}
+     */
+    match /marketingContent/{contentId} {
+        allow read, write: if isSignedIn();
+    }
+    
+    /**
+     * @description Admin-only access for SaaS client data.
+     * @path /clients/{clientId}
+     */
+    match /clients/{clientId} {
+      allow read, write: if isSignedIn() && isAdmin();
+    }
+    
+    /**
+     * @description Admin-only access for admin profiles.
+     * @path /admins/{adminId}
+     */
+    match /admins/{adminId} {
+       allow read, write: if isSignedIn() && isAdmin();
+    }
 
     function isSignedIn() {
       return request.auth != null;
@@ -37,58 +136,8 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
     
-    function isParticipant(callId) {
-        return request.auth.uid in get(/databases/$(database)/documents/calls/$(callId)).data.participantIds;
-    }
-
-    match /users/{userId} {
-      allow get, list: if isSignedIn();
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update, delete: if isSignedIn() && isOwner(userId);
-    }
-
-    match /messages/{messageId} {
-      allow read, write: if isSignedIn();
-    }
-    
-    match /calls/{callId} {
-      // Allow list operations if the user is a participant in the calls being queried.
-      // This is crucial for the call listeners in the app.
-      allow list: if isSignedIn() && request.auth.uid in request.query.filters[0].value;
-      allow get, update, delete: if isSignedIn() && isParticipant(callId);
-      allow create: if isSignedIn() && request.resource.data.callerId == request.auth.uid;
-
-      match /iceCandidates/{candidateId} {
-        allow read, create: if isSignedIn() && isParticipant(callId);
-      }
-    }
-
-    match /chats/{userId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
-    }
-
-    match /users/{userId}/todos/{todoId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
-    }
-
-    match /users/{userId}/reports/{reportId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
-    }
-
-    match /clientLeads/{leadId} {
-      allow read, write: if isSignedIn();
-    }
-
-    match /marketingContent/{contentId} {
-      allow read, write: if isSignedIn();
-    }
-    
-    match /admins/{adminId} {
-      allow read: if isSignedIn();
-      // Write access should be highly restricted, e.g., only by other admins or a trusted server process.
-      // For this app, we'll allow any authenticated user to register an admin for simplicity,
-      // but in production, this would be locked down.
-      allow write: if isSignedIn();
+    function isAdmin() {
+        return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
   }
 }
