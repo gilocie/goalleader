@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useChat } from '@/context/chat-context';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { ForwardMessageDialog } from './forward-message-dialog';
 import { IncomingCallDialog } from './incoming-call-dialog';
@@ -183,7 +183,7 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat, isVideoCallOpen, setIsVideoCallOpen, isVoiceCallOpen, setIsVoiceCallOpen, currentCall } = useChat();
+  const { self, contacts, isTyping, incomingCallFrom, startCall, acceptCall, declineCall, acceptedCallContact, incomingVoiceCallFrom, startVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, clearChat, deleteChat, isVideoCallOpen, setIsVideoCallOpen, isVoiceCallOpen, setIsVoiceCallOpen, currentCall } = useChat();
   const { user } = useUser();
 
   if (!user) {
@@ -198,8 +198,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [forwardMessage, setForwardMessage] = useState<Message | null>(null);
-  const [isReceivingCall, setIsReceivingCall] = useState(false);
-  const [isReceivingVoiceCall, setIsReceivingVoiceCall] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const firstUnreadRef = useRef<HTMLDivElement>(null);
   
@@ -228,7 +226,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     if (!isChatEstablished) {
         setShowWaitDialog(true);
     } else {
-        setIsReceivingCall(false);
         startCall(selectedContact);
     }
   };
@@ -293,13 +290,13 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     if (acceptedCallContact) {
       setIsVideoCallOpen(true);
     }
-  }, [acceptedCallContact]);
+  }, [acceptedCallContact, setIsVideoCallOpen]);
 
   useEffect(() => {
     if (acceptedVoiceCallContact) {
       setIsVoiceCallOpen(true);
     }
-  }, [acceptedVoiceCallContact]);
+  }, [acceptedVoiceCallContact, setIsVoiceCallOpen]);
   
     useEffect(() => {
       if (firstUnreadRef.current) {
@@ -326,6 +323,23 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     if (m.recipientId === self.id) return !m.deletedByRecipient;
     return true;
   });
+
+  const getCallContact = useCallback(() => {
+    if (acceptedCallContact && currentCall?.type === 'video') {
+      return acceptedCallContact;
+    }
+    if (acceptedVoiceCallContact && currentCall?.type === 'voice') {
+      return acceptedVoiceCallContact;
+    }
+    if (incomingCallFrom && currentCall?.type === 'video') {
+      return incomingCallFrom;
+    }
+    if (incomingVoiceCallFrom && currentCall?.type === 'voice') {
+      return incomingVoiceCallFrom;
+    }
+    return selectedContact;
+  }, [acceptedCallContact, acceptedVoiceCallContact, incomingCallFrom, 
+      incomingVoiceCallFrom, currentCall, selectedContact]);
 
 
   return (
@@ -571,7 +585,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         <VideoCallDialog
           isOpen={isVideoCallOpen}
           onClose={() => setIsVideoCallOpen(false)}
-          contact={acceptedCallContact || incomingCallFrom || selectedContact}
+          contact={getCallContact()!}
           isReceivingCall={!!incomingCallFrom && currentCall.status === 'ringing'}
         />
       )}
@@ -581,7 +595,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
         <VoiceCallDialog
           isOpen={isVoiceCallOpen}
           onClose={() => setIsVoiceCallOpen(false)}
-          contact={acceptedVoiceCallContact || incomingVoiceCallFrom || selectedContact}
+          contact={getCallContact()!}
           isReceivingCall={!!incomingVoiceCallFrom && currentCall.status === 'ringing'}
         />
       )}
@@ -590,7 +604,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       {incomingCallFrom && !isVideoCallOpen && currentCall?.status === 'ringing' && (
         <IncomingCallDialog
           isOpen={true}
-          onClose={() => setIncomingCallFrom(null)}
+          onClose={declineCall}
           onAccept={() => {
             acceptCall();
             setIsVideoCallOpen(true);
@@ -603,7 +617,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
       {incomingVoiceCallFrom && !isVoiceCallOpen && currentCall?.status === 'ringing' && (
         <IncomingVoiceCallDialog
           isOpen={true}
-          onClose={() => setIncomingVoiceCallFrom(null)}
+          onClose={declineVoiceCall}
           onAccept={() => {
             acceptVoiceCall();
             setIsVoiceCallOpen(true);
@@ -638,3 +652,4 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+

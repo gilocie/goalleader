@@ -82,10 +82,20 @@ export function VideoCallDialog({
 
   // Initialize WebRTC when call becomes active
   useEffect(() => {
+    if (isOpen && currentCall) {
+      setLocalCallEnded(false);
+    }
+  }, [isOpen, currentCall]);
+
+  // Initialize WebRTC when call becomes active
+  useEffect(() => {
     if (!isOpen || !currentCall || !firestore || !self) return;
     if (callStatus !== 'active') return;
 
+    let mounted = true;
+
     const initializeWebRTC = async () => {
+      if (!mounted) return;
       try {
         const isInitiator = currentCall.callerId === self.id;
         webrtcServiceRef.current = new WebRTCService(
@@ -99,6 +109,7 @@ export function VideoCallDialog({
         const localStream = await webrtcServiceRef.current.initialize(
           // On remote stream
           (remoteStream) => {
+            if (!mounted) return;
             console.log('Remote stream received with tracks:', remoteStream.getTracks().length);
             if (remoteVideoRef.current && remoteStream.getTracks().length > 0) {
               remoteVideoRef.current.srcObject = remoteStream;
@@ -106,6 +117,7 @@ export function VideoCallDialog({
           },
           // On connection state change
           (state) => {
+            if (!mounted) return;
             console.log('Connection state:', state);
             setConnectionState(state);
             
@@ -118,29 +130,32 @@ export function VideoCallDialog({
         );
 
         // Set local video
-        if (localVideoRef.current && localStream) {
+        if (mounted && localVideoRef.current && localStream) {
           localVideoRef.current.srcObject = localStream;
         }
 
         console.log('WebRTC initialized successfully');
       } catch (error) {
         console.error('Failed to initialize WebRTC:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Call Failed',
-          description: 'Could not establish video connection.',
-        });
-        handleEndCall();
+        if (mounted) {
+            toast({
+              variant: 'destructive',
+              title: 'Call Failed',
+              description: 'Could not establish video connection.',
+            });
+            handleEndCall();
+        }
       }
     };
 
     initializeWebRTC();
 
     return () => {
+      mounted = false;
       webrtcServiceRef.current?.cleanup();
       webrtcServiceRef.current = null;
     };
-  }, [isOpen, currentCall, callStatus, firestore, self, toast, handleEndCall]);
+  }, [isOpen, currentCall, callStatus, firestore, self, toast]);
 
   // Handle accepting incoming call
   const handleAcceptCall = useCallback(async () => {
@@ -221,17 +236,25 @@ export function VideoCallDialog({
     }
 }, [callStatus, contact.name, toast]);
 
+const [shouldClose, setShouldClose] = useState(false);
+
 useEffect(() => {
-    // Close dialog if there's no current call or if call ended
     if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
-      // Small delay to ensure smooth transition
-      const timer = setTimeout(() => {
-        onClose();
-        setLocalCallEnded(false); // Reset for next call
-      }, 500);
-      return () => clearTimeout(timer);
+        setShouldClose(true);
+    } else {
+        setShouldClose(false);
     }
-  }, [currentCall, onClose]);
+}, [currentCall]);
+
+useEffect(() => {
+    if (shouldClose) {
+        const timer = setTimeout(() => {
+            onClose();
+            setLocalCallEnded(false);
+        }, 300);
+        return () => clearTimeout(timer);
+    }
+}, [shouldClose, onClose]);
 
   return (
     <Dialog 
@@ -405,3 +428,4 @@ useEffect(() => {
     </Dialog>
   );
 }
+

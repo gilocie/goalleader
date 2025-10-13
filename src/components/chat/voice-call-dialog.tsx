@@ -75,10 +75,20 @@ export function VoiceCallDialog({
 
   // Initialize WebRTC when call becomes active
   useEffect(() => {
+    if (isOpen && currentCall) {
+        setLocalCallEnded(false);
+    }
+  }, [isOpen, currentCall]);
+
+  // Initialize WebRTC when call becomes active
+  useEffect(() => {
     if (!isOpen || !currentCall || !firestore || !self) return;
     if (callStatus !== 'active') return;
 
+    let mounted = true;
+
     const initializeWebRTC = async () => {
+      if(!mounted) return;
       try {
         const isInitiator = currentCall.callerId === self.id;
         webrtcServiceRef.current = new WebRTCService(
@@ -91,6 +101,7 @@ export function VoiceCallDialog({
         await webrtcServiceRef.current.initialize(
           // On remote stream
           (remoteStream) => {
+            if(!mounted) return;
             console.log('Remote audio stream received');
             if (remoteAudioRef.current && remoteStream.getAudioTracks().length > 0) {
               remoteAudioRef.current.srcObject = remoteStream;
@@ -98,6 +109,7 @@ export function VoiceCallDialog({
           },
           // On connection state change
           (state) => {
+            if(!mounted) return;
             console.log('Connection state:', state);
             setConnectionState(state);
             
@@ -112,22 +124,25 @@ export function VoiceCallDialog({
         console.log('WebRTC initialized successfully');
       } catch (error) {
         console.error('Failed to initialize WebRTC:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Call Failed',
-          description: 'Could not establish voice connection.',
-        });
-        handleEndCall();
+        if (mounted) {
+            toast({
+              variant: 'destructive',
+              title: 'Call Failed',
+              description: 'Could not establish voice connection.',
+            });
+            handleEndCall();
+        }
       }
     };
 
     initializeWebRTC();
 
     return () => {
+      mounted = false;
       webrtcServiceRef.current?.cleanup();
       webrtcServiceRef.current = null;
     };
-  }, [isOpen, currentCall, callStatus, firestore, self, toast, handleEndCall]);
+  }, [isOpen, currentCall, callStatus, firestore, self, toast]);
 
   // Handle accepting incoming call
   const handleAcceptCall = useCallback(async () => {
@@ -185,15 +200,25 @@ export function VoiceCallDialog({
     }
 }, [callStatus, contact.name, toast]);
 
+const [shouldClose, setShouldClose] = useState(false);
+
 useEffect(() => {
     if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
-      const timer = setTimeout(() => {
-        onClose();
-        setLocalCallEnded(false);
-      }, 500);
-      return () => clearTimeout(timer);
+      setShouldClose(true);
+    } else {
+      setShouldClose(false);
     }
-  }, [currentCall, onClose]);
+}, [currentCall]);
+
+useEffect(() => {
+  if (shouldClose) {
+    const timer = setTimeout(() => {
+      onClose();
+      setLocalCallEnded(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }
+}, [shouldClose, onClose]);
 
 
   // Display status text
@@ -348,3 +373,4 @@ useEffect(() => {
     </Dialog>
   );
 }
+

@@ -128,7 +128,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       (snapshot) => {
         // Track if we have any active/ringing calls
         let hasActiveCall = false;
-        let currentCallDoc = null;
+        let currentCallDoc: Call | null = null;
         
         snapshot.forEach((doc) => {
           const callData = { id: doc.id, ...doc.data() } as Call;
@@ -235,7 +235,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     );
   
     return () => unsubscribe();
-  }, [firestore, firebaseUser, allContacts]);
+  }, [firestore, firebaseUser, allContacts, currentCall]);
 
   const self = useMemo(() => {
       if (!firebaseUser) return undefined;
@@ -735,3 +735,4 @@ export const useChat = () => {
   }
   return context;
 };
+
