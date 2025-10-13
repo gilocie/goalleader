@@ -45,7 +45,13 @@ export function VoiceCallDialog({
   const isActive = callStatus === 'active';
   const isConnected = connectionState === 'connected';
 
-  // Handle ending call
+  // Format elapsed time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const handleEndCall = useCallback(() => {
     webrtcServiceRef.current?.cleanup();
     
@@ -55,13 +61,6 @@ export function VoiceCallDialog({
     
     onClose();
   }, [currentCall, contact.id, endVoiceCall, onClose]);
-
-  // Format elapsed time
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   // Timer for elapsed time
   useEffect(() => {
@@ -94,7 +93,6 @@ export function VoiceCallDialog({
             console.log('Remote audio stream received');
             if (remoteAudioRef.current && remoteStream.getAudioTracks().length > 0) {
               remoteAudioRef.current.srcObject = remoteStream;
-              // Don't call play() - let autoplay handle it
             }
           },
           // On connection state change
@@ -128,7 +126,7 @@ export function VoiceCallDialog({
       webrtcServiceRef.current?.cleanup();
       webrtcServiceRef.current = null;
     };
-  }, [isOpen, currentCall, callStatus, firestore, self, toast, handleEndCall]);
+  }, [isOpen, currentCall, callStatus, firestore, self, toast]);
 
   // Handle accepting incoming call
   const handleAcceptCall = useCallback(async () => {

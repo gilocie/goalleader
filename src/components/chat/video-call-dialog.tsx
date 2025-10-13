@@ -50,6 +50,13 @@ export function VideoCallDialog({
   const isActive = callStatus === 'active';
   const isConnected = connectionState === 'connected';
 
+  // Format elapsed time
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+  
   // Handle ending call
   const handleEndCall = useCallback(() => {
     webrtcServiceRef.current?.cleanup();
@@ -61,12 +68,6 @@ export function VideoCallDialog({
     onClose();
   }, [currentCall, contact.id, endCall, onClose]);
 
-  // Format elapsed time
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   // Timer for elapsed time
   useEffect(() => {
@@ -100,7 +101,6 @@ export function VideoCallDialog({
             console.log('Remote stream received with tracks:', remoteStream.getTracks().length);
             if (remoteVideoRef.current && remoteStream.getTracks().length > 0) {
               remoteVideoRef.current.srcObject = remoteStream;
-              // Don't call play() immediately, let it autoplay
             }
           },
           // On connection state change
@@ -119,7 +119,6 @@ export function VideoCallDialog({
         // Set local video
         if (localVideoRef.current && localStream) {
           localVideoRef.current.srcObject = localStream;
-          // Don't call play() - let autoplay handle it
         }
 
         console.log('WebRTC initialized successfully');
@@ -140,7 +139,7 @@ export function VideoCallDialog({
       webrtcServiceRef.current?.cleanup();
       webrtcServiceRef.current = null;
     };
-  }, [isOpen, currentCall, callStatus, firestore, self, toast, handleEndCall]);
+  }, [isOpen, currentCall, callStatus, firestore, self, toast]);
 
   // Handle accepting incoming call
   const handleAcceptCall = useCallback(async () => {
