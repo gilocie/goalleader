@@ -113,17 +113,23 @@ export function VideoCallDialog({
     }
   }, [localStream, isVideoOff]);
 
-  useEffect(() => {
-    if (remoteStream) {
-      console.log('[VideoCallDialog] Setting remote stream on video elements');
-      if (remoteVideoMainRef.current) {
-        remoteVideoMainRef.current.srcObject = remoteStream;
-      }
-      if (remoteVideoPipRef.current) {
-        remoteVideoPipRef.current.srcObject = remoteStream;
-      }
+  const handleRemoteStream = useCallback((stream: MediaStream) => {
+    console.log('[VideoCallDialog] Received remote stream with tracks:', {
+      audio: stream.getAudioTracks().length,
+      video: stream.getVideoTracks().length
+    });
+    setRemoteStream(stream);
+    
+    // Assign stream to both potential video elements
+    if (remoteVideoMainRef.current) {
+        remoteVideoMainRef.current.srcObject = stream;
+        remoteVideoMainRef.current.play().catch(e => console.log('Remote main video play error:', e));
     }
-  }, [remoteStream]);
+    if (remoteVideoPipRef.current) {
+        remoteVideoPipRef.current.srcObject = stream;
+        remoteVideoPipRef.current.play().catch(e => console.log('Remote PiP video play error:', e));
+    }
+  }, []);
   
   const handleEndCall = useCallback(() => {
     if (webrtcServiceRef.current) {
@@ -158,15 +164,6 @@ export function VideoCallDialog({
     }
     return () => clearInterval(timer);
   }, [isOpen, isActive, isConnected]);
-
-  const handleRemoteStream = useCallback((stream: MediaStream) => {
-    console.log('[VideoCallDialog] Received remote stream with tracks:', {
-      audio: stream.getAudioTracks().length,
-      video: stream.getVideoTracks().length
-    });
-    
-    setRemoteStream(stream);
-  }, []);
 
   const handleConnectionStateChange = useCallback((state: RTCPeerConnectionState) => {
       console.log('[VideoCallDialog] Connection state changed:', state);
@@ -303,34 +300,26 @@ export function VideoCallDialog({
   }, [currentCall, isReceivingCall, acceptCall, toast]);
 
   const toggleMic = useCallback(() => {
-    if (webrtcServiceRef.current) {
-      const stream = webrtcServiceRef.current.getLocalStream();
-      const currentlyEnabled = stream?.getAudioTracks()[0]?.enabled;
-      webrtcServiceRef.current.toggleAudio(!currentlyEnabled);
-      setIsMuted(!currentlyEnabled);
-    } else if (localStream) {
-      // If no WebRTC yet, toggle preview stream
-      const currentlyEnabled = localStream.getAudioTracks()[0]?.enabled;
-      localStream.getAudioTracks().forEach(track => {
-        track.enabled = !currentlyEnabled;
-      });
-      setIsMuted(!currentlyEnabled);
+    const stream = webrtcServiceRef.current?.getLocalStream() || localStream;
+    if (stream) {
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        const newMutedState = !audioTrack.enabled;
+        audioTrack.enabled = newMutedState;
+        setIsMuted(!newMutedState);
+      }
     }
   }, [localStream]);
 
   const toggleVideo = useCallback(() => {
-    if (webrtcServiceRef.current) {
-      const stream = webrtcServiceRef.current.getLocalStream();
-      const currentlyEnabled = stream?.getVideoTracks()[0]?.enabled;
-      webrtcServiceRef.current.toggleVideo(!currentlyEnabled);
-      setIsVideoOff(!currentlyEnabled);
-    } else if (localStream) {
-      // If no WebRTC yet, toggle preview stream
-      const currentlyEnabled = localStream.getVideoTracks()[0]?.enabled;
-      localStream.getVideoTracks().forEach(track => {
-        track.enabled = !currentlyEnabled;
-      });
-      setIsVideoOff(!currentlyEnabled);
+    const stream = webrtcServiceRef.current?.getLocalStream() || localStream;
+    if (stream) {
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        const newVideoOffState = !videoTrack.enabled;
+        videoTrack.enabled = newVideoOffState;
+        setIsVideoOff(!newVideoOffState);
+      }
     }
   }, [localStream]);
 
@@ -491,53 +480,68 @@ export function VideoCallDialog({
             )}
           </div>
 
-          {/* SMALL VIDEO (PiP) - Only show when connected */}
-          {isConnected && (
-            <div 
-              className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/30 z-10 group"
-            >
-              {!isSwapped ? (
-                // Small: Remote Video
-                <video
-                  ref={remoteVideoPipRef}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                // Small: Local Video
-                <>
-                  {isVideoOff ? (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src={selfAvatar?.imageUrl} data-ai-hint={selfAvatar?.imageHint} />
-                        <AvatarFallback className="text-xl">
-                          {self?.name?.slice(0, 2) || 'ME'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  ) : (
-                    <video
-                      ref={localVideoPipRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-full object-cover transform scale-x-[-1]"
-                    />
-                  )}
-                </>
-              )}
-              <div className="absolute bottom-1 left-1 text-xs bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
-                {isSwapped ? 'You' : contact.name}
-              </div>
-              <div
-                onClick={swapCameras} 
-                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 cursor-pointer"
-              >
+          {/* SMALL VIDEO (PiP) */}
+          <div 
+            onClick={isConnected ? swapCameras : undefined}
+            className={cn(
+              "absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/30 z-10 transition-all group",
+              isConnected && "cursor-pointer hover:border-purple-400",
+              !isConnected && "hidden" // Hide PiP until connected
+            )}
+          >
+            {!isSwapped ? (
+              // Small: Remote Video (or placeholder if not connected)
+              <>
+                {remoteStream ? (
+                  <video
+                    ref={remoteVideoPipRef}
+                    autoPlay
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
+                      <AvatarFallback className="text-xl">
+                        {contact.name.slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                )}
+              </>
+            ) : (
+              // Small: Local Video
+              <>
+                {isVideoOff || !localStream ? (
+                  <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={selfAvatar?.imageUrl} data-ai-hint={selfAvatar?.imageHint} />
+                      <AvatarFallback className="text-xl">
+                        {self?.name?.slice(0, 2) || 'ME'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                ) : (
+                  <video
+                    ref={localVideoPipRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover transform scale-x-[-1]"
+                  />
+                )}
+              </>
+            )}
+            <div className="absolute bottom-1 left-1 text-xs bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
+              {isSwapped ? 'You' : contact.name}
+            </div>
+            {isConnected && (
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
                 <SwitchCamera className="h-8 w-8 text-white drop-shadow-lg" />
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Timer */}
           {isActive && isConnected && (
