@@ -158,6 +158,32 @@ interface ChatMessagesProps {
   onToggleProfile: () => void;
 }
 
+const MessageActions = ({ message, isSelf, onAction, onDelete }: { message: Message, isSelf: boolean, onAction: (action: 'reply' | 'forward' | 'download', message: Message) => void, onDelete: (message: Message) => void }) => {
+    const hasAttachment = ['image', 'file', 'audio'].includes(message.type);
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="default" size="icon" className="h-6 w-6 rounded-full transition-opacity bg-primary text-primary-foreground hover:bg-primary/90">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align={isSelf ? "end" : "start"}>
+          <DropdownMenuItem onClick={() => onAction('reply', message)}>
+            <Reply className="mr-2 h-4 w-4" /><span>Reply</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onAction('forward', message)}>
+            <Forward className="mr-2 h-4 w-4" /><span>Forward</span>
+          </DropdownMenuItem>
+          {hasAttachment && (<DropdownMenuItem onClick={() => onAction('download', message)}><Download className="mr-2 h-4 w-4" /><span>Download</span></DropdownMenuItem>)}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onDelete(message)} className="text-destructive focus:text-destructive">
+            <Trash2 className="mr-2 h-4 w-4" /><span>Delete</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
   const { self, contacts, isTyping, incomingCallFrom, startCall, endCall, acceptCall, declineCall, acceptedCallContact, setAcceptedCallContact, incomingVoiceCallFrom, startVoiceCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, acceptedVoiceCallContact, setAcceptedVoiceCallContact, clearChat, deleteChat, isVideoCallOpen, setIsVideoCallOpen, isVoiceCallOpen, setIsVoiceCallOpen, } = useChat();
   const { user } = useUser();
@@ -293,33 +319,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     return null;
   }
   
-  const MessageActions = ({ message }: { message: Message }) => {
-    const isSelf = message.senderId === self.id;
-    const hasAttachment = ['image', 'file', 'audio'].includes(message.type);
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="default" size="icon" className="h-6 w-6 rounded-full transition-opacity bg-primary text-primary-foreground hover:bg-primary/90">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align={isSelf ? "end" : "start"}>
-          <DropdownMenuItem onClick={() => handleAction('reply', message)}>
-            <Reply className="mr-2 h-4 w-4" /><span>Reply</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleAction('forward', message)}>
-            <Forward className="mr-2 h-4 w-4" /><span>Forward</span>
-          </DropdownMenuItem>
-          {hasAttachment && (<DropdownMenuItem onClick={() => handleAction('download', message)}><Download className="mr-2 h-4 w-4" /><span>Download</span></DropdownMenuItem>)}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => handleDeleteRequest(message)} className="text-destructive focus:text-destructive">
-            <Trash2 className="mr-2 h-4 w-4" /><span>Delete</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  };
-  
   const findMessageById = (id: string) => messages.find(m => m.id === id);
 
   const firstUnreadIndex = messages.findIndex(m => m.senderId === selectedContact.id && m.readStatus !== 'read');
@@ -452,7 +451,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                             <div className={cn('flex items-end gap-2 group', isSelf ? 'justify-end' : 'justify-start')}>
                                 {!isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} /><AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar> )}
                                 
-                                {isSelf && <MessageActions message={message} />}
+                                {isSelf && <MessageActions message={message} isSelf={isSelf} onAction={handleAction} onDelete={handleDeleteRequest} />}
 
                                 <div className={cn('max-w-xs md:max-w-md rounded-lg text-sm overflow-hidden', isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                                     {originalMessage && ( <div className={cn("p-2 text-xs border-b", isSelf ? 'border-primary-foreground/20 bg-black/10' : 'border-border bg-background/50')}><p className="font-semibold">Replying to {originalMessage.senderId === self.id ? 'yourself' : selectedContact.name}</p><p className="truncate opacity-80">{originalMessage.content || originalMessage.type}</p></div> )}
@@ -515,7 +514,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp ? format(message.timestamp.toDate(), 'p') : ''}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
                             </div>
 
-                            {!isSelf && <MessageActions message={message} />}
+                            {!isSelf && <MessageActions message={message} isSelf={isSelf} onAction={handleAction} onDelete={handleDeleteRequest} />}
 
                             {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={user.name} /><AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar> )}
                         </div>
@@ -640,4 +639,3 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
-
