@@ -107,7 +107,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact?.id, firebaseUser?.uid, allTeamMembers]);
+  }, [messages, selectedContact, firebaseUser, allTeamMembers]);
 
   // --- Real-time call listener ---
   useEffect(() => {
@@ -129,8 +129,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         let hasActiveCall = false;
         let currentCallDoc: Call | null = null;
         
-        snapshot.forEach((doc) => {
-          const callData = { id: doc.id, ...doc.data() } as Call;
+        snapshot.forEach((docSnapshot) => {
+          const callData = { id: docSnapshot.id, ...docSnapshot.data() } as Call;
           
           // Only consider ringing or active calls as "current"
           if (callData.status === 'ringing' || callData.status === 'active') {
@@ -272,19 +272,19 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     contactList.sort((a, b) => {
         if (!firebaseUser || !messages) return 0;
         const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => {
-            const time1 = m1.timestamp?.toMillis ? m1.timestamp.toMillis() : 0;
-            const time2 = m2.timestamp?.toMillis ? m2.timestamp.toMillis() : 0;
+            const time1 = m1.timestamp?.toMillis ? m1.timestamp.toMillis() : new Date(m1.timestamp as any).getTime();
+            const time2 = m2.timestamp?.toMillis ? m2.timestamp.toMillis() : new Date(m2.timestamp as any).getTime();
             return time2 - time1;
         })[0];
         const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => {
-            const time1 = m1.timestamp?.toMillis ? m1.timestamp.toMillis() : 0;
-            const time2 = m2.timestamp?.toMillis ? m2.timestamp.toMillis() : 0;
+            const time1 = m1.timestamp?.toMillis ? m1.timestamp.toMillis() : new Date(m1.timestamp as any).getTime();
+            const time2 = m2.timestamp?.toMillis ? m2.timestamp.toMillis() : new Date(m2.timestamp as any).getTime();
             return time2 - time1;
         })[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
-        const timeA = lastMessageA.timestamp?.toMillis ? lastMessageA.timestamp.toMillis() : 0;
-        const timeB = lastMessageB.timestamp?.toMillis ? lastMessageB.timestamp.toMillis() : 0;
+        const timeA = lastMessageA.timestamp?.toMillis ? lastMessageA.timestamp.toMillis() : new Date(lastMessageA.timestamp as any).getTime();
+        const timeB = lastMessageB.timestamp?.toMillis ? lastMessageB.timestamp.toMillis() : new Date(lastMessageB.timestamp as any).getTime();
         return timeB - timeA;
     });
 
@@ -748,3 +748,5 @@ export const useChat = () => {
   }
   return context;
 };
+
+    
