@@ -33,6 +33,7 @@ export function VideoCallDialog({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [localCallEnded, setLocalCallEnded] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -58,14 +59,15 @@ export function VideoCallDialog({
   };
   
   const handleEndCall = useCallback(() => {
+    if (localCallEnded) return;
+    setLocalCallEnded(true);
+
     webrtcServiceRef.current?.cleanup();
     
     if (currentCall) {
       endCall(contact.id);
     }
-    
-    onClose();
-  }, [currentCall, contact.id, endCall, onClose]);
+  }, [currentCall, contact.id, endCall, localCallEnded]);
 
 
   // Timer for elapsed time
@@ -100,7 +102,6 @@ export function VideoCallDialog({
             console.log('Remote stream received with tracks:', remoteStream.getTracks().length);
             if (remoteVideoRef.current && remoteStream.getTracks().length > 0) {
               remoteVideoRef.current.srcObject = remoteStream;
-              // Don't call play() immediately, let it autoplay
             }
           },
           // On connection state change
@@ -119,7 +120,6 @@ export function VideoCallDialog({
         // Set local video
         if (localVideoRef.current && localStream) {
           localVideoRef.current.srcObject = localStream;
-          // Don't call play() - let autoplay handle it
         }
 
         console.log('WebRTC initialized successfully');
@@ -213,17 +213,35 @@ export function VideoCallDialog({
 
   // Auto-close if call ends remotely
   useEffect(() => {
-    if (callStatus === 'ended' || callStatus === 'declined') {
-      toast({
-        title: callStatus === 'declined' ? 'Call Declined' : 'Call Ended',
-        description: `The call with ${contact.name} has ended.`,
-      });
-      setTimeout(() => onClose(), 1000);
+    if (callStatus === 'ended' || callStatus === 'declined' || callStatus === 'missed') {
+        toast({
+          title: callStatus === 'declined' ? 'Call Declined' : 'Call Ended',
+          description: `The call with ${contact.name} has ended.`,
+        });
     }
-  }, [callStatus, contact.name, onClose, toast]);
+}, [callStatus, contact.name, toast]);
+
+useEffect(() => {
+    // Close dialog if there's no current call or if call ended
+    if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
+      // Small delay to ensure smooth transition
+      const timer = setTimeout(() => {
+        onClose();
+        setLocalCallEnded(false); // Reset for next call
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentCall, onClose]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleEndCall}>
+    <Dialog 
+        open={isOpen && !!currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active')} 
+        onOpenChange={(open) => {
+            if (!open) {
+            handleEndCall();
+            }
+        }}
+    >
       <DialogContent 
         ref={containerRef}
         className="max-w-full h-screen w-screen p-0 gap-0 text-white border-0 sm:rounded-none flex flex-col bg-black"

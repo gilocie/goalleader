@@ -51,6 +51,7 @@ interface ChatContextType {
   setIsVideoCallOpen: Dispatch<SetStateAction<boolean>>;
   isVoiceCallOpen: boolean;
   setIsVoiceCallOpen: Dispatch<SetStateAction<boolean>>;
+  isCallActive: () => boolean;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -119,63 +120,106 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const callsQuery = query(
       callsRef, 
       where('participantIds', 'array-contains', firebaseUser.uid),
-      where('status', 'in', ['ringing', 'active'])
+      where('status', 'in', ['ringing', 'active', 'ended', 'declined', 'missed'])
     );
   
     const unsubscribe = onSnapshot(
       callsQuery, 
       (snapshot) => {
-        if (snapshot.empty) {
-          // No active or ringing calls for this user
-          setIncomingVoiceCallFrom(null);
-          setIncomingCallFrom(null);
-          if (currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active')) {
-             // A call was likely ended or declined by the other party
-             setCurrentCall(null);
-             setAcceptedCallContact(null);
-             setAcceptedVoiceCallContact(null);
+        // Track if we have any active/ringing calls
+        let hasActiveCall = false;
+        let currentCallDoc = null;
+        
+        snapshot.forEach((doc) => {
+          const callData = { id: doc.id, ...doc.data() } as Call;
+          
+          // Only consider ringing or active calls as "current"
+          if (callData.status === 'ringing' || callData.status === 'active') {
+            hasActiveCall = true;
+            currentCallDoc = callData;
           }
-          return;
-        }
-
-        snapshot.docChanges().forEach((change) => {
-          const callData = { id: change.doc.id, ...change.doc.data() } as Call;
-          const otherParticipantId = callData.callerId === firebaseUser.uid ? callData.recipientId : callData.callerId;
-          const otherParticipant = allContacts.find(c => c.id === otherParticipantId);
-
-          if (!otherParticipant) return;
-
-          switch (change.type) {
-            case 'added':
-            case 'modified':
-              setCurrentCall(callData);
-
-              if (callData.recipientId === firebaseUser.uid && callData.status === 'ringing') {
-                // This is an incoming call
-                if (callData.type === 'voice') setIncomingVoiceCallFrom(otherParticipant);
-                else setIncomingCallFrom(otherParticipant);
-              } else if (callData.status === 'active') {
-                // Call was accepted by either party
-                if (callData.type === 'voice') {
-                  setAcceptedVoiceCallContact(otherParticipant);
-                  setIncomingVoiceCallFrom(null);
-                } else {
-                  setAcceptedCallContact(otherParticipant);
-                  setIncomingCallFrom(null);
+          
+          // Handle ended/declined/missed calls
+          if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
+            // Clear all call-related states when call ends
+            if (currentCall?.id === callData.id) {
+              console.log('[Chat Context] Call ended/declined/missed, clearing states');
+              
+              // Clear all states immediately
+              setCurrentCall(null);
+              setAcceptedCallContact(null);
+              setAcceptedVoiceCallContact(null);
+              setIncomingCallFrom(null);
+              setIncomingVoiceCallFrom(null);
+              setIsVideoCallOpen(false);
+              setIsVoiceCallOpen(false);
+              
+              // Clean up the call document after a delay
+              setTimeout(async () => {
+                try {
+                  const callDocRef = doc(firestore, 'calls', callData.id);
+                  await deleteDoc(callDocRef);
+                  
+                  // Clean up ICE candidates
+                  const iceCandidatesRef = collection(firestore, 'calls', callData.id, 'iceCandidates');
+                  const iceCandidatesSnapshot = await getDocs(iceCandidatesRef);
+                  const deletePromises = iceCandidatesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+                  await Promise.all(deletePromises);
+                } catch (err) {
+                  console.log('Call cleanup: Document already deleted or permission denied');
                 }
-              }
-              break;
-            case 'removed':
-               if (currentCall?.id === callData.id) {
-                 setCurrentCall(null);
-                 setAcceptedCallContact(null);
-                 setAcceptedVoiceCallContact(null);
-                 setIncomingCallFrom(null);
-                 setIncomingVoiceCallFrom(null);
-               }
-               break;
+              }, 3000);
+            }
+            return; // Don't process ended calls further
           }
         });
+        
+        // If no active calls, clear everything
+        if (!hasActiveCall) {
+          console.log('[Chat Context] No active calls, clearing all states');
+          setCurrentCall(null);
+          setAcceptedCallContact(null);
+          setAcceptedVoiceCallContact(null);
+          setIncomingCallFrom(null);
+          setIncomingVoiceCallFrom(null);
+          setIsVideoCallOpen(false);
+          setIsVoiceCallOpen(false);
+          return;
+        }
+        
+        // Process the current call
+        if (currentCallDoc) {
+          const otherParticipantId = currentCallDoc.callerId === firebaseUser.uid 
+            ? currentCallDoc.recipientId 
+            : currentCallDoc.callerId;
+          const otherParticipant = allContacts.find(c => c.id === otherParticipantId);
+          
+          if (!otherParticipant) return;
+          
+          setCurrentCall(currentCallDoc);
+          
+          // Handle incoming calls
+          if (currentCallDoc.recipientId === firebaseUser.uid && currentCallDoc.status === 'ringing') {
+            if (currentCallDoc.type === 'voice') {
+              setIncomingVoiceCallFrom(otherParticipant);
+              setIsVoiceCallOpen(true);
+            } else {
+              setIncomingCallFrom(otherParticipant);
+              setIsVideoCallOpen(true);
+            }
+          }
+          
+          // Handle accepted calls
+          else if (currentCallDoc.status === 'active') {
+            if (currentCallDoc.type === 'voice') {
+              setAcceptedVoiceCallContact(otherParticipant);
+              setIncomingVoiceCallFrom(null);
+            } else {
+              setAcceptedCallContact(otherParticipant);
+              setIncomingCallFrom(null);
+            }
+          }
+        }
       },
       (error: FirestoreError) => {
         if (error.code === 'permission-denied') {
@@ -191,7 +235,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     );
   
     return () => unsubscribe();
-  }, [firestore, firebaseUser, allContacts, currentCall]);
+  }, [firestore, firebaseUser, allContacts]);
 
   const self = useMemo(() => {
       if (!firebaseUser) return undefined;
@@ -484,38 +528,24 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore || !currentCall) return;
     
     try {
+      // Update call status in Firestore
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
         status: 'ended',
         endedAt: serverTimestamp()
       });
       
+      // Add system message
       addSystemMessage(`Voice call ended`, contactId, 'voice');
       
+      // The listener will handle clearing states
+      
+    } catch (error) {
+      console.error('Failed to end voice call:', error);
+      // Even if update fails, clear local states
       setAcceptedVoiceCallContact(null);
       setCurrentCall(null);
       setIncomingVoiceCallFrom(null);
       setIsVoiceCallOpen(false);
-      
-      setTimeout(async () => {
-        try {
-          const callDocRef = doc(firestore, 'calls', currentCall.id);
-          const callSnapshot = await getDoc(callDocRef);
-          
-          if (callSnapshot.exists() && callSnapshot.data()?.status === 'ended') {
-            await deleteDoc(callDocRef);
-            
-            const iceCandidatesRef = collection(firestore, 'calls', currentCall.id, 'iceCandidates');
-            const iceCandidatesSnapshot = await getDocs(iceCandidatesRef);
-            const deletePromises = iceCandidatesSnapshot.docs.map(doc => deleteDoc(doc.ref));
-            await Promise.all(deletePromises);
-          }
-        } catch (err) {
-          console.log('Call cleanup: Document already deleted or permission denied');
-        }
-      }, 5000);
-      
-    } catch (error) {
-      console.error('Failed to end voice call:', error);
     }
   }, [firestore, currentCall, addSystemMessage]);
   
@@ -587,38 +617,24 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!firestore || !currentCall) return;
     
     try {
+      // Update call status in Firestore
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
         status: 'ended',
         endedAt: serverTimestamp()
       });
       
+      // Add system message
       addSystemMessage(`Video call ended`, contactId, 'video');
       
+      // The listener will handle clearing states
+      
+    } catch (error) {
+      console.error('Failed to end video call:', error);
+      // Even if update fails, clear local states
       setAcceptedCallContact(null);
       setCurrentCall(null);
       setIncomingCallFrom(null);
       setIsVideoCallOpen(false);
-      
-      setTimeout(async () => {
-        try {
-          const callDocRef = doc(firestore, 'calls', currentCall.id);
-          const callSnapshot = await getDoc(callDocRef);
-          
-          if (callSnapshot.exists() && callSnapshot.data()?.status === 'ended') {
-            await deleteDoc(callDocRef);
-            
-            const iceCandidatesRef = collection(firestore, 'calls', currentCall.id, 'iceCandidates');
-            const iceCandidatesSnapshot = await getDocs(iceCandidatesRef);
-            const deletePromises = iceCandidatesSnapshot.docs.map(doc => deleteDoc(doc.ref));
-            await Promise.all(deletePromises);
-          }
-        } catch (err) {
-          console.log('Call cleanup: Document already deleted or permission denied');
-        }
-      }, 5000);
-      
-    } catch (error) {
-      console.error('Failed to end video call:', error);
     }
   }, [firestore, currentCall, addSystemMessage]);
 
@@ -665,6 +681,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [messages, selectedContact, self, firestore]);
 
+  const isCallActive = useCallback(() => {
+    return currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active');
+  }, [currentCall]);
+
 
   const value: ChatContextType = {
     self,
@@ -701,7 +721,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     isVoiceCallOpen,
     setIsVoiceCallOpen,
     inputMessage,
-    setInputMessage
+    setInputMessage,
+    isCallActive
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

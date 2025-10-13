@@ -32,6 +32,7 @@ export function VoiceCallDialog({
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
+  const [localCallEnded, setLocalCallEnded] = useState(false);
 
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const webrtcServiceRef = useRef<WebRTCService | null>(null);
@@ -53,14 +54,14 @@ export function VoiceCallDialog({
   };
 
   const handleEndCall = useCallback(() => {
+    if (localCallEnded) return;
+    setLocalCallEnded(true);
     webrtcServiceRef.current?.cleanup();
     
     if (currentCall) {
       endVoiceCall(contact.id);
     }
-    
-    onClose();
-  }, [currentCall, contact.id, endVoiceCall, onClose]);
+  }, [currentCall, contact.id, endVoiceCall, localCallEnded]);
 
   // Timer for elapsed time
   useEffect(() => {
@@ -176,14 +177,24 @@ export function VoiceCallDialog({
 
   // Auto-close if call ends remotely
   useEffect(() => {
-    if (callStatus === 'ended' || callStatus === 'declined') {
-      toast({
-        title: callStatus === 'declined' ? 'Call Declined' : 'Call Ended',
-        description: `The call with ${contact.name} has ended.`,
-      });
-      setTimeout(() => onClose(), 1000);
+    if (callStatus === 'ended' || callStatus === 'declined' || callStatus === 'missed') {
+        toast({
+          title: callStatus === 'declined' ? 'Call Declined' : 'Call Ended',
+          description: `The call with ${contact.name} has ended.`,
+        });
     }
-  }, [callStatus, contact.name, onClose, toast]);
+}, [callStatus, contact.name, toast]);
+
+useEffect(() => {
+    if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
+      const timer = setTimeout(() => {
+        onClose();
+        setLocalCallEnded(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentCall, onClose]);
+
 
   // Display status text
   const getStatusText = () => {
@@ -200,7 +211,14 @@ export function VoiceCallDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleEndCall}>
+    <Dialog 
+        open={isOpen && !!currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active')}
+        onOpenChange={(open) => {
+            if (!open) {
+                handleEndCall();
+            }
+        }}
+    >
       <DialogContent className="sm:max-w-md bg-gradient-to-br from-gray-900 to-gray-800 text-white border-0 shadow-2xl p-8">
         <DialogHeader className="sr-only">
           <DialogTitle>Voice Call with {contact.name}</DialogTitle>
