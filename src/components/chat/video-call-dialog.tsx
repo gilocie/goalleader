@@ -34,11 +34,13 @@ export function VideoCallDialog({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [localCallEnded, setLocalCallEnded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [hasAccepted, setHasAccepted] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const webrtcServiceRef = useRef<WebRTCService | null>(null);
+  const initializationAttemptedRef = useRef(false);
   
   const { toast } = useToast();
   const firestore = useFirestore();
@@ -66,6 +68,8 @@ export function VideoCallDialog({
         setLocalCallEnded(true);
         endCall(contact.id);
     }
+    initializationAttemptedRef.current = false;
+    setHasAccepted(false);
     onClose();
   }, [currentCall, contact.id, endCall, localCallEnded, onClose]);
 
@@ -92,83 +96,127 @@ export function VideoCallDialog({
   }, []);
 
   useEffect(() => {
-      if (!firestore || !self || !currentCall || !contact) {
-          return;
-      }
-  
-      if (isReceivingCall && currentCall.status === 'ringing') {
+    if (!firestore || !self || !currentCall || !contact) {
+      console.log('[VideoCallDialog] Missing required data for initialization');
+      return;
+    }
+
+    if (isReceivingCall && currentCall.status === 'ringing') {
         console.log('[VideoCallDialog] Waiting for call to be accepted before initializing WebRTC');
         return;
-      }
+    }
 
-      if (webrtcServiceRef.current || isInitializing) {
-          return;
-      }
-  
-      const initializeWebRTC = async () => {
-          setIsInitializing(true);
-          try {
-              const isInitiator = currentCall.callerId === self.id;
-              console.log('[VideoCallDialog] Creating WebRTC service');
-              const service = new WebRTCService(firestore, currentCall.id, self.id, isInitiator);
-              webrtcServiceRef.current = service;
-  
-              console.log('[VideoCallDialog] Initializing WebRTC service');
-              const stream = await service.initialize(
-                  handleRemoteStream,
-                  handleConnectionStateChange,
-                  { audio: true, video: true }
-              );
-  
-              if (stream) {
-                  if (localVideoRef.current) {
-                    localVideoRef.current.srcObject = stream;
-                  }
-                  console.log('[VideoCallDialog] WebRTC initialized successfully');
-              } else {
-                  console.warn('[VideoCallDialog] WebRTC initialization returned null (likely aborted)');
-                  webrtcServiceRef.current = null;
-              }
-          } catch (error: any) {
-              if (!error.message?.includes('aborted')) {
-                  console.error('[VideoCallDialog] Failed to initialize WebRTC:', error);
-              }
-              webrtcServiceRef.current = null;
-          } finally {
-              setIsInitializing(false);
-          }
-      };
-  
-      initializeWebRTC();
-  
-      return () => {
-          console.log('[VideoCallDialog] Cleanup triggered');
-          if (webrtcServiceRef.current) {
-              console.log('[VideoCallDialog] Cleaning up WebRTC service');
-              webrtcServiceRef.current.cleanup();
-              webrtcServiceRef.current = null;
-          }
-          setConnectionState('new');
-      };
+    const isInitiator = currentCall.callerId === self.id;
+    const shouldInitialize = isInitiator || (isActive && (hasAccepted || !isReceivingCall));
+    
+    console.log('[VideoCallDialog] Initialization check:', {
+      isInitiator,
+      isActive,
+      hasAccepted,
+      isReceivingCall,
+      shouldInitialize,
+      alreadyHasService: !!webrtcServiceRef.current,
+      isInitializing,
+      initializationAttempted: initializationAttemptedRef.current
+    });
+
+    if (!shouldInitialize) {
+      console.log('[VideoCallDialog] Waiting for call to be accepted or activated');
+      return;
+    }
+
+    if (webrtcServiceRef.current) {
+        console.log('[VideoCallDialog] WebRTC service already exists');
+        return;
+    }
+
+    if (isInitializing || initializationAttemptedRef.current) {
+        console.log('[VideoCallDialog] Already initializing or attempted');
+        return;
+    }
+
+    const initializeWebRTC = async () => {
+        initializationAttemptedRef.current = true;
+        setIsInitializing(true);
+        try {
+            console.log('[VideoCallDialog] Creating WebRTC service, Role:', isInitiator ? 'Initiator' : 'Receiver');
+            const service = new WebRTCService(firestore, currentCall.id, self.id, isInitiator);
+            webrtcServiceRef.current = service;
+
+            if (!isInitiator) {
+              console.log('[VideoCallDialog] Receiver waiting 500ms for offer to be ready...');
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            console.log('[VideoCallDialog] Initializing WebRTC service');
+            const stream = await service.initialize(
+                handleRemoteStream,
+                handleConnectionStateChange,
+                { audio: true, video: true }
+            );
+
+            if (stream) {
+                if (localVideoRef.current) {
+                  localVideoRef.current.srcObject = stream;
+                }
+                console.log('[VideoCallDialog] WebRTC initialized successfully');
+            } else {
+                console.warn('[VideoCallDialog] WebRTC initialization returned null (likely aborted)');
+                webrtcServiceRef.current = null;
+                initializationAttemptedRef.current = false;
+            }
+        } catch (error: any) {
+            if (!error.message?.includes('aborted')) {
+                console.error('[VideoCallDialog] Failed to initialize WebRTC:', error);
+                 toast({
+                  variant: 'destructive',
+                  title: 'Connection Error',
+                  description: 'Failed to establish call connection. Please try again.',
+                });
+            }
+            webrtcServiceRef.current = null;
+            initializationAttemptedRef.current = false;
+        } finally {
+            setIsInitializing(false);
+        }
+    };
+
+    initializeWebRTC();
+
+    return () => {
+        console.log('[VideoCallDialog] Cleanup triggered');
+        if (webrtcServiceRef.current) {
+            console.log('[VideoCallDialog] Cleaning up WebRTC service');
+            webrtcServiceRef.current.cleanup();
+            webrtcServiceRef.current = null;
+        }
+        setConnectionState('new');
+    };
   }, [
       firestore, 
-      self, 
+      self?.id, 
       currentCall?.id,
       currentCall?.status,
+      currentCall?.callerId,
       contact?.id,
       isReceivingCall,
+      hasAccepted,
       handleRemoteStream, 
       handleConnectionStateChange,
-      isInitializing
+      toast
   ]);
   
   const handleAcceptCall = useCallback(async () => {
     if (!currentCall || !isReceivingCall) return;
     
     try {
+      console.log('[VideoCallDialog] Accepting call');
+      setHasAccepted(true);
       await acceptCall();
+      console.log('[VideoCallDialog] Call accepted, will initialize WebRTC');
     } catch (error) {
       console.error('Failed to accept call:', error);
+      setHasAccepted(false);
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -181,7 +229,7 @@ export function VideoCallDialog({
     if (webrtcServiceRef.current) {
       const localStream = webrtcServiceRef.current.getLocalStream();
       const currentlyEnabled = localStream?.getAudioTracks()[0]?.enabled;
-      webrtcServiceRef.current.toggleAudio(!!currentlyEnabled);
+      webrtcServiceRef.current.toggleAudio(!currentlyEnabled);
       setIsMuted(!currentlyEnabled);
     }
   }, []);
@@ -190,7 +238,7 @@ export function VideoCallDialog({
     if (webrtcServiceRef.current) {
       const localStream = webrtcServiceRef.current.getLocalStream();
       const currentlyEnabled = localStream?.getVideoTracks()[0]?.enabled;
-      webrtcServiceRef.current.toggleVideo(!!currentlyEnabled);
+      webrtcServiceRef.current.toggleVideo(!currentlyEnabled);
       setIsVideoOff(!currentlyEnabled);
     }
   }, []);
@@ -231,6 +279,8 @@ export function VideoCallDialog({
             const timer = setTimeout(() => {
                 onClose();
                 setLocalCallEnded(false);
+                setHasAccepted(false);
+                initializationAttemptedRef.current = false;
             }, 300);
             return () => clearTimeout(timer);
         }
@@ -286,13 +336,13 @@ export function VideoCallDialog({
                       Initializing...
                     </p>
                   )}
-                  {isActive && !isConnected && !isInitializing && (
+                  {(isActive || hasAccepted) && !isConnected && !isInitializing && (
                     <p className="text-gray-400 flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Connecting...
                     </p>
                   )}
-                  {isReceivingCall && callStatus === 'ringing' && (
+                  {isReceivingCall && callStatus === 'ringing' && !hasAccepted && (
                     <p className="text-green-400 text-lg font-semibold animate-pulse">
                       Incoming Call...
                     </p>
@@ -340,7 +390,7 @@ export function VideoCallDialog({
           )}
 
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20">
-            {isReceivingCall && callStatus === 'ringing' ? (
+            {isReceivingCall && callStatus === 'ringing' && !hasAccepted ? (
               <>
                 <Button
                   onClick={handleEndCall}
@@ -370,7 +420,7 @@ export function VideoCallDialog({
                       ? 'bg-red-600 hover:bg-red-700' 
                       : 'bg-white/20 hover:bg-white/30'
                   )}
-                  disabled={!isActive}
+                  disabled={!isActive && !hasAccepted}
                   aria-label={isMuted ? "Unmute" : "Mute"}
                 >
                   {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
@@ -385,7 +435,7 @@ export function VideoCallDialog({
                       ? 'bg-red-600 hover:bg-red-700' 
                       : 'bg-white/20 hover:bg-white/30'
                   )}
-                  disabled={!isActive}
+                  disabled={!isActive && !hasAccepted}
                   aria-label={isVideoOff ? "Turn on camera" : "Turn off camera"}
                 >
                   {isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}

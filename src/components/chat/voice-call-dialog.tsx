@@ -33,10 +33,11 @@ export function VoiceCallDialog({
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
   const [localCallEnded, setLocalCallEnded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
+  const [hasAccepted, setHasAccepted] = useState(false); // Track if we've accepted
 
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const webrtcServiceRef = useRef<WebRTCService | null>(null);
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const initializationAttemptedRef = useRef(false); // Prevent double initialization
   
   const { toast } = useToast();
   const firestore = useFirestore();
@@ -63,6 +64,8 @@ export function VoiceCallDialog({
         setLocalCallEnded(true);
         endVoiceCall(contact.id);
     }
+    initializationAttemptedRef.current = false;
+    setHasAccepted(false);
     onClose();
   }, [currentCall, contact.id, endVoiceCall, localCallEnded, onClose]);
 
@@ -88,27 +91,57 @@ export function VoiceCallDialog({
     setConnectionState(state);
   }, []);
 
+  // Initialize WebRTC when appropriate
   useEffect(() => {
     if (!firestore || !self || !currentCall || !contact) {
+      console.log('[VoiceCallDialog] Missing required data for initialization');
       return;
     }
 
-    if (isReceivingCall && currentCall.status === 'ringing') {
-        console.log('[VoiceCallDialog] Waiting for call to be accepted before initializing WebRTC');
-        return;
+    // Determine if we should initialize
+    const isInitiator = currentCall.callerId === self.id;
+    const shouldInitialize = isInitiator || (isActive && (hasAccepted || !isReceivingCall));
+
+    console.log('[VoiceCallDialog] Initialization check:', {
+      isInitiator,
+      isActive,
+      hasAccepted,
+      isReceivingCall,
+      shouldInitialize,
+      alreadyHasService: !!webrtcServiceRef.current,
+      isInitializing,
+      initializationAttempted: initializationAttemptedRef.current
+    });
+
+    if (!shouldInitialize) {
+      console.log('[VoiceCallDialog] Waiting for call to be accepted or activated');
+      return;
     }
 
-    if (webrtcServiceRef.current || isInitializing) {
-        return;
+    if (webrtcServiceRef.current) {
+      console.log('[VoiceCallDialog] WebRTC service already exists');
+      return;
+    }
+
+    if (isInitializing || initializationAttemptedRef.current) {
+      console.log('[VoiceCallDialog] Already initializing or attempted');
+      return;
     }
 
     const initializeWebRTC = async () => {
+        initializationAttemptedRef.current = true;
         setIsInitializing(true);
+        
         try {
-            const isInitiator = currentCall.callerId === self.id;
-            console.log('[VoiceCallDialog] Creating WebRTC service');
+            console.log('[VoiceCallDialog] Creating WebRTC service, Role:', isInitiator ? 'Initiator' : 'Receiver');
             const service = new WebRTCService(firestore, currentCall.id, self.id, isInitiator);
             webrtcServiceRef.current = service;
+
+            // Small delay for receiver to ensure offer is in Firestore
+            if (!isInitiator) {
+              console.log('[VoiceCallDialog] Receiver waiting 500ms for offer to be ready...');
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
 
             console.log('[VoiceCallDialog] Initializing WebRTC service');
             const stream = await service.initialize(
@@ -120,14 +153,21 @@ export function VoiceCallDialog({
             if (stream) {
                 console.log('[VoiceCallDialog] WebRTC initialized successfully');
             } else {
-                console.warn('[VoiceCallDialog] WebRTC initialization returned null (likely aborted)');
+                console.warn('[VoiceCallDialog] WebRTC initialization returned null');
                 webrtcServiceRef.current = null;
+                initializationAttemptedRef.current = false;
             }
         } catch (error: any) {
             if (!error.message?.includes('aborted')) {
                 console.error('[VoiceCallDialog] Failed to initialize WebRTC:', error);
+                toast({
+                  variant: 'destructive',
+                  title: 'Connection Error',
+                  description: 'Failed to establish call connection. Please try again.',
+                });
             }
             webrtcServiceRef.current = null;
+            initializationAttemptedRef.current = false;
         } finally {
             setIsInitializing(false);
         }
@@ -142,30 +182,34 @@ export function VoiceCallDialog({
             webrtcServiceRef.current.cleanup();
             webrtcServiceRef.current = null;
         }
-        setRemoteStream(null);
         setConnectionState('new');
     };
-}, [
+  }, [
     firestore, 
-    self, 
+    self?.id, 
     currentCall?.id,
     currentCall?.status,
+    currentCall?.callerId,
     contact?.id,
     isReceivingCall,
+    hasAccepted,
     handleRemoteStream, 
     handleConnectionStateChange,
-    isInitializing
-]);
-
+    toast
+  ]);
 
   // Handle accepting incoming call
   const handleAcceptCall = useCallback(async () => {
     if (!currentCall || !isReceivingCall) return;
     
     try {
+      console.log('[VoiceCallDialog] Accepting call');
+      setHasAccepted(true);
       await acceptVoiceCall();
+      console.log('[VoiceCallDialog] Call accepted, will initialize WebRTC');
     } catch (error) {
       console.error('Failed to accept call:', error);
+      setHasAccepted(false);
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -194,31 +238,38 @@ export function VoiceCallDialog({
 
   const [shouldClose, setShouldClose] = useState(false);
 
-    useEffect(() => {
-        if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
-            setShouldClose(true);
-        } else {
-            setShouldClose(false);
-        }
-    }, [currentCall]);
+  useEffect(() => {
+    if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
+        setShouldClose(true);
+    } else {
+        setShouldClose(false);
+    }
+  }, [currentCall]);
 
-    useEffect(() => {
-        if (shouldClose) {
-            const timer = setTimeout(() => {
-                onClose();
-                setLocalCallEnded(false);
-            }, 300);
-            return () => clearTimeout(timer);
-        }
-    }, [shouldClose, onClose]);
+  useEffect(() => {
+    if (shouldClose) {
+        const timer = setTimeout(() => {
+            onClose();
+            setLocalCallEnded(false);
+            setHasAccepted(false);
+            initializationAttemptedRef.current = false;
+        }, 300);
+        return () => clearTimeout(timer);
+    }
+  }, [shouldClose, onClose]);
 
+  useEffect(() => {
+    if (isOpen && currentCall) {
+        setLocalCallEnded(false);
+    }
+  }, [isOpen, currentCall]);
 
   // Display status text
   const getStatusText = () => {
-    if (isReceivingCall && callStatus === 'ringing') {
+    if (isReceivingCall && callStatus === 'ringing' && !hasAccepted) {
       return 'Incoming Call...';
     }
-    if (isActive) {
+    if (isActive || hasAccepted) {
       if (isConnected) {
         return formatTime(elapsedTime);
       }
@@ -226,12 +277,6 @@ export function VoiceCallDialog({
     }
     return 'Calling...';
   };
-
-  useEffect(() => {
-    if (isOpen && currentCall) {
-        setLocalCallEnded(false);
-    }
-    }, [isOpen, currentCall]);
 
   return (
     <Dialog 
@@ -250,7 +295,8 @@ export function VoiceCallDialog({
 
         <audio 
             ref={remoteAudioRef}
-            autoPlay 
+            autoPlay
+            playsInline
         />
 
         <div className="flex flex-col items-center justify-center space-y-6">
@@ -274,7 +320,7 @@ export function VoiceCallDialog({
               )}
               <p className={cn(
                 "text-lg font-medium",
-                isReceivingCall && callStatus === 'ringing' ? "text-green-400 animate-pulse" : "text-gray-300",
+                isReceivingCall && callStatus === 'ringing' && !hasAccepted ? "text-green-400 animate-pulse" : "text-gray-300",
                 isConnected ? "font-mono tabular-nums" : ""
               )}>
                 {getStatusText()}
@@ -283,7 +329,7 @@ export function VoiceCallDialog({
           </div>
 
           <div className="flex items-center justify-center gap-6 pt-8">
-            {isReceivingCall && callStatus === 'ringing' ? (
+            {isReceivingCall && callStatus === 'ringing' && !hasAccepted ? (
               <>
                 <Button
                   onClick={handleEndCall}
@@ -316,7 +362,7 @@ export function VoiceCallDialog({
                       : 'bg-white/10 hover:bg-white/20 text-white'
                   )}
                   aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
-                  disabled={!isActive}
+                  disabled={!isActive && !hasAccepted}
                 >
                   {isMuted ? <MicOff className="h-7 w-7" /> : <Mic className="h-7 w-7" />}
                 </Button>
@@ -342,7 +388,7 @@ export function VoiceCallDialog({
                       : 'bg-white/10 hover:bg-white/20 text-white'
                   )}
                   aria-label={isSpeakerMuted ? "Unmute speaker" : "Mute speaker"}
-                  disabled={!isActive}
+                  disabled={!isActive && !hasAccepted}
                 >
                   {isSpeakerMuted ? <VolumeX className="h-7 w-7" /> : <Volume2 className="h-7 w-7" />}
                 </Button>
@@ -350,7 +396,7 @@ export function VoiceCallDialog({
             )}
           </div>
 
-          {isActive && !isConnected && (
+          {(isActive || hasAccepted) && !isConnected && (
             <div className="text-sm text-gray-400 flex items-center gap-2">
               <div className="flex gap-1">
                 <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -358,6 +404,7 @@ export function VoiceCallDialog({
                 <div className="w-2 h-2 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: '300ms'
                 }} />
               </div>
+              Establishing connection...
             </div>
           )}
         </div>

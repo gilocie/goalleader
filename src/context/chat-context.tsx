@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
@@ -90,8 +88,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                    (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
         );
         const lastMessage = relevantMessages.sort((a, b) => {
-            const timeA = a.timestamp?.toMillis() || new Date(a.timestamp as any).getTime();
-            const timeB = b.timestamp?.toMillis() || new Date(b.timestamp as any).getTime();
+            const timeA = a.timestamp?.toMillis() || 0;
+            const timeB = b.timestamp?.toMillis() || 0;
             return timeB - timeA;
         })[0];
         
@@ -132,7 +130,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         snapshot.forEach((docSnapshot) => {
           const data = docSnapshot.data();
           if (!data) return;
-        
+          
           const callData: Call = { 
             id: docSnapshot.id, 
             callerId: data.callerId,
@@ -202,7 +200,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         // Process the current call
         if (currentCallDoc) {
           const callDocToProcess: Call = currentCallDoc; // Create a new reference to help TypeScript
-        
+          
           const otherParticipantId = callDocToProcess.callerId === firebaseUser.uid 
             ? callDocToProcess.recipientId 
             : callDocToProcess.callerId;
@@ -526,12 +524,18 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const acceptVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
+  
+    console.log('[Chat Context] ==== ACCEPTING VOICE CALL ====');
+    console.log('[Chat Context] Call ID:', currentCall.id);
+    console.log('[Chat Context] Current status:', currentCall.status);
     
     try {
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
         status: 'active',
         acceptedAt: serverTimestamp()
       });
+      
+      console.log('[Chat Context] ✓ Call status updated to ACTIVE');
       
       addSystemMessage(
         `Voice call with ${incomingVoiceCallFrom.name} started`, 
@@ -541,8 +545,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       
       setAcceptedVoiceCallContact(incomingVoiceCallFrom);
       setIncomingVoiceCallFrom(null);
+      
+      console.log('[Chat Context] ✓ State updated - call accepted');
     } catch (error) {
-      console.error('Failed to accept voice call:', error);
+      console.error('[Chat Context] ✗ Failed to accept voice call:', error);
     }
   }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
 
