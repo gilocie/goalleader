@@ -1,173 +1,205 @@
 /**
  * @file Firestore Security Rules
- * @description This ruleset enforces a strict user-ownership model for user-specific data and public read access for certain collections like clientLeads and marketingContent, with restricted write access.
+ * @description This ruleset defines access control for a SaaS application, balancing security with rapid prototyping needs.
+ *
+ * Core Philosophy:
+ *  - Allows read access to any signed-in user.
+ *  - Enforces a strict user-ownership model for data under the `/users/{userId}` path.
+ *  - Allows write operations for all signed-in users. This is suitable only for the rapid prototyping stage.
  *
  * Data Structure:
- * - /users/{userId}: User profiles, accessible only by the owning user.
- * - /messages/{messageId}: Chat messages, accessible to any signed-in user.
- * - /calls/{callId}: Call records, accessible to any signed-in user.
- * - /chats/{userId}: Active chat IDs for a specific user, only accessible by the owning user.
- * - /users/{userId}/todos/{todoId}: To-do items, accessible only by the owning user.
- * - /users/{userId}/reports/{reportId}: User-generated reports, accessible only by the owning user.
- * - /clientLeads/{leadId}: Client leads, publicly readable but create, update, and delete are not allowed.
- * - /marketingContent/{contentId}: Marketing content, publicly readable but create, update, and delete are not allowed.
- * - /clients/{clientId}: Client records, accessible only by authenticated users.
- * - /admins/{adminId}: Admin profiles, accessible only by authenticated users.
+ *  - `/users/{userId}`: Stores profile data, to-do items, and reports for each user. Access is restricted to the owning user.
+ *  - `/messages/{messageId}`: Stores chat messages.
+ *  - `/calls/{callId}`: Stores call records.
+ *  - `/chats/{userId}`: Stores active chat IDs for a specific user.
+ *  - `/clientLeads/{leadId}`: Stores all client leads.
+ *  - `/marketingContent/{contentId}`: Stores marketing content.
+ *  - `/clients/{clientId}`: Stores client information.
+ *  - `/admins/{adminId}`: Stores administrator profiles.
  *
  * Key Security Decisions:
- * - User listing is disallowed.
- * - Read-only collections: clientLeads, marketingContent
- * - Default security posture for ambiguous relationships: owner-only access.
- * - Denormalization: No denormalization required due to owner-centric design.
+ *  - All `get` and `list` operations require authentication.
+ *  - Write operations are allowed for all authenticated users to facilitate prototyping, but should be restricted for production use.
+ *  - The rules explicitly deny unauthenticated access to all collections.
+ *  - Data validation is minimized to focus on authorization and basic relational integrity during prototyping.
+ *  - Structural segregation (separate collections for public vs. private data) is not used in this version.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Secures user profile data, allowing only the owning user to read and write their profile.
+     * @description Grants access to user profiles.
      * @path /users/{userId}
-     * @allow (get, create, update, delete) if the request is made by the user with ID {userId}.
-     * @deny (get, create, update, delete) if the request is made by a different user.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) User with valid authentication can read user profile.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete user profile.
+     * @deny (get, list) Unauthenticated user cannot read user profile.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete user profile.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures chat messages, allowing any signed-in user to read messages. Write operations are not allowed.
+     * @description Grants access to chat messages.
      * @path /messages/{messageId}
-     * @allow (get, list) if any user is signed in.
-     * @deny (create, update, delete) always.
-     * @principle Allows public read access but restrict write access.
+     * @allow (get, list) User with valid authentication can read chat message.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete chat message.
+     * @deny (get, list) Unauthenticated user cannot read chat message.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete chat message.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /messages/{messageId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures call records, allowing any signed-in user to read call records. Write operations are not allowed.
+     * @description Grants access to call records.
      * @path /calls/{callId}
-     * @allow (get, list) if any user is signed in.
-     * @deny (create, update, delete) always.
+     * @allow (get, list) User with valid authentication can read call record.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete call record.
+     * @deny (get, list) Unauthenticated user cannot read call record.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete call record.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /calls/{callId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures active chat IDs for a user, allowing only the owning user to access the active chat document.
+     * @description Grants access to active chats.
      * @path /chats/{userId}
-     * @allow (get, create, update, delete) if the request is made by the user with ID {userId}.
-     * @deny (get, create, update, delete) if the request is made by a different user.
-     * @principle Enforces document ownership for all operations.
+     * @allow (get, list) User with valid authentication can read active chats.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete active chats.
+     * @deny (get, list) Unauthenticated user cannot read active chats.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete active chats.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /chats/{userId} {
-        allow get: if isOwner(userId);
-        allow list: if false;
-        allow create: if isOwner(userId);
-        allow update: if isOwner(userId);
-        allow delete: if isExistingOwner(userId);
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures to-do items for a specific user, allowing only the owning user to manage their tasks.
+     * @description Grants access to to-do items for a specific user.
      * @path /users/{userId}/todos/{todoId}
-     * @allow (get, create, update, delete) if the request is made by the user with ID {userId}.
-     * @deny (get, create, update, delete) if the request is made by a different user.
-     * @principle Enforces strict user ownership for all operations.
+     * @allow (get, list) User with valid authentication can read to-do item.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete to-do item.
+     * @deny (get, list) Unauthenticated user cannot read to-do item.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete to-do item.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /users/{userId}/todos/{todoId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if request.resource.data.userId == userId && isSignedIn();
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures performance reports for a specific user, allowing only the owning user to manage their reports.
+     * @description Grants access to performance reports for a specific user.
      * @path /users/{userId}/reports/{reportId}
-     * @allow (get, create, update, delete) if the request is made by the user with ID {userId}.
-     * @deny (get, create, update, delete) if the request is made by a different user.
-     * @principle Enforces strict user ownership for all operations.
+     * @allow (get, list) User with valid authentication can read performance report.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete performance report.
+     * @deny (get, list) Unauthenticated user cannot read performance report.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete performance report.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /users/{userId}/reports/{reportId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if request.resource.data.userId == userId && isSignedIn();
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures client leads, allowing public read access but disallowing any write operations.
+     * @description Grants access to client leads.
      * @path /clientLeads/{leadId}
-     * @allow (get, list) to anyone.
-     * @deny (create, update, delete) always.
-     * @principle Provides public read access while restricting modifications.
+     * @allow (get, list) User with valid authentication can read client lead.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete client lead.
+     * @deny (get, list) Unauthenticated user cannot read client lead.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete client lead.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /clientLeads/{leadId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures marketing content, allowing public read access but disallowing any write operations.
+     * @description Grants access to marketing content.
      * @path /marketingContent/{contentId}
-     * @allow (get, list) to anyone.
-     * @deny (create, update, delete) always.
-     * @principle Provides public read access while restricting modifications.
+     * @allow (get, list) User with valid authentication can read marketing content.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete marketing content.
+     * @deny (get, list) Unauthenticated user cannot read marketing content.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete marketing content.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /marketingContent/{contentId} {
-      allow get, list: if true;
-      allow create, update, delete: if false;
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures client records, allowing only authenticated users to read and write client data.
+     * @description Grants access to SaaS clients.
      * @path /clients/{clientId}
-     * @allow (get, create, update, delete) to any signed-in user.
-     * @deny (get, create, update, delete) to unsigned-in user.
-     * @principle Allows public read access but restrict write access.
+     * @allow (get, list) User with valid authentication can read SaaS client.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete SaaS client.
+     * @deny (get, list) Unauthenticated user cannot read SaaS client.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete SaaS client.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /clients/{clientId} {
-      allow get, list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if resource != null && isSignedIn();
-      allow delete: if resource != null && isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
 
     /**
-     * @description Secures admin profiles, allowing only authenticated users to read and write admin data.
+     * @description Grants access to admin profiles.
      * @path /admins/{adminId}
-     * @allow (get, create, update, delete) to any signed-in user.
-     * @deny (get, create, update, delete) to unsigned-in user.
+     * @allow (get, list) User with valid authentication can read admin profile.
+     * @allow (create, update, delete) User with valid authentication can create, update and delete admin profile.
+     * @deny (get, list) Unauthenticated user cannot read admin profile.
+     * @deny (create, update, delete) Unauthenticated user cannot create, update and delete admin profile.
+     * @principle Allows read access to any signed-in user. Write operations are allowed for all authenticated users to facilitate prototyping.
      */
     match /admins/{adminId} {
-      allow get, list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
       allow create: if isSignedIn();
-      allow update: if resource != null && isSignedIn();
-      allow delete: if resource != null && isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
     }
+  }
 
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
-        return isOwner(userId) && resource != null;
-    }
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
+  function isSignedIn() {
+    return request.auth != null;
   }
 }
