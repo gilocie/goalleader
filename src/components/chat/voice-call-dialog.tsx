@@ -37,6 +37,7 @@ export function VoiceCallDialog({
 
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const webrtcServiceRef = useRef<WebRTCService | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   
   const { toast } = useToast();
   const firestore = useFirestore();
@@ -137,6 +138,7 @@ export function VoiceCallDialog({
             webrtcServiceRef.current.cleanup();
             webrtcServiceRef.current = null;
         }
+        setRemoteStream(null);
         setConnectionState('new');
     };
 }, [
@@ -241,11 +243,7 @@ export function VoiceCallDialog({
         </DialogHeader>
 
         <audio 
-            ref={(el) => {
-                if (el && remoteStream) {
-                    el.srcObject = remoteStream;
-                }
-            }}
+            ref={remoteAudioRef}
             autoPlay 
         />
 
