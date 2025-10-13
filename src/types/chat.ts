@@ -38,6 +38,7 @@ export interface Call {
   id: string;
   callerId: string;
   recipientId: string;
+  participantIds: string[];
   type: 'voice' | 'video';
   status: 'ringing' | 'active' | 'ended' | 'declined' | 'missed';
   createdAt: any; // Firestore Timestamp

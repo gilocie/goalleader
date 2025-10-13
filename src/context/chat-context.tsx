@@ -115,54 +115,67 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
     const callsRef = collection(firestore, 'calls');
     
-    // Listen for incoming calls (where I'm the recipient)
-    const incomingQuery = query(
+    // Listen for calls where the current user is a participant
+    const callsQuery = query(
       callsRef, 
-      where('recipientId', '==', firebaseUser.uid),
-      where('status', 'in', ['ringing', 'active'])
-    );
-    
-    // Listen for outgoing calls (where I'm the caller)
-    const outgoingQuery = query(
-      callsRef,
-      where('callerId', '==', firebaseUser.uid),
+      where('participantIds', 'array-contains', firebaseUser.uid),
       where('status', 'in', ['ringing', 'active'])
     );
   
-    const unsubIncoming = onSnapshot(
-      incomingQuery, 
+    const unsubscribe = onSnapshot(
+      callsQuery, 
       (snapshot) => {
-        if (!snapshot.empty) {
-          const callDoc = snapshot.docs[0];
-          const callData = { id: callDoc.id, ...callDoc.data() } as Call;
-          const caller = allContacts.find(c => c.id === callData.callerId);
-          
-          if (caller) {
-            setCurrentCall(callData);
-            
-            // Only show incoming notification if status is still 'ringing'
-            if (callData.status === 'ringing') {
-              if (callData.type === 'voice') {
-                setIncomingVoiceCallFrom(caller);
-              } else {
-                setIncomingCallFrom(caller);
-              }
-            } else if (callData.status === 'active') {
-              // Call was accepted
-              if (callData.type === 'voice') {
-                setAcceptedVoiceCallContact(caller);
-                setIncomingVoiceCallFrom(null);
-              } else {
-                setAcceptedCallContact(caller);
-                setIncomingCallFrom(null);
-              }
-            }
-          }
-        } else {
-          // No incoming calls
+        if (snapshot.empty) {
+          // No active or ringing calls for this user
           setIncomingVoiceCallFrom(null);
           setIncomingCallFrom(null);
+          if (currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active')) {
+             // A call was likely ended or declined by the other party
+             setCurrentCall(null);
+             setAcceptedCallContact(null);
+             setAcceptedVoiceCallContact(null);
+          }
+          return;
         }
+
+        snapshot.docChanges().forEach((change) => {
+          const callData = { id: change.doc.id, ...change.doc.data() } as Call;
+          const otherParticipantId = callData.callerId === firebaseUser.uid ? callData.recipientId : callData.callerId;
+          const otherParticipant = allContacts.find(c => c.id === otherParticipantId);
+
+          if (!otherParticipant) return;
+
+          switch (change.type) {
+            case 'added':
+            case 'modified':
+              setCurrentCall(callData);
+
+              if (callData.recipientId === firebaseUser.uid && callData.status === 'ringing') {
+                // This is an incoming call
+                if (callData.type === 'voice') setIncomingVoiceCallFrom(otherParticipant);
+                else setIncomingCallFrom(otherParticipant);
+              } else if (callData.status === 'active') {
+                // Call was accepted by either party
+                if (callData.type === 'voice') {
+                  setAcceptedVoiceCallContact(otherParticipant);
+                  setIncomingVoiceCallFrom(null);
+                } else {
+                  setAcceptedCallContact(otherParticipant);
+                  setIncomingCallFrom(null);
+                }
+              }
+              break;
+            case 'removed':
+               if (currentCall?.id === callData.id) {
+                 setCurrentCall(null);
+                 setAcceptedCallContact(null);
+                 setAcceptedVoiceCallContact(null);
+                 setIncomingCallFrom(null);
+                 setIncomingVoiceCallFrom(null);
+               }
+               break;
+          }
+        });
       },
       (error: FirestoreError) => {
         if (error.code === 'permission-denied') {
@@ -172,51 +185,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           });
           errorEmitter.emit('permission-error', permissionError);
         } else {
-          console.error("Incoming call listener error:", error);
+          console.error("Call listener error:", error);
         }
       }
     );
   
-    const unsubOutgoing = onSnapshot(
-      outgoingQuery,
-      (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === 'added' || change.type === 'modified') {
-            const callData = { id: change.doc.id, ...change.doc.data() } as Call;
-            
-            // Only update if this is our current call
-            if (!currentCall || currentCall.id === callData.id) {
-              setCurrentCall(callData);
-              
-              // If call was accepted by recipient
-              if (callData.status === 'active') {
-                const recipient = allContacts.find(c => c.id === callData.recipientId);
-                if (recipient) {
-                  if (callData.type === 'voice') {
-                    setAcceptedVoiceCallContact(recipient);
-                  } else {
-                    setAcceptedCallContact(recipient);
-                  }
-                }
-              } else if (callData.status === 'declined' || callData.status === 'missed') {
-                // Call was declined/missed
-                setCurrentCall(null);
-                setAcceptedVoiceCallContact(null);
-                setAcceptedCallContact(null);
-              }
-            }
-          }
-        });
-      },
-      (error) => {
-        console.error("Outgoing call listener error:", error);
-      }
-    );
-  
-    return () => {
-      unsubIncoming();
-      unsubOutgoing();
-    };
+    return () => unsubscribe();
   }, [firestore, firebaseUser, allContacts, currentCall]);
 
   const self = useMemo(() => {
@@ -228,8 +202,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           id: firebaseUser.uid,
           name: firebaseUser.isAnonymous ? 'Guest User' : (firebaseUser.displayName || 'You'),
           role: 'Consultant',
-          status: 'online',
           department: 'Customer Service',
+          status: 'online',
           lastMessage: '',
           lastMessageTime: ''
       }
@@ -448,6 +422,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
+        participantIds: [self.id, contact.id],
         status: 'ringing',
         type: 'voice',
         createdAt: serverTimestamp(),
@@ -551,6 +526,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
+        participantIds: [self.id, contact.id],
         status: 'ringing',
         type: 'video',
         createdAt: serverTimestamp(),
@@ -728,4 +704,3 @@ export const useChat = () => {
   }
   return context;
 };
-

@@ -18,6 +18,7 @@ export class WebRTCService {
   private callId: string;
   private userId: string;
   private isInitiator: boolean;
+  private iceCandidateQueue: RTCIceCandidate[] = [];
   
   private iceCandidateUnsubscribe: Unsubscribe | null = null;
   private callDocUnsubscribe: Unsubscribe | null = null;
@@ -179,20 +180,43 @@ export class WebRTCService {
       const data = snapshot.data();
       if (!data || !this.peerConnection) return;
 
-      // If we are the caller, we only care about the answer.
-      if (this.isInitiator && data.answer) {
-        if (this.peerConnection.signalingState !== 'stable') {
+      // Caller receives an answer
+      if (this.isInitiator && data.answer && this.peerConnection.signalingState !== 'stable') {
+        try {
           await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
           console.log('Answer received and set');
+          await this.processIceCandidateQueue();
+        } catch (error) {
+          console.error('Failed to set remote description from answer:', error);
         }
       }
       
-      // If we are the receiver, we only care about the offer.
-      if (!this.isInitiator && data.offer && !this.peerConnection.remoteDescription) {
-        await this.createAnswer(data.offer);
+      // Receiver receives an offer
+      if (!this.isInitiator && data.offer && this.peerConnection.signalingState === 'stable') {
+        try {
+          await this.createAnswer(data.offer);
+          console.log('Offer received and answer created');
+          await this.processIceCandidateQueue();
+        } catch (error) {
+           console.error('Failed to create answer from offer:', error);
+        }
       }
     });
   }
+  
+  private async processIceCandidateQueue(): Promise<void> {
+    while (this.iceCandidateQueue.length > 0) {
+      const candidate = this.iceCandidateQueue.shift();
+      if (candidate) {
+        try {
+          await this.peerConnection?.addIceCandidate(candidate);
+        } catch (error) {
+          console.error('Error adding queued ICE candidate:', error);
+        }
+      }
+    }
+  }
+
 
   /**
    * Send ICE candidate to Firestore
@@ -232,12 +256,16 @@ export class WebRTCService {
         if (change.type === 'added') {
           const data = change.doc.data();
           
-          if (data.fromUser !== this.userId && this.peerConnection && this.peerConnection.remoteDescription) {
+          if (data.fromUser !== this.userId && this.peerConnection) {
             const candidate = new RTCIceCandidate(data.candidate);
-            try {
-              await this.peerConnection.addIceCandidate(candidate);
-            } catch (error) {
-              console.error('Error adding received ICE candidate', error);
+            if (this.peerConnection.remoteDescription) {
+                try {
+                    await this.peerConnection.addIceCandidate(candidate);
+                } catch (error) {
+                    console.error('Error adding received ICE candidate', error);
+                }
+            } else {
+                this.iceCandidateQueue.push(candidate);
             }
           }
         }

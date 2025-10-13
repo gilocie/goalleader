@@ -50,6 +50,17 @@ export function VideoCallDialog({
   const isActive = callStatus === 'active';
   const isConnected = connectionState === 'connected';
 
+  // Handle ending call
+  const handleEndCall = useCallback(() => {
+    webrtcServiceRef.current?.cleanup();
+    
+    if (currentCall) {
+      endCall(contact.id);
+    }
+    
+    onClose();
+  }, [currentCall, contact.id, endCall, onClose]);
+
   // Format elapsed time
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -66,17 +77,6 @@ export function VideoCallDialog({
     }
     return () => clearInterval(timer);
   }, [isOpen, isActive, isConnected]);
-
-  // Handle ending call
-  const handleEndCall = useCallback(() => {
-    webrtcServiceRef.current?.cleanup();
-    
-    if (currentCall) {
-      endCall(contact.id);
-    }
-    
-    onClose();
-  }, [currentCall, contact.id, endCall, onClose]);
 
   // Initialize WebRTC when call becomes active
   useEffect(() => {
@@ -121,6 +121,7 @@ export function VideoCallDialog({
         // Set local video
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = localStream;
+          localVideoRef.current.play().catch(e => console.error("Local video play failed:", e));
         }
 
         console.log('WebRTC initialized successfully');
