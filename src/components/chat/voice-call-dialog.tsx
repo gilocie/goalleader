@@ -33,13 +33,14 @@ export function VoiceCallDialog({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
   const [localCallEnded, setLocalCallEnded] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const webrtcServiceRef = useRef<WebRTCService | null>(null);
   
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { currentCall, endVoiceCall, acceptVoiceCall, declineVoiceCall, self } = useChat();
+  const { currentCall, endVoiceCall, acceptVoiceCall, self } = useChat();
 
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
   const callStatus = currentCall?.status || 'ringing';
@@ -54,14 +55,16 @@ export function VoiceCallDialog({
   };
 
   const handleEndCall = useCallback(() => {
-    if (localCallEnded) return;
-    setLocalCallEnded(true);
-    webrtcServiceRef.current?.cleanup();
-    
-    if (currentCall) {
-      endVoiceCall(contact.id);
+    if (webrtcServiceRef.current) {
+        webrtcServiceRef.current.cleanup();
+        webrtcServiceRef.current = null;
     }
-  }, [currentCall, contact.id, endVoiceCall, localCallEnded]);
+    if (currentCall && !localCallEnded) {
+        setLocalCallEnded(true);
+        endVoiceCall(contact.id);
+    }
+    onClose();
+  }, [currentCall, contact.id, endVoiceCall, localCallEnded, onClose]);
 
   // Timer for elapsed time
   useEffect(() => {
@@ -73,76 +76,79 @@ export function VoiceCallDialog({
     return () => clearInterval(timer);
   }, [isOpen, isActive, isConnected]);
 
-  // Initialize WebRTC when call becomes active
-  useEffect(() => {
-    if (isOpen && currentCall) {
-        setLocalCallEnded(false);
+  const handleRemoteStream = useCallback((stream: MediaStream) => {
+    console.log('[VoiceCallDialog] Received remote stream');
+    if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = stream;
     }
-  }, [isOpen, currentCall]);
+  }, []);
 
-  // Initialize WebRTC when call becomes active
+  const handleConnectionStateChange = useCallback((state: RTCPeerConnectionState) => {
+    console.log('[VoiceCallDialog] Connection state changed:', state);
+    setConnectionState(state);
+  }, []);
+
   useEffect(() => {
-    if (!isOpen || !currentCall || !firestore || !self) return;
-    if (callStatus !== 'active') return;
+    if (!firestore || !self || !currentCall || !contact) {
+      return;
+    }
 
-    let mounted = true;
+    if (webrtcServiceRef.current || isInitializing) {
+        return;
+    }
 
     const initializeWebRTC = async () => {
-      if(!mounted) return;
-      try {
-        const isInitiator = currentCall.callerId === self.id;
-        webrtcServiceRef.current = new WebRTCService(
-          firestore,
-          currentCall.id,
-          self.id,
-          isInitiator
-        );
+        setIsInitializing(true);
+        try {
+            const isInitiator = currentCall.callerId === self.id;
+            console.log('[VoiceCallDialog] Creating WebRTC service');
+            const service = new WebRTCService(firestore, currentCall.id, self.id, isInitiator);
+            webrtcServiceRef.current = service;
 
-        await webrtcServiceRef.current.initialize(
-          // On remote stream
-          (remoteStream) => {
-            if(!mounted) return;
-            console.log('Remote audio stream received');
-            if (remoteAudioRef.current && remoteStream.getAudioTracks().length > 0) {
-              remoteAudioRef.current.srcObject = remoteStream;
-            }
-          },
-          // On connection state change
-          (state) => {
-            if(!mounted) return;
-            console.log('Connection state:', state);
-            setConnectionState(state);
-            
-            if (state === 'disconnected' || state === 'failed' || state === 'closed') {
-              handleEndCall();
-            }
-          },
-          // Media constraints (audio only for voice call)
-          { audio: true, video: false }
-        );
+            console.log('[VoiceCallDialog] Initializing WebRTC service');
+            const stream = await service.initialize(
+                handleRemoteStream,
+                handleConnectionStateChange,
+                { audio: true, video: false }
+            );
 
-        console.log('WebRTC initialized successfully');
-      } catch (error) {
-        console.error('Failed to initialize WebRTC:', error);
-        if (mounted) {
-            toast({
-              variant: 'destructive',
-              title: 'Call Failed',
-              description: 'Could not establish voice connection.',
-            });
-            handleEndCall();
+            if (stream) {
+                console.log('[VoiceCallDialog] WebRTC initialized successfully');
+            } else {
+                console.warn('[VoiceCallDialog] WebRTC initialization returned null (likely aborted)');
+                webrtcServiceRef.current = null;
+            }
+        } catch (error: any) {
+            if (!error.message?.includes('aborted')) {
+                console.error('[VoiceCallDialog] Failed to initialize WebRTC:', error);
+            }
+            webrtcServiceRef.current = null;
+        } finally {
+            setIsInitializing(false);
         }
-      }
     };
 
     initializeWebRTC();
 
     return () => {
-      mounted = false;
-      webrtcServiceRef.current?.cleanup();
-      webrtcServiceRef.current = null;
+        console.log('[VoiceCallDialog] Cleanup triggered');
+        if (webrtcServiceRef.current) {
+            console.log('[VoiceCallDialog] Cleaning up WebRTC service');
+            webrtcServiceRef.current.cleanup();
+            webrtcServiceRef.current = null;
+        }
+        setConnectionState('new');
     };
-  }, [isOpen, currentCall, callStatus, firestore, self, toast]);
+}, [
+    firestore, 
+    self, 
+    currentCall?.id, 
+    contact?.id, 
+    handleRemoteStream, 
+    handleConnectionStateChange,
+    isInitializing
+]);
+
 
   // Handle accepting incoming call
   const handleAcceptCall = useCallback(async () => {
@@ -150,7 +156,6 @@ export function VoiceCallDialog({
     
     try {
       await acceptVoiceCall();
-      // WebRTC will initialize when callStatus changes to 'active'
     } catch (error) {
       console.error('Failed to accept call:', error);
       toast({
@@ -161,24 +166,13 @@ export function VoiceCallDialog({
     }
   }, [currentCall, isReceivingCall, acceptVoiceCall, toast]);
 
-  // Handle declining incoming call
-  const handleDeclineCall = useCallback(async () => {
-    if (!currentCall || !isReceivingCall) return;
-    
-    try {
-      await declineVoiceCall();
-      onClose();
-    } catch (error) {
-      console.error('Failed to decline call:', error);
-    }
-  }, [currentCall, isReceivingCall, declineVoiceCall, onClose]);
-
   // Toggle microphone
   const toggleMic = useCallback(() => {
     if (webrtcServiceRef.current) {
-      const newMutedState = !isMuted;
-      webrtcServiceRef.current.toggleAudio(!newMutedState);
-      setIsMuted(newMutedState);
+        const audioTracks = webrtcServiceRef.current.getLocalStream()?.getAudioTracks();
+        const currentlyEnabled = audioTracks && audioTracks[0]?.enabled;
+        webrtcServiceRef.current.toggleAudio(!currentlyEnabled);
+        setIsMuted(currentlyEnabled || false);
     }
   }, [isMuted]);
 
@@ -190,35 +184,25 @@ export function VoiceCallDialog({
     }
   }, [isSpeakerMuted]);
 
-  // Auto-close if call ends remotely
-  useEffect(() => {
-    if (callStatus === 'ended' || callStatus === 'declined' || callStatus === 'missed') {
-        toast({
-          title: callStatus === 'declined' ? 'Call Declined' : 'Call Ended',
-          description: `The call with ${contact.name} has ended.`,
-        });
-    }
-}, [callStatus, contact.name, toast]);
+  const [shouldClose, setShouldClose] = useState(false);
 
-const [shouldClose, setShouldClose] = useState(false);
+    useEffect(() => {
+        if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
+            setShouldClose(true);
+        } else {
+            setShouldClose(false);
+        }
+    }, [currentCall]);
 
-useEffect(() => {
-    if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
-      setShouldClose(true);
-    } else {
-      setShouldClose(false);
-    }
-}, [currentCall]);
-
-useEffect(() => {
-  if (shouldClose) {
-    const timer = setTimeout(() => {
-      onClose();
-      setLocalCallEnded(false);
-    }, 300);
-    return () => clearTimeout(timer);
-  }
-}, [shouldClose, onClose]);
+    useEffect(() => {
+        if (shouldClose) {
+            const timer = setTimeout(() => {
+                onClose();
+                setLocalCallEnded(false);
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [shouldClose, onClose]);
 
 
   // Display status text
@@ -235,6 +219,12 @@ useEffect(() => {
     return 'Calling...';
   };
 
+  useEffect(() => {
+    if (isOpen && currentCall) {
+        setLocalCallEnded(false);
+    }
+    }, [isOpen, currentCall]);
+
   return (
     <Dialog 
         open={isOpen && !!currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active')}
@@ -250,11 +240,16 @@ useEffect(() => {
           <DialogDescription>Voice call interface</DialogDescription>
         </DialogHeader>
 
-        {/* Hidden audio element for remote stream */}
-        <audio ref={remoteAudioRef} autoPlay playsInline />
+        <audio 
+            ref={(el) => {
+                if (el && remoteStream) {
+                    el.srcObject = remoteStream;
+                }
+            }}
+            autoPlay 
+        />
 
         <div className="flex flex-col items-center justify-center space-y-6">
-          {/* Contact Avatar */}
           <Avatar className="h-40 w-40 border-4 border-purple-500/30 shadow-lg shadow-purple-500/20 ring-2 ring-purple-400/20">
             <AvatarImage 
               src={contactAvatar?.imageUrl} 
@@ -265,14 +260,11 @@ useEffect(() => {
             </AvatarFallback>
           </Avatar>
 
-          {/* Contact Info & Status */}
           <div className="text-center space-y-2">
             <h2 className="text-3xl font-bold tracking-tight">{contact.name}</h2>
             
             <div className="flex items-center justify-center gap-2">
-              {!isConnected && isActive && (
-                <Loader2 className="h-5 w-5 animate-spin text-purple-400" />
-              )}
+              {isInitializing && <Loader2 className="h-5 w-5 animate-spin text-purple-400" />}
               {isConnected && isActive && (
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               )}
@@ -286,13 +278,11 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Call Controls */}
           <div className="flex items-center justify-center gap-6 pt-8">
             {isReceivingCall && callStatus === 'ringing' ? (
-              // Incoming call buttons
               <>
                 <Button
-                  onClick={handleDeclineCall}
+                  onClick={handleEndCall}
                   variant="destructive"
                   size="icon"
                   className="rounded-full h-16 w-16 bg-red-600 hover:bg-red-700 shadow-lg"
@@ -310,7 +300,6 @@ useEffect(() => {
                 </Button>
               </>
             ) : (
-              // Active call controls
               <>
                 <Button
                   onClick={toggleMic}
@@ -357,7 +346,6 @@ useEffect(() => {
             )}
           </div>
 
-          {/* Connection indicator */}
           {isActive && !isConnected && (
             <div className="text-sm text-gray-400 flex items-center gap-2">
               <div className="flex gap-1">
@@ -373,4 +361,3 @@ useEffect(() => {
     </Dialog>
   );
 }
-

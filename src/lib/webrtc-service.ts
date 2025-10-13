@@ -38,6 +38,9 @@ export class WebRTCService {
   
   // Track sent ICE candidates to prevent duplicates
   private sentIceCandidates = new Set<string>();
+  
+  // Add abort controller for cancellation
+  private initAbortController: AbortController | null = null;
 
   private readonly configuration: RTCConfiguration = {
     iceServers: [
@@ -102,9 +105,17 @@ export class WebRTCService {
     }
 
     this.isInitializing = true;
+    this.initAbortController = new AbortController();
+    const signal = this.initAbortController.signal;
+    
     console.log(`[WebRTC] Initializing - Role: ${this.isInitiator ? 'Initiator' : 'Receiver'}`);
 
     try {
+      // Check abort before each step
+      if (signal.aborted) {
+        throw new Error('Initialization aborted');
+      }
+
       // Step 1: Get user media
       try {
         this.localStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
@@ -115,6 +126,10 @@ export class WebRTCService {
       } catch (mediaError: any) {
         console.error('[WebRTC] Media access error:', mediaError.name, mediaError.message);
         throw new Error(`Failed to access media devices: ${mediaError.message}`);
+      }
+
+      if (signal.aborted) {
+        throw new Error('Initialization aborted after media access');
       }
 
       // Step 2: Create peer connection
@@ -132,11 +147,19 @@ export class WebRTCService {
         }
       });
 
+      if (signal.aborted) {
+        throw new Error('Initialization aborted after adding tracks');
+      }
+
       // Step 5: Set up event handlers
       this.setupPeerConnectionHandlers(onRemoteStream, onConnectionStateChange);
       
       // Step 6: Set up Firestore listeners
       await this.setupListeners();
+      
+      if (signal.aborted) {
+        throw new Error('Initialization aborted after setup');
+      }
       
       // Mark as initialized before creating offer
       this.isInitialized = true;
@@ -144,24 +167,49 @@ export class WebRTCService {
       
       // Step 7: Create offer if initiator (AFTER everything is set up)
       if (this.isInitiator) {
-        // Small delay to ensure everything is ready
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Use a promise-based delay that can be aborted
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(resolve, 100);
+          signal.addEventListener('abort', () => {
+            clearTimeout(timeout);
+            reject(new Error('Initialization aborted during delay'));
+          });
+        });
         
-        if (this.peerConnection && !this.isCleanedUp) {
+        if (this.peerConnection && !this.isCleanedUp && !signal.aborted) {
           await this.createOffer();
         } else {
-          console.error('[WebRTC] Cannot create offer: peer connection was cleaned up during initialization');
+          console.warn('[WebRTC] Skipping offer creation: service state changed during initialization');
         }
       }
 
+      console.log('[WebRTC] Initialization complete');
       return this.localStream;
-    } catch (error) {
-      console.error('[WebRTC] Initialization failed:', error);
+      
+    } catch (error: any) {
+      // Don't log as error if it was intentionally aborted
+      if (error.message?.includes('aborted')) {
+        console.log('[WebRTC] Initialization was aborted (this is normal if component unmounted)');
+      } else {
+        console.error('[WebRTC] Initialization failed:', error);
+      }
+      
       this.isInitializing = false;
       this.isInitialized = false;
-      // Clean up on failure
-      this.cleanup();
-      throw error;
+      
+      // Clean up on failure (but only if not already cleaning up)
+      if (!this.isCleanedUp) {
+        this.cleanup();
+      }
+      
+      // Only throw if it wasn't an abort
+      if (!error.message?.includes('aborted')) {
+        throw error;
+      }
+      
+      return null;
+    } finally {
+      this.initAbortController = null;
     }
   }
 
@@ -194,7 +242,7 @@ export class WebRTCService {
         // Auto cleanup on terminal states
         if (this.peerConnection.connectionState === 'failed' || 
             this.peerConnection.connectionState === 'closed') {
-          console.log('[WebRTC] Connection in terminal state, cleaning up');
+          console.log('[WebRTC] Connection in terminal state');
         }
       }
     };
@@ -243,7 +291,7 @@ export class WebRTCService {
     }
     
     if (this.isCleanedUp) {
-      console.error('[WebRTC] Cannot create offer: service has been cleaned up');
+      console.warn('[WebRTC] Cannot create offer: service has been cleaned up (this is normal if call was cancelled)');
       return;
     }
 
@@ -256,6 +304,12 @@ export class WebRTCService {
       };
       
       const offer = await this.peerConnection.createOffer(offerOptions);
+      
+      // Check again after async operation
+      if (this.isCleanedUp) {
+        console.warn('[WebRTC] Service cleaned up during offer creation');
+        return;
+      }
       
       console.log('[WebRTC] Setting local description (offer)');
       await this.peerConnection.setLocalDescription(offer);
@@ -288,7 +342,7 @@ export class WebRTCService {
     }
     
     if (this.isCleanedUp) {
-      console.error('[WebRTC] Cannot create answer: service has been cleaned up');
+      console.warn('[WebRTC] Cannot create answer: service has been cleaned up');
       return;
     }
     
@@ -307,6 +361,11 @@ export class WebRTCService {
 
       console.log('[WebRTC] Setting remote description (offer)');
       await this.peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+      
+      if (this.isCleanedUp) {
+        console.warn('[WebRTC] Service cleaned up during answer creation');
+        return;
+      }
       
       const answer = await this.peerConnection.createAnswer();
       
@@ -568,6 +627,14 @@ export class WebRTCService {
     }
     
     console.log('[WebRTC] Cleaning up...');
+    
+    // Abort any ongoing initialization
+    if (this.initAbortController) {
+      console.log('[WebRTC] Aborting ongoing initialization');
+      this.initAbortController.abort();
+      this.initAbortController = null;
+    }
+    
     this.isCleanedUp = true;
     
     // Stop all local tracks

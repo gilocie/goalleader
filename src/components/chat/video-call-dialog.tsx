@@ -34,6 +34,7 @@ export function VideoCallDialog({
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>('new');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [localCallEnded, setLocalCallEnded] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -42,7 +43,7 @@ export function VideoCallDialog({
   
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { currentCall, endCall, acceptCall, declineCall, self } = useChat();
+  const { currentCall, endCall, acceptCall, self } = useChat();
 
   const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
   const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === self.id) : undefined;
@@ -51,7 +52,6 @@ export function VideoCallDialog({
   const isActive = callStatus === 'active';
   const isConnected = connectionState === 'connected';
 
-  // Format elapsed time
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -59,18 +59,18 @@ export function VideoCallDialog({
   };
   
   const handleEndCall = useCallback(() => {
-    if (localCallEnded) return;
-    setLocalCallEnded(true);
-
-    webrtcServiceRef.current?.cleanup();
-    
-    if (currentCall) {
-      endCall(contact.id);
+    if (webrtcServiceRef.current) {
+        webrtcServiceRef.current.cleanup();
+        webrtcServiceRef.current = null;
     }
-  }, [currentCall, contact.id, endCall, localCallEnded]);
+    if (currentCall && !localCallEnded) {
+        setLocalCallEnded(true);
+        endCall(contact.id);
+    }
+    onClose();
+  }, [currentCall, contact.id, endCall, localCallEnded, onClose]);
 
 
-  // Timer for elapsed time
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isOpen && isActive && isConnected) {
@@ -80,84 +80,82 @@ export function VideoCallDialog({
     return () => clearInterval(timer);
   }, [isOpen, isActive, isConnected]);
 
-  // Initialize WebRTC when call becomes active
-  useEffect(() => {
-    if (isOpen && currentCall) {
-      setLocalCallEnded(false);
+  const handleRemoteStream = useCallback((stream: MediaStream) => {
+    console.log('[VideoCallDialog] Received remote stream');
+    if (remoteVideoRef.current) {
+        remoteVideoRef.current.srcObject = stream;
     }
-  }, [isOpen, currentCall]);
+  }, []);
 
-  // Initialize WebRTC when call becomes active
+  const handleConnectionStateChange = useCallback((state: RTCPeerConnectionState) => {
+      console.log('[VideoCallDialog] Connection state changed:', state);
+      setConnectionState(state);
+  }, []);
+
   useEffect(() => {
-    if (!isOpen || !currentCall || !firestore || !self) return;
-    if (callStatus !== 'active') return;
-
-    let mounted = true;
-
-    const initializeWebRTC = async () => {
-      if (!mounted) return;
-      try {
-        const isInitiator = currentCall.callerId === self.id;
-        webrtcServiceRef.current = new WebRTCService(
-          firestore,
-          currentCall.id,
-          self.id,
-          isInitiator
-        );
-
-        // Initialize with audio and video
-        const localStream = await webrtcServiceRef.current.initialize(
-          // On remote stream
-          (remoteStream) => {
-            if (!mounted) return;
-            console.log('Remote stream received with tracks:', remoteStream.getTracks().length);
-            if (remoteVideoRef.current && remoteStream.getTracks().length > 0) {
-              remoteVideoRef.current.srcObject = remoteStream;
-            }
-          },
-          // On connection state change
-          (state) => {
-            if (!mounted) return;
-            console.log('Connection state:', state);
-            setConnectionState(state);
-            
-            if (state === 'disconnected' || state === 'failed' || state === 'closed') {
-              handleEndCall();
-            }
-          },
-          // Media constraints (audio and video)
-          { audio: true, video: true }
-        );
-
-        // Set local video
-        if (mounted && localVideoRef.current && localStream) {
-          localVideoRef.current.srcObject = localStream;
-        }
-
-        console.log('WebRTC initialized successfully');
-      } catch (error) {
-        console.error('Failed to initialize WebRTC:', error);
-        if (mounted) {
-            toast({
-              variant: 'destructive',
-              title: 'Call Failed',
-              description: 'Could not establish video connection.',
-            });
-            handleEndCall();
-        }
+      if (!firestore || !self || !currentCall || !contact) {
+          return;
       }
-    };
-
-    initializeWebRTC();
-
-    return () => {
-      mounted = false;
-      webrtcServiceRef.current?.cleanup();
-      webrtcServiceRef.current = null;
-    };
-  }, [isOpen, currentCall, callStatus, firestore, self, toast]);
-
-  // Handle accepting incoming call
+  
+      if (webrtcServiceRef.current || isInitializing) {
+          return;
+      }
+  
+      const initializeWebRTC = async () => {
+          setIsInitializing(true);
+          try {
+              const isInitiator = currentCall.callerId === self.id;
+              console.log('[VideoCallDialog] Creating WebRTC service');
+              const service = new WebRTCService(firestore, currentCall.id, self.id, isInitiator);
+              webrtcServiceRef.current = service;
+  
+              console.log('[VideoCallDialog] Initializing WebRTC service');
+              const stream = await service.initialize(
+                  handleRemoteStream,
+                  handleConnectionStateChange,
+                  { audio: true, video: true }
+              );
+  
+              if (stream) {
+                  if (localVideoRef.current) {
+                    localVideoRef.current.srcObject = stream;
+                  }
+                  console.log('[VideoCallDialog] WebRTC initialized successfully');
+              } else {
+                  console.warn('[VideoCallDialog] WebRTC initialization returned null (likely aborted)');
+                  webrtcServiceRef.current = null;
+              }
+          } catch (error: any) {
+              if (!error.message?.includes('aborted')) {
+                  console.error('[VideoCallDialog] Failed to initialize WebRTC:', error);
+              }
+              webrtcServiceRef.current = null;
+          } finally {
+              setIsInitializing(false);
+          }
+      };
+  
+      initializeWebRTC();
+  
+      return () => {
+          console.log('[VideoCallDialog] Cleanup triggered');
+          if (webrtcServiceRef.current) {
+              console.log('[VideoCallDialog] Cleaning up WebRTC service');
+              webrtcServiceRef.current.cleanup();
+              webrtcServiceRef.current = null;
+          }
+          setConnectionState('new');
+      };
+  }, [
+      firestore, 
+      self, 
+      currentCall?.id, 
+      contact?.id, 
+      handleRemoteStream, 
+      handleConnectionStateChange,
+      isInitializing
+  ]);
+  
   const handleAcceptCall = useCallback(async () => {
     if (!currentCall || !isReceivingCall) return;
     
@@ -173,37 +171,24 @@ export function VideoCallDialog({
     }
   }, [currentCall, isReceivingCall, acceptCall, toast]);
 
-  // Handle declining incoming call
-  const handleDeclineCall = useCallback(async () => {
-    if (!currentCall || !isReceivingCall) return;
-    
-    try {
-      await declineCall();
-      onClose();
-    } catch (error) {
-      console.error('Failed to decline call:', error);
-    }
-  }, [currentCall, isReceivingCall, declineCall, onClose]);
-
-  // Toggle microphone
   const toggleMic = useCallback(() => {
     if (webrtcServiceRef.current) {
-      const newMutedState = !isMuted;
-      webrtcServiceRef.current.toggleAudio(!newMutedState);
-      setIsMuted(newMutedState);
+      const localStream = webrtcServiceRef.current.getLocalStream();
+      const currentlyEnabled = localStream?.getAudioTracks()[0]?.enabled;
+      webrtcServiceRef.current.toggleAudio(!!currentlyEnabled);
+      setIsMuted(!currentlyEnabled);
     }
   }, [isMuted]);
 
-  // Toggle video
   const toggleVideo = useCallback(() => {
     if (webrtcServiceRef.current) {
-      const newVideoOffState = !isVideoOff;
-      webrtcServiceRef.current.toggleVideo(!newVideoOffState);
-      setIsVideoOff(newVideoOffState);
+      const localStream = webrtcServiceRef.current.getLocalStream();
+      const currentlyEnabled = localStream?.getVideoTracks()[0]?.enabled;
+      webrtcServiceRef.current.toggleVideo(!!currentlyEnabled);
+      setIsVideoOff(!currentlyEnabled);
     }
   }, [isVideoOff]);
 
-  // Toggle fullscreen
   const toggleFullscreen = useCallback(async () => {
     try {
       if (!document.fullscreenElement) {
@@ -216,7 +201,6 @@ export function VideoCallDialog({
     }
   }, []);
 
-  // Listen for fullscreen changes
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -226,35 +210,32 @@ export function VideoCallDialog({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Auto-close if call ends remotely
-  useEffect(() => {
-    if (callStatus === 'ended' || callStatus === 'declined' || callStatus === 'missed') {
-        toast({
-          title: callStatus === 'declined' ? 'Call Declined' : 'Call Ended',
-          description: `The call with ${contact.name} has ended.`,
-        });
-    }
-}, [callStatus, contact.name, toast]);
+    const [shouldClose, setShouldClose] = useState(false);
 
-const [shouldClose, setShouldClose] = useState(false);
+    useEffect(() => {
+        if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
+            setShouldClose(true);
+        } else {
+            setShouldClose(false);
+        }
+    }, [currentCall]);
 
-useEffect(() => {
-    if (!currentCall || (currentCall.status !== 'ringing' && currentCall.status !== 'active')) {
-        setShouldClose(true);
-    } else {
-        setShouldClose(false);
-    }
-}, [currentCall]);
+    useEffect(() => {
+        if (shouldClose) {
+            const timer = setTimeout(() => {
+                onClose();
+                setLocalCallEnded(false);
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [shouldClose, onClose]);
 
-useEffect(() => {
-    if (shouldClose) {
-        const timer = setTimeout(() => {
-            onClose();
+
+    useEffect(() => {
+        if (isOpen && currentCall) {
             setLocalCallEnded(false);
-        }, 300);
-        return () => clearTimeout(timer);
-    }
-}, [shouldClose, onClose]);
+        }
+    }, [isOpen, currentCall]);
 
   return (
     <Dialog 
@@ -275,14 +256,12 @@ useEffect(() => {
         </DialogHeader>
 
         <div className="relative flex-1 overflow-hidden">
-          {/* Remote Video (Main view) */}
           <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
             {isConnected && remoteVideoRef.current?.srcObject ? (
               <video
                 ref={remoteVideoRef}
                 autoPlay
                 playsInline
-                muted={false} 
                 className="w-full h-full object-contain"
               />
             ) : (
@@ -295,7 +274,13 @@ useEffect(() => {
                 </Avatar>
                 <div className="text-center">
                   <h2 className="text-2xl font-bold mb-2">{contact.name}</h2>
-                  {isActive && !isConnected && (
+                  {isInitializing && (
+                     <p className="text-gray-400 flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Initializing...
+                    </p>
+                  )}
+                  {isActive && !isConnected && !isInitializing && (
                     <p className="text-gray-400 flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Connecting...
@@ -317,7 +302,6 @@ useEffect(() => {
             )}
           </div>
 
-          {/* Local Video (PiP) */}
           <div className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/20 z-10">
             {isVideoOff ? (
               <div className="w-full h-full flex items-center justify-center bg-gray-700">
@@ -342,7 +326,6 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Call timer */}
           {isActive && isConnected && (
             <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/50 backdrop-blur-sm text-white px-3 py-1.5 rounded-full z-10">
               <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
@@ -350,12 +333,11 @@ useEffect(() => {
             </div>
           )}
 
-          {/* Call Controls */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 z-20">
             {isReceivingCall && callStatus === 'ringing' ? (
               <>
                 <Button
-                  onClick={handleDeclineCall}
+                  onClick={handleEndCall}
                   size="icon"
                   className="rounded-full h-16 w-16 bg-red-600 hover:bg-red-700 shadow-lg"
                   aria-label="Decline call"
@@ -428,4 +410,3 @@ useEffect(() => {
     </Dialog>
   );
 }
-
