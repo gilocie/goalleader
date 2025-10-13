@@ -107,7 +107,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact, firebaseUser, allTeamMembers]);
+  }, [allTeamMembers, messages, selectedContact, firebaseUser]);
 
   // --- Real-time call listener ---
   useEffect(() => {
@@ -130,7 +130,20 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         let currentCallDoc: Call | null = null;
         
         snapshot.forEach((docSnapshot) => {
-          const callData = { id: docSnapshot.id, ...docSnapshot.data() } as Call;
+          const data = docSnapshot.data();
+          if (!data) return;
+          
+          const callData: Call = { 
+            id: docSnapshot.id, 
+            callerId: data.callerId,
+            recipientId: data.recipientId,
+            participantIds: data.participantIds,
+            status: data.status,
+            type: data.type,
+            createdAt: data.createdAt,
+            acceptedAt: data.acceptedAt,
+            endedAt: data.endedAt,
+          };
           
           // Only consider ringing or active calls as "current"
           if (callData.status === 'ringing' || callData.status === 'active') {
@@ -188,18 +201,24 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         
         // Process the current call
         if (currentCallDoc) {
-          const otherParticipantId = currentCallDoc.callerId === firebaseUser.uid 
-            ? currentCallDoc.recipientId 
-            : currentCallDoc.callerId;
+          const callDocToProcess: Call = currentCallDoc; // Create a new reference to help TypeScript
+          
+          const otherParticipantId = callDocToProcess.callerId === firebaseUser.uid 
+            ? callDocToProcess.recipientId 
+            : callDocToProcess.callerId;
+          
           const otherParticipant = allContacts.find(c => c.id === otherParticipantId);
           
-          if (!otherParticipant) return;
+          if (!otherParticipant) {
+            console.log('[Chat Context] Other participant not found in contacts');
+            return;
+          }
           
-          setCurrentCall(currentCallDoc);
+          setCurrentCall(callDocToProcess);
           
           // Handle incoming calls
-          if (currentCallDoc.recipientId === firebaseUser.uid && currentCallDoc.status === 'ringing') {
-            if (currentCallDoc.type === 'voice') {
+          if (callDocToProcess.recipientId === firebaseUser.uid && callDocToProcess.status === 'ringing') {
+            if (callDocToProcess.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
             } else {
@@ -209,8 +228,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           }
           
           // Handle accepted calls
-          else if (currentCallDoc.status === 'active') {
-            if (currentCallDoc.type === 'voice') {
+          else if (callDocToProcess.status === 'active') {
+            if (callDocToProcess.type === 'voice') {
               setAcceptedVoiceCallContact(otherParticipant);
               setIncomingVoiceCallFrom(null);
             } else {
@@ -748,5 +767,3 @@ export const useChat = () => {
   }
   return context;
 };
-
-    
