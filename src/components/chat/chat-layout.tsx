@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTitle } from '../ui/sheet';
 import { useIsMobileOrTablet } from '@/hooks/use-mobile';
 import { Logo } from '../icons';
+import { useCallback } from 'react';
 
 interface ChatLayoutProps {
   contacts: Contact[];
@@ -35,6 +36,10 @@ export function ChatLayout({
 }: ChatLayoutProps) {
   const { self } = useChat();
   const isMobileOrTablet = useIsMobileOrTablet();
+
+  const handleExitChat = useCallback(() => {
+    onSelectContact(null);
+  }, [onSelectContact]);
 
   const getGridCols = () => {
     if (isProfileOpen && !isMobileOrTablet) {
@@ -65,7 +70,7 @@ export function ChatLayout({
           <ChatMessages
             messages={messages}
             selectedContact={selectedContact}
-            onExitChat={() => onSelectContact(null)}
+            onExitChat={handleExitChat}
             onSendMessage={onSendMessage}
             onDeleteMessage={onDeleteMessage}
             onToggleProfile={onToggleProfile}

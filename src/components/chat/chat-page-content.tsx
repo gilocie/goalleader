@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ChatLayout } from '@/components/chat/chat-layout';
 import type { Contact, Message } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
@@ -26,10 +26,10 @@ export function ChatPageContent() {
     }
   };
 
-  const handleSelectContact = (contact: Contact | null) => {
+  const handleSelectContact = useCallback((contact: Contact | null) => {
     setSelectedContact(contact);
     setIsProfileOpen(false);
-  };
+  }, [setSelectedContact]);
   
   const handleDeleteMessage = (messageId: string, deleteForEveryone: boolean) => {
     deleteMessage(messageId, deleteForEveryone);
