@@ -13,6 +13,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { useCollection, useDoc } from '@/firebase';
 import { useUser as useUserContext } from './user-context';
 import type { Call } from '@/types/chat';
+import { WebRTCService } from '@/lib/webrtc-service';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -222,7 +223,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           name: firebaseUser.isAnonymous ? 'Guest User' : (firebaseUser.displayName || 'You'),
           role: 'Consultant',
           status: 'online',
-          department: 'Customer Service'
+          department: 'Customer Service',
+          lastMessage: '',
+          lastMessageTime: ''
       }
   }, [allContacts, firebaseUser]);
 
@@ -418,14 +421,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const batch = writeBatch(firestore);
 
     for (const recipientId of recipientIds) {
+        const { id, timestamp, ...messageData } = message;
         const forwardedMessage = {
-            ...message,
+            ...messageData,
             senderId: self.id,
             recipientId: recipientId,
             readStatus: 'sent' as const,
         };
-        delete forwardedMessage.id;
-        delete forwardedMessage.timestamp;
 
         const newDocRef = doc(collection(firestore, 'messages'));
         batch.set(newDocRef, { ...forwardedMessage, timestamp: serverTimestamp() });
@@ -668,7 +670,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   }, [messages, selectedContact, self, firestore]);
 
 
-  const value = {
+  const value: ChatContextType = {
     self,
     contacts,
     allContacts,
