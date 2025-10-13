@@ -62,6 +62,17 @@ export function VoiceCallDialog({
     return () => clearInterval(timer);
   }, [isOpen, isActive, isConnected]);
 
+  // Handle ending call
+  const handleEndCall = useCallback(() => {
+    webrtcServiceRef.current?.cleanup();
+    
+    if (currentCall) {
+      endVoiceCall(contact.id);
+    }
+    
+    onClose();
+  }, [currentCall, contact.id, endVoiceCall, onClose]);
+
   // Initialize WebRTC when call becomes active
   useEffect(() => {
     if (!isOpen || !currentCall || !firestore || !self) return;
@@ -156,17 +167,6 @@ export function VoiceCallDialog({
       console.error('Failed to decline call:', error);
     }
   }, [currentCall, isReceivingCall, declineVoiceCall, onClose]);
-
-  // Handle ending call
-  const handleEndCall = useCallback(() => {
-    webrtcServiceRef.current?.cleanup();
-    
-    if (currentCall) {
-      endVoiceCall(contact.id);
-    }
-    
-    onClose();
-  }, [currentCall, contact.id, endVoiceCall, onClose]);
 
   // Toggle microphone
   const toggleMic = useCallback(() => {
