@@ -6,7 +6,7 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, onSnapshot, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, onSnapshot, where, getDocs, FirestoreError } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -124,6 +124,17 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
                     setIncomingCallFrom(caller);
                 }
             }
+        }
+    },
+    (error: FirestoreError) => {
+        if (error.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: (q as any)._query.path.segments.join('/'),
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
+            console.error("Call listener error:", error);
         }
     });
 
