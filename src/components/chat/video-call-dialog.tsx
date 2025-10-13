@@ -35,13 +35,19 @@ export function VideoCallDialog({
   const [localCallEnded, setLocalCallEnded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [hasAccepted, setHasAccepted] = useState(false);
-  const [isSwapped, setIsSwapped] = useState(false); // Track if cameras are swapped
+  const [isSwapped, setIsSwapped] = useState(false);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
-  const localVideoRef = useRef<HTMLVideoElement | null>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+  // Separate refs for main and PiP videos
+  const localVideoMainRef = useRef<HTMLVideoElement | null>(null);
+  const localVideoPipRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoMainRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoPipRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const webrtcServiceRef = useRef<WebRTCService | null>(null);
   const initializationAttemptedRef = useRef(false);
+  const previewStreamRef = useRef<MediaStream | null>(null);
   
   const { toast } = useToast();
   const firestore = useFirestore();
@@ -59,19 +65,89 @@ export function VideoCallDialog({
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
+
+  // Get preview camera immediately when dialog opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const getPreviewCamera = async () => {
+      try {
+        console.log('[VideoCallDialog] Getting preview camera...');
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: true, 
+          video: true 
+        });
+        console.log('[VideoCallDialog] Got preview camera');
+        previewStreamRef.current = stream;
+        setLocalStream(stream);
+      } catch (error) {
+        console.error('[VideoCallDialog] Failed to get preview camera:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Error',
+          description: 'Failed to access camera. Please check permissions.',
+        });
+      }
+    };
+
+    getPreviewCamera();
+
+    return () => {
+      // Only cleanup preview if WebRTC hasn't taken over
+      if (previewStreamRef.current && !webrtcServiceRef.current) {
+        console.log('[VideoCallDialog] Cleaning up preview camera');
+        previewStreamRef.current.getTracks().forEach(track => track.stop());
+        previewStreamRef.current = null;
+      }
+    };
+  }, [isOpen, toast]);
+
+  // Update video elements when streams change
+  useEffect(() => {
+    if (localStream && !isVideoOff) {
+      if (localVideoMainRef.current) {
+        localVideoMainRef.current.srcObject = localStream;
+      }
+      if (localVideoPipRef.current) {
+        localVideoPipRef.current.srcObject = localStream;
+      }
+    }
+  }, [localStream, isVideoOff]);
+
+  useEffect(() => {
+    if (remoteStream) {
+      console.log('[VideoCallDialog] Setting remote stream on video elements');
+      if (remoteVideoMainRef.current) {
+        remoteVideoMainRef.current.srcObject = remoteStream;
+      }
+      if (remoteVideoPipRef.current) {
+        remoteVideoPipRef.current.srcObject = remoteStream;
+      }
+    }
+  }, [remoteStream]);
   
   const handleEndCall = useCallback(() => {
     if (webrtcServiceRef.current) {
         webrtcServiceRef.current.cleanup();
         webrtcServiceRef.current = null;
     }
+    
+    // Cleanup preview stream
+    if (previewStreamRef.current) {
+      previewStreamRef.current.getTracks().forEach(track => track.stop());
+      previewStreamRef.current = null;
+    }
+    
     if (currentCall && !localCallEnded) {
         setLocalCallEnded(true);
         endCall(contact.id);
     }
+    
     initializationAttemptedRef.current = false;
     setHasAccepted(false);
     setIsSwapped(false);
+    setLocalStream(null);
+    setRemoteStream(null);
     onClose();
   }, [currentCall, contact.id, endCall, localCallEnded, onClose]);
 
@@ -90,11 +166,7 @@ export function VideoCallDialog({
       video: stream.getVideoTracks().length
     });
     
-    if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = stream;
-        // Force video to play (important for some browsers)
-        remoteVideoRef.current.play().catch(e => console.log('Remote video play error:', e));
-    }
+    setRemoteStream(stream);
   }, []);
 
   const handleConnectionStateChange = useCallback((state: RTCPeerConnectionState) => {
@@ -158,12 +230,13 @@ export function VideoCallDialog({
             );
 
             if (stream) {
-                console.log('[VideoCallDialog] Setting local video stream');
-                if (localVideoRef.current) {
-                  localVideoRef.current.srcObject = stream;
-                  // Force video to play
-                  localVideoRef.current.play().catch(e => console.log('Local video play error:', e));
+                console.log('[VideoCallDialog] WebRTC returned local stream');
+                // Stop preview stream since WebRTC has its own
+                if (previewStreamRef.current) {
+                  previewStreamRef.current.getTracks().forEach(track => track.stop());
+                  previewStreamRef.current = null;
                 }
+                setLocalStream(stream);
                 console.log('[VideoCallDialog] WebRTC initialized successfully');
             } else {
                 console.warn('[VideoCallDialog] WebRTC initialization returned null');
@@ -232,21 +305,35 @@ export function VideoCallDialog({
 
   const toggleMic = useCallback(() => {
     if (webrtcServiceRef.current) {
-      const localStream = webrtcServiceRef.current.getLocalStream();
-      const currentlyEnabled = localStream?.getAudioTracks()[0]?.enabled;
+      const stream = webrtcServiceRef.current.getLocalStream();
+      const currentlyEnabled = stream?.getAudioTracks()[0]?.enabled;
       webrtcServiceRef.current.toggleAudio(!currentlyEnabled);
       setIsMuted(!currentlyEnabled);
+    } else if (localStream) {
+      // If no WebRTC yet, toggle preview stream
+      const currentlyEnabled = localStream.getAudioTracks()[0]?.enabled;
+      localStream.getAudioTracks().forEach(track => {
+        track.enabled = !currentlyEnabled;
+      });
+      setIsMuted(!currentlyEnabled);
     }
-  }, []);
+  }, [localStream]);
 
   const toggleVideo = useCallback(() => {
     if (webrtcServiceRef.current) {
-      const localStream = webrtcServiceRef.current.getLocalStream();
-      const currentlyEnabled = localStream?.getVideoTracks()[0]?.enabled;
+      const stream = webrtcServiceRef.current.getLocalStream();
+      const currentlyEnabled = stream?.getVideoTracks()[0]?.enabled;
       webrtcServiceRef.current.toggleVideo(!currentlyEnabled);
       setIsVideoOff(!currentlyEnabled);
+    } else if (localStream) {
+      // If no WebRTC yet, toggle preview stream
+      const currentlyEnabled = localStream.getVideoTracks()[0]?.enabled;
+      localStream.getVideoTracks().forEach(track => {
+        track.enabled = !currentlyEnabled;
+      });
+      setIsVideoOff(!currentlyEnabled);
     }
-  }, []);
+  }, [localStream]);
 
   const swapCameras = useCallback(() => {
     setIsSwapped(!isSwapped);
@@ -286,15 +373,11 @@ export function VideoCallDialog({
   useEffect(() => {
     if (shouldClose) {
         const timer = setTimeout(() => {
-            onClose();
-            setLocalCallEnded(false);
-            setHasAccepted(false);
-            setIsSwapped(false);
-            initializationAttemptedRef.current = false;
+            handleEndCall();
         }, 300);
         return () => clearTimeout(timer);
     }
-  }, [shouldClose, onClose]);
+  }, [shouldClose, handleEndCall]);
 
   useEffect(() => {
     if (isOpen && currentCall) {
@@ -326,7 +409,7 @@ export function VideoCallDialog({
             {!isSwapped ? (
               // Show Local Video Large
               <>
-                {isVideoOff ? (
+                {isVideoOff || !localStream ? (
                   <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
                     <Avatar className="h-40 w-40 border-4 border-purple-500/30">
                       <AvatarImage src={selfAvatar?.imageUrl} data-ai-hint={selfAvatar?.imageHint} />
@@ -338,7 +421,7 @@ export function VideoCallDialog({
                   </div>
                 ) : (
                   <video
-                    ref={localVideoRef}
+                    ref={localVideoMainRef}
                     autoPlay
                     playsInline
                     muted
@@ -349,9 +432,9 @@ export function VideoCallDialog({
             ) : (
               // Show Remote Video Large
               <>
-                {isConnected && remoteVideoRef.current?.srcObject ? (
+                {remoteStream ? (
                   <video
-                    ref={remoteVideoRef}
+                    ref={remoteVideoMainRef}
                     autoPlay
                     playsInline
                     className="w-full h-full object-cover"
@@ -409,24 +492,40 @@ export function VideoCallDialog({
             )}
           </div>
 
-          {/* SMALL VIDEO (PiP) - Only show when connected */}
-          {isConnected && (
+          {/* SMALL VIDEO (PiP) - Show when connected OR show local preview always */}
+          {(isConnected || localStream) && (
             <div 
-              onClick={swapCameras}
-              className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/30 z-10 cursor-pointer hover:border-purple-400 transition-all group"
+              onClick={isConnected ? swapCameras : undefined}
+              className={cn(
+                "absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/30 z-10 transition-all group",
+                isConnected && "cursor-pointer hover:border-purple-400"
+              )}
             >
               {!isSwapped ? (
-                // Small: Remote Video
-                <video
-                  ref={remoteVideoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
+                // Small: Remote Video (or placeholder if not connected)
+                <>
+                  {remoteStream ? (
+                    <video
+                      ref={remoteVideoPipRef}
+                      autoPlay
+                      playsInline
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                      <Avatar className="h-16 w-16">
+                        <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
+                        <AvatarFallback className="text-xl">
+                          {contact.name.slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  )}
+                </>
               ) : (
                 // Small: Local Video
                 <>
-                  {isVideoOff ? (
+                  {isVideoOff || !localStream ? (
                     <div className="w-full h-full flex items-center justify-center bg-gray-700">
                       <Avatar className="h-16 w-16">
                         <AvatarImage src={selfAvatar?.imageUrl} data-ai-hint={selfAvatar?.imageHint} />
@@ -437,7 +536,7 @@ export function VideoCallDialog({
                     </div>
                   ) : (
                     <video
-                      ref={localVideoRef}
+                      ref={localVideoPipRef}
                       autoPlay
                       playsInline
                       muted
@@ -449,9 +548,11 @@ export function VideoCallDialog({
               <div className="absolute bottom-1 left-1 text-xs bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
                 {isSwapped ? 'You' : contact.name}
               </div>
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                <SwitchCamera className="h-8 w-8 text-white drop-shadow-lg" />
-              </div>
+              {isConnected && (
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                  <SwitchCamera className="h-8 w-8 text-white drop-shadow-lg" />
+                </div>
+              )}
             </div>
           )}
 
@@ -478,7 +579,7 @@ export function VideoCallDialog({
                 <Button
                   onClick={handleAcceptCall}
                   size="icon"
-                  className="rounded-full h-16 w-16 bg-green-600 hover:bg-green-600 shadow-lg transition-transform hover:scale-105"
+                  className="rounded-full h-16 w-16 bg-green-600 hover:bg-green-700 shadow-lg transition-transform hover:scale-105"
                   aria-label="Accept call"
                 >
                   <Phone className="h-7 w-7" />
@@ -495,7 +596,6 @@ export function VideoCallDialog({
                       ? 'bg-red-600 hover:bg-red-700' 
                       : 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'
                   )}
-                  disabled={!isActive && !hasAccepted}
                   aria-label={isMuted ? "Unmute" : "Mute"}
                 >
                   {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
@@ -510,7 +610,6 @@ export function VideoCallDialog({
                       ? 'bg-red-600 hover:bg-red-700' 
                       : 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'
                   )}
-                  disabled={!isActive && !hasAccepted}
                   aria-label={isVideoOff ? "Turn on camera" : "Turn off camera"}
                 >
                   {isVideoOff ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
@@ -552,3 +651,5 @@ export function VideoCallDialog({
     </Dialog>
   );
 }
+
+    
