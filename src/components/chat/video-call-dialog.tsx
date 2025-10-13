@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -492,40 +491,23 @@ export function VideoCallDialog({
             )}
           </div>
 
-          {/* SMALL VIDEO (PiP) - Show when connected OR show local preview always */}
-          {(isConnected || localStream) && (
+          {/* SMALL VIDEO (PiP) - Only show when connected */}
+          {isConnected && (
             <div 
-              onClick={isConnected ? swapCameras : undefined}
-              className={cn(
-                "absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/30 z-10 transition-all group",
-                isConnected && "cursor-pointer hover:border-purple-400"
-              )}
+              className="absolute top-4 right-4 w-48 h-36 bg-gray-800 rounded-lg overflow-hidden shadow-2xl border-2 border-white/30 z-10 group"
             >
               {!isSwapped ? (
-                // Small: Remote Video (or placeholder if not connected)
-                <>
-                  {remoteStream ? (
-                    <video
-                      ref={remoteVideoPipRef}
-                      autoPlay
-                      playsInline
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-700">
-                      <Avatar className="h-16 w-16">
-                        <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
-                        <AvatarFallback className="text-xl">
-                          {contact.name.slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  )}
-                </>
+                // Small: Remote Video
+                <video
+                  ref={remoteVideoPipRef}
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 // Small: Local Video
                 <>
-                  {isVideoOff || !localStream ? (
+                  {isVideoOff ? (
                     <div className="w-full h-full flex items-center justify-center bg-gray-700">
                       <Avatar className="h-16 w-16">
                         <AvatarImage src={selfAvatar?.imageUrl} data-ai-hint={selfAvatar?.imageHint} />
@@ -548,11 +530,12 @@ export function VideoCallDialog({
               <div className="absolute bottom-1 left-1 text-xs bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
                 {isSwapped ? 'You' : contact.name}
               </div>
-              {isConnected && (
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                  <SwitchCamera className="h-8 w-8 text-white drop-shadow-lg" />
-                </div>
-              )}
+              <div
+                onClick={swapCameras} 
+                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 cursor-pointer"
+              >
+                <SwitchCamera className="h-8 w-8 text-white drop-shadow-lg" />
+              </div>
             </div>
           )}
 
@@ -651,5 +634,3 @@ export function VideoCallDialog({
     </Dialog>
   );
 }
-
-    
