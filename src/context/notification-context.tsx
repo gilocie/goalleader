@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useCallback, useRef, useEffect } from 'react';
 import { Bot, Check, FileText, MessageSquare, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -63,6 +64,13 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const { toast } = useToast();
+  const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        notificationAudioRef.current = new Audio('/sounds/notifications-tones/default.mp3');
+    }
+  }, []);
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'> & { reportContent?: string }) => {
     const { reportContent, ...rest } = notification;
@@ -80,6 +88,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       link: link
     };
     setNotifications(prev => [newNotification, ...prev]);
+
+    // Play sound
+    if (notificationAudioRef.current) {
+        notificationAudioRef.current.currentTime = 0;
+        notificationAudioRef.current.play().catch(e => console.error("Notification sound failed to play:", e));
+    }
 
     // Show a toast
     toast({
@@ -133,3 +147,4 @@ export const getNotificationIcon = (type: Notification['type']) => {
         default: return <Bot className="h-5 w-5 text-primary" />;
     }
 };
+

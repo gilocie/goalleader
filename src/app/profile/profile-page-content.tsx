@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -9,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Camera, PlusCircle, Trash2, LifeBuoy, Users, Music } from 'lucide-react';
+import { Camera, PlusCircle, Trash2, LifeBuoy, Users, Music, MessageSquare, Check, Bell } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/context/theme-provider';
@@ -40,13 +41,19 @@ const branches = ["Main Office", "Lilongwe Branch", "Blantyre Branch"];
 
 const ringtones = {
     incoming: [
-        { value: 'default-incoming.mp3', label: 'Default Incoming' },
+        { value: 'default.mp3', label: 'Default' },
     ],
-    ongoing: [
-        { value: 'default-ongoing.mp3', label: 'Default Outgoing' },
+    outgoing: [
+        { value: 'default.mp3', label: 'Default' },
     ],
-    message: [
-        { value: 'default-message.mp3', label: 'Default Message' },
+    callEnd: [
+        { value: 'default.mp3', label: 'Default' },
+    ],
+    messageSent: [
+        { value: 'default.mp3', label: 'Default' },
+    ],
+    notification: [
+        { value: 'default.mp3', label: 'Default' },
     ]
 }
 
@@ -426,18 +433,25 @@ function SettingsTabContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                      <div className="flex items-center justify-between">
-                        <Label htmlFor="email-notifications">
-                            <span className="font-semibold">Email Notifications</span>
-                            <p className="text-sm text-muted-foreground">Receive updates and alerts in your inbox.</p>
+                        <Label htmlFor="chat-notifications">
+                            <span className="font-semibold flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Chat Messages</span>
+                            <p className="text-sm text-muted-foreground">Receive alerts for new chat messages.</p>
                         </Label>
-                        <Switch id="email-notifications" />
+                        <Switch id="chat-notifications" defaultChecked/>
                     </div>
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="push-notifications">
-                             <span className="font-semibold">Push Notifications</span>
-                            <p className="text-sm text-muted-foreground">Get notified directly on your device.</p>
+                        <Label htmlFor="task-notifications">
+                             <span className="font-semibold flex items-center gap-2"><Check className="h-4 w-4" /> Task Alerts</span>
+                            <p className="text-sm text-muted-foreground">Get notified for task updates and reminders.</p>
                         </Label>
-                        <Switch id="push-notifications" defaultChecked />
+                        <Switch id="task-notifications" defaultChecked />
+                    </div>
+                     <div className="flex items-center justify-between">
+                        <Label htmlFor="general-notifications">
+                             <span className="font-semibold flex items-center gap-2"><Bell className="h-4 w-4" /> General Notices</span>
+                            <p className="text-sm text-muted-foreground">Receive company-wide announcements.</p>
+                        </Label>
+                        <Switch id="general-notifications" defaultChecked />
                     </div>
                 </CardContent>
             </Card>
@@ -449,10 +463,10 @@ function SettingsTabContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="incoming-call-ringtone">
+                        <Label>
                              <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Incoming Call</span>
                         </Label>
-                         <Select defaultValue="default-incoming.mp3">
+                         <Select defaultValue="default.mp3">
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Select a tone" />
                             </SelectTrigger>
@@ -464,30 +478,60 @@ function SettingsTabContent() {
                         </Select>
                     </div>
                      <div className="flex items-center justify-between">
-                        <Label htmlFor="outgoing-call-ringtone">
+                        <Label>
                            <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Outgoing Call</span>
                         </Label>
-                        <Select defaultValue="default-ongoing.mp3">
+                        <Select defaultValue="default.mp3">
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Select a tone" />
                             </SelectTrigger>
                             <SelectContent>
-                                {ringtones.ongoing.map((tone) => (
+                                {ringtones.outgoing.map((tone) => (
                                     <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
                      <div className="flex items-center justify-between">
-                        <Label htmlFor="message-ringtone">
-                             <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> New Message</span>
+                        <Label>
+                             <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Call Ended/Rejected</span>
                         </Label>
-                        <Select defaultValue="default-message.mp3">
+                        <Select defaultValue="default.mp3">
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Select a tone" />
                             </SelectTrigger>
                             <SelectContent>
-                                {ringtones.message.map((tone) => (
+                                {ringtones.callEnd.map((tone) => (
+                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="flex items-center justify-between">
+                        <Label>
+                             <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Message Sent</span>
+                        </Label>
+                        <Select defaultValue="default.mp3">
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select a tone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ringtones.messageSent.map((tone) => (
+                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <Label>
+                             <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Notification</span>
+                        </Label>
+                        <Select defaultValue="default.mp3">
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select a tone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ringtones.notification.map((tone) => (
                                     <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
                                 ))}
                             </SelectContent>
