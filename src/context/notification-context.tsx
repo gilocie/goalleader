@@ -114,7 +114,6 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     if (notificationAudioRef.current) {
       const audio = notificationAudioRef.current;
       
-      // Stop if already playing
       if (!audio.paused) {
         audio.pause();
         audio.currentTime = 0;
@@ -124,20 +123,15 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise
-            .then(() => {
-              console.log('[Audio] ✓ Notification sound played');
-            })
+            .then(() => console.log('[Audio] ✓ Notification sound played'))
             .catch(error => {
-              if (error.name === 'NotAllowedError') {
-                console.warn('[Audio] Notification blocked by browser');
-              } else if (error.name !== 'AbortError') {
+              if (error.name !== 'AbortError') {
                 console.error('[Audio] Notification play error:', error.name);
               }
             });
         }
       };
-
-      // Play immediately if ready, otherwise wait
+      
       if (audio.readyState >= 3) {
         playSound();
       } else {
