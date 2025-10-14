@@ -11,7 +11,7 @@ import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useCollection, useDoc } from '@/firebase';
-import { useUser as useUserContext } from './user-context';
+import { useUser as useUserContext } from '@/context/user-context';
 import type { Call } from '@/types/chat';
 import { WebRTCService } from '@/lib/webrtc-service';
 
@@ -110,9 +110,22 @@ const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3'
     try {
       if (!audioRef.current) {
         audioRef.current = new Audio();
+        audioRef.current.preload = 'auto'; // Preload the audio
       }
       
       const soundPath = `/sounds/${type}/${fileName}`;
+      
+      if (audioRef.current.src.endsWith(soundPath)) {
+          // If the src is already correct, just play it.
+          const playPromise = audioRef.current.play();
+          if (playPromise !== undefined) {
+              playPromise.catch(e => {
+                  if (e.name !== 'AbortError') console.error(`[Audio] Play error for existing src:`, e);
+              });
+          }
+          return;
+      }
+
       console.log(`[Audio] Loading: ${soundPath}`);
       
       audioRef.current.src = soundPath;
@@ -125,31 +138,34 @@ const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3'
         console.error(`Please verify file exists at: public${soundPath}`);
         stopAllSounds();
       };
-
-      // Handle successful load
-      audioRef.current.onloadeddata = () => {
-        console.log(`[Audio] ✓ Loaded: ${soundPath}`);
+      
+      // Use 'canplaythrough' to ensure the audio is ready
+      const handleCanPlay = () => {
+          const playPromise = audioRef.current?.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
+              })
+              .catch(error => {
+                if (error.name === 'NotAllowedError') {
+                  console.warn('[Audio] Blocked by browser - user interaction required');
+                } else if (error.name !== 'AbortError') {
+                  console.error(`[Audio] Play error:`, error.name, error.message);
+                }
+              });
+          }
       };
+      
+      audioRef.current.addEventListener('canplaythrough', handleCanPlay, { once: true });
+      audioRef.current.load(); // Start loading the new source
 
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
-          })
-          .catch(error => {
-            if (error.name === 'NotAllowedError') {
-              console.warn('[Audio] Blocked by browser - user interaction required');
-            } else if (error.name !== 'AbortError') {
-              console.error(`[Audio] Play error:`, error.name, error.message);
-            }
-          });
-      }
     } catch (error) {
       console.error(`[Audio] Setup failed:`, error);
     }
   }, 100);
 }, [stopAllSounds]);
+
 
 // Cleanup on unmount
 useEffect(() => {
@@ -170,23 +186,23 @@ useEffect(() => {
 const allContacts = useMemo(() => {
   if (!allTeamMembers || !messages) return [];
   
-  return allTeamMembers.map(member => {
+  return allTeamMembers.map((member: any) => {
     const relevantMessages = messages.filter(
-      msg => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
+      (msg: any) => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
              (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
     );
     
-    const lastMessage = relevantMessages.sort((a, b) => {
+    const lastMessage = relevantMessages.sort((a: any, b: any) => {
       const timeA = a.timestamp?.toMillis() || 0;
       const timeB = b.timestamp?.toMillis() || 0;
       return timeB - timeA;
     })[0];
     
-    // ✅ CORRECT: Count messages that are 'delivered' or 'sent'
-    const unreadCount = messages.filter(
-      msg => msg.senderId === member.id &&
-             msg.recipientId === firebaseUser?.uid &&
-             (msg.readStatus === 'delivered' || msg.readStatus === 'sent')
+    // ✅ NEW (CORRECT) - Count messages that are NOT 'read':
+    const unreadCount = messages.filter((msg: any) => 
+        msg.senderId === member.id && 
+        msg.recipientId === firebaseUser?.uid && 
+        msg.readStatus !== 'read'  // This includes 'sent', 'delivered', and any other status except 'read'
     ).length;
 
     return {
@@ -194,13 +210,13 @@ const allContacts = useMemo(() => {
       status: member.status || 'offline',
       lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
       lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
-      // No change needed here, the unreadCount logic above is the key
-      unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
+      unreadCount: unreadCount,  // Always show actual unread count
       lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage?.readStatus : undefined,
       lastMessageSenderId: lastMessage?.senderId,
     };
   });
-}, [messages, selectedContact, firebaseUser, allTeamMembers]);
+}, [messages, firebaseUser, allTeamMembers]); // Note: selectedContact is NOT in dependencies
+
 
   // --- Real-time call listener ---
   useEffect(() => {
@@ -301,7 +317,7 @@ const allContacts = useMemo(() => {
             ? callDocToProcess.recipientId 
             : callDocToProcess.callerId;
           
-          const otherParticipant = allContacts.find(c => c.id === otherParticipantId);
+          const otherParticipant = allContacts.find((c: Contact) => c.id === otherParticipantId);
           
           if (!otherParticipant) {
             console.log('[Chat Context] Other participant not found in contacts');
@@ -353,7 +369,7 @@ const allContacts = useMemo(() => {
 
   const self = useMemo(() => {
       if (!firebaseUser) return undefined;
-      const selfInList = allContacts.find(c => c.id === firebaseUser.uid);
+      const selfInList = allContacts.find((c: Contact) => c.id === firebaseUser.uid);
       if (selfInList) return selfInList;
 
       return {
@@ -375,9 +391,9 @@ const allContacts = useMemo(() => {
   
   const contacts = useMemo(() => {
     if (!firebaseUser || !messages) return [];
-    const contactList = allContacts.filter(c => {
+    const contactList = allContacts.filter((c: Contact) => {
         if (c.id === firebaseUser.uid) return false;
-        const hasMessages = messages.some(m => 
+        const hasMessages = messages.some((m: Message) => 
             ((m.senderId === c.id && m.recipientId === firebaseUser.uid && !m.deletedByRecipient) || 
             (m.senderId === firebaseUser.uid && m.recipientId === c.id && !m.deletedBySender))
         );
@@ -386,8 +402,8 @@ const allContacts = useMemo(() => {
     
     contactList.sort((a, b) => {
         if (!firebaseUser || !messages) return 0;
-        const lastMessageA = messages.filter(m => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
-        const lastMessageB = messages.filter(m => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        const lastMessageA = messages.filter((m: Message) => (m.senderId === a.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === a.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
+        const lastMessageB = messages.filter((m: Message) => (m.senderId === b.id && m.recipientId === firebaseUser.uid) || (m.senderId === firebaseUser.uid && m.recipientId === b.id)).sort((m1, m2) => (m2.timestamp?.toMillis() || 0) - (m1.timestamp?.toMillis() || 0))[0];
         if (!lastMessageA) return 1;
         if (!lastMessageB) return -1;
         return (lastMessageB.timestamp?.toMillis() || 0) - (lastMessageA.timestamp?.toMillis() || 0);
@@ -396,7 +412,7 @@ const allContacts = useMemo(() => {
     return contactList;
   }, [allContacts, messages, firebaseUser]);
   
-  const unreadMessagesCount = useMemo(() => contacts.reduce((count, contact) => count + (contact.unreadCount || 0), 0), [contacts]);
+  const unreadMessagesCount = useMemo(() => contacts.reduce((count: number, contact: Contact) => count + (contact.unreadCount || 0), 0), [contacts]);
 
 
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
@@ -464,7 +480,7 @@ const allContacts = useMemo(() => {
  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
     if (!firestore || !self || !messages) return;
     const messageRef = doc(firestore, 'messages', messageId);
-    const messageToDelete = messages.find(m => m.id === messageId);
+    const messageToDelete = messages.find((m: Message) => m.id === messageId);
     if (!messageToDelete) return;
 
     if (deleteForEveryone) {
@@ -493,7 +509,7 @@ const allContacts = useMemo(() => {
         await updateDoc(messageRef, updateData)
             .then(() => {
                 if (setMessages) {
-                    setMessages(prev => prev.map(m =>
+                    setMessages((prev: Message[]) => prev.map(m =>
                         m.id === messageId ? { ...m, ...updateData } : m
                     ));
                 }
@@ -516,14 +532,14 @@ const allContacts = useMemo(() => {
     if (!self || !firestore || !messages) return;
     
     const chatMessagesToUpdate = messages.filter(
-      msg => ((msg.senderId === contactId && msg.recipientId === self.id) || (msg.senderId === self.id && msg.recipientId === contactId))
+      (msg: Message) => ((msg.senderId === contactId && msg.recipientId === self.id) || (msg.senderId === self.id && msg.recipientId === contactId))
     );
 
     if (chatMessagesToUpdate.length === 0) return;
 
     const batch = writeBatch(firestore);
     
-    chatMessagesToUpdate.forEach(msg => {
+    chatMessagesToUpdate.forEach((msg: Message) => {
       const messageRef = doc(firestore, 'messages', msg.id);
       if (msg.senderId === self.id) {
         batch.update(messageRef, { deletedBySender: true });
@@ -536,8 +552,8 @@ const allContacts = useMemo(() => {
       .then(() => {
         // Update local state to immediately reflect the change
         if (setMessages) {
-            const updatedMessageIds = chatMessagesToUpdate.map(m => m.id);
-            setMessages(prev => prev.map(m => {
+            const updatedMessageIds = chatMessagesToUpdate.map((m: Message) => m.id);
+            setMessages((prev: Message[]) => prev.map((m: Message) => {
             if (updatedMessageIds.includes(m.id)) {
                 if (m.senderId === self.id) {
                 return { ...m, deletedBySender: true };
@@ -780,8 +796,7 @@ const allContacts = useMemo(() => {
     setCurrentCall(null);
   }, [firestore, currentCall, incomingCallFrom, addSystemMessage, playSound]);
   
-  // Track previously seen message IDs to detect NEW messages
-const previousMessageIdsRef = useRef<Set<string>>(new Set());
+  const previousMessageIdsRef = useRef<Set<string>>(new Set());
 
 useEffect(() => {
     if (!self || !firestore || !messages) return;
@@ -872,6 +887,7 @@ useEffect(() => {
   document.addEventListener('visibilitychange', handleVisibilityChange);
   return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
 }, [selectedContact]);
+
 
   const isCallActive = useCallback(() => {
     return !!(currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active'));
