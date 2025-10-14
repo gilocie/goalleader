@@ -13,10 +13,6 @@ import { useUser as useUserContext } from './user-context';
 import type { Call } from '@/types/chat';
 import { WebRTCService } from '@/lib/webrtc-service';
 
-// Correctly import audio files
-import outgoingRing from '/public/sounds/outgoing-ring.mp3';
-import incomingRing from '/public/sounds/incoming-ring.mp3';
-
 interface ChatContextType {
   self: Contact | undefined;
   contacts: Contact[];
@@ -90,9 +86,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        incomingAudioRef.current = new Audio(incomingRing);
+        incomingAudioRef.current = new Audio('/sounds/incoming-ring.mp3');
         incomingAudioRef.current.loop = true;
-        outgoingAudioRef.current = new Audio(outgoingRing);
+        outgoingAudioRef.current = new Audio('/sounds/outgoing-ring.mp3');
         outgoingAudioRef.current.loop = true;
     }
   }, []);
