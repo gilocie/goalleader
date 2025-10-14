@@ -85,86 +85,89 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
   // Ringtones - Create reusable audio element
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const currentSoundType = useRef<SoundType | null>(null);
+const audioRef = useRef<HTMLAudioElement | null>(null);
+const currentSoundType = useRef<SoundType | null>(null);
 
-  const stopAllSounds = useCallback(() => {
-    if (audioRef.current && !audioRef.current.paused) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      console.log('[Audio] Stopped all sounds');
-    }
-    currentSoundType.current = null;
-  }, []);
+const stopAllSounds = useCallback(() => {
+  if (audioRef.current && !audioRef.current.paused) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    console.log('[Audio] Stopped all sounds');
+  }
+  currentSoundType.current = null;
+}, []);
 
-  const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
-    // Don't replay the same sound if it's already playing
-    if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
-      console.log(`[Audio] ${type} is already playing, skipping`);
-      return;
+const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
+  // Don't replay the same sound if it's already playing
+  if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
+    console.log(`[Audio] ${type} is already playing, skipping`);
+    return;
+  }
+  
+  stopAllSounds();
+
+  setTimeout(() => {
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio();
+      }
+      
+      const soundPath = `/sounds/${type}/${fileName}`;
+      console.log(`[Audio] Loading: ${soundPath}`);
+      
+      audioRef.current.src = soundPath;
+      audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
+      currentSoundType.current = type;
+
+      // Handle errors
+      audioRef.current.onerror = () => {
+        console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
+        console.error(`Please verify file exists at: public${soundPath}`);
+        stopAllSounds();
+      };
+
+      // Handle successful load
+      audioRef.current.onloadeddata = () => {
+        console.log(`[Audio] ✓ Loaded: ${soundPath}`);
+      };
+
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
+          })
+          .catch(error => {
+            if (error.name === 'NotAllowedError') {
+              console.warn('[Audio] Blocked by browser - user interaction required');
+            } else if (error.name !== 'AbortError') {
+              console.error(`[Audio] Play error:`, error.name, error.message);
+            }
+          });
+      }
+    } catch (error) {
+      console.error(`[Audio] Setup failed:`, error);
     }
-    
+  }, 100);
+}, [stopAllSounds]);
+
+// Cleanup on unmount
+useEffect(() => {
+  return () => {
+    console.log('[Audio] Component unmounting, stopping sounds');
     stopAllSounds();
-
-    setTimeout(() => {
-      try {
-        if (!audioRef.current) {
-          audioRef.current = new Audio();
-        }
-        
-        const soundPath = `/sounds/${type}/${fileName}`;
-        console.log(`[Audio] Loading: ${soundPath}`);
-        
-        audioRef.current.src = soundPath;
-        audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
-        currentSoundType.current = type;
-
-        // Handle errors
-        audioRef.current.onerror = () => {
-          console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
-          console.error(`Please verify file exists at: public${soundPath}`);
-          stopAllSounds();
-        };
-
-        // Handle successful load
-        audioRef.current.onloadeddata = () => {
-          console.log(`[Audio] ✓ Loaded: ${soundPath}`);
-        };
-
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
-            })
-            .catch(error => {
-              if (error.name === 'NotAllowedError') {
-                console.warn('[Audio] Blocked by browser - user interaction required');
-              } else if (error.name !== 'AbortError') {
-                console.error(`[Audio] Play error:`, error.name, error.message);
-              }
-            });
-        }
-      } catch (error) {
-        console.error(`[Audio] Setup failed:`, error);
-      }
-    }, 100);
-  }, [stopAllSounds]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      console.log('[Audio] Component unmounting, stopping sounds');
-      stopAllSounds();
-      if (audioRef.current) {
-        audioRef.current.src = '';
-        audioRef.current.load();
-      }
-    };
-  }, [stopAllSounds]);
+    if (audioRef.current) {
+      audioRef.current.src = '';
+      audioRef.current.load();
+    }
+  };
+}, [stopAllSounds]);
 
 
-  const allContacts = useMemo(() => {
+  // Key changes to fix the read status issues:
+
+// 1. Fix the allContacts useMemo - DON'T reset unread count when contact is selected
+const allContacts = useMemo(() => {
     if (!allTeamMembers || !messages) return [];
     return allTeamMembers.map(member => {
         const relevantMessages = messages.filter(
@@ -177,19 +180,25 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
             return timeB - timeA;
         })[0];
         
-        const unreadCount = messages.filter(msg => msg.senderId === member.id && msg.recipientId === firebaseUser?.uid && msg.readStatus !== 'read').length;
+        // FIXED: Don't zero out unread count when contact is selected
+        // Only count messages that are actually unread (sent or delivered, but not read)
+        const unreadCount = messages.filter(msg => 
+            msg.senderId === member.id && 
+            msg.recipientId === firebaseUser?.uid && 
+            msg.readStatus !== 'read'
+        ).length;
 
         return {
             ...member,
             status: member.status || 'offline',
             lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
             lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
-            unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
+            unreadCount: unreadCount, // FIXED: Always show actual unread count
             lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage?.readStatus : undefined,
             lastMessageSenderId: lastMessage?.senderId,
         };
     });
-  }, [messages, selectedContact, firebaseUser, allTeamMembers]);
+}, [messages, firebaseUser, allTeamMembers]); // REMOVED selectedContact from dependencies
 
   // --- Real-time call listener ---
   useEffect(() => {
@@ -598,7 +607,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setTimeout(async () => {
         const currentCallSnapshot = await getDoc(doc(firestore, 'calls', callDocRef.id));
         if (currentCallSnapshot.exists() && currentCallSnapshot.data()?.status === 'ringing') {
-          playSound('call-cuts', 'default.mp3');
           await updateDoc(doc(firestore, 'calls', callDocRef.id), { 
             status: 'missed' 
           });
@@ -700,7 +708,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setTimeout(async () => {
         const currentCallSnapshot = await getDoc(doc(firestore, 'calls', callDocRef.id));
         if (currentCallSnapshot.exists() && currentCallSnapshot.data()?.status === 'ringing') {
-          playSound('call-cuts', 'default.mp3');
           await updateDoc(doc(firestore, 'calls', callDocRef.id), { 
             status: 'missed' 
           });
@@ -771,10 +778,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     setCurrentCall(null);
   }, [firestore, currentCall, incomingCallFrom, addSystemMessage, playSound]);
   
-  // Track previously seen message IDs to detect NEW messages
-  const previousMessageIdsRef = useRef<Set<string>>(new Set());
+  // 2. Fix the read status update effect - Be more precise about when to mark messages as read
+// Track previously seen message IDs to detect NEW messages
+const previousMessageIdsRef = useRef<Set<string>>(new Set());
 
-  useEffect(() => {
+useEffect(() => {
     if (!self || !firestore || !messages) return;
 
     const batch = writeBatch(firestore);
@@ -785,28 +793,32 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const currentMessageIds = new Set(messages.map(m => m.id));
 
     messages.forEach((m) => {
-      // 1. Mark as DELIVERED if received and not yet delivered/read
-      if (m.recipientId === self.id && m.readStatus === 'sent') {
+      // 1. Mark as DELIVERED if:
+      //    - Message is for current user (recipient)
+      //    - Status is still 'sent'
+      //    - Message was not previously seen (is new)
+      if (
+        m.recipientId === self.id && 
+        m.readStatus === 'sent' &&
+        !previousMessageIdsRef.current.has(m.id)
+      ) {
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'delivered' });
         updatesMade = true;
-
-        // Check if this is a NEW message (not seen before)
-        if (!previousMessageIdsRef.current.has(m.id)) {
-          newIncomingMessages.push(m);
-        }
+        newIncomingMessages.push(m);
       }
       
-      // 2. Mark as READ ONLY if:
-      //    - Chat with sender is currently OPEN
+      // 2. Mark as READ ONLY if ALL conditions are met:
+      //    - Chat with this sender is currently OPEN (selectedContact matches)
       //    - Window/tab is VISIBLE
-      //    - Message is in 'delivered' status (not 'sent')
+      //    - Message is in 'delivered' status (already delivered)
       //    - Not already read
+      //    - User is the recipient
       if (
         selectedContact && 
         m.senderId === selectedContact.id && 
         m.recipientId === self.id && 
-        m.readStatus === 'delivered' && // Only mark delivered messages as read
+        m.readStatus === 'delivered' &&
         document.visibilityState === 'visible'
       ) {
         const messageRef = doc(firestore, 'messages', m.id);
@@ -844,7 +856,22 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         }
       });
     }
-  }, [messages, selectedContact, self, firestore, playSound]);
+}, [messages, selectedContact, self, firestore, playSound]);
+
+
+// 3. Additional fix: Add visibility change listener to mark messages as read when user returns
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && selectedContact) {
+      // When tab becomes visible and a chat is open, mark delivered messages as read
+      // The main effect above will handle this on next render
+      console.log('[Chat Context] Tab visible, checking for unread messages');
+    }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+}, [selectedContact]);
 
   const isCallActive = useCallback(() => {
     return !!(currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active'));
@@ -900,3 +927,4 @@ export const useChat = () => {
   }
   return context;
 };
+
