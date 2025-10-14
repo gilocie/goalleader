@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Camera, PlusCircle, Trash2, LifeBuoy, Users, Music, MessageSquare, Check, Bell } from 'lucide-react';
+import { Camera, PlusCircle, Trash2, LifeBuoy, Users, Music, MessageSquare, Check, Bell, Play } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/context/theme-provider';
@@ -384,6 +384,53 @@ function ProfileTabContent() {
 function SettingsTabContent() {
     const { theme, setTheme } = useTheme();
 
+    const [selectedTones, setSelectedTones] = useState({
+        incoming: 'default.mp3',
+        outgoing: 'default.mp3',
+        callEnd: 'default.mp3',
+        messageSent: 'default.mp3',
+        notification: 'default.mp3',
+    });
+    
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const playPreview = useCallback((path: string) => {
+        // Stop any currently playing audio
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+
+        if (!path) return;
+
+        // Create and play new audio
+        const audio = new Audio(path);
+        audioRef.current = audio;
+        audio.play();
+
+        // Stop after 5 seconds
+        setTimeout(() => {
+            if (audioRef.current === audio) {
+                audio.pause();
+                audio.currentTime = 0;
+                audioRef.current = null;
+            }
+        }, 5000);
+    }, []);
+
+    useEffect(() => {
+        // Cleanup on component unmount
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+        };
+    }, []);
+    
+    const handleToneChange = (category: keyof typeof selectedTones, value: string) => {
+        setSelectedTones(prev => ({...prev, [category]: value}));
+    }
+
     return (
         <div className="space-y-8 max-w-4xl mx-auto">
              <Card>
@@ -471,76 +518,91 @@ function SettingsTabContent() {
                         <Label>
                              <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Incoming Call</span>
                         </Label>
-                         <Select defaultValue="default.mp3">
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Select a tone" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ringtones.incoming.map((tone) => (
-                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                         <div className="flex items-center gap-2">
+                            <Select value={selectedTones.incoming} onValueChange={(value) => handleToneChange('incoming', value)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select a tone" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {ringtones.incoming.map((tone) => (
+                                        <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/incoming-tones/${selectedTones.incoming}`)}><Play className="h-4 w-4" /></Button>
+                         </div>
                     </div>
                      <div className="flex items-center justify-between">
                         <Label>
                            <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Outgoing Call</span>
                         </Label>
-                        <Select defaultValue="default.mp3">
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Select a tone" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ringtones.outgoing.map((tone) => (
-                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Select value={selectedTones.outgoing} onValueChange={(value) => handleToneChange('outgoing', value)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select a tone" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {ringtones.outgoing.map((tone) => (
+                                        <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                             <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/call-ring/${selectedTones.outgoing}`)}><Play className="h-4 w-4" /></Button>
+                        </div>
                     </div>
                      <div className="flex items-center justify-between">
                         <Label>
                              <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Call Ended/Rejected</span>
                         </Label>
-                        <Select defaultValue="default.mp3">
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Select a tone" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ringtones.callEnd.map((tone) => (
-                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Select value={selectedTones.callEnd} onValueChange={(value) => handleToneChange('callEnd', value)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select a tone" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {ringtones.callEnd.map((tone) => (
+                                        <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/call-cuts/${selectedTones.callEnd}`)}><Play className="h-4 w-4" /></Button>
+                        </div>
                     </div>
                      <div className="flex items-center justify-between">
                         <Label>
                              <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Message Sent</span>
                         </Label>
-                        <Select defaultValue="default.mp3">
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Select a tone" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ringtones.messageSent.map((tone) => (
-                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Select value={selectedTones.messageSent} onValueChange={(value) => handleToneChange('messageSent', value)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select a tone" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {ringtones.messageSent.map((tone) => (
+                                        <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/message-sent/${selectedTones.messageSent}`)}><Play className="h-4 w-4" /></Button>
+                        </div>
                     </div>
                     <div className="flex items-center justify-between">
                         <Label>
                              <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Notification</span>
                         </Label>
-                        <Select defaultValue="default.mp3">
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Select a tone" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {ringtones.notification.map((tone) => (
-                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Select value={selectedTones.notification} onValueChange={(value) => handleToneChange('notification', value)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Select a tone" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {ringtones.notification.map((tone) => (
+                                        <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/notifications-tones/${selectedTones.notification}`)}><Play className="h-4 w-4" /></Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -647,6 +709,7 @@ export function ProfilePageContent() {
     
 
     
+
 
 
 
