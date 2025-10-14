@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -102,40 +103,25 @@ export function VideoCallDialog({
 
   // Update ALL video elements when streams or swap state changes
   useEffect(() => {
-    console.log('[VideoCallDialog] Updating video assignments - Swapped:', isSwapped, 'Local:', !!localStream, 'Remote:', !!remoteStream);
+    console.log('[VideoCallDialog] Updating video assignments - Swapped:', isSwapped, 'Local:', !!localStream, 'Remote:', !!remoteStream, 'Connected:', isConnected);
     
-    if (!isSwapped) {
-      // Normal mode: Local = main, Remote = PiP
-      if (localVideoMainRef.current && localStream) {
+    // Assign local stream to its potential elements
+    if (localVideoMainRef.current && localStream) {
         localVideoMainRef.current.srcObject = localStream;
-      }
-      if (remoteVideoPipRef.current && remoteStream) {
-        remoteVideoPipRef.current.srcObject = remoteStream;
-      }
-      // Clear the unused refs
-      if (remoteVideoMainRef.current) {
-        remoteVideoMainRef.current.srcObject = null;
-      }
-      if (localVideoPipRef.current) {
-        localVideoPipRef.current.srcObject = null;
-      }
-    } else {
-      // Swapped mode: Remote = main, Local = PiP
-      if (remoteVideoMainRef.current && remoteStream) {
-        remoteVideoMainRef.current.srcObject = remoteStream;
-      }
-      if (localVideoPipRef.current && localStream) {
-        localVideoPipRef.current.srcObject = localStream;
-      }
-      // Clear the unused refs
-      if (localVideoMainRef.current) {
-        localVideoMainRef.current.srcObject = null;
-      }
-      if (remoteVideoPipRef.current) {
-        remoteVideoPipRef.current.srcObject = null;
-      }
     }
-  }, [localStream, remoteStream, isSwapped, isVideoOff]);
+    if (localVideoPipRef.current && localStream) {
+        localVideoPipRef.current.srcObject = localStream;
+    }
+
+    // Assign remote stream to its potential elements
+    if (remoteVideoMainRef.current && remoteStream) {
+        remoteVideoMainRef.current.srcObject = remoteStream;
+    }
+    if (remoteVideoPipRef.current && remoteStream) {
+        remoteVideoPipRef.current.srcObject = remoteStream;
+    }
+    
+  }, [localStream, remoteStream, isSwapped, isVideoOff, isConnected]);
 
   const handleRemoteStream = useCallback((stream: MediaStream) => {
     console.log('[VideoCallDialog] ✅ Received remote stream with tracks:', {
