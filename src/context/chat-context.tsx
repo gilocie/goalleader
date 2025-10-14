@@ -92,12 +92,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (audioRef.current && !audioRef.current.paused) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+      console.log('[Audio] Stopped all sounds');
     }
     currentSoundType.current = null;
   }, []);
 
   const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
+    // Don't replay the same sound if it's already playing
     if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
+      console.log(`[Audio] ${type} is already playing, skipping`);
       return;
     }
     
@@ -110,31 +113,40 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         }
         
         const soundPath = `/sounds/${type}/${fileName}`;
+        console.log(`[Audio] Loading: ${soundPath}`);
         
         audioRef.current.src = soundPath;
         audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
         currentSoundType.current = type;
 
-        audioRef.current.oncanplaythrough = () => {
-          const playPromise = audioRef.current?.play();
-          if (playPromise !== undefined) {
-            playPromise.catch(error => {
-              if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-                console.error(`[Audio] Play error for ${type}:`, error);
-              }
-            });
-          }
-        };
-
+        // Handle errors
         audioRef.current.onerror = () => {
           console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
+          console.error(`Please verify file exists at: public${soundPath}`);
           stopAllSounds();
         };
 
-        audioRef.current.load();
+        // Handle successful load
+        audioRef.current.onloadeddata = () => {
+          console.log(`[Audio] ✓ Loaded: ${soundPath}`);
+        };
 
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
+            })
+            .catch(error => {
+              if (error.name === 'NotAllowedError') {
+                console.warn('[Audio] Blocked by browser - user interaction required');
+              } else if (error.name !== 'AbortError') {
+                console.error(`[Audio] Play error:`, error.name, error.message);
+              }
+            });
+        }
       } catch (error) {
-        console.error(`[Audio] Setup failed for ${type}:`, error);
+        console.error(`[Audio] Setup failed:`, error);
       }
     }, 100);
   }, [stopAllSounds]);
@@ -143,6 +155,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      console.log('[Audio] Component unmounting, stopping sounds');
       stopAllSounds();
       if (audioRef.current) {
         audioRef.current.src = '';
@@ -223,7 +236,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           
           // Handle ended/declined/missed calls
           if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
-            playSound('call-cuts', 'default.mp3');
             // Clear all call-related states when call ends
             if (currentCall?.id === callData.id) {
               console.log('[Chat Context] Call ended/declined/missed, clearing states');
@@ -634,7 +646,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const endVoiceCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
-    
+    playSound('call-cuts', 'default.mp3');
     try {
       // Update call status in Firestore
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
@@ -655,15 +667,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setIncomingVoiceCallFrom(null);
       setIsVoiceCallOpen(false);
     }
-  }, [firestore, currentCall, addSystemMessage]);
+  }, [firestore, currentCall, addSystemMessage, playSound]);
   
   const declineVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
+    playSound('call-cuts', 'default.mp3');
     await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
     addSystemMessage(`Missed voice call from ${incomingVoiceCallFrom.name}`, incomingVoiceCallFrom.id, 'voice');
     setIncomingVoiceCallFrom(null);
     setCurrentCall(null);
-  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
+  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage, playSound]);
 
   const startCall = useCallback(async (contact: Contact) => {
     if (!self || !firestore) return;
@@ -727,7 +740,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const endCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
-    
+    playSound('call-cuts', 'default.mp3');
     try {
       // Update call status in Firestore
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
@@ -748,15 +761,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setIncomingCallFrom(null);
       setIsVideoCallOpen(false);
     }
-  }, [firestore, currentCall, addSystemMessage]);
+  }, [firestore, currentCall, addSystemMessage, playSound]);
 
   const declineCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingCallFrom) return;
+    playSound('call-cuts', 'default.mp3');
     await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
     addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id, 'video');
     setIncomingCallFrom(null);
     setCurrentCall(null);
-  }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
+  }, [firestore, currentCall, incomingCallFrom, addSystemMessage, playSound]);
   
   useEffect(() => {
     if (!self || !firestore || !messages) return;
