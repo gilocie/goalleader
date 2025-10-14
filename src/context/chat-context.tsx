@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect, useRef } from 'react';
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
@@ -12,6 +12,10 @@ import { useCollection, useDoc } from '@/firebase';
 import { useUser as useUserContext } from './user-context';
 import type { Call } from '@/types/chat';
 import { WebRTCService } from '@/lib/webrtc-service';
+
+// Correctly import audio files
+import outgoingRing from '/public/sounds/outgoing-ring.mp3';
+import incomingRing from '/public/sounds/incoming-ring.mp3';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -79,6 +83,30 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
+
+  // Ringtones
+  const incomingAudioRef = useRef<HTMLAudioElement | null>(null);
+  const outgoingAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        incomingAudioRef.current = new Audio(incomingRing);
+        incomingAudioRef.current.loop = true;
+        outgoingAudioRef.current = new Audio(outgoingRing);
+        outgoingAudioRef.current.loop = true;
+    }
+  }, []);
+
+  const stopAllRingtones = useCallback(() => {
+    if (incomingAudioRef.current) {
+        incomingAudioRef.current.pause();
+        incomingAudioRef.current.currentTime = 0;
+    }
+    if (outgoingAudioRef.current) {
+        outgoingAudioRef.current.pause();
+        outgoingAudioRef.current.currentTime = 0;
+    }
+  }, []);
 
   const allContacts = useMemo(() => {
     if (!allTeamMembers || !messages) return [];
@@ -151,6 +179,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           
           // Handle ended/declined/missed calls
           if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
+            stopAllRingtones();
             // Clear all call-related states when call ends
             if (currentCall?.id === callData.id) {
               console.log('[Chat Context] Call ended/declined/missed, clearing states');
@@ -186,6 +215,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         
         // If no active calls, clear everything
         if (!hasActiveCall) {
+          stopAllRingtones();
           console.log('[Chat Context] No active calls, clearing all states');
           setCurrentCall(null);
           setAcceptedCallContact(null);
@@ -216,6 +246,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           
           // Handle incoming calls
           if (callDocToProcess.recipientId === firebaseUser.uid && callDocToProcess.status === 'ringing') {
+            incomingAudioRef.current?.play().catch(e => console.error("Error playing incoming ring:", e));
             if (callDocToProcess.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
@@ -227,6 +258,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           
           // Handle accepted calls
           else if (callDocToProcess.status === 'active') {
+            stopAllRingtones();
             if (callDocToProcess.type === 'voice') {
               setAcceptedVoiceCallContact(otherParticipant);
               setIncomingVoiceCallFrom(null);
@@ -251,7 +283,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     );
   
     return () => unsubscribe();
-  }, [firestore, firebaseUser, allContacts, currentCall]);
+  }, [firestore, firebaseUser, allContacts, currentCall, stopAllRingtones]);
 
   const self = useMemo(() => {
       if (!firebaseUser) return undefined;
@@ -491,6 +523,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!self || !firestore) return;
     
     try {
+      outgoingAudioRef.current?.play().catch(e => console.error("Error playing outgoing ring:", e));
       const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
@@ -510,6 +543,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setTimeout(async () => {
         const currentCallSnapshot = await getDoc(doc(firestore, 'calls', callDocRef.id));
         if (currentCallSnapshot.exists() && currentCallSnapshot.data()?.status === 'ringing') {
+          stopAllRingtones();
           await updateDoc(doc(firestore, 'calls', callDocRef.id), { 
             status: 'missed' 
           });
@@ -519,11 +553,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       
     } catch (error) {
       console.error('Failed to start voice call:', error);
+      stopAllRingtones();
     }
-  }, [self, firestore, addSystemMessage]);
+  }, [self, firestore, addSystemMessage, stopAllRingtones]);
   
   const acceptVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
+    stopAllRingtones();
   
     console.log('[Chat Context] ==== ACCEPTING VOICE CALL ====');
     console.log('[Chat Context] Call ID:', currentCall.id);
@@ -550,10 +586,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('[Chat Context] ✗ Failed to accept voice call:', error);
     }
-  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
+  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage, stopAllRingtones]);
 
   const endVoiceCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
+    stopAllRingtones();
     
     try {
       // Update call status in Firestore
@@ -575,20 +612,22 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setIncomingVoiceCallFrom(null);
       setIsVoiceCallOpen(false);
     }
-  }, [firestore, currentCall, addSystemMessage]);
+  }, [firestore, currentCall, addSystemMessage, stopAllRingtones]);
   
   const declineVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
+    stopAllRingtones();
     await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
     addSystemMessage(`Missed voice call from ${incomingVoiceCallFrom.name}`, incomingVoiceCallFrom.id, 'voice');
     setIncomingVoiceCallFrom(null);
     setCurrentCall(null);
-  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
+  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage, stopAllRingtones]);
 
   const startCall = useCallback(async (contact: Contact) => {
     if (!self || !firestore) return;
     
     try {
+      outgoingAudioRef.current?.play().catch(e => console.error("Error playing outgoing ring:", e));
       const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
@@ -607,6 +646,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setTimeout(async () => {
         const currentCallSnapshot = await getDoc(doc(firestore, 'calls', callDocRef.id));
         if (currentCallSnapshot.exists() && currentCallSnapshot.data()?.status === 'ringing') {
+          stopAllRingtones();
           await updateDoc(doc(firestore, 'calls', callDocRef.id), { 
             status: 'missed' 
           });
@@ -616,11 +656,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       
     } catch (error) {
       console.error('Failed to start video call:', error);
+      stopAllRingtones();
     }
-  }, [self, firestore, addSystemMessage]);
+  }, [self, firestore, addSystemMessage, stopAllRingtones]);
 
   const acceptCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingCallFrom) return;
+    stopAllRingtones();
     
     try {
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
@@ -639,10 +681,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Failed to accept video call:', error);
     }
-  }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
+  }, [firestore, currentCall, incomingCallFrom, addSystemMessage, stopAllRingtones]);
   
   const endCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
+    stopAllRingtones();
     
     try {
       // Update call status in Firestore
@@ -664,15 +707,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setIncomingCallFrom(null);
       setIsVideoCallOpen(false);
     }
-  }, [firestore, currentCall, addSystemMessage]);
+  }, [firestore, currentCall, addSystemMessage, stopAllRingtones]);
 
   const declineCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingCallFrom) return;
+    stopAllRingtones();
     await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
     addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id, 'video');
     setIncomingCallFrom(null);
     setCurrentCall(null);
-  }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
+  }, [firestore, currentCall, incomingCallFrom, addSystemMessage, stopAllRingtones]);
   
   useEffect(() => {
     if (!self || !firestore || !messages) return;
