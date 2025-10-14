@@ -105,7 +105,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
     
     stopAllSounds();
-
+  
     setTimeout(() => {
       try {
         if (!audioRef.current) {
@@ -118,19 +118,19 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         audioRef.current.src = soundPath;
         audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
         currentSoundType.current = type;
-
+  
         // Handle errors
         audioRef.current.onerror = () => {
           console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
           console.error(`Please verify file exists at: public${soundPath}`);
           stopAllSounds();
         };
-
+  
         // Handle successful load
         audioRef.current.onloadeddata = () => {
           console.log(`[Audio] ✓ Loaded: ${soundPath}`);
         };
-
+  
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
           playPromise
