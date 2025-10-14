@@ -168,37 +168,39 @@ useEffect(() => {
 
 // 1. Fix the allContacts useMemo - DON'T reset unread count when contact is selected
 const allContacts = useMemo(() => {
-    if (!allTeamMembers || !messages) return [];
-    return allTeamMembers.map(member => {
-        const relevantMessages = messages.filter(
-            msg => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
-                   (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
-        );
-        const lastMessage = relevantMessages.sort((a, b) => {
-            const timeA = a.timestamp?.toMillis() || 0;
-            const timeB = b.timestamp?.toMillis() || 0;
-            return timeB - timeA;
-        })[0];
-        
-        // FIXED: Don't zero out unread count when contact is selected
-        // Only count messages that are actually unread (sent or delivered, but not read)
-        const unreadCount = messages.filter(msg => 
-            msg.senderId === member.id && 
-            msg.recipientId === firebaseUser?.uid && 
-            msg.readStatus !== 'read'
-        ).length;
+  if (!allTeamMembers || !messages) return [];
+  
+  return allTeamMembers.map(member => {
+    const relevantMessages = messages.filter(
+      msg => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
+             (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
+    );
+    
+    const lastMessage = relevantMessages.sort((a, b) => {
+      const timeA = a.timestamp?.toMillis() || 0;
+      const timeB = b.timestamp?.toMillis() || 0;
+      return timeB - timeA;
+    })[0];
+    
+    // ✅ CORRECT: Count messages that are 'delivered' or 'sent'
+    const unreadCount = messages.filter(
+      msg => msg.senderId === member.id &&
+             msg.recipientId === firebaseUser?.uid &&
+             (msg.readStatus === 'delivered' || msg.readStatus === 'sent')
+    ).length;
 
-        return {
-            ...member,
-            status: member.status || 'offline',
-            lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
-            lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
-            unreadCount: unreadCount, // FIXED: Always show actual unread count
-            lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage?.readStatus : undefined,
-            lastMessageSenderId: lastMessage?.senderId,
-        };
-    });
-}, [messages, firebaseUser, allTeamMembers]); // REMOVED selectedContact from dependencies
+    return {
+      ...member,
+      status: member.status || 'offline',
+      lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
+      lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
+      // No change needed here, the unreadCount logic above is the key
+      unreadCount: selectedContact?.id === member.id ? 0 : unreadCount,
+      lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage?.readStatus : undefined,
+      lastMessageSenderId: lastMessage?.senderId,
+    };
+  });
+}, [messages, selectedContact, firebaseUser, allTeamMembers]);
 
   // --- Real-time call listener ---
   useEffect(() => {
@@ -861,9 +863,8 @@ useEffect(() => {
 useEffect(() => {
   const handleVisibilityChange = () => {
     if (document.visibilityState === 'visible' && selectedContact) {
-      // When tab becomes visible and a chat is open, trigger a re-evaluation of the read status effect
-      // This is handled implicitly because the main effect runs on `messages` changes, and this interaction
-      // will cause a re-render which can re-trigger the check if needed.
+      // When tab becomes visible and a chat is open, mark delivered messages as read
+      // The main effect above will handle this on next render
       console.log('[Chat Context] Tab visible, checking for unread messages');
     }
   };
@@ -926,4 +927,3 @@ export const useChat = () => {
   }
   return context;
 };
-

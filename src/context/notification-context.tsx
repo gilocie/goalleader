@@ -66,90 +66,90 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('[Audio] Initializing notification sound');
-      notificationAudioRef.current = new Audio();
-      notificationAudioRef.current.preload = 'auto';
-      notificationAudioRef.current.src = '/sounds/notifications-tones/default.mp3';
-      
-      // Verify file loads
-      notificationAudioRef.current.onerror = () => {
-        console.error('[Audio] ❌ Failed to load notification sound');
-        console.error('Please verify: public/sounds/notifications-tones/default.mp3');
-      };
-      
-      notificationAudioRef.current.onloadeddata = () => {
-        console.log('[Audio] ✓ Notification sound ready');
-      };
-    }
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    console.log('[Audio] Initializing notification sound');
+    notificationAudioRef.current = new Audio();
+    notificationAudioRef.current.preload = 'auto';
+    notificationAudioRef.current.src = '/sounds/notifications-tones/default.mp3';
     
-    return () => {
-      if (notificationAudioRef.current) {
-        notificationAudioRef.current.pause();
-        notificationAudioRef.current.src = '';
-        notificationAudioRef.current.load();
-      }
+    // Verify file loads
+    notificationAudioRef.current.onerror = () => {
+      console.error('[Audio] ❌ Failed to load notification sound');
+      console.error('Please verify: public/sounds/notifications-tones/default.mp3');
     };
-  }, []);
-
-  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'> & { reportContent?: string }) => {
-    const { reportContent, ...rest } = notification;
     
-    let link = notification.link;
-    if (reportContent && link) {
-      link = `${link}?reportContent=${encodeURIComponent(reportContent)}`;
-    }
-    
-    const newNotification: Notification = {
-      ...rest,
-      id: new Date().toISOString() + Math.random(),
-      timestamp: new Date().toISOString(),
-      read: false,
-      link: link
+    notificationAudioRef.current.onloadeddata = () => {
+      console.log('[Audio] ✓ Notification sound ready');
     };
-    setNotifications(prev => [newNotification, ...prev]);
-
-    // Play sound
+  }
+  
+  return () => {
     if (notificationAudioRef.current) {
-      const audio = notificationAudioRef.current;
-      
-      // Stop if already playing
-      if (!audio.paused) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
+      notificationAudioRef.current.pause();
+      notificationAudioRef.current.src = '';
+      notificationAudioRef.current.load();
+    }
+  };
+}, []);
 
-      const playSound = () => {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('[Audio] ✓ Notification sound played');
-            })
-            .catch(error => {
-              if (error.name === 'NotAllowedError') {
-                console.warn('[Audio] Notification blocked by browser');
-              } else if (error.name !== 'AbortError') {
-                console.error('[Audio] Notification play error:', error.name);
-              }
-            });
-        }
-      };
+const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'> & { reportContent?: string }) => {
+  const { reportContent, ...rest } = notification;
+  
+  let link = notification.link;
+  if (reportContent && link) {
+    link = `${link}?reportContent=${encodeURIComponent(reportContent)}`;
+  }
+  
+  const newNotification: Notification = {
+    ...rest,
+    id: new Date().toISOString() + Math.random(),
+    timestamp: new Date().toISOString(),
+    read: false,
+    link: link
+  };
+  setNotifications(prev => [newNotification, ...prev]);
 
-      // Play immediately if ready, otherwise wait
-      if (audio.readyState >= 3) {
-        playSound();
-      } else {
-        audio.addEventListener('canplaythrough', playSound, { once: true });
-      }
+  // Play sound
+  if (notificationAudioRef.current) {
+    const audio = notificationAudioRef.current;
+    
+    // Stop if already playing
+    if (!audio.paused) {
+      audio.pause();
+      audio.currentTime = 0;
     }
 
-    toast({
-      title: notification.title,
-      description: <p className='line-clamp-2'>{notification.message}</p>
-    });
-  }, [toast]);
+    const playSound = () => {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('[Audio] ✓ Notification sound played');
+          })
+          .catch(error => {
+            if (error.name === 'NotAllowedError') {
+              console.warn('[Audio] Notification blocked by browser');
+            } else if (error.name !== 'AbortError') {
+              console.error('[Audio] Notification play error:', error.name);
+            }
+          });
+      }
+    };
+
+    // Play immediately if ready, otherwise wait
+    if (audio.readyState >= 3) {
+      playSound();
+    } else {
+      audio.addEventListener('canplaythrough', playSound, { once: true });
+    }
+  }
+
+  toast({
+    title: notification.title,
+    description: <p className='line-clamp-2'>{notification.message}</p>
+  });
+}, [toast]);
 
   const markAsRead = (id: string) => {
     setNotifications(prev =>
