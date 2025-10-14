@@ -56,6 +56,8 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
+type SoundType = 'call-cuts' | 'call-ring' | 'incoming-tones' | 'message-sent';
+
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user: firebaseUser } = useUser(); // Firebase user
   const { allTeamMembers, updateUserStatus } = useUserContext();
@@ -83,12 +85,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
   // Ringtones
-  const audioRefs = useRef<{ [key: string]: HTMLAudioElement | null }>({
-    'call-cuts': null,
-    'call-ring': null,
-    'incoming-tones': null,
-    'message-sent': null,
-  });
+  const audioRefs = useRef<{ [key in SoundType]?: HTMLAudioElement }>({});
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -97,12 +94,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         audioRefs.current['incoming-tones'] = new Audio('/sounds/incoming-tones/default.mp3');
         audioRefs.current['message-sent'] = new Audio('/sounds/message-sent/default.mp3');
         
-        audioRefs.current['call-ring'].loop = true;
-        audioRefs.current['incoming-tones'].loop = true;
+        if (audioRefs.current['call-ring']) audioRefs.current['call-ring'].loop = true;
+        if (audioRefs.current['incoming-tones']) audioRefs.current['incoming-tones'].loop = true;
     }
   }, []);
 
-  const playSound = useCallback((type: 'call-cuts' | 'call-ring' | 'incoming-tones' | 'message-sent') => {
+  const playSound = useCallback((type: SoundType) => {
     stopAllSounds();
     const audio = audioRefs.current[type];
     if (audio) {
