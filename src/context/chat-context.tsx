@@ -180,9 +180,6 @@ useEffect(() => {
 }, [stopAllSounds]);
 
 
-  // Key changes to fix the read status issues:
-
-// 1. Fix the allContacts useMemo - DON'T reset unread count when contact is selected
 const allContacts = useMemo(() => {
   if (!allTeamMembers || !messages) return [];
   
@@ -215,7 +212,7 @@ const allContacts = useMemo(() => {
       lastMessageSenderId: lastMessage?.senderId,
     };
   });
-}, [messages, firebaseUser, allTeamMembers]); // Note: selectedContact is NOT in dependencies
+}, [messages, firebaseUser, allTeamMembers]);
 
 
   // --- Real-time call listener ---
@@ -265,6 +262,8 @@ const allContacts = useMemo(() => {
             // Clear all call-related states when call ends
             if (currentCall?.id === callData.id) {
               console.log('[Chat Context] Call ended/declined/missed, clearing states');
+              
+              playSound('call-cuts', 'default.mp3');
               
               // Clear all states immediately
               setCurrentCall(null);
@@ -796,7 +795,7 @@ const allContacts = useMemo(() => {
     setCurrentCall(null);
   }, [firestore, currentCall, incomingCallFrom, addSystemMessage, playSound]);
   
-  const previousMessageIdsRef = useRef<Set<string>>(new Set());
+const previousMessageIdsRef = useRef<Set<string>>(new Set());
 
 useEffect(() => {
     if (!self || !firestore || !messages) return;
