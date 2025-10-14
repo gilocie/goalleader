@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -214,8 +215,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
         </div>
 
         <TabsContent value="chats" className="flex-1 flex flex-col overflow-hidden mt-0">
-            <ScrollArea className="h-full">
-            <div className="p-2 space-y-2">
+            <ScrollArea className="h-full p-2 space-y-2">
                 <ActionToolbar 
                     selectedCount={selectedChats.length}
                     allSelected={selectedChats.length > 0 && selectedChats.length === filteredContacts.length}
@@ -298,13 +298,11 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                         </Button>
                     </div>
                 )}
-                </div>
             </ScrollArea>
         </TabsContent>
         
         <TabsContent value="calls" className="flex-1 flex flex-col overflow-hidden mt-0">
-            <ScrollArea className="h-full">
-            <div className="p-2 space-y-2">
+            <ScrollArea className="h-full p-2 space-y-2">
                 <ActionToolbar 
                     selectedCount={selectedCalls.length}
                     allSelected={selectedCalls.length > 0 && selectedCalls.length === filteredCallLogs.length}
@@ -317,26 +315,21 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                     return <CallLogItem key={message.id} message={message} contact={contact} onSelect={handleCallSelect} isSelected={selectedCalls.includes(message.id)} />;
                 })}
                 {filteredCallLogs.length === 0 && (
-                    <div className="flex items-center justify-center text-center py-6 space-y-2">
+                    <div className="flex items-center justify-center pt-2 pb-4">
                         <div className="text-center space-y-1">
                             <Phone className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-                            <h3 className="text-sm font-medium">No Call History</h3>
-                            <p className="text-xs text-muted-foreground">Your recent calls will appear here.</p>
+                            <p className="text-sm text-muted-foreground">No call history yet</p>
                         </div>
                     </div>
                 )}
-                </div>
             </ScrollArea>
         </TabsContent>
 
         <TabsContent value="archive" className="flex-1 overflow-hidden mt-0">
-          <div className="flex items-center justify-center text-center py-6 space-y-2">
+          <div className="flex items-center justify-center pt-2 pb-4">
             <div className="text-center space-y-1">
               <Archive className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
-              <h3 className="text-sm font-medium">Archived Chats</h3>
-              <p className="text-xs text-muted-foreground">
-                Your archived conversations will appear here.
-              </p>
+              <p className="text-sm text-muted-foreground">No archived chats</p>
             </div>
           </div>
         </TabsContent>
@@ -350,3 +343,5 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
     </>
   );
 }
+
+    
