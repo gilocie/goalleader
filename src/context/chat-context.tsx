@@ -87,6 +87,14 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   // Ringtones
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const stopAllSounds = useCallback(() => {
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+    }
+  }, []);
+
   const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
     stopAllSounds();
     const audio = new Audio(`/sounds/${type}/${fileName}`);
@@ -96,16 +104,17 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         audio.loop = true;
     }
 
-    audio.play().catch(e => console.error(`Error playing ${type} sound:`, e));
-  }, []);
-
-  const stopAllSounds = useCallback(() => {
-    if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        audioRef.current = null;
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            // Autoplay was prevented. This is a common browser restriction.
+            if (error.name !== 'NotAllowedError') {
+                 console.error(`Error playing ${type} sound:`, error);
+            }
+        });
     }
-  }, []);
+  }, [stopAllSounds]);
+
 
   const allContacts = useMemo(() => {
     if (!allTeamMembers || !messages) return [];
@@ -523,7 +532,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!self || !firestore) return;
     
     try {
-      playSound('call-ring');
+      playSound('call-ring', 'goal-calling1.mp3');
       const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
@@ -627,7 +636,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!self || !firestore) return;
     
     try {
-      playSound('call-ring');
+      playSound('call-ring', 'goal-calling1.mp3');
       const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
