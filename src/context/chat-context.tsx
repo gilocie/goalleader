@@ -22,9 +22,9 @@ interface ChatContextType {
   messages: Message[];
   unreadMessagesCount: number;
   selectedContact: Contact | null;
-  setSelectedContact: Dispatch<SetStateAction<Contact | null>>;
+  setSelectedContact: Dispatch<React.SetStateAction<Contact | null>>;
   inputMessage: string;
-  setInputMessage: Dispatch<SetStateAction<string>>;
+  setInputMessage: Dispatch<React.SetStateAction<string>>;
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
   updateMessage: (messageId: string, newContent: string) => void;
   deleteMessage: (messageId: string, deleteForEveryone: boolean) => void;
@@ -39,18 +39,18 @@ interface ChatContextType {
   acceptCall: () => void;
   declineCall: () => void;
   acceptedCallContact: Contact | null;
-  setAcceptedCallContact: Dispatch<SetStateAction<Contact | null>>;
+  setAcceptedCallContact: Dispatch<React.SetStateAction<Contact | null>>;
   incomingVoiceCallFrom: Contact | null;
   startVoiceCall: (contact: Contact) => void;
   endVoiceCall: (contactId: string) => void;
   acceptVoiceCall: () => void;
   declineVoiceCall: () => void;
   acceptedVoiceCallContact: Contact | null;
-  setAcceptedVoiceCallContact: Dispatch<SetStateAction<Contact | null>>;
+  setAcceptedVoiceCallContact: Dispatch<React.SetStateAction<Contact | null>>;
   isVideoCallOpen: boolean;
-  setIsVideoCallOpen: Dispatch<SetStateAction<boolean>>;
+  setIsVideoCallOpen: Dispatch<React.SetStateAction<boolean>>;
   isVoiceCallOpen: boolean;
-  setIsVoiceCallOpen: Dispatch<SetStateAction<boolean>>;
+  setIsVoiceCallOpen: Dispatch<React.SetStateAction<boolean>>;
   isCallActive: () => boolean;
 }
 
@@ -85,83 +85,83 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
   // Ringtones - Create reusable audio element
-const audioRef = useRef<HTMLAudioElement | null>(null);
-const currentSoundType = useRef<SoundType | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentSoundType = useRef<SoundType | null>(null);
 
-const stopAllSounds = useCallback(() => {
-  if (audioRef.current && !audioRef.current.paused) {
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-    console.log('[Audio] Stopped all sounds');
-  }
-  currentSoundType.current = null;
-}, []);
-
-const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
-  // Don't replay the same sound if it's already playing
-  if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
-    console.log(`[Audio] ${type} is already playing, skipping`);
-    return;
-  }
-  
-  stopAllSounds();
-
-  setTimeout(() => {
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio();
-      }
-      
-      const soundPath = `/sounds/${type}/${fileName}`;
-      console.log(`[Audio] Loading: ${soundPath}`);
-      
-      audioRef.current.src = soundPath;
-      audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
-      currentSoundType.current = type;
-
-      // Handle errors
-      audioRef.current.onerror = () => {
-        console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
-        console.error(`Please verify file exists at: public${soundPath}`);
-        stopAllSounds();
-      };
-
-      // Handle successful load
-      audioRef.current.onloadeddata = () => {
-        console.log(`[Audio] ✓ Loaded: ${soundPath}`);
-      };
-
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
-          })
-          .catch(error => {
-            if (error.name === 'NotAllowedError') {
-              console.warn('[Audio] Blocked by browser - user interaction required');
-            } else if (error.name !== 'AbortError') {
-              console.error(`[Audio] Play error:`, error.name, error.message);
-            }
-          });
-      }
-    } catch (error) {
-      console.error(`[Audio] Setup failed:`, error);
+  const stopAllSounds = useCallback(() => {
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      console.log('[Audio] Stopped all sounds');
     }
-  }, 100);
-}, [stopAllSounds]);
+    currentSoundType.current = null;
+  }, []);
 
-// Cleanup on unmount
-useEffect(() => {
-  return () => {
-    console.log('[Audio] Component unmounting, stopping sounds');
+  const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
+    // Don't replay the same sound if it's already playing
+    if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
+      console.log(`[Audio] ${type} is already playing, skipping`);
+      return;
+    }
+    
     stopAllSounds();
-    if (audioRef.current) {
-      audioRef.current.src = '';
-      audioRef.current.load();
-    }
-  };
-}, [stopAllSounds]);
+
+    setTimeout(() => {
+      try {
+        if (!audioRef.current) {
+          audioRef.current = new Audio();
+        }
+        
+        const soundPath = `/sounds/${type}/${fileName}`;
+        console.log(`[Audio] Loading: ${soundPath}`);
+        
+        audioRef.current.src = soundPath;
+        audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
+        currentSoundType.current = type;
+
+        // Handle errors
+        audioRef.current.onerror = () => {
+          console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
+          console.error(`Please verify file exists at: public${soundPath}`);
+          stopAllSounds();
+        };
+
+        // Handle successful load
+        audioRef.current.onloadeddata = () => {
+          console.log(`[Audio] ✓ Loaded: ${soundPath}`);
+        };
+
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
+            })
+            .catch(error => {
+              if (error.name === 'NotAllowedError') {
+                console.warn('[Audio] Blocked by browser - user interaction required');
+              } else if (error.name !== 'AbortError') {
+                console.error(`[Audio] Play error:`, error.name, error.message);
+              }
+            });
+        }
+      } catch (error) {
+        console.error(`[Audio] Setup failed:`, error);
+      }
+    }, 100);
+  }, [stopAllSounds]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      console.log('[Audio] Component unmounting, stopping sounds');
+      stopAllSounds();
+      if (audioRef.current) {
+        audioRef.current.src = '';
+        audioRef.current.load();
+      }
+    };
+  }, [stopAllSounds]);
 
 
   const allContacts = useMemo(() => {
@@ -598,7 +598,7 @@ useEffect(() => {
       setTimeout(async () => {
         const currentCallSnapshot = await getDoc(doc(firestore, 'calls', callDocRef.id));
         if (currentCallSnapshot.exists() && currentCallSnapshot.data()?.status === 'ringing') {
-          stopAllSounds();
+          playSound('call-cuts', 'default.mp3');
           await updateDoc(doc(firestore, 'calls', callDocRef.id), { 
             status: 'missed' 
           });
@@ -700,7 +700,7 @@ useEffect(() => {
       setTimeout(async () => {
         const currentCallSnapshot = await getDoc(doc(firestore, 'calls', callDocRef.id));
         if (currentCallSnapshot.exists() && currentCallSnapshot.data()?.status === 'ringing') {
-          stopAllSounds();
+          playSound('call-cuts', 'default.mp3');
           await updateDoc(doc(firestore, 'calls', callDocRef.id), { 
             status: 'missed' 
           });
@@ -771,29 +771,43 @@ useEffect(() => {
     setCurrentCall(null);
   }, [firestore, currentCall, incomingCallFrom, addSystemMessage, playSound]);
   
+  // Track previously seen message IDs to detect NEW messages
+  const previousMessageIdsRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     if (!self || !firestore || !messages) return;
-  
+
     const batch = writeBatch(firestore);
     let updatesMade = false;
-    let newMessagesReceived = false;
-  
+    const newIncomingMessages: Message[] = [];
+
+    // Get current message IDs
+    const currentMessageIds = new Set(messages.map(m => m.id));
+
     messages.forEach((m) => {
-      // Mark as delivered if received and not yet delivered/read
+      // 1. Mark as DELIVERED if received and not yet delivered/read
       if (m.recipientId === self.id && m.readStatus === 'sent') {
-        newMessagesReceived = true;
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'delivered' });
         updatesMade = true;
+
+        // Check if this is a NEW message (not seen before)
+        if (!previousMessageIdsRef.current.has(m.id)) {
+          newIncomingMessages.push(m);
+        }
       }
       
-      // Mark as read only if the chat is open AND the window is visible
+      // 2. Mark as READ ONLY if:
+      //    - Chat with sender is currently OPEN
+      //    - Window/tab is VISIBLE
+      //    - Message is in 'delivered' status (not 'sent')
+      //    - Not already read
       if (
         selectedContact && 
-        document.visibilityState === 'visible' && // Check if tab is active
         m.senderId === selectedContact.id && 
         m.recipientId === self.id && 
-        m.readStatus !== 'read'
+        m.readStatus === 'delivered' && // Only mark delivered messages as read
+        document.visibilityState === 'visible'
       ) {
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'read' });
@@ -801,19 +815,32 @@ useEffect(() => {
       }
     });
 
-    if (newMessagesReceived) {
+    // Update the previous message IDs set
+    previousMessageIdsRef.current = currentMessageIds;
+
+    // 🔊 Play notification sound ONLY for NEW incoming messages
+    if (newIncomingMessages.length > 0) {
+      // Don't play sound if the chat is already open with the sender
+      const shouldPlaySound = newIncomingMessages.some(msg => {
+        return !selectedContact || selectedContact.id !== msg.senderId;
+      });
+
+      if (shouldPlaySound) {
+        console.log(`[Audio] 📨 ${newIncomingMessages.length} new message(s) received`);
         playSound('notifications-tones', 'default.mp3');
+      }
     }
-  
+
+    // Commit batch updates
     if (updatesMade) {
       batch.commit().catch(serverError => {
         if (serverError.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: `messages/[batch]`,
-                operation: 'update',
-                requestResourceData: { readStatus: 'read/delivered' },
-            });
-            errorEmitter.emit('permission-error', permissionError);
+          const permissionError = new FirestorePermissionError({
+            path: `messages/[batch]`,
+            operation: 'update',
+            requestResourceData: { readStatus: 'read/delivered' },
+          });
+          errorEmitter.emit('permission-error', permissionError);
         }
       });
     }
