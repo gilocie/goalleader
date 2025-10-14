@@ -68,9 +68,29 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      console.log('[Audio] Initializing notification sound');
       notificationAudioRef.current = new Audio();
       notificationAudioRef.current.preload = 'auto';
+      notificationAudioRef.current.src = '/sounds/notifications-tones/goalsoft-not1.mp3';
+      
+      // Verify file loads
+      notificationAudioRef.current.onerror = () => {
+        console.error('[Audio] ❌ Failed to load notification sound');
+        console.error('Please verify: public/sounds/notifications-tones/goalsoft-not1.mp3');
+      };
+      
+      notificationAudioRef.current.onloadeddata = () => {
+        console.log('[Audio] ✓ Notification sound ready');
+      };
     }
+    
+    return () => {
+      if (notificationAudioRef.current) {
+        notificationAudioRef.current.pause();
+        notificationAudioRef.current.src = '';
+        notificationAudioRef.current.load();
+      }
+    };
   }, []);
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'> & { reportContent?: string }) => {
@@ -90,38 +110,45 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     };
     setNotifications(prev => [newNotification, ...prev]);
 
+    // Play sound
     if (notificationAudioRef.current) {
-        const audio = notificationAudioRef.current;
-        if (!audio.paused) {
-            audio.pause();
-            audio.currentTime = 0;
+      const audio = notificationAudioRef.current;
+      
+      // Stop if already playing
+      if (!audio.paused) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+
+      const playSound = () => {
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('[Audio] ✓ Notification sound played');
+            })
+            .catch(error => {
+              if (error.name === 'NotAllowedError') {
+                console.warn('[Audio] Notification blocked by browser');
+              } else if (error.name !== 'AbortError') {
+                console.error('[Audio] Notification play error:', error.name);
+              }
+            });
         }
+      };
 
-        audio.src = '/sounds/notifications-tones/goalsoft-not1.mp3';
-
-        const playSound = () => {
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-                        console.error('[Audio] Notification sound failed:', error);
-                    }
-                });
-            }
-        };
-
-        if (audio.readyState >= 3) { // HAVE_FUTURE_DATA
-            playSound();
-        } else {
-            audio.addEventListener('canplaythrough', playSound, { once: true });
-        }
+      // Play immediately if ready, otherwise wait
+      if (audio.readyState >= 3) {
+        playSound();
+      } else {
+        audio.addEventListener('canplaythrough', playSound, { once: true });
+      }
     }
 
-    // Show a toast
     toast({
       title: notification.title,
       description: <p className='line-clamp-2'>{notification.message}</p>
-    })
+    });
   }, [toast]);
 
   const markAsRead = (id: string) => {
