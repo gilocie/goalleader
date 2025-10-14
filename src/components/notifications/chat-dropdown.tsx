@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -48,7 +49,7 @@ export function ChatDropdown({ children }: { children: React.ReactNode }) {
                                 return (
                                 <DropdownMenuItem 
                                     key={contact.id}
-                                    className={cn("flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto hover:bg-primary hover:text-primary-foreground", "bg-primary text-primary-foreground")}
+                                    className={cn("flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors whitespace-normal h-auto hover:bg-primary/90 focus:bg-primary/90 hover:text-primary-foreground focus:text-primary-foreground")}
                                     onClick={() => handleNotificationClick(contact)}
                                 >
                                     <Avatar className="h-8 w-8">
@@ -59,6 +60,11 @@ export function ChatDropdown({ children }: { children: React.ReactNode }) {
                                         <p className="font-semibold text-sm">{contact.name}</p>
                                         <p className="text-xs text-primary-foreground/80 line-clamp-2">{contact.lastMessage}</p>
                                     </div>
+                                    {contact.unreadCount && contact.unreadCount > 0 && (
+                                         <div className="h-5 w-5 rounded-full bg-primary-foreground text-primary text-xs flex items-center justify-center font-bold self-center">
+                                            {contact.unreadCount}
+                                         </div>
+                                    )}
                                 </DropdownMenuItem>
                             )})
                         ) : (

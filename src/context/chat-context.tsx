@@ -776,10 +776,12 @@ useEffect(() => {
   
     const batch = writeBatch(firestore);
     let updatesMade = false;
+    let newMessagesReceived = false;
   
     messages.forEach((m) => {
       // Mark as delivered if received and not yet delivered/read
       if (m.recipientId === self.id && m.readStatus === 'sent') {
+        newMessagesReceived = true;
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'delivered' });
         updatesMade = true;
@@ -791,6 +793,10 @@ useEffect(() => {
         updatesMade = true;
       }
     });
+
+    if (newMessagesReceived) {
+        playSound('notifications-tones', 'default.mp3');
+    }
   
     if (updatesMade) {
       batch.commit().catch(serverError => {
@@ -804,7 +810,7 @@ useEffect(() => {
         }
       });
     }
-  }, [messages, selectedContact, self, firestore]);
+  }, [messages, selectedContact, self, firestore, playSound]);
 
   const isCallActive = useCallback(() => {
     return !!(currentCall && (currentCall.status === 'ringing' || currentCall.status === 'active'));
