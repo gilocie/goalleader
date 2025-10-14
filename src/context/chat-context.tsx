@@ -786,8 +786,15 @@ useEffect(() => {
         batch.update(messageRef, { readStatus: 'delivered' });
         updatesMade = true;
       }
-      // Mark as read if the chat is open
-      if (selectedContact && m.senderId === selectedContact.id && m.recipientId === self.id && m.readStatus !== 'read') {
+      
+      // Mark as read only if the chat is open AND the window is visible
+      if (
+        selectedContact && 
+        document.visibilityState === 'visible' && // Check if tab is active
+        m.senderId === selectedContact.id && 
+        m.recipientId === self.id && 
+        m.readStatus !== 'read'
+      ) {
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'read' });
         updatesMade = true;
