@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { TimeTrackerProvider } from '@/context/time-tracker-context';
 import { Sidebar, SidebarProvider, useSidebar } from './sidebar';
@@ -10,18 +10,40 @@ import { Footer } from '../dashboard/footer';
 import { ReportsProvider } from '@/context/reports-context';
 import { cn } from '@/lib/utils';
 import { NotificationProvider } from '@/context/notification-context';
-import { ChatProvider } from '@/context/chat-context';
+import { ChatProvider, useChat } from '@/context/chat-context';
 import { AISuggestionProvider } from '@/context/ai-suggestion-context';
 import { UserProvider } from '@/context/user-context';
 import { Skeleton } from '../ui/skeleton';
 import { useUser } from '@/firebase';
 import { MarketingProvider } from '@/context/marketing-context';
 
+import { IncomingCallDialog } from '@/components/chat/incoming-call-dialog';
+import { VideoCallDialog } from '@/components/chat/video-call-dialog';
+import { IncomingVoiceCallDialog } from '@/components/chat/incoming-voice-call-dialog';
+import { VoiceCallDialog } from '@/components/chat/voice-call-dialog';
+
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const { open, setOpen } = useSidebar();
     const { user, loading } = useUser();
+    const { 
+        incomingCallFrom,
+        acceptCall, 
+        declineCall, 
+        acceptedCallContact, 
+        incomingVoiceCallFrom, 
+        acceptVoiceCall, 
+        declineVoiceCall, 
+        acceptedVoiceCallContact, 
+        isVideoCallOpen, 
+        setIsVideoCallOpen, 
+        isVoiceCallOpen, 
+        setIsVoiceCallOpen, 
+        currentCall,
+        selectedContact
+    } = useChat();
+
     
     const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
@@ -41,6 +63,26 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
             router.push('/login');
         }
     }, [user, loading, router, pathname]);
+
+    useEffect(() => {
+        if (acceptedCallContact) {
+            setIsVideoCallOpen(true);
+        }
+    }, [acceptedCallContact, setIsVideoCallOpen]);
+
+    useEffect(() => {
+        if (acceptedVoiceCallContact) {
+            setIsVoiceCallOpen(true);
+        }
+    }, [acceptedVoiceCallContact, setIsVoiceCallOpen]);
+    
+    const getCallContact = useCallback(() => {
+        if (acceptedCallContact && currentCall?.type === 'video') return acceptedCallContact;
+        if (acceptedVoiceCallContact && currentCall?.type === 'voice') return acceptedVoiceCallContact;
+        if (incomingCallFrom && currentCall?.type === 'video') return incomingCallFrom;
+        if (incomingVoiceCallFrom && currentCall?.type === 'voice') return incomingVoiceCallFrom;
+        return selectedContact;
+    }, [acceptedCallContact, acceptedVoiceCallContact, incomingCallFrom, incomingVoiceCallFrom, currentCall, selectedContact]);
 
 
     // Render children directly for special full-screen layouts
@@ -100,6 +142,45 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
           {/* Footer is only shown on specific pages */}
           {!isChatPage && !isMeetingPage && <Footer />}
         </div>
+        
+        {/* Global Call Dialogs */}
+        {isVideoCallOpen && currentCall && getCallContact() && (
+            <VideoCallDialog
+                isOpen={isVideoCallOpen}
+                onClose={() => setIsVideoCallOpen(false)}
+                contact={getCallContact()!}
+                isReceivingCall={!!incomingCallFrom && currentCall.status === 'ringing'}
+            />
+        )}
+
+        {isVoiceCallOpen && currentCall && getCallContact() && (
+            <VoiceCallDialog
+                isOpen={isVoiceCallOpen}
+                onClose={() => setIsVoiceCallOpen(false)}
+                contact={getCallContact()!}
+                isReceivingCall={!!incomingVoiceCallFrom && currentCall.status === 'ringing'}
+            />
+        )}
+
+        {incomingCallFrom && !isVideoCallOpen && currentCall?.status === 'ringing' && (
+            <IncomingCallDialog
+                isOpen={true}
+                onClose={declineCall}
+                onAccept={() => { acceptCall(); setIsVideoCallOpen(true); }}
+                onDecline={declineCall}
+                contact={incomingCallFrom}
+            />
+        )}
+
+        {incomingVoiceCallFrom && !isVoiceCallOpen && currentCall?.status === 'ringing' && (
+            <IncomingVoiceCallDialog
+                isOpen={true}
+                onClose={declineVoiceCall}
+                onAccept={() => { acceptVoiceCall(); setIsVoiceCallOpen(true); }}
+                onDecline={declineVoiceCall}
+                contact={incomingVoiceCallFrom}
+            />
+        )}
       </div>
     );
   }
