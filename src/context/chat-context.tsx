@@ -89,63 +89,42 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const currentSoundType = useRef<SoundType | null>(null);
 
   const stopAllSounds = useCallback(() => {
-    if (audioRef.current) {
+    if (audioRef.current && !audioRef.current.paused) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      audioRef.current.src = ''; // Clear the source
-      audioRef.current.loop = false;
     }
     currentSoundType.current = null;
   }, []);
 
   const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
-    // Don't replay the same sound if it's already playing
     if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
       return;
     }
-
-    // Stop any currently playing sound
+    
     stopAllSounds();
-
-    // Small delay to prevent the interruption error
+  
     setTimeout(() => {
-      try {
-        // Create or reuse audio element
-        if (!audioRef.current) {
-          audioRef.current = new Audio();
-        }
-
-        const soundPath = `/sounds/${type}/${fileName}`;
-        audioRef.current.src = soundPath;
-        
-        // Set loop for ringing sounds
-        if (type === 'call-ring' || type === 'incoming-tones') {
-          audioRef.current.loop = true;
-        } else {
-          audioRef.current.loop = false;
-        }
-
-        currentSoundType.current = type;
-
-        // Play with error handling
-        const playPromise = audioRef.current.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log(`[Audio] Playing ${type} sound: ${fileName}`);
-            })
-            .catch(error => {
-              // Only log if it's not a user interaction error
-              if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-                console.error(`[Audio] Error playing ${type} sound:`, error);
-              }
-            });
-        }
-      } catch (error) {
-        console.error(`[Audio] Failed to setup ${type} sound:`, error);
+      if (!audioRef.current) {
+        audioRef.current = new Audio();
       }
-    }, 100); // 100ms delay to prevent interruption
+      
+      const soundPath = `/sounds/${type}/${fileName}`;
+      if (audioRef.current.src !== soundPath) {
+        audioRef.current.src = soundPath;
+      }
+      
+      audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
+      currentSoundType.current = type;
+  
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
+            console.error(`[Audio] Error playing ${type} sound:`, error);
+          }
+        });
+      }
+    }, 100);
   }, [stopAllSounds]);
 
   // Cleanup on unmount
