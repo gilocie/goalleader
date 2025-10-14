@@ -778,8 +778,7 @@ const allContacts = useMemo(() => {
     setCurrentCall(null);
   }, [firestore, currentCall, incomingCallFrom, addSystemMessage, playSound]);
   
-  // 2. Fix the read status update effect - Be more precise about when to mark messages as read
-// Track previously seen message IDs to detect NEW messages
+  // Track previously seen message IDs to detect NEW messages
 const previousMessageIdsRef = useRef<Set<string>>(new Set());
 
 useEffect(() => {
@@ -793,10 +792,7 @@ useEffect(() => {
     const currentMessageIds = new Set(messages.map(m => m.id));
 
     messages.forEach((m) => {
-      // 1. Mark as DELIVERED if:
-      //    - Message is for current user (recipient)
-      //    - Status is still 'sent'
-      //    - Message was not previously seen (is new)
+      // 1. Mark as DELIVERED if message is NEW and received
       if (
         m.recipientId === self.id && 
         m.readStatus === 'sent' &&
@@ -808,18 +804,20 @@ useEffect(() => {
         newIncomingMessages.push(m);
       }
       
-      // 2. Mark as READ ONLY if ALL conditions are met:
-      //    - Chat with this sender is currently OPEN (selectedContact matches)
-      //    - Window/tab is VISIBLE
-      //    - Message is in 'delivered' status (already delivered)
-      //    - Not already read
-      //    - User is the recipient
+      // 2. Mark as READ ONLY if:
+      //    - A contact is selected (chat is open)
+      //    - Message is FROM that selected contact
+      //    - Message is TO current user
+      //    - Message is currently 'delivered' (not 'sent')
+      //    - Tab is visible
+      //    - Message was PREVIOUSLY seen (not a brand new message)
       if (
         selectedContact && 
         m.senderId === selectedContact.id && 
         m.recipientId === self.id && 
         m.readStatus === 'delivered' &&
-        document.visibilityState === 'visible'
+        document.visibilityState === 'visible' &&
+        previousMessageIdsRef.current.has(m.id) // CRITICAL: Only mark previously seen messages as read
       ) {
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'read' });
@@ -827,12 +825,12 @@ useEffect(() => {
       }
     });
 
-    // Update the previous message IDs set
+    // Update the tracked message IDs AFTER processing
     previousMessageIdsRef.current = currentMessageIds;
 
     // 🔊 Play notification sound ONLY for NEW incoming messages
+    // Don't play if chat is already open with that sender
     if (newIncomingMessages.length > 0) {
-      // Don't play sound if the chat is already open with the sender
       const shouldPlaySound = newIncomingMessages.some(msg => {
         return !selectedContact || selectedContact.id !== msg.senderId;
       });
@@ -843,7 +841,7 @@ useEffect(() => {
       }
     }
 
-    // Commit batch updates
+    // Commit all updates
     if (updatesMade) {
       batch.commit().catch(serverError => {
         if (serverError.code === 'permission-denied') {
@@ -859,12 +857,13 @@ useEffect(() => {
 }, [messages, selectedContact, self, firestore, playSound]);
 
 
-// 3. Additional fix: Add visibility change listener to mark messages as read when user returns
+// Additional fix: Add visibility change listener to mark messages as read when user returns
 useEffect(() => {
   const handleVisibilityChange = () => {
     if (document.visibilityState === 'visible' && selectedContact) {
-      // When tab becomes visible and a chat is open, mark delivered messages as read
-      // The main effect above will handle this on next render
+      // When tab becomes visible and a chat is open, trigger a re-evaluation of the read status effect
+      // This is handled implicitly because the main effect runs on `messages` changes, and this interaction
+      // will cause a re-render which can re-trigger the check if needed.
       console.log('[Chat Context] Tab visible, checking for unread messages');
     }
   };
