@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Camera, PlusCircle, Trash2, LifeBuoy, Users } from 'lucide-react';
+import { Camera, PlusCircle, Trash2, LifeBuoy, Users, Music } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/context/theme-provider';
@@ -37,6 +37,18 @@ const departmentsAndRoles = {
 const departments = Object.keys(departmentsAndRoles);
 const countries = ["Malawi", "United States", "United Kingdom", "Canada"];
 const branches = ["Main Office", "Lilongwe Branch", "Blantyre Branch"];
+
+const ringtones = {
+    incoming: [
+        { value: 'default-incoming.mp3', label: 'Default Incoming' },
+    ],
+    ongoing: [
+        { value: 'default-ongoing.mp3', label: 'Default Outgoing' },
+    ],
+    message: [
+        { value: 'default-message.mp3', label: 'Default Message' },
+    ]
+}
 
 
 function ProfileTabContent() {
@@ -429,6 +441,60 @@ function SettingsTabContent() {
                     </div>
                 </CardContent>
             </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>Ringtones</CardTitle>
+                    <CardDescription>Customize your notification sounds.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="incoming-call-ringtone">
+                             <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Incoming Call</span>
+                        </Label>
+                         <Select defaultValue="default-incoming.mp3">
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select a tone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ringtones.incoming.map((tone) => (
+                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="flex items-center justify-between">
+                        <Label htmlFor="outgoing-call-ringtone">
+                           <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> Outgoing Call</span>
+                        </Label>
+                        <Select defaultValue="default-ongoing.mp3">
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select a tone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ringtones.ongoing.map((tone) => (
+                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="flex items-center justify-between">
+                        <Label htmlFor="message-ringtone">
+                             <span className="font-semibold flex items-center gap-2"><Music className="h-4 w-4" /> New Message</span>
+                        </Label>
+                        <Select defaultValue="default-message.mp3">
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Select a tone" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ringtones.message.map((tone) => (
+                                    <SelectItem key={tone.value} value={tone.value}>{tone.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </CardContent>
+            </Card>
 
             <div className="flex justify-end">
                 <Button>Save Settings</Button>
@@ -528,5 +594,7 @@ export function ProfilePageContent() {
     </main>
   );
 }
+
+    
 
     
