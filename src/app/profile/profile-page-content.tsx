@@ -394,32 +394,27 @@ function SettingsTabContent() {
     
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    const playPreview = useCallback((path: string) => {
-        // Stop any currently playing audio
+    const playPreview = useCallback((soundFile: string, category: keyof typeof ringtones) => {
         if (audioRef.current) {
             audioRef.current.pause();
-            audioRef.current.currentTime = 0;
         }
+        if (!soundFile) return;
 
-        if (!path) return;
-
-        // Create and play new audio
+        const path = `/sounds/${category === 'incoming' ? 'incoming-tones' : category === 'outgoing' ? 'call-ring' : category === 'callEnd' ? 'call-cuts' : category === 'messageSent' ? 'message-sent' : 'notifications-tones'}/${soundFile}`;
+        
         const audio = new Audio(path);
         audioRef.current = audio;
-        audio.play();
+        audio.play().catch(e => console.error("Audio preview failed:", e));
 
-        // Stop after 5 seconds
         setTimeout(() => {
             if (audioRef.current === audio) {
                 audio.pause();
                 audio.currentTime = 0;
-                audioRef.current = null;
             }
         }, 5000);
     }, []);
 
     useEffect(() => {
-        // Cleanup on component unmount
         return () => {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -529,7 +524,7 @@ function SettingsTabContent() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/incoming-tones/${selectedTones.incoming}`)}><Play className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => playPreview(selectedTones.incoming, 'incoming')}><Play className="h-4 w-4" /></Button>
                          </div>
                     </div>
                      <div className="flex items-center justify-between">
@@ -547,7 +542,7 @@ function SettingsTabContent() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                             <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/call-ring/${selectedTones.outgoing}`)}><Play className="h-4 w-4" /></Button>
+                             <Button variant="ghost" size="icon" onClick={() => playPreview(selectedTones.outgoing, 'outgoing')}><Play className="h-4 w-4" /></Button>
                         </div>
                     </div>
                      <div className="flex items-center justify-between">
@@ -565,7 +560,7 @@ function SettingsTabContent() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/call-cuts/${selectedTones.callEnd}`)}><Play className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => playPreview(selectedTones.callEnd, 'callEnd')}><Play className="h-4 w-4" /></Button>
                         </div>
                     </div>
                      <div className="flex items-center justify-between">
@@ -583,7 +578,7 @@ function SettingsTabContent() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/message-sent/${selectedTones.messageSent}`)}><Play className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => playPreview(selectedTones.messageSent, 'messageSent')}><Play className="h-4 w-4" /></Button>
                         </div>
                     </div>
                     <div className="flex items-center justify-between">
@@ -601,7 +596,7 @@ function SettingsTabContent() {
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <Button variant="ghost" size="icon" onClick={() => playPreview(`/sounds/notifications-tones/${selectedTones.notification}`)}><Play className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => playPreview(selectedTones.notification, 'notification')}><Play className="h-4 w-4" /></Button>
                         </div>
                     </div>
                 </CardContent>
@@ -709,6 +704,7 @@ export function ProfilePageContent() {
     
 
     
+
 
 
 

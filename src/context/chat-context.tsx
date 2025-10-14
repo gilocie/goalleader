@@ -85,77 +85,83 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
   // Ringtones - Create reusable audio element
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const currentSoundType = useRef<SoundType | null>(null);
+const audioRef = useRef<HTMLAudioElement | null>(null);
+const currentSoundType = useRef<SoundType | null>(null);
 
-  const stopAllSounds = useCallback(() => {
-    if (audioRef.current && !audioRef.current.paused) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      console.log('[Audio] Stopped all sounds');
-    }
-    currentSoundType.current = null;
-  }, []);
+const stopAllSounds = useCallback(() => {
+  if (audioRef.current && !audioRef.current.paused) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+    console.log('[Audio] Stopped all sounds');
+  }
+  currentSoundType.current = null;
+}, []);
 
-  const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
-    if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
-      console.log(`[Audio] ${type} is already playing, skipping`);
-      return;
+const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
+  // Don't replay the same sound if it's already playing
+  if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
+    console.log(`[Audio] ${type} is already playing, skipping`);
+    return;
+  }
+  
+  stopAllSounds();
+
+  setTimeout(() => {
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio();
+      }
+      
+      const soundPath = `/sounds/${type}/${fileName}`;
+      console.log(`[Audio] Loading: ${soundPath}`);
+      
+      audioRef.current.src = soundPath;
+      audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
+      currentSoundType.current = type;
+
+      // Handle errors
+      audioRef.current.onerror = () => {
+        console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
+        console.error(`Please verify file exists at: public${soundPath}`);
+        stopAllSounds();
+      };
+
+      // Handle successful load
+      audioRef.current.onloadeddata = () => {
+        console.log(`[Audio] ✓ Loaded: ${soundPath}`);
+      };
+
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
+          })
+          .catch(error => {
+            if (error.name === 'NotAllowedError') {
+              console.warn('[Audio] Blocked by browser - user interaction required');
+            } else if (error.name !== 'AbortError') {
+              console.error(`[Audio] Play error:`, error.name, error.message);
+            }
+          });
+      }
+    } catch (error) {
+      console.error(`[Audio] Setup failed:`, error);
     }
-    
+  }, 100);
+}, [stopAllSounds]);
+
+// Cleanup on unmount
+useEffect(() => {
+  return () => {
+    console.log('[Audio] Component unmounting, stopping sounds');
     stopAllSounds();
-  
-    setTimeout(() => {
-      try {
-        if (!audioRef.current) {
-          audioRef.current = new Audio();
-        }
-        
-        const soundPath = `/sounds/${type}/${fileName}`;
-        audioRef.current.src = soundPath;
-        audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
-        currentSoundType.current = type;
-  
-        const audio = audioRef.current;
-
-        audio.oncanplaythrough = () => {
-          const playPromise = audio.play();
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => console.log(`[Audio] ✓ Playing: ${type}/${fileName}`))
-              .catch(error => {
-                if (error.name !== 'AbortError') {
-                  console.error(`[Audio] Play error:`, error.name, error.message);
-                }
-              });
-          }
-        };
-  
-        audio.onerror = () => {
-          console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
-          console.error(`Please verify file exists at: public${soundPath}`);
-          stopAllSounds();
-        };
-
-        audio.load();
-
-      } catch (error) {
-        console.error(`[Audio] Setup failed:`, error);
-      }
-    }, 100);
-  }, [stopAllSounds]);
-  
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      console.log('[Audio] Component unmounting, stopping sounds');
-      stopAllSounds();
-      if (audioRef.current) {
-        audioRef.current.src = '';
-        audioRef.current.load();
-      }
-    };
-  }, [stopAllSounds]);
+    if (audioRef.current) {
+      audioRef.current.src = '';
+      audioRef.current.load();
+    }
+  };
+}, [stopAllSounds]);
 
 
   const allContacts = useMemo(() => {
@@ -295,7 +301,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           
           // Handle incoming calls
           if (callDocToProcess.recipientId === firebaseUser.uid && callDocToProcess.status === 'ringing') {
-            playSound('incoming-tones', 'goal-ring1.mp3');
+            playSound('incoming-tones', 'default.mp3');
             if (callDocToProcess.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
@@ -384,7 +390,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self || !firestore) return;
-    playSound('message-sent', 'goal-sent1.mp3');
+    playSound('message-sent', 'default.mp3');
     const messagesCollection = collection(firestore, 'messages');
 
     const newMessageData: Omit<Message, 'id'| 'timestamp'> = {
@@ -572,7 +578,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!self || !firestore) return;
     
     try {
-      playSound('call-ring', 'goal-calling1.mp3');
+      playSound('call-ring', 'default.mp3');
       const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,
@@ -675,7 +681,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (!self || !firestore) return;
     
     try {
-      playSound('call-ring', 'goal-calling1.mp3');
+      playSound('call-ring', 'default.mp3');
       const callData: Omit<Call, 'id'> = {
         callerId: self.id,
         recipientId: contact.id,

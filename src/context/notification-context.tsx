@@ -71,12 +71,12 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       console.log('[Audio] Initializing notification sound');
       notificationAudioRef.current = new Audio();
       notificationAudioRef.current.preload = 'auto';
-      notificationAudioRef.current.src = '/sounds/notifications-tones/goalsoft-not1.mp3';
+      notificationAudioRef.current.src = '/sounds/notifications-tones/default.mp3';
       
       // Verify file loads
       notificationAudioRef.current.onerror = () => {
         console.error('[Audio] ❌ Failed to load notification sound');
-        console.error('Please verify: public/sounds/notifications-tones/goalsoft-not1.mp3');
+        console.error('Please verify: public/sounds/notifications-tones/default.mp3');
       };
       
       notificationAudioRef.current.onloadeddata = () => {
@@ -114,6 +114,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     if (notificationAudioRef.current) {
       const audio = notificationAudioRef.current;
       
+      // Stop if already playing
       if (!audio.paused) {
         audio.pause();
         audio.currentTime = 0;
@@ -123,15 +124,20 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         const playPromise = audio.play();
         if (playPromise !== undefined) {
           playPromise
-            .then(() => console.log('[Audio] ✓ Notification sound played'))
+            .then(() => {
+              console.log('[Audio] ✓ Notification sound played');
+            })
             .catch(error => {
-              if (error.name !== 'AbortError') {
+              if (error.name === 'NotAllowedError') {
+                console.warn('[Audio] Notification blocked by browser');
+              } else if (error.name !== 'AbortError') {
                 console.error('[Audio] Notification play error:', error.name);
               }
             });
         }
       };
-      
+
+      // Play immediately if ready, otherwise wait
       if (audio.readyState >= 3) {
         playSound();
       } else {
