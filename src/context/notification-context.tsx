@@ -65,11 +65,21 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const { toast } = useToast();
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
-  
+  const isPlayingNotificationSound = useRef(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        notificationAudioRef.current = new Audio('/sounds/notifications-tones/goalsoft-not1.mp3');
+      notificationAudioRef.current = new Audio('/sounds/notifications-tones/goalsoft-not1.mp3');
+      notificationAudioRef.current.preload = 'auto'; // Preload the audio
     }
+    
+    return () => {
+      // Cleanup on unmount
+      if (notificationAudioRef.current) {
+        notificationAudioRef.current.pause();
+        notificationAudioRef.current.src = '';
+      }
+    };
   }, []);
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'> & { reportContent?: string }) => {
@@ -89,16 +99,36 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     };
     setNotifications(prev => [newNotification, ...prev]);
 
-    // Play sound
-    if (notificationAudioRef.current) {
-        notificationAudioRef.current.currentTime = 0;
-        notificationAudioRef.current.play().catch(e => console.error("Notification sound failed to play:", e));
+    // Play sound with proper error handling
+    if (notificationAudioRef.current && !isPlayingNotificationSound.current) {
+      isPlayingNotificationSound.current = true;
+      
+      const playSound = async () => {
+        try {
+          if (notificationAudioRef.current) {
+            notificationAudioRef.current.currentTime = 0;
+            await notificationAudioRef.current.play();
+            console.log('[Audio] Notification sound played');
+          }
+        } catch (error: any) {
+          if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
+            console.error('[Audio] Notification sound failed:', error);
+          }
+        } finally {
+          // Reset flag after a short delay
+          setTimeout(() => {
+            isPlayingNotificationSound.current = false;
+          }, 500);
+        }
+      };
+      
+      playSound();
     }
 
     // Show a toast
     toast({
-        title: notification.title,
-        description: <p className='line-clamp-2'>{notification.message}</p>
+      title: notification.title,
+      description: <p className='line-clamp-2'>{notification.message}</p>
     })
   }, [toast]);
 

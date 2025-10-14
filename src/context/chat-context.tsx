@@ -84,34 +84,75 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
-  // Ringtones
+  // Ringtones - Create reusable audio element
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentSoundType = useRef<SoundType | null>(null);
 
   const stopAllSounds = useCallback(() => {
     if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.src = ''; // Clear the source
+      audioRef.current.loop = false;
     }
+    currentSoundType.current = null;
   }, []);
 
- const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
+  const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
+    // Don't replay the same sound if it's already playing
+    if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
+      return;
+    }
+
+    // Stop any currently playing sound
     stopAllSounds();
 
-    const audio = new Audio(`/sounds/${type}/${fileName}`);
-    audioRef.current = audio;
-
-    if (type === 'call-ring' || type === 'incoming-tones') {
-      audio.loop = true;
-    }
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
-          console.error(`Error playing ${type} sound:`, error);
+    // Small delay to prevent the interruption error
+    setTimeout(() => {
+      try {
+        // Create or reuse audio element
+        if (!audioRef.current) {
+          audioRef.current = new Audio();
         }
-      });
-    }
+
+        const soundPath = `/sounds/${type}/${fileName}`;
+        audioRef.current.src = soundPath;
+        
+        // Set loop for ringing sounds
+        if (type === 'call-ring' || type === 'incoming-tones') {
+          audioRef.current.loop = true;
+        } else {
+          audioRef.current.loop = false;
+        }
+
+        currentSoundType.current = type;
+
+        // Play with error handling
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log(`[Audio] Playing ${type} sound: ${fileName}`);
+            })
+            .catch(error => {
+              // Only log if it's not a user interaction error
+              if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
+                console.error(`[Audio] Error playing ${type} sound:`, error);
+              }
+            });
+        }
+      } catch (error) {
+        console.error(`[Audio] Failed to setup ${type} sound:`, error);
+      }
+    }, 100); // 100ms delay to prevent interruption
+  }, [stopAllSounds]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopAllSounds();
+    };
   }, [stopAllSounds]);
 
 
@@ -186,7 +227,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           
           // Handle ended/declined/missed calls
           if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
-            stopAllSounds();
             playSound('call-cuts', 'unavailable-not1.mp3');
             // Clear all call-related states when call ends
             if (currentCall?.id === callData.id) {
@@ -598,7 +638,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const endVoiceCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
-    stopAllSounds();
     
     try {
       // Update call status in Firestore
@@ -620,16 +659,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setIncomingVoiceCallFrom(null);
       setIsVoiceCallOpen(false);
     }
-  }, [firestore, currentCall, addSystemMessage, stopAllSounds]);
+  }, [firestore, currentCall, addSystemMessage]);
   
   const declineVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
-    stopAllSounds();
     await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
     addSystemMessage(`Missed voice call from ${incomingVoiceCallFrom.name}`, incomingVoiceCallFrom.id, 'voice');
     setIncomingVoiceCallFrom(null);
     setCurrentCall(null);
-  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage, stopAllSounds]);
+  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
 
   const startCall = useCallback(async (contact: Contact) => {
     if (!self || !firestore) return;
@@ -693,7 +731,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   
   const endCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
-    stopAllSounds();
     
     try {
       // Update call status in Firestore
@@ -715,16 +752,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       setIncomingCallFrom(null);
       setIsVideoCallOpen(false);
     }
-  }, [firestore, currentCall, addSystemMessage, stopAllSounds]);
+  }, [firestore, currentCall, addSystemMessage]);
 
   const declineCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingCallFrom) return;
-    stopAllSounds();
     await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
     addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id, 'video');
     setIncomingCallFrom(null);
     setCurrentCall(null);
-  }, [firestore, currentCall, incomingCallFrom, addSystemMessage, stopAllSounds]);
+  }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
   
   useEffect(() => {
     if (!self || !firestore || !messages) return;
