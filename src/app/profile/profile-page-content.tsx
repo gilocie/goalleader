@@ -42,18 +42,24 @@ const branches = ["Main Office", "Lilongwe Branch", "Blantyre Branch"];
 const ringtones = {
     incoming: [
         { value: 'default.mp3', label: 'Default' },
+        { value: 'ringtone-1.mp3', label: 'Ringtone 1' },
+        { value: 'uplifting-chime.mp3', label: 'Uplifting Chime' },
     ],
     outgoing: [
         { value: 'default.mp3', label: 'Default' },
+        { value: 'classic-dial.mp3', label: 'Classic Dial' },
     ],
     callEnd: [
         { value: 'default.mp3', label: 'Default' },
+        { value: 'short-beep.mp3', label: 'Short Beep' },
     ],
     messageSent: [
         { value: 'default.mp3', label: 'Default' },
+        { value: 'swoosh.mp3', label: 'Swoosh' },
     ],
     notification: [
         { value: 'default.mp3', label: 'Default' },
+        { value: 'plink.mp3', label: 'Plink' },
     ]
 }
 
@@ -642,3 +648,4 @@ export function ProfilePageContent() {
     
 
     
+
