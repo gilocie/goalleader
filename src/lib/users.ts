@@ -11,6 +11,3 @@ export interface TeamMember {
   country?: string;
   branch?: string;
 }
-
-// This file is now primarily for type definitions.
-// The user data is fetched from Firestore in user-context.tsx.

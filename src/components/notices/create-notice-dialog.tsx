@@ -26,7 +26,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { allUsers } from '@/lib/users';
+import { useUser } from '@/context/user-context';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
@@ -50,6 +50,12 @@ export function CreateNoticeDialog({
   onNoticeCreate,
 }: CreateNoticeDialogProps) {
   const [sendToAll, setSendToAll] = useState(false);
+  const { allTeamMembers } = useUser();
+
+  const userOptions = allTeamMembers.map(user => ({
+    value: user.id,
+    label: user.name
+  }));
 
   const form = useForm<NoticeFormValues>({
     resolver: zodResolver(noticeSchema),
@@ -64,7 +70,7 @@ export function CreateNoticeDialog({
     if (sendToAll) {
       onNoticeCreate({
         ...data,
-        recipients: allUsers.map(u => u.value),
+        recipients: userOptions.map(u => u.value),
       });
     } else {
       onNoticeCreate(data);
@@ -137,7 +143,7 @@ export function CreateNoticeDialog({
                     <FormLabel>Recipients</FormLabel>
                     <FormControl>
                        <MultiSelectCombobox
-                        options={allUsers}
+                        options={userOptions}
                         selected={field.value}
                         onChange={field.onChange}
                         placeholder="Select recipients..."
