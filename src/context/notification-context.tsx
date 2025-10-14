@@ -68,7 +68,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        notificationAudioRef.current = new Audio('/sounds/notifications-tones/default.mp3');
+        notificationAudioRef.current = new Audio('/sounds/notifications-tones/goalsoft-not1.mp3');
     }
   }, []);
 
@@ -147,4 +147,3 @@ export const getNotificationIcon = (type: Notification['type']) => {
         default: return <Bot className="h-5 w-5 text-primary" />;
     }
 };
-

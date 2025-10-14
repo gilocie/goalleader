@@ -56,7 +56,7 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-type SoundType = 'call-cuts' | 'call-ring' | 'incoming-tones' | 'message-sent';
+type SoundType = 'call-cuts' | 'call-ring' | 'incoming-tones' | 'message-sent' | 'notifications-tones';
 
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user: firebaseUser } = useUser(); // Firebase user
@@ -85,36 +85,26 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
   // Ringtones
-  const audioRefs = useRef<{ [key in SoundType]?: HTMLAudioElement }>({});
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-        audioRefs.current['call-cuts'] = new Audio('/sounds/call-cuts/default.mp3');
-        audioRefs.current['call-ring'] = new Audio('/sounds/call-ring/default.mp3');
-        audioRefs.current['incoming-tones'] = new Audio('/sounds/incoming-tones/default.mp3');
-        audioRefs.current['message-sent'] = new Audio('/sounds/message-sent/default.mp3');
-        
-        if (audioRefs.current['call-ring']) audioRefs.current['call-ring'].loop = true;
-        if (audioRefs.current['incoming-tones']) audioRefs.current['incoming-tones'].loop = true;
-    }
-  }, []);
-
-  const playSound = useCallback((type: SoundType) => {
+  const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
     stopAllSounds();
-    const audio = audioRefs.current[type];
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(e => console.error(`Error playing ${type} sound:`, e));
+    const audio = new Audio(`/sounds/${type}/${fileName}`);
+    audioRef.current = audio;
+
+    if (type === 'call-ring' || type === 'incoming-tones') {
+        audio.loop = true;
     }
+
+    audio.play().catch(e => console.error(`Error playing ${type} sound:`, e));
   }, []);
 
   const stopAllSounds = useCallback(() => {
-    Object.values(audioRefs.current).forEach(audio => {
-        if (audio) {
-            audio.pause();
-            audio.currentTime = 0;
-        }
-    });
+    if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+    }
   }, []);
 
   const allContacts = useMemo(() => {
@@ -189,7 +179,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           // Handle ended/declined/missed calls
           if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
             stopAllSounds();
-            playSound('call-cuts');
+            playSound('call-cuts', 'unavailable-not1.mp3');
             // Clear all call-related states when call ends
             if (currentCall?.id === callData.id) {
               console.log('[Chat Context] Call ended/declined/missed, clearing states');
@@ -256,7 +246,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           
           // Handle incoming calls
           if (callDocToProcess.recipientId === firebaseUser.uid && callDocToProcess.status === 'ringing') {
-            playSound('incoming-tones');
+            playSound('incoming-tones', 'goal-ring1.mp3');
             if (callDocToProcess.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
@@ -345,7 +335,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const addMessage = useCallback((content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data: Partial<Message> = {}) => {
     if (!self || !firestore) return;
-    playSound('message-sent');
+    playSound('message-sent', 'goal-sent1.mp3');
     const messagesCollection = collection(firestore, 'messages');
 
     const newMessageData: Omit<Message, 'id'| 'timestamp'> = {
@@ -817,5 +807,3 @@ export const useChat = () => {
   }
   return context;
 };
-
-    
