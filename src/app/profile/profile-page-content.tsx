@@ -40,28 +40,12 @@ const countries = ["Malawi", "United States", "United Kingdom", "Canada"];
 const branches = ["Main Office", "Lilongwe Branch", "Blantyre Branch"];
 
 const ringtones = {
-    incoming: [
-        { value: 'default.mp3', label: 'Default' },
-        { value: 'ringtone-1.mp3', label: 'Ringtone 1' },
-        { value: 'uplifting-chime.mp3', label: 'Uplifting Chime' },
-    ],
-    outgoing: [
-        { value: 'default.mp3', label: 'Default' },
-        { value: 'classic-dial.mp3', label: 'Classic Dial' },
-    ],
-    callEnd: [
-        { value: 'default.mp3', label: 'Default' },
-        { value: 'short-beep.mp3', label: 'Short Beep' },
-    ],
-    messageSent: [
-        { value: 'default.mp3', label: 'Default' },
-        { value: 'swoosh.mp3', label: 'Swoosh' },
-    ],
-    notification: [
-        { value: 'default.mp3', label: 'Default' },
-        { value: 'plink.mp3', label: 'Plink' },
-    ]
-}
+    incoming: Array.from({ length: 14 }, (_, i) => ({ value: `incoming-${i + 1}.mp3`, label: `Incoming ${i + 1}` })),
+    outgoing: Array.from({ length: 5 }, (_, i) => ({ value: `outgoing-${i + 1}.mp3`, label: `Outgoing ${i + 1}` })),
+    callEnd: Array.from({ length: 1 }, (_, i) => ({ value: `call-end-${i + 1}.mp3`, label: `Call End ${i + 1}` })),
+    messageSent: Array.from({ length: 2 }, (_, i) => ({ value: `message-${i + 1}.mp3`, label: `Message ${i + 1}` })),
+    notification: Array.from({ length: 12 }, (_, i) => ({ value: `notification-${i + 1}.mp3`, label: `Notification ${i + 1}` }))
+};
 
 
 function ProfileTabContent() {
@@ -648,4 +632,5 @@ export function ProfilePageContent() {
     
 
     
+
 
