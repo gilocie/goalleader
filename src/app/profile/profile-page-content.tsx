@@ -40,11 +40,26 @@ const countries = ["Malawi", "United States", "United Kingdom", "Canada"];
 const branches = ["Main Office", "Lilongwe Branch", "Blantyre Branch"];
 
 const ringtones = {
-    incoming: Array.from({ length: 14 }, (_, i) => ({ value: `incoming-${i + 1}.mp3`, label: `Incoming ${i + 1}` })),
-    outgoing: Array.from({ length: 5 }, (_, i) => ({ value: `outgoing-${i + 1}.mp3`, label: `Outgoing ${i + 1}` })),
-    callEnd: Array.from({ length: 1 }, (_, i) => ({ value: `call-end-${i + 1}.mp3`, label: `Call End ${i + 1}` })),
-    messageSent: Array.from({ length: 2 }, (_, i) => ({ value: `message-${i + 1}.mp3`, label: `Message ${i + 1}` })),
-    notification: Array.from({ length: 12 }, (_, i) => ({ value: `notification-${i + 1}.mp3`, label: `Notification ${i + 1}` }))
+    incoming: [
+        { value: 'default.mp3', label: 'Default' },
+        ...Array.from({ length: 13 }, (_, i) => ({ value: `goal-ring${i + 1}.mp3`, label: `Goal Ring ${i + 1}` }))
+    ],
+    outgoing: [
+        { value: 'default.mp3', label: 'Default' },
+        ...Array.from({ length: 4 }, (_, i) => ({ value: `goal-calling${i + 1}.mp3`, label: `Goal Calling ${i + 1}` }))
+    ],
+    callEnd: [
+        { value: 'default.mp3', label: 'Default' },
+        { value: 'unavailable-not1.mp3', label: 'Unavailable Not 1' }
+    ],
+    messageSent: [
+        { value: 'default.mp3', label: 'Default' },
+        { value: 'goal-sent1.mp3', label: 'Goal Sent 1' }
+    ],
+    notification: [
+        { value: 'default.mp3', label: 'Default' },
+        ...Array.from({ length: 11 }, (_, i) => ({ value: `goalsoft-not${i + 1}.mp3`, label: `Goalsoft Not ${i + 1}` }))
+    ]
 };
 
 
@@ -632,5 +647,6 @@ export function ProfilePageContent() {
     
 
     
+
 
 
