@@ -91,27 +91,26 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
-        audioRef.current = null;
     }
   }, []);
 
-  const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
+ const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
     stopAllSounds();
+
     const audio = new Audio(`/sounds/${type}/${fileName}`);
     audioRef.current = audio;
 
     if (type === 'call-ring' || type === 'incoming-tones') {
-        audio.loop = true;
+      audio.loop = true;
     }
 
     const playPromise = audio.play();
     if (playPromise !== undefined) {
-        playPromise.catch(error => {
-            // Autoplay was prevented. This is a common browser restriction.
-            if (error.name !== 'NotAllowedError') {
-                 console.error(`Error playing ${type} sound:`, error);
-            }
-        });
+      playPromise.catch(error => {
+        if (error.name !== 'NotAllowedError' && error.name !== 'AbortError') {
+          console.error(`Error playing ${type} sound:`, error);
+        }
+      });
     }
   }, [stopAllSounds]);
 
