@@ -183,23 +183,22 @@ useEffect(() => {
 const allContacts = useMemo(() => {
   if (!allTeamMembers || !messages) return [];
   
-  return allTeamMembers.map((member: any) => {
+  return allTeamMembers.map((member: TeamMember) => {
     const relevantMessages = messages.filter(
-      (msg: any) => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
+      (msg: Message) => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
              (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
     );
     
-    const lastMessage = relevantMessages.sort((a: any, b: any) => {
+    const lastMessage = relevantMessages.sort((a: Message, b: Message) => {
       const timeA = a.timestamp?.toMillis() || 0;
       const timeB = b.timestamp?.toMillis() || 0;
       return timeB - timeA;
     })[0];
     
-    // ✅ NEW (CORRECT) - Count messages that are NOT 'read':
-    const unreadCount = messages.filter((msg: any) => 
+    const unreadCount = messages.filter((msg: Message) => 
         msg.senderId === member.id && 
         msg.recipientId === firebaseUser?.uid && 
-        msg.readStatus !== 'read'  // This includes 'sent', 'delivered', and any other status except 'read'
+        msg.readStatus !== 'read'
     ).length;
 
     return {
@@ -207,7 +206,7 @@ const allContacts = useMemo(() => {
       status: member.status || 'offline',
       lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
       lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
-      unreadCount: unreadCount,  // Always show actual unread count
+      unreadCount: unreadCount,
       lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage?.readStatus : undefined,
       lastMessageSenderId: lastMessage?.senderId,
     };
@@ -257,9 +256,7 @@ const allContacts = useMemo(() => {
             currentCallDoc = callData;
           }
           
-          // Handle ended/declined/missed calls
           if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
-            // Clear all call-related states when call ends
             if (currentCall?.id === callData.id) {
               console.log('[Chat Context] Call ended/declined/missed, clearing states');
               
@@ -290,7 +287,7 @@ const allContacts = useMemo(() => {
                 }
               }, 3000);
             }
-            return; // Don't process ended calls further
+            return;
           }
         });
         
@@ -804,7 +801,6 @@ useEffect(() => {
     let updatesMade = false;
     const newIncomingMessages: Message[] = [];
 
-    // Get current message IDs
     const currentMessageIds = new Set(messages.map(m => m.id));
 
     messages.forEach((m) => {
@@ -820,20 +816,13 @@ useEffect(() => {
         newIncomingMessages.push(m);
       }
       
-      // 2. Mark as READ ONLY if:
-      //    - A contact is selected (chat is open)
-      //    - Message is FROM that selected contact
-      //    - Message is TO current user
-      //    - Message is currently 'delivered' (not 'sent')
-      //    - Tab is visible
-      //    - Message was PREVIOUSLY seen (not a brand new message)
+      // 2. Mark as READ if the chat is open and visible
       if (
-        selectedContact && 
-        m.senderId === selectedContact.id && 
-        m.recipientId === self.id && 
-        m.readStatus === 'delivered' &&
-        document.visibilityState === 'visible' &&
-        previousMessageIdsRef.current.has(m.id) // CRITICAL: Only mark previously seen messages as read
+        selectedContact &&
+        m.senderId === selectedContact.id &&
+        m.recipientId === self.id &&
+        (m.readStatus === 'sent' || m.readStatus === 'delivered') && // Mark both as read
+        document.visibilityState === 'visible'
       ) {
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'read' });
@@ -841,11 +830,8 @@ useEffect(() => {
       }
     });
 
-    // Update the tracked message IDs AFTER processing
     previousMessageIdsRef.current = currentMessageIds;
 
-    // 🔊 Play notification sound ONLY for NEW incoming messages
-    // Don't play if chat is already open with that sender
     if (newIncomingMessages.length > 0) {
       const shouldPlaySound = newIncomingMessages.some(msg => {
         return !selectedContact || selectedContact.id !== msg.senderId;
@@ -857,7 +843,6 @@ useEffect(() => {
       }
     }
 
-    // Commit all updates
     if (updatesMade) {
       batch.commit().catch(serverError => {
         if (serverError.code === 'permission-denied') {
