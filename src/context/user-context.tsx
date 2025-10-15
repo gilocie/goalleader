@@ -25,6 +25,7 @@ interface User {
   branch?: string;
   email?: string;
   status: 'online' | string;
+  avatarUrl?: string;
 }
 
 interface UserContextType {
@@ -72,6 +73,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
           branch: currentUserData.branch || '',
           email: firebaseUser.email || '',
           status: currentUserData.status || 'online',
+          avatarUrl: currentUserData.avatarUrl,
         };
         setUser(currentUser);
         if (currentUser.status !== 'online') {

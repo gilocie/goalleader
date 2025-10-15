@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Camera, PlusCircle, Trash2, LifeBuoy, Users, Music, MessageSquare, Check, Bell, Play } from 'lucide-react';
+import { Camera, PlusCircle, Trash2, LifeBuoy, Users, Music, MessageSquare, Check, Bell, Play, Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { useTheme } from '@/context/theme-provider';
@@ -22,6 +22,9 @@ import type { UserRole } from '@/context/user-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { TeamMember } from '@/lib/users';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useToast } from '@/hooks/use-toast';
+
 
 type Kpi = {
   id: number;
@@ -64,8 +67,11 @@ const ringtones = {
 
 
 function ProfileTabContent() {
-    const { user, saveUser, loading, allTeamMembers } = useUser();
+    const { user, saveUser, loading, allTeamMembers, setUser } = useUser();
     const { user: firebaseUser } = useFirebaseAuthUser();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { toast } = useToast();
+    const [isUploading, setIsUploading] = useState(false);
     
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -93,6 +99,37 @@ function ProfileTabContent() {
             setEmail(firebaseUser.email || '');
         }
     }, [user, firebaseUser]);
+
+     const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file || !user) return;
+
+        setIsUploading(true);
+        try {
+            const storage = getStorage();
+            const filePath = `uploads/images/profiles/${user.id}/${file.name}`;
+            const storageRef = ref(storage, filePath);
+
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+
+            // Update user's avatar in the local state and in Firestore
+            const updatedUser = { ...user, avatarUrl: downloadURL };
+            saveUser(updatedUser);
+            setUser(updatedUser); // Update context immediately
+
+            toast({ title: "Profile picture updated!" });
+        } catch (error) {
+            console.error("Error uploading profile picture:", error);
+            toast({ variant: 'destructive', title: "Upload failed", description: "Could not upload your profile picture." });
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     if (loading || !user) {
         return (
@@ -187,6 +224,13 @@ function ProfileTabContent() {
 
     return (
         <>
+        <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="image/png, image/jpeg, image/gif"
+        />
         <div className="grid gap-8 lg:grid-cols-3">
         {/* Left Column: Profile Picture and Details */}
         <div className="lg:col-span-1 space-y-8">
@@ -194,11 +238,11 @@ function ProfileTabContent() {
             <CardHeader className="items-center">
                 <div className="relative">
                     <Avatar className="h-32 w-32">
-                        <AvatarImage src={userAvatar?.imageUrl} alt={user.name} data-ai-hint={userAvatar?.imageHint} className="object-cover object-top" />
+                        <AvatarImage src={user.avatarUrl || userAvatar?.imageUrl} alt={user.name} data-ai-hint={userAvatar?.imageHint} className="object-cover object-top" />
                         <AvatarFallback className="text-4xl">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
-                    <Button variant="outline" size="icon" className="absolute bottom-2 right-2 rounded-full bg-background/80 h-10 w-10">
-                        <Camera className="h-5 w-5" />
+                     <Button variant="outline" size="icon" className="absolute bottom-2 right-2 rounded-full bg-background/80 h-10 w-10" onClick={handleAvatarClick} disabled={isUploading}>
+                        {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
                     </Button>
                 </div>
             </CardHeader>
@@ -704,6 +748,7 @@ export function ProfilePageContent() {
     
 
     
+
 
 
 

@@ -1,4 +1,5 @@
 
+
 import type { ComboboxOption } from "@/components/meetings/multi-select-combobox";
 import { UserRole } from '@/context/user-context';
 
@@ -10,4 +11,5 @@ export interface TeamMember {
   department: string;
   country?: string;
   branch?: string;
+  avatarUrl?: string;
 }
