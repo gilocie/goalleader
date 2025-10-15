@@ -55,16 +55,14 @@ function TeamsPageContent() {
     }
     setCreateTeamOpen(false);
   };
-
-  const membersForDialog = allTeamMembers.filter(member => {
-    if (member.id === user?.id) return false; // Exclude self
-    if (user?.role === 'Admin') return true; // Admin sees everyone
-    return member.department === user?.department; // Team Leader sees their department
-  });
   
   if (!user) {
     return null; // Or a loading skeleton
   }
+
+  const membersForDialog = user.role === 'Admin'
+    ? allTeamMembers.filter(m => m.id !== user.id)
+    : allTeamMembers.filter(m => m.department === user.department && m.id !== user.id) || [];
 
   const shouldRenderPage = user.role === 'Admin' || user.role === 'Team Leader';
 
@@ -86,7 +84,7 @@ function TeamsPageContent() {
   return (
     <main className="flex-grow">
       <Card className="h-full flex flex-col rounded-none border-none">
-        <CardHeader className="flex flex-row items-center justify-between p-4 md:p-6">
+        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 md:p-6">
           <div>
             <CardTitle>Our Team</CardTitle>
             <CardDescription>{user.role === 'Admin' ? 'All Departments' : user.department}</CardDescription>
@@ -143,7 +141,7 @@ function TeamsPageContent() {
                     className={cn(
                         'transition-all duration-300',
                         layout === 'grid'
-                        ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
+                        ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
                         : 'flex flex-col gap-4'
                     )}
                     >
