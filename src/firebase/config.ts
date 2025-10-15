@@ -1,3 +1,4 @@
+
 // This file is intentionally structured to support dynamic configuration.
 // In a production multi-tenant environment, these values would be fetched
 // from a secure remote configuration service (like Firebase Remote Config)
@@ -16,3 +17,5 @@ export const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
+
+export const geminiApiKey = process.env.GEMINI_API_KEY;
