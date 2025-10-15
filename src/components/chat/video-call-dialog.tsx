@@ -337,11 +337,14 @@ export function VideoCallDialog({
     }
   }, [isOpen, currentCall]);
 
-  // Determine if we should show the overlay
-  const showOverlay = !isConnected && (
-    (isReceivingCall && callStatus === 'ringing' && !hasAccepted) || // Incoming call not yet accepted
-    (!isReceivingCall && callStatus === 'ringing') // Outgoing call ringing
+  // Determine if we should show the ringing/calling overlay
+  const showRingingOverlay = !isConnected && (
+    (isReceivingCall && callStatus === 'ringing' && !hasAccepted) || 
+    (!isReceivingCall && callStatus === 'ringing') 
   );
+
+  // Determine if we should show the connecting overlay
+  const showConnectingOverlay = !isConnected && isActive && hasAccepted;
 
   return (
     <Dialog 
@@ -413,8 +416,8 @@ export function VideoCallDialog({
               </>
             )}
             
-            {/* Overlay - Only show for incoming call or outgoing ringing */}
-            {showOverlay && (
+            {/* Overlay for Calling/Ringing */}
+            {showRingingOverlay && (
               <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-4">
                 <Avatar className="h-32 w-32 border-4 border-white/20 shadow-2xl">
                   <AvatarImage src={contactAvatar?.imageUrl} data-ai-hint={contactAvatar?.imageHint} />
@@ -424,12 +427,11 @@ export function VideoCallDialog({
                 </Avatar>
                 <div className="text-center">
                   <h2 className="text-2xl font-bold mb-2">{contact.name}</h2>
-                  {isReceivingCall && callStatus === 'ringing' && !hasAccepted && (
+                  {isReceivingCall ? (
                     <p className="text-green-400 text-lg font-semibold animate-pulse">
                       Incoming Video Call...
                     </p>
-                  )}
-                  {!isReceivingCall && callStatus === 'ringing' && (
+                  ) : (
                     <p className="text-gray-300 flex items-center gap-2 justify-center">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Calling...
@@ -437,6 +439,14 @@ export function VideoCallDialog({
                   )}
                 </div>
               </div>
+            )}
+
+             {/* Overlay for Connecting */}
+            {showConnectingOverlay && (
+                <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-4">
+                    <Loader2 className="h-10 w-10 animate-spin text-white" />
+                    <p className="text-xl font-semibold text-white mt-2">Connecting to {contact.name}...</p>
+                </div>
             )}
           </div>
 

@@ -269,7 +269,10 @@ export function VoiceCallDialog({
     if (isReceivingCall && callStatus === 'ringing' && !hasAccepted) {
       return 'Incoming Call...';
     }
-    if (isActive || hasAccepted) {
+    if (isActive && hasAccepted && !isConnected) {
+        return `Connecting to ${contact.name}...`;
+    }
+    if (isActive) {
       if (isConnected) {
         return formatTime(elapsedTime);
       }
