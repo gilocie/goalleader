@@ -90,7 +90,7 @@ export function DashboardStats() {
             {isMobileOrTablet && (
               <CollapsibleTrigger asChild>
                   <button 
-                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-accent text-primary-foreground flex items-center justify-center hover:bg-accent/90"
+                  className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 border-2 border-white"
                   >
                       {openCard === stat.title ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </button>
