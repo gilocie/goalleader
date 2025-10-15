@@ -326,7 +326,6 @@ const allContacts = useMemo(() => {
           
           // Handle incoming calls
           if (callDocToProcess.recipientId === firebaseUser.uid && callDocToProcess.status === 'ringing') {
-            playSound('incoming-tones', 'default.mp3');
             if (callDocToProcess.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
