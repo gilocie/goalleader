@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect, useRef } from 'react';
@@ -187,7 +186,7 @@ const allContacts = useMemo(() => {
         let currentCallDoc: Call | null = null;
         
         snapshot.docChanges().forEach((change) => {
-          const data = change.data();
+          const data = change.doc.data();
           if (!data) return;
           
           const callData: Call = { 
