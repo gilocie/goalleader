@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -490,3 +491,4 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
     </>
   );
 }
+
