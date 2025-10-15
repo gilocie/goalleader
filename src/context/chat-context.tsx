@@ -5,7 +5,7 @@ import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatc
 import type { Contact, Message } from '@/types/chat';
 import { format } from 'date-fns';
 import { useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, onSnapshot, where, getDocs, FirestoreError, getDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc, writeBatch, onSnapshot, where, getDocs, FirestoreError, getDoc, DocumentChange, DocumentData } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -83,6 +83,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [acceptedCallContact, setAcceptedCallContact] = useState<Contact | null>(null);
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
+  const isInitialLoad = useRef(true);
 
 const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -177,15 +178,13 @@ const allContacts = useMemo(() => {
       where('participantIds', 'array-contains', firebaseUser.uid)
     );
   
-    const isInitialLoad = useRef(true);
-
     const unsubscribe = onSnapshot(
       callsQuery, 
       (snapshot) => {
         let hasActiveCall = false;
         let currentCallDoc: Call | null = null;
         
-        snapshot.docChanges().forEach((change) => {
+        snapshot.docChanges().forEach((change: DocumentChange<DocumentData>) => {
           const data = change.doc.data();
           if (!data) return;
           
