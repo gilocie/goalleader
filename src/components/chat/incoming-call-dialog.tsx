@@ -27,7 +27,6 @@ interface IncomingCallDialogProps {
 
 export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, contact }: IncomingCallDialogProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -40,27 +39,12 @@ export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, conta
         .catch(err => {
           console.error("could not get camera stream for background", err);
         });
-      
-      // Play ringtone when dialog opens
-      audioRef.current = new Audio('/sounds/incoming-tones/default.mp3');
-      audioRef.current.loop = true;
-      audioRef.current.play().catch(e => console.warn("Autoplay blocked for ringtone", e));
 
     } else {
         if (videoRef.current && videoRef.current.srcObject) {
             (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             videoRef.current.srcObject = null;
         }
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0;
-        }
-    }
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
     }
   }, [isOpen]);
 
@@ -69,12 +53,10 @@ export function IncomingCallDialog({ isOpen, onClose, onDecline, onAccept, conta
   const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
   
   const handleAccept = () => {
-    if(audioRef.current) audioRef.current.pause();
     onAccept();
   };
 
   const handleDecline = () => {
-    if(audioRef.current) audioRef.current.pause();
     onDecline();
   };
 

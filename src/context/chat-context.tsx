@@ -85,100 +85,52 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
-  // Ringtones - Create reusable audio element
 const audioRef = useRef<HTMLAudioElement | null>(null);
 const currentSoundType = useRef<SoundType | null>(null);
 
-const stopAllSounds = useCallback(() => {
-  if (audioRef.current && !audioRef.current.paused) {
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-    console.log('[Audio] Stopped all sounds');
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    audioRef.current = new Audio();
+    audioRef.current.preload = "auto";
   }
-  currentSoundType.current = null;
 }, []);
 
+
 const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
-  // Don't replay the same sound if it's already playing
-  if (currentSoundType.current === type && audioRef.current && !audioRef.current.paused) {
-    console.log(`[Audio] ${type} is already playing, skipping`);
-    return;
+  if (!audioRef.current) return;
+
+  const soundPath = `/sounds/${type}/${fileName}`;
+  const audio = audioRef.current;
+  
+  // If the same sound is already playing and supposed to loop, let it continue.
+  if (audio.src.endsWith(soundPath) && !audio.paused && audio.loop) {
+      return;
   }
   
-  stopAllSounds();
-
-  setTimeout(() => {
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio();
-        audioRef.current.preload = 'auto'; // Preload the audio
+  audio.pause();
+  audio.loop = (type === 'call-ring' || type === 'incoming-tones');
+  audio.src = soundPath;
+  audio.currentTime = 0;
+  
+  const playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(error => {
+      // Autoplay was prevented. This is common before the user interacts with the page.
+      if (error.name === 'NotAllowedError') {
+        console.warn(`[Audio] Autoplay for ${type} was blocked by the browser. User interaction is required.`);
+      } else {
+        console.error(`[Audio] Playback error for ${type}:`, error);
       }
-      
-      const soundPath = `/sounds/${type}/${fileName}`;
-      
-      if (audioRef.current.src.endsWith(soundPath)) {
-          // If the src is already correct, just play it.
-          const playPromise = audioRef.current.play();
-          if (playPromise !== undefined) {
-              playPromise.catch(e => {
-                  if (e.name !== 'AbortError') console.error(`[Audio] Play error for existing src:`, e);
-              });
-          }
-          return;
-      }
+    });
+  }
+}, []);
 
-      console.log(`[Audio] Loading: ${soundPath}`);
-      
-      audioRef.current.src = soundPath;
-      audioRef.current.loop = (type === 'call-ring' || type === 'incoming-tones');
-      currentSoundType.current = type;
-
-      // Handle errors
-      audioRef.current.onerror = () => {
-        console.error(`[Audio] ❌ Failed to load: ${soundPath}`);
-        console.error(`Please verify file exists at: public${soundPath}`);
-        stopAllSounds();
-      };
-      
-      // Use 'canplaythrough' to ensure the audio is ready
-      const handleCanPlay = () => {
-          const playPromise = audioRef.current?.play();
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                console.log(`[Audio] ✓ Playing: ${type}/${fileName}`);
-              })
-              .catch(error => {
-                if (error.name === 'NotAllowedError') {
-                  console.warn('[Audio] Blocked by browser - user interaction required');
-                } else if (error.name !== 'AbortError') {
-                  console.error(`[Audio] Play error:`, error.name, error.message);
-                }
-              });
-          }
-      };
-      
-      audioRef.current.addEventListener('canplaythrough', handleCanPlay, { once: true });
-      audioRef.current.load(); // Start loading the new source
-
-    } catch (error) {
-      console.error(`[Audio] Setup failed:`, error);
-    }
-  }, 100);
-}, [stopAllSounds]);
-
-
-// Cleanup on unmount
-useEffect(() => {
-  return () => {
-    console.log('[Audio] Component unmounting, stopping sounds');
-    stopAllSounds();
-    if (audioRef.current) {
-      audioRef.current.src = '';
-      audioRef.current.load();
-    }
-  };
-}, [stopAllSounds]);
+const stopAllSounds = useCallback(() => {
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+  }
+}, []);
 
 
 const allContacts = useMemo(() => {
@@ -222,7 +174,6 @@ const allContacts = useMemo(() => {
   
     const callsRef = collection(firestore, 'calls');
     
-    // Listen for calls where the current user is a participant
     const callsQuery = query(
       callsRef, 
       where('participantIds', 'array-contains', firebaseUser.uid),
@@ -232,7 +183,6 @@ const allContacts = useMemo(() => {
     const unsubscribe = onSnapshot(
       callsQuery, 
       (snapshot) => {
-        // Track if we have any active/ringing calls
         let hasActiveCall = false;
         let currentCallDoc: Call | null = null;
         
@@ -252,7 +202,6 @@ const allContacts = useMemo(() => {
             endedAt: data.endedAt,
           };
           
-          // Only consider ringing or active calls as "current"
           if (callData.status === 'ringing' || callData.status === 'active') {
             hasActiveCall = true;
             currentCallDoc = callData;
@@ -260,11 +209,8 @@ const allContacts = useMemo(() => {
           
           if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
             if (currentCall?.id === callData.id) {
-              console.log('[Chat Context] Call ended/declined/missed, clearing states');
-              
               playSound('call-cuts', 'default.mp3');
               
-              // Clear all states immediately
               setCurrentCall(null);
               setAcceptedCallContact(null);
               setAcceptedVoiceCallContact(null);
@@ -273,19 +219,17 @@ const allContacts = useMemo(() => {
               setIsVideoCallOpen(false);
               setIsVoiceCallOpen(false);
               
-              // Clean up the call document after a delay
               setTimeout(async () => {
                 try {
                   const callDocRef = doc(firestore, 'calls', callData.id);
                   await deleteDoc(callDocRef);
                   
-                  // Clean up ICE candidates
                   const iceCandidatesRef = collection(firestore, 'calls', callData.id, 'iceCandidates');
                   const iceCandidatesSnapshot = await getDocs(iceCandidatesRef);
                   const deletePromises = iceCandidatesSnapshot.docs.map(iceDoc => deleteDoc(iceDoc.ref));
                   await Promise.all(deletePromises);
                 } catch (err) {
-                  console.log('Call cleanup: Document already deleted or permission denied');
+                  // Ignore errors, doc might be gone
                 }
               }, 3000);
             }
@@ -293,10 +237,8 @@ const allContacts = useMemo(() => {
           }
         });
         
-        // If no active calls, clear everything
         if (!hasActiveCall) {
           stopAllSounds();
-          console.log('[Chat Context] No active calls, clearing all states');
           setCurrentCall(null);
           setAcceptedCallContact(null);
           setAcceptedVoiceCallContact(null);
@@ -307,9 +249,8 @@ const allContacts = useMemo(() => {
           return;
         }
         
-        // Process the current call
         if (currentCallDoc) {
-          const callDocToProcess: Call = currentCallDoc; // Create a new reference to help TypeScript
+          const callDocToProcess: Call = currentCallDoc;
           
           const otherParticipantId = callDocToProcess.callerId === firebaseUser.uid 
             ? callDocToProcess.recipientId 
@@ -317,15 +258,12 @@ const allContacts = useMemo(() => {
           
           const otherParticipant = allContacts.find((c: Contact) => c.id === otherParticipantId);
           
-          if (!otherParticipant) {
-            console.log('[Chat Context] Other participant not found in contacts');
-            return;
-          }
+          if (!otherParticipant) return;
           
           setCurrentCall(callDocToProcess);
           
-          // Handle incoming calls
           if (callDocToProcess.recipientId === firebaseUser.uid && callDocToProcess.status === 'ringing') {
+            playSound('incoming-tones', 'default.mp3');
             if (callDocToProcess.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
@@ -335,7 +273,6 @@ const allContacts = useMemo(() => {
             }
           }
           
-          // Handle accepted calls
           else if (callDocToProcess.status === 'active') {
             stopAllSounds();
             if (callDocToProcess.type === 'voice') {
