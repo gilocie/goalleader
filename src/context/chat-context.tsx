@@ -14,6 +14,7 @@ import { useCollection, useDoc } from '@/firebase';
 import { useUser as useUserContext } from '@/context/user-context';
 import type { Call } from '@/types/chat';
 import { WebRTCService } from '@/lib/webrtc-service';
+import type { TeamMember } from '@/lib/users';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -804,37 +805,43 @@ useEffect(() => {
     const currentMessageIds = new Set(messages.map(m => m.id));
 
     messages.forEach((m) => {
-      // 1. Mark as DELIVERED if message is NEW and received
-      if (
-        m.recipientId === self.id && 
-        m.readStatus === 'sent' &&
-        !previousMessageIdsRef.current.has(m.id)
-      ) {
+      // 1. Mark as DELIVERED if received and not yet delivered/read
+      if (m.recipientId === self.id && m.readStatus === 'sent') {
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'delivered' });
         updatesMade = true;
-        newIncomingMessages.push(m);
+
+        if (!previousMessageIdsRef.current.has(m.id)) {
+          newIncomingMessages.push(m);
+        }
       }
       
-      // 2. Mark as READ if the chat is open and visible
+      // 2. Mark as READ ONLY if:
+      //    - Chat with sender is currently OPEN
+      //    - Window/tab is VISIBLE
+      //    - Message is in 'delivered' status
       if (
-        selectedContact &&
-        m.senderId === selectedContact.id &&
-        m.recipientId === self.id &&
-        (m.readStatus === 'sent' || m.readStatus === 'delivered') && // Mark both as read
+        selectedContact && 
+        m.senderId === selectedContact.id && 
+        m.recipientId === self.id && 
+        m.readStatus === 'delivered' && // Only mark delivered messages as read
         document.visibilityState === 'visible'
       ) {
+        console.log(`[Read Status] Marking message ${m.id} as read`);
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'read' });
         updatesMade = true;
       }
     });
 
+    // Update the previous message IDs set
     previousMessageIdsRef.current = currentMessageIds;
 
+    // 🔊 Play notification sound ONLY for NEW incoming messages
     if (newIncomingMessages.length > 0) {
       const shouldPlaySound = newIncomingMessages.some(msg => {
-        return !selectedContact || selectedContact.id !== msg.senderId;
+        // Don't play sound if the chat is already open and visible
+        return !(selectedContact && selectedContact.id === msg.senderId && document.visibilityState === 'visible');
       });
 
       if (shouldPlaySound) {
@@ -843,6 +850,7 @@ useEffect(() => {
       }
     }
 
+    // Commit batch updates
     if (updatesMade) {
       batch.commit().catch(serverError => {
         if (serverError.code === 'permission-denied') {
@@ -855,7 +863,7 @@ useEffect(() => {
         }
       });
     }
-}, [messages, selectedContact, self, firestore, playSound]);
+  }, [messages, selectedContact, self, firestore, playSound]);
 
 
 // Additional fix: Add visibility change listener to mark messages as read when user returns

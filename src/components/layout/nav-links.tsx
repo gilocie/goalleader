@@ -12,7 +12,7 @@ import { Separator } from '../ui/separator';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useSidebar } from './sidebar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { useUser } from '@/context/user-context';
+import { useUser, UserRole } from '@/context/user-context';
 import { FolderKanban } from 'lucide-react';
 
 type NavLink = {
@@ -21,7 +21,7 @@ type NavLink = {
     label: string;
     notificationKey?: string;
     subItems?: NavLink[];
-    roles?: ('Admin' | 'Team Leader' | 'Consultant')[];
+    roles?: UserRole[];
 };
 
 const links: NavLink[] = [
