@@ -94,7 +94,7 @@ function TeamsPageContent() {
                    {teamMembers.length > 0 && (
                         <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button onClick={() => setCreateTeamOpen(true)}>
+                            <Button size="sm" onClick={() => setCreateTeamOpen(true)}>
                                 <Edit className="mr-2 h-4 w-4" /> Edit Team
                             </Button>
                         </TooltipTrigger>
@@ -103,7 +103,7 @@ function TeamsPageContent() {
                    )}
                   <Tooltip>
                       <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground" asChild>
+                          <Button variant="outline" size="icon" className="h-9 w-9 hover:bg-primary hover:text-primary-foreground" asChild>
                               <Link href="/chat">
                                   <MessageSquare className="h-4 w-4" />
                                   <span className="sr-only">Start Team Chat</span>
@@ -114,7 +114,7 @@ function TeamsPageContent() {
                   </Tooltip>
                    <Tooltip>
                       <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon" className="hover:bg-primary hover:text-primary-foreground">
+                          <Button variant="outline" size="icon" className="h-9 w-9 hover:bg-primary hover:text-primary-foreground">
                               <Video className="h-4 w-4" />
                               <span className="sr-only">Start Meeting</span>
                           </Button>
@@ -123,11 +123,11 @@ function TeamsPageContent() {
                   </Tooltip>
               </TooltipProvider>
             <Separator orientation="vertical" className="h-6 mx-2" />
-            <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" className="hover:bg-primary hover:text-primary-foreground" onClick={() => setLayout('grid')}>
+            <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" className="h-9 w-9 hover:bg-primary hover:text-primary-foreground" onClick={() => setLayout('grid')}>
               <LayoutGrid className="h-4 w-4" />
               <span className="sr-only">Grid View</span>
             </Button>
-            <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" className="hover:bg-primary hover:text-primary-foreground" onClick={() => setLayout('list')}>
+            <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" className="h-9 w-9 hover:bg-primary hover:text-primary-foreground" onClick={() => setLayout('list')}>
               <List className="h-4 w-4" />
               <span className="sr-only">List View</span>
             </Button>
@@ -152,8 +152,8 @@ function TeamsPageContent() {
                             key={member.id}
                             className="shadow-md transition-shadow hover:shadow-lg relative"
                         >
-                            <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
+                            <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
+                                <div className="flex items-center gap-1">
                                     <Tooltip>
                                     <TooltipTrigger asChild>
                                         <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
@@ -172,27 +172,27 @@ function TeamsPageContent() {
                                     </Tooltip>
                                 </div>
                                 <div className={cn(
-                                    'h-3 w-3 rounded-full border-2 border-background',
+                                    'h-2.5 w-2.5 rounded-full border-2 border-background',
                                     member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
                                 )} />
                             </div>
                             <CardContent
                             className={cn(
-                                'p-4 pt-12',
-                                layout === 'grid' ? 'flex flex-col items-center text-center space-y-4' : 'flex items-center space-x-4'
+                                'p-4 pt-10',
+                                layout === 'grid' ? 'flex flex-col items-center text-center space-y-2' : 'flex items-center space-x-4'
                             )}
                             >
-                            <Avatar className={cn(layout === 'grid' ? 'h-20 w-20' : 'h-12 w-12')}>
+                            <Avatar className={cn(layout === 'grid' ? 'h-16 w-16' : 'h-12 w-12')}>
                                 <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} className="object-cover" />
                                 <AvatarFallback>
                                 {member.name.split(' ').map((n) => n[0]).join('')}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className={cn(layout === 'grid' ? 'space-y-2' : 'flex-grow')}>
-                                <p className="font-semibold">{member.name}</p>
-                                <p className="text-sm text-muted-foreground">{member.role}</p>
+                            <div className={cn(layout === 'grid' ? 'space-y-1.5' : 'flex-grow')}>
+                                <p className="font-semibold text-sm">{member.name}</p>
+                                <p className="text-xs text-muted-foreground">{member.role}</p>
                                 {layout === 'grid' && (
-                                <Button asChild size="sm">
+                                <Button asChild size="sm" className="mt-1">
                                     <Link href={`/teams/${member.id}`}>View Performance</Link>
                                 </Button>
                                 )}
