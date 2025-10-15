@@ -22,7 +22,6 @@ import type { UserRole } from '@/context/user-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { TeamMember } from '@/lib/users';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -79,6 +78,7 @@ function ProfileTabContent() {
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedCountry, setSelectedCountry] = useState('');
     const [selectedBranch, setSelectedBranch] = useState('');
+    const [isSwitchProfileOpen, setIsSwitchProfileOpen] = useState(false);
 
     const [kpis, setKpis] = useState<Kpi[]>([
         { id: 1, value: '' },
@@ -110,23 +110,25 @@ function ProfileTabContent() {
 
         setIsUploading(true);
         try {
-            const storage = getStorage();
-            const filePath = `uploads/images/profiles/${user.id}/${file.name}`;
-            const storageRef = ref(storage, filePath);
-
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-
-            // Update user's avatar in the local state and in Firestore
-            const updatedUser = { ...user, avatarUrl: downloadURL };
-            saveUser(updatedUser);
-            setUser(updatedUser); // Update context immediately
-
-            toast({ title: "Profile picture updated!" });
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = () => {
+                const base64String = reader.result as string;
+                
+                // Update user's avatar in the local state and in Firestore
+                const updatedUser = { ...user, avatarUrl: base64String };
+                saveUser(updatedUser); // This will save to Firestore
+                setUser(updatedUser); // This updates context immediately for instant UI change
+                
+                toast({ title: "Profile picture updated!" });
+                setIsUploading(false);
+            };
+            reader.onerror = (error) => {
+                throw error;
+            }
         } catch (error) {
-            console.error("Error uploading profile picture:", error);
-            toast({ variant: 'destructive', title: "Upload failed", description: "Could not upload your profile picture." });
-        } finally {
+            console.error("Error converting file to Base64:", error);
+            toast({ variant: 'destructive', title: "Upload failed", description: "Could not process your profile picture." });
             setIsUploading(false);
         }
     };
@@ -222,6 +224,13 @@ function ProfileTabContent() {
         return `KPI #${index + 1}`;
     }
 
+    const handleProfileSwitch = (memberToSwitch: any) => {
+        if (memberToSwitch) {
+            saveUser(memberToSwitch);
+        }
+        setIsSwitchProfileOpen(false);
+    }
+
     return (
         <>
         <input
@@ -249,6 +258,10 @@ function ProfileTabContent() {
             <CardContent className="text-center">
                 <div className='flex items-center justify-center gap-2'>
                     <CardTitle className="text-2xl">{name}</CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => setIsSwitchProfileOpen(true)}>
+                        <Users className='mr-2 h-4 w-4' />
+                        Switch Profile
+                    </Button>
                 </div>
             </CardContent>
           </Card>
@@ -748,6 +761,7 @@ export function ProfilePageContent() {
     
 
     
+
 
 
 
