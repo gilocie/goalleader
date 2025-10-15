@@ -199,7 +199,8 @@ const allContacts = useMemo(() => {
     const unreadCount = messages.filter((msg: Message) => 
         msg.senderId === member.id && 
         msg.recipientId === firebaseUser?.uid && 
-        msg.readStatus !== 'read'
+        msg.readStatus !== 'read' &&
+        !msg.isSystem // Exclude system messages (calls) from unread count
     ).length;
 
     return {
