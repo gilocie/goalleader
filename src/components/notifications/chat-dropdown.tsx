@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 
 export function ChatDropdown({ children }: { children: React.ReactNode }) {
-    const { contacts, setSelectedContact } = useChat();
+    const { contacts, setSelectedContact, unreadMessagesCount } = useChat();
     const router = useRouter();
     const unreadContacts = contacts.filter(c => c.unreadCount && c.unreadCount > 0);
 

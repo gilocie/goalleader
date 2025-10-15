@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -88,7 +89,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
                             {count > 0 && (
                                 <Badge className={cn(
                                     'absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0',
-                                     isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
+                                     isActive ? 'bg-destructive text-destructive-foreground' : 'bg-destructive text-destructive-foreground'
                                 )}>
                                 {count}
                                 </Badge>
@@ -154,7 +155,7 @@ export function NavLinks({ isMobile = false, isCollapsed = false }: { isMobile?:
         {count > 0 && (
           <Badge className={cn(
             'h-5 w-5 flex items-center justify-center p-0',
-            isActive ? 'bg-primary-foreground text-primary' : 'bg-primary text-primary-foreground'
+            isActive ? 'bg-primary-foreground text-primary' : 'bg-destructive text-destructive-foreground'
           )}>
             {count}
           </Badge>
