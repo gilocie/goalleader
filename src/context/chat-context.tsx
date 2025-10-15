@@ -65,9 +65,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const firestore = useFirestore();
   
   const messagesQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !firebaseUser) return null; // FIX: Only query if user is logged in
     return query(collection(firestore, 'messages'), orderBy('timestamp', 'asc'));
-  }, [firestore]);
+  }, [firestore, firebaseUser]);
 
   const { data: messages, setData: setMessages } = useCollection<Message>(messagesQuery);
   

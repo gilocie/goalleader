@@ -48,9 +48,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const usersQuery = React.useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !firebaseUser) return null; // FIX: Only query if user is logged in
     return collection(firestore, 'users');
-  }, [firestore]);
+  }, [firestore, firebaseUser]);
   
   const { data: allTeamMembers, loading: usersLoading } = useCollection<TeamMember>(usersQuery);
 
