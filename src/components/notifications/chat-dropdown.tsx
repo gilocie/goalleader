@@ -27,6 +27,7 @@ export function ChatDropdown({ children }: { children: React.ReactNode }) {
     const unreadContacts = contacts.filter(c => c.unreadCount && c.unreadCount > 0);
 
     const handleNotificationClick = (contact: Contact) => {
+        // Just set the contact and navigate. The ChatContext will handle marking as read.
         setSelectedContact(contact);
         router.push('/chat');
     };

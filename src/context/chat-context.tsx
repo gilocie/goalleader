@@ -86,10 +86,9 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
 
 const audioRef = useRef<HTMLAudioElement | null>(null);
-const currentSoundType = useRef<SoundType | null>(null);
 
 useEffect(() => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && !audioRef.current) {
     audioRef.current = new Audio();
     audioRef.current.preload = "auto";
   }
@@ -176,77 +175,60 @@ const allContacts = useMemo(() => {
     
     const callsQuery = query(
       callsRef, 
-      where('participantIds', 'array-contains', firebaseUser.uid),
-      where('status', 'in', ['ringing', 'active', 'ended', 'declined', 'missed'])
+      where('participantIds', 'array-contains', firebaseUser.uid)
     );
   
+    const isInitialLoad = useRef(true);
+
     const unsubscribe = onSnapshot(
       callsQuery, 
       (snapshot) => {
         let hasActiveCall = false;
         let currentCallDoc: Call | null = null;
         
-        snapshot.forEach((docSnapshot) => {
-          const data = docSnapshot.data();
+        snapshot.docChanges().forEach((change) => {
+          const data = change.data();
           if (!data) return;
           
           const callData: Call = { 
-            id: docSnapshot.id, 
-            callerId: data.callerId,
-            recipientId: data.recipientId,
-            participantIds: data.participantIds,
-            status: data.status,
-            type: data.type,
-            createdAt: data.createdAt,
-            acceptedAt: data.acceptedAt,
-            endedAt: data.endedAt,
-          };
+            id: change.doc.id, 
+            ...data
+          } as Call;
           
           if (callData.status === 'ringing' || callData.status === 'active') {
             hasActiveCall = true;
             currentCallDoc = callData;
           }
           
-          if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
-            if (currentCall?.id === callData.id) {
-              playSound('call-cuts', 'default.mp3');
-              
-              setCurrentCall(null);
-              setAcceptedCallContact(null);
-              setAcceptedVoiceCallContact(null);
-              setIncomingCallFrom(null);
-              setIncomingVoiceCallFrom(null);
-              setIsVideoCallOpen(false);
-              setIsVoiceCallOpen(false);
-              
-              setTimeout(async () => {
-                try {
-                  const callDocRef = doc(firestore, 'calls', callData.id);
-                  await deleteDoc(callDocRef);
-                  
-                  const iceCandidatesRef = collection(firestore, 'calls', callData.id, 'iceCandidates');
-                  const iceCandidatesSnapshot = await getDocs(iceCandidatesRef);
-                  const deletePromises = iceCandidatesSnapshot.docs.map(iceDoc => deleteDoc(iceDoc.ref));
-                  await Promise.all(deletePromises);
-                } catch (err) {
-                  // Ignore errors, doc might be gone
+          if (change.type === 'modified' || change.type === 'removed' || (change.type === 'added' && !isInitialLoad.current)) {
+            if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
+                if (currentCall?.id === callData.id) {
+                    playSound('call-cuts', 'default.mp3');
                 }
-              }, 3000);
+                
+                // Centralized state clearing
+                setCurrentCall(null);
+                setAcceptedCallContact(null);
+                setAcceptedVoiceCallContact(null);
+                setIncomingCallFrom(null);
+                setIncomingVoiceCallFrom(null);
+                setIsVideoCallOpen(false);
+                setIsVoiceCallOpen(false);
+                stopAllSounds();
+
+                // Clean up Firestore docs after a delay
+                setTimeout(async () => {
+                  try {
+                    await deleteDoc(doc(firestore, 'calls', callData.id));
+                  } catch (err) {}
+                }, 5000);
             }
-            return;
           }
         });
-        
-        if (!hasActiveCall) {
-          stopAllSounds();
-          setCurrentCall(null);
-          setAcceptedCallContact(null);
-          setAcceptedVoiceCallContact(null);
-          setIncomingCallFrom(null);
-          setIncomingVoiceCallFrom(null);
-          setIsVideoCallOpen(false);
-          setIsVoiceCallOpen(false);
-          return;
+
+        if (!hasActiveCall && !isInitialLoad.current) {
+            stopAllSounds();
+            setCurrentCall(null);
         }
         
         if (currentCallDoc) {
@@ -263,7 +245,8 @@ const allContacts = useMemo(() => {
           setCurrentCall(callDocToProcess);
           
           if (callDocToProcess.recipientId === firebaseUser.uid && callDocToProcess.status === 'ringing') {
-            playSound('incoming-tones', 'default.mp3');
+            if (!isInitialLoad.current) playSound('incoming-tones', 'default.mp3');
+
             if (callDocToProcess.type === 'voice') {
               setIncomingVoiceCallFrom(otherParticipant);
               setIsVoiceCallOpen(true);
@@ -284,6 +267,9 @@ const allContacts = useMemo(() => {
             }
           }
         }
+        
+        // After the first snapshot is processed, it's no longer the initial load
+        isInitialLoad.current = false;
       },
       (error: FirestoreError) => {
         if (error.code === 'permission-denied') {
@@ -605,37 +591,27 @@ const allContacts = useMemo(() => {
 
   const endVoiceCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
-    playSound('call-cuts', 'default.mp3');
+    
     try {
-      // Update call status in Firestore
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
         status: 'ended',
         endedAt: serverTimestamp()
       });
-      
-      // Add system message
       addSystemMessage(`Voice call ended`, contactId, 'voice');
-      
-      // The listener will handle clearing states
-      
     } catch (error) {
       console.error('Failed to end voice call:', error);
-      // Even if update fails, clear local states
-      setAcceptedVoiceCallContact(null);
-      setCurrentCall(null);
-      setIncomingVoiceCallFrom(null);
-      setIsVoiceCallOpen(false);
+    } finally {
+        // State clearing is now handled by the main listener
     }
-  }, [firestore, currentCall, addSystemMessage, playSound]);
+  }, [firestore, currentCall, addSystemMessage]);
   
   const declineVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
-    playSound('call-cuts', 'default.mp3');
+    
     await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
     addSystemMessage(`Missed voice call from ${incomingVoiceCallFrom.name}`, incomingVoiceCallFrom.id, 'voice');
-    setIncomingVoiceCallFrom(null);
-    setCurrentCall(null);
-  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage, playSound]);
+
+  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage]);
 
   const startCall = useCallback(async (contact: Contact) => {
     if (!self || !firestore) return;
@@ -698,37 +674,23 @@ const allContacts = useMemo(() => {
   
   const endCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
-    playSound('call-cuts', 'default.mp3');
+    
     try {
-      // Update call status in Firestore
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
         status: 'ended',
         endedAt: serverTimestamp()
       });
-      
-      // Add system message
       addSystemMessage(`Video call ended`, contactId, 'video');
-      
-      // The listener will handle clearing states
-      
     } catch (error) {
       console.error('Failed to end video call:', error);
-      // Even if update fails, clear local states
-      setAcceptedCallContact(null);
-      setCurrentCall(null);
-      setIncomingCallFrom(null);
-      setIsVideoCallOpen(false);
     }
-  }, [firestore, currentCall, addSystemMessage, playSound]);
+  }, [firestore, currentCall, addSystemMessage]);
 
   const declineCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingCallFrom) return;
-    playSound('call-cuts', 'default.mp3');
     await updateDoc(doc(firestore, 'calls', currentCall.id), { status: 'declined' });
     addSystemMessage(`Missed video call from ${incomingCallFrom.name}`, incomingCallFrom.id, 'video');
-    setIncomingCallFrom(null);
-    setCurrentCall(null);
-  }, [firestore, currentCall, incomingCallFrom, addSystemMessage, playSound]);
+  }, [firestore, currentCall, incomingCallFrom, addSystemMessage]);
   
 const previousMessageIdsRef = useRef<Set<string>>(new Set());
 
@@ -743,7 +705,7 @@ useEffect(() => {
 
     messages.forEach((m) => {
       // 1. Mark as DELIVERED if received and not yet delivered/read
-      if (m.recipientId === self.id && m.readStatus === 'sent') {
+      if (m.recipientId === self.id && m.readStatus === 'sent' && !m.isSystem) {
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'delivered' });
         updatesMade = true;
@@ -756,15 +718,14 @@ useEffect(() => {
       // 2. Mark as READ ONLY if:
       //    - Chat with sender is currently OPEN
       //    - Window/tab is VISIBLE
-      //    - Message is in 'delivered' status
+      //    - Message is 'sent' or 'delivered'
       if (
         selectedContact && 
         m.senderId === selectedContact.id && 
         m.recipientId === self.id && 
-        m.readStatus === 'delivered' && // Only mark delivered messages as read
+        (m.readStatus === 'sent' || m.readStatus === 'delivered') &&
         document.visibilityState === 'visible'
       ) {
-        console.log(`[Read Status] Marking message ${m.id} as read`);
         const messageRef = doc(firestore, 'messages', m.id);
         batch.update(messageRef, { readStatus: 'read' });
         updatesMade = true;
@@ -782,7 +743,6 @@ useEffect(() => {
       });
 
       if (shouldPlaySound) {
-        console.log(`[Audio] 📨 ${newIncomingMessages.length} new message(s) received`);
         playSound('notifications-tones', 'default.mp3');
       }
     }
@@ -803,13 +763,12 @@ useEffect(() => {
   }, [messages, selectedContact, self, firestore, playSound]);
 
 
-// Additional fix: Add visibility change listener to mark messages as read when user returns
 useEffect(() => {
   const handleVisibilityChange = () => {
+    // The main read-receipt useEffect will handle the logic when it re-runs due to this state change
+    // This just ensures it does re-run when the tab becomes visible
     if (document.visibilityState === 'visible' && selectedContact) {
-      // This function just needs to exist. The actual logic is handled
-      // in the main useEffect above, which will re-run when visibility changes
-      // and properly mark messages as read.
+      // Re-evaluating messages will trigger the main effect
     }
   };
 
