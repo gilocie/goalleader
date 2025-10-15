@@ -807,9 +807,9 @@ useEffect(() => {
 useEffect(() => {
   const handleVisibilityChange = () => {
     if (document.visibilityState === 'visible' && selectedContact) {
-      // When tab becomes visible and a chat is open, mark delivered messages as read
-      // The main effect above will handle this on next render
-      console.log('[Chat Context] Tab visible, checking for unread messages');
+      // This function just needs to exist. The actual logic is handled
+      // in the main useEffect above, which will re-run when visibility changes
+      // and properly mark messages as read.
     }
   };
 
