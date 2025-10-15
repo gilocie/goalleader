@@ -76,7 +76,7 @@ useEffect(() => {
     // Verify file loads
     notificationAudioRef.current.onerror = () => {
       console.error('[Audio] ❌ Failed to load notification sound');
-      console.error('Please verify: public/sounds/notifications-tones/default.mp3');
+      console.error('Please verify: /sounds/notifications-tones/default.mp3');
     };
     
     notificationAudioRef.current.onloadeddata = () => {
