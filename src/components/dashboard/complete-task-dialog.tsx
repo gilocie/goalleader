@@ -21,7 +21,7 @@ interface CompleteTaskDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   task: Task;
-  onConfirm: (taskId: string, description: string) => void;
+  onConfirm: (description: string) => void;
 }
 
 export function CompleteTaskDialog({
@@ -41,7 +41,7 @@ export function CompleteTaskDialog({
   }, [task]);
 
   const handleConfirm = () => {
-    onConfirm(task.id, description);
+    onConfirm(description);
     onOpenChange(false);
     setDescription('');
   };

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, {
@@ -50,7 +49,7 @@ interface TimeTrackerContextType {
   handleStartStop: () => void;
   handleReset: () => void;
   startTask: (taskId: string) => void;
-  handleStop: (taskId: string, description: string) => void;
+  handleStop: (description: string) => void;
   addTask: (task: Omit<Task, 'status' | 'id' | 'userId' | 'createdAt'>) => void;
   updateTask: (task: Task) => void;
   deleteTask: (taskId: string) => void;
@@ -189,7 +188,7 @@ export const TimeTrackerProvider = ({ children }: { children: ReactNode }) => {
     setIsActive(true);
   }, [firestore, firebaseUser, activeTask, localTasks]);
 
-  const handleStop = useCallback(async (taskId: string, description: string) => {
+  const handleStop = useCallback(async (description: string) => {
     if (!firestore || !firebaseUser || !selectedTask) return;
     
     const taskDocRef = doc(firestore, 'users', firebaseUser.uid, 'todos', selectedTask.id);
