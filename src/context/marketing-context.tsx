@@ -44,14 +44,14 @@ export const MarketingProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const leadsQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !firebaseUser) return null;
     return query(collection(firestore, 'clientLeads'), orderBy('name', 'asc'));
-  }, [firestore]);
+  }, [firestore, firebaseUser]);
 
   const marketingContentQuery = useMemo(() => {
-    if (!firestore) return null;
+    if (!firestore || !firebaseUser) return null;
     return query(collection(firestore, 'marketingContent'), orderBy('approvedAt', 'desc'));
-  }, [firestore]);
+  }, [firestore, firebaseUser]);
 
   const { data: leads, loading: leadsLoading } = useCollection<Lead>(leadsQuery);
   const { data: approvedContent, loading: contentLoading } = useCollection<MarketingContent>(marketingContentQuery);
