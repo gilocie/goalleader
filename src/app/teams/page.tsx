@@ -154,28 +154,30 @@ function TeamsPageContent() {
                             key={member.id}
                             className="shadow-md transition-shadow hover:shadow-lg relative"
                         >
-                            <div className="absolute top-3 left-3 flex items-center gap-2">
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
-                                    <MessageSquare className="h-4 w-4 text-primary" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Send Message</TooltipContent>
-                                </Tooltip>
-                                <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
-                                    <Phone className="h-4 w-4 text-primary" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Call</TooltipContent>
-                                </Tooltip>
+                            <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
+                                        <MessageSquare className="h-4 w-4 text-primary" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Send Message</TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
+                                        <Phone className="h-4 w-4 text-primary" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Call</TooltipContent>
+                                    </Tooltip>
+                                </div>
+                                <div className={cn(
+                                    'h-3 w-3 rounded-full border-2 border-background',
+                                    member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                )} />
                             </div>
-                            <div className={cn(
-                                'absolute top-3 right-3 h-3 w-3 rounded-full border-2 border-background',
-                                member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                            )} />
                             <CardContent
                             className={cn(
                                 'p-4 pt-12',
