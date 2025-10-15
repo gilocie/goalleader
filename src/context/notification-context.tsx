@@ -71,12 +71,12 @@ useEffect(() => {
     console.log('[Audio] Initializing notification sound');
     notificationAudioRef.current = new Audio();
     notificationAudioRef.current.preload = 'auto';
-    notificationAudioRef.current.src = '/sounds/notifications-tones/default.mp3';
+    notificationAudioRef.current.src = '/sounds/notifications-tones/goalsoft-not1.mp3';
     
     // Verify file loads
     notificationAudioRef.current.onerror = () => {
       console.error('[Audio] ❌ Failed to load notification sound');
-      console.error('Please verify: public/sounds/notifications-tones/default.mp3');
+      console.error('Please verify: public/sounds/notifications-tones/goalsoft-not1.mp3');
     };
     
     notificationAudioRef.current.onloadeddata = () => {
