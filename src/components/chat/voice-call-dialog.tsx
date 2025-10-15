@@ -266,18 +266,10 @@ export function VoiceCallDialog({
 
   // Display status text
   const getStatusText = () => {
-    if (isReceivingCall && callStatus === 'ringing' && !hasAccepted) {
-      return 'Incoming Call...';
-    }
-    if (isActive && hasAccepted && !isConnected) {
-        return `Connecting to ${contact.name}...`;
-    }
-    if (isActive) {
-      if (isConnected) {
-        return formatTime(elapsedTime);
-      }
-      return 'Connecting...';
-    }
+    if (callStatus === 'ringing' && isReceivingCall) return 'Incoming Call...';
+    if (callStatus === 'ringing' && !isReceivingCall) return 'Calling...';
+    if (isActive && !isConnected) return 'Connecting...';
+    if (isActive && isConnected) return formatTime(elapsedTime);
     return 'Calling...';
   };
 

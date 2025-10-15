@@ -338,13 +338,10 @@ export function VideoCallDialog({
   }, [isOpen, currentCall]);
 
   // Determine if we should show the ringing/calling overlay
-  const showRingingOverlay = !isConnected && (
-    (isReceivingCall && callStatus === 'ringing' && !hasAccepted) || 
-    (!isReceivingCall && callStatus === 'ringing') 
-  );
+  const showRingingOverlay = !isActive && (callStatus === 'ringing');
 
   // Determine if we should show the connecting overlay
-  const showConnectingOverlay = !isConnected && isActive && hasAccepted;
+  const showConnectingOverlay = isActive && !isConnected;
 
   return (
     <Dialog 
