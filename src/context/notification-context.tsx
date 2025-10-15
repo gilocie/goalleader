@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useCallback, useRef, useEffect } from 'react';
@@ -67,29 +66,34 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
 
 useEffect(() => {
-  if (typeof window !== 'undefined') {
-    console.log('[Audio] Initializing notification sound');
-    notificationAudioRef.current = new Audio();
-    notificationAudioRef.current.preload = 'auto';
-    notificationAudioRef.current.src = '/sounds/notifications-tones/default.mp3';
-    
-    // Verify file loads
-    notificationAudioRef.current.onerror = () => {
-      console.error('[Audio] ❌ Failed to load notification sound');
-      console.error('Please verify: /sounds/notifications-tones/default.mp3');
-    };
-    
-    notificationAudioRef.current.onloadeddata = () => {
-      console.log('[Audio] ✓ Notification sound ready');
-    };
-  }
-  
+  if (typeof window === 'undefined') return;
+
+  const audio = new Audio('/sounds/notifications-tones/default.mp3');
+  audio.preload = 'auto';
+
+  // Keep the ref
+  notificationAudioRef.current = audio;
+
+  // Load manually to ensure timing
+  const handleCanPlay = () => {
+    console.log('[Audio] ✓ Notification sound ready');
+  };
+
+  const handleError = (e: any) => {
+    console.error('[Audio] ❌ Failed to load notification sound:', e);
+    console.warn('Make sure the file exists at /sounds/notifications-tones/default.mp3');
+  };
+
+  audio.addEventListener('canplaythrough', handleCanPlay, { once: true });
+  audio.addEventListener('error', handleError, { once: true });
+  audio.load();
+
   return () => {
-    if (notificationAudioRef.current) {
-      notificationAudioRef.current.pause();
-      notificationAudioRef.current.src = '';
-      notificationAudioRef.current.load();
-    }
+    audio.pause();
+    audio.src = '';
+    audio.load();
+    audio.removeEventListener('canplaythrough', handleCanPlay);
+    audio.removeEventListener('error', handleError);
   };
 }, []);
 
@@ -113,36 +117,14 @@ const addNotification = useCallback((notification: Omit<Notification, 'id' | 'ti
   // Play sound
   if (notificationAudioRef.current) {
     const audio = notificationAudioRef.current;
-    
-    // Stop if already playing
-    if (!audio.paused) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
-
-    const playSound = () => {
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('[Audio] ✓ Notification sound played');
-          })
-          .catch(error => {
-            if (error.name === 'NotAllowedError') {
-              console.warn('[Audio] Notification blocked by browser');
-            } else if (error.name !== 'AbortError') {
-              console.error('[Audio] Notification play error:', error.name);
-            }
-          });
-      }
-    };
-
-    // Play immediately if ready, otherwise wait
-    if (audio.readyState >= 3) {
-      playSound();
-    } else {
-      audio.addEventListener('canplaythrough', playSound, { once: true });
-    }
+    audio.pause();
+    audio.currentTime = 0;
+  
+    audio.play()
+      .then(() => console.log('[Audio] ✓ Notification sound played'))
+      .catch(err => {
+        console.warn('[Audio] ⚠️ Playback blocked or failed:', err.name);
+      });
   }
 
   toast({
