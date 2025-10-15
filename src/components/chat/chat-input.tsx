@@ -327,7 +327,16 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
     setShowRecordingDialog(false);
   }, []);
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
@@ -335,32 +344,22 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
     const otherFiles = Array.from(files).filter(file => !file.type.startsWith('image/'));
 
     if (imageFiles.length > 0) {
-        const imagePreviews = imageFiles.map(file => ({
-            url: URL.createObjectURL(file),
-            file: file
-        }));
-        setImagePreviews(imagePreviews);
+      const imagePreviewsData = imageFiles.map(file => ({
+        url: URL.createObjectURL(file),
+        file: file
+      }));
+      setImagePreviews(imagePreviewsData);
     }
     
-    otherFiles.forEach(file => {
-        const fileUrl = URL.createObjectURL(file);
-        onSendMessage(file.name, 'file', { fileName: file.name, fileUrl });
-    });
+    for (const file of otherFiles) {
+      const fileUrl = await blobToBase64(file);
+      onSendMessage(file.name, 'file', { fileName: file.name, fileUrl });
+    }
 
-    // Reset file input
     if(fileInputRef.current) {
         fileInputRef.current.value = '';
     }
   };
-  
-  const blobToBase64 = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-  }
 
   const handleSendImages = async (data: { urls: string[]; caption: string }) => {
     const imageFiles = imagePreviews.map(p => p.file);
@@ -440,5 +439,3 @@ export function ChatInput({ onSendMessage, replyTo, onCancelReply }: ChatInputPr
     </>
   );
 }
-
-    

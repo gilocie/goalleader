@@ -482,13 +482,21 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                         <AudioPlayer audioUrl={message.audioUrl} audioDuration={message.audioDuration} isSelf={isSelf} />
                                     </div>
                                 ) : message.type === 'file' && message.fileName && message.fileUrl ? ( 
-                                    <div className="p-2">
-                                        <div className="flex items-center gap-3 p-2 rounded-lg bg-background border">
-                                            <div className="flex-shrink-0 h-10 w-10 bg-muted rounded-md flex items-center justify-center"><Paperclip className="h-5 w-5 text-muted-foreground" /></div>
-                                            <div className="flex-1 min-w-0"><p className="font-medium truncate text-sm">{message.fileName}</p></div>
-                                            <a href={message.fileUrl} download={message.fileName}><Button variant="ghost" size="icon"><Download className="h-5 w-5" /></Button></a>
+                                    <a
+                                      href={message.fileUrl}
+                                      download={message.fileName}
+                                      className="p-2 block"
+                                    >
+                                      <div className="flex items-center gap-3 p-2 rounded-lg bg-background border hover:bg-muted/50">
+                                        <div className="flex-shrink-0 h-10 w-10 bg-muted rounded-md flex items-center justify-center">
+                                          <Paperclip className="h-5 w-5 text-muted-foreground" />
                                         </div>
-                                    </div>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="font-medium truncate text-sm">{message.fileName}</p>
+                                        </div>
+                                        <Download className="h-5 w-5" />
+                                      </div>
+                                    </a>
                                 ) : null}
                                 {message.content && message.type === 'text' && ( <div className="p-3"><p className="whitespace-pre-wrap">{message.content}</p></div> )}
                                 <div className={cn("text-xs mt-1 flex items-center justify-end gap-1 px-2 pb-1", isSelf ? 'text-primary-foreground/70' : 'text-muted-foreground/70' )}><span>{message.timestamp ? format(message.timestamp.toDate(), 'p') : ''}</span>{isSelf && <ReadIndicator status={message.readStatus} isSelf={true} />}</div>
