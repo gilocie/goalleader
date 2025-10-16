@@ -4,6 +4,7 @@
 import React, { createContext, useState, useContext, ReactNode, useCallback, useRef, useEffect } from 'react';
 import { Bot, Check, FileText, MessageSquare, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 export interface Notification {
   id: string;
@@ -63,39 +64,7 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
   const { toast } = useToast();
-  const notificationAudioRef = useRef<HTMLAudioElement | null>(null);
-
-useEffect(() => {
-  if (typeof window === 'undefined') return;
-
-  const audio = new Audio('/sounds/notifications-tones/default.mp3');
-  audio.preload = 'auto';
-
-  // Keep the ref
-  notificationAudioRef.current = audio;
-
-  // Load manually to ensure timing
-  const handleCanPlay = () => {
-    console.log('[Audio] ✓ Notification sound ready');
-  };
-
-  const handleError = (e: any) => {
-    console.error('[Audio] ❌ Failed to load notification sound:', e);
-    console.warn('Make sure the file exists at /sounds/notifications-tones/default.mp3');
-  };
-
-  audio.addEventListener('canplaythrough', handleCanPlay, { once: true });
-  audio.addEventListener('error', handleError, { once: true });
-  audio.load();
-
-  return () => {
-    audio.pause();
-    audio.src = '';
-    audio.load();
-    audio.removeEventListener('canplaythrough', handleCanPlay);
-    audio.removeEventListener('error', handleError);
-  };
-}, []);
+  const { playSound } = useAudioPlayer();
 
 const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'> & { reportContent?: string }) => {
   const { reportContent, ...rest } = notification;
@@ -114,24 +83,14 @@ const addNotification = useCallback((notification: Omit<Notification, 'id' | 'ti
   };
   setNotifications(prev => [newNotification, ...prev]);
 
-  // Play sound
-  if (notificationAudioRef.current) {
-    const audio = notificationAudioRef.current;
-    audio.pause();
-    audio.currentTime = 0;
-  
-    audio.play()
-      .then(() => console.log('[Audio] ✓ Notification sound played'))
-      .catch(err => {
-        console.warn('[Audio] ⚠️ Playback blocked or failed:', err.name);
-      });
-  }
+  // Use the centralized audio player
+  playSound('notifications-tones', 'default.mp3');
 
   toast({
     title: notification.title,
     description: <p className='line-clamp-2'>{notification.message}</p>
   });
-}, [toast]);
+}, [toast, playSound]);
 
   const markAsRead = (id: string) => {
     setNotifications(prev =>

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect, useRef } from 'react';
@@ -15,6 +14,7 @@ import { useUser as useUserContext } from '@/context/user-context';
 import type { Call } from '@/types/chat';
 import { WebRTCService } from '@/lib/webrtc-service';
 import type { TeamMember } from '@/lib/users';
+import { useAudioPlayer } from '@/hooks/use-audio-player';
 
 interface ChatContextType {
   self: Contact | undefined;
@@ -59,8 +59,6 @@ interface ChatContextType {
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-type SoundType = 'call-cuts' | 'call-ring' | 'incoming-tones' | 'message-sent' | 'notifications-tones';
-
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user: firebaseUser } = useUser(); // Firebase user
   const { allTeamMembers, updateUserStatus } = useUserContext();
@@ -88,53 +86,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isVideoCallOpen, setIsVideoCallOpen] = useState(false);
   const [isVoiceCallOpen, setIsVoiceCallOpen] = useState(false);
   const isInitialLoad = useRef(true);
-
-const audioRef = useRef<HTMLAudioElement | null>(null);
-
-useEffect(() => {
-  if (typeof window !== "undefined" && !audioRef.current) {
-    audioRef.current = new Audio();
-    audioRef.current.preload = "auto";
-  }
-}, []);
-
-
-const playSound = useCallback((type: SoundType, fileName: string = 'default.mp3') => {
-  if (!audioRef.current) return;
-
-  const soundPath = `/sounds/${type}/${fileName}`;
-  const audio = audioRef.current;
-  
-  // If the same sound is already playing and supposed to loop, let it continue.
-  if (audio.src.endsWith(soundPath) && !audio.paused && audio.loop) {
-      return;
-  }
-  
-  audio.pause();
-  audio.loop = (type === 'call-ring' || type === 'incoming-tones');
-  audio.src = soundPath;
-  audio.currentTime = 0;
-  
-  const playPromise = audio.play();
-  if (playPromise !== undefined) {
-    playPromise.catch(error => {
-      // Autoplay was prevented. This is common before the user interacts with the page.
-      if (error.name === 'NotAllowedError') {
-        console.warn(`[Audio] Autoplay for ${type} was blocked by the browser. User interaction is required.`);
-      } else {
-        console.error(`[Audio] Playback error for ${type}:`, error);
-      }
-    });
-  }
-}, []);
-
-const stopAllSounds = useCallback(() => {
-  if (audioRef.current) {
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-  }
-}, []);
-
+  const { playSound, stopAllSounds } = useAudioPlayer();
 
 const allContacts = useMemo(() => {
   if (!allTeamMembers || !messages) return [];
