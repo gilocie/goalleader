@@ -34,6 +34,7 @@ import { LibraryDropdown } from '../notifications/library-dropdown';
 import { useUser } from '@/context/user-context';
 import { useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
+import { useTimeTracker } from '@/context/time-tracker-context';
 
 const meetings: { [key: string]: { title: string; category: string } } = {
     'sample-meeting': {
@@ -55,6 +56,7 @@ export function Header() {
   const { branding } = useBranding();
   const { open, setOpen } = useSidebar();
   const { unreadItems } = useAISuggestions();
+  const { isActive } = useTimeTracker();
 
   const isMeetingPage = pathname.startsWith('/meetings/');
   const isChatPage = pathname === '/chat';
@@ -74,7 +76,7 @@ export function Header() {
   return (
     <header className={cn(
         "fixed top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 transition-[left,width] duration-300",
-        open && !isChatPage ? 'left-0 md:left-[220px] lg:left-[280px] w-full md:w-[calc(100%-220px)] lg:w-[calc(100%-280px)]' : 'left-0 md:left-[72px] lg:left-[72px] w-full md:w-[calc(100%-72px)]'
+        open ? 'left-0 md:left-[220px] lg:left-[280px] w-full md:w-[calc(100%-220px)] lg:w-[calc(100%-280px)]' : 'left-0 md:left-[72px] lg:left-[72px] w-full md:w-[calc(100%-72px)]'
     )}>
       <Sheet>
         <SheetTrigger asChild>
@@ -129,7 +131,7 @@ export function Header() {
             </div>
             )}
             <div className="md:hidden">
-                <TimeTracker layout="inline" />
+              {isActive && <TimeTracker layout="inline" />}
             </div>
 
             <div className="hidden md:block">
