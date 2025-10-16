@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { createContext, useState, useContext, ReactNode, useMemo, Dispatch, SetStateAction, useCallback, useEffect, useRef } from 'react';
@@ -133,6 +134,38 @@ const allContacts = useMemo(() => {
     }
   }, [pendingSelectedContactId, allContacts]);
 
+    const self = useMemo(() => {
+      if (!firebaseUser) return undefined;
+      const selfInList = allContacts.find((c: Contact) => c.id === firebaseUser.uid);
+      if (selfInList) return selfInList;
+
+      return {
+          id: firebaseUser.uid,
+          name: firebaseUser.isAnonymous ? 'Guest User' : (firebaseUser.displayName || 'You'),
+          role: 'Consultant',
+          department: 'Customer Service',
+          status: 'online',
+          lastMessage: '',
+          lastMessageTime: '',
+      }
+  }, [allContacts, firebaseUser]);
+  
+  const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
+    if (!self || !firestore) return;
+    const systemMessage = {
+        senderId: self.id,
+        recipientId: contactId,
+        content: content,
+        type: 'text' as const,
+        isSystem: true,
+        callType: type,
+    };
+    await addDoc(collection(firestore, 'messages'), {
+        ...systemMessage,
+        timestamp: serverTimestamp()
+    });
+  }, [self, firestore]);
+
   // --- Real-time call listener ---
   useEffect(() => {
     if (!firestore || !firebaseUser || allContacts.length === 0) return;
@@ -163,6 +196,17 @@ const allContacts = useMemo(() => {
             hasActiveCall = true;
             currentCallDoc = callData;
           }
+
+           if (change.type === 'modified' && callData.status === 'active' && callData.callerId === firebaseUser.uid) {
+                const otherParticipant = allContacts.find(c => c.id === callData.recipientId);
+                if (otherParticipant) {
+                     addSystemMessage(
+                        callData.type === 'video' ? `Video call with ${otherParticipant.name} started` : `Voice call with ${otherParticipant.name} started`, 
+                        otherParticipant.id, 
+                        callData.type
+                    );
+                }
+            }
           
           if (change.type === 'modified' || change.type === 'removed' || (change.type === 'added' && !isInitialLoad.current)) {
             if (callData.status === 'ended' || callData.status === 'declined' || callData.status === 'missed') {
@@ -249,23 +293,7 @@ const allContacts = useMemo(() => {
     );
   
     return () => unsubscribe();
-  }, [firestore, firebaseUser, allContacts, currentCall, playSound, stopAllSounds]);
-
-  const self = useMemo(() => {
-      if (!firebaseUser) return undefined;
-      const selfInList = allContacts.find((c: Contact) => c.id === firebaseUser.uid);
-      if (selfInList) return selfInList;
-
-      return {
-          id: firebaseUser.uid,
-          name: firebaseUser.isAnonymous ? 'Guest User' : (firebaseUser.displayName || 'You'),
-          role: 'Consultant',
-          department: 'Customer Service',
-          status: 'online',
-          lastMessage: '',
-          lastMessageTime: '',
-      }
-  }, [allContacts, firebaseUser]);
+  }, [firestore, firebaseUser, allContacts, currentCall, playSound, stopAllSounds, addSystemMessage]);
 
   useEffect(() => {
     if(firebaseUser) {
@@ -344,22 +372,6 @@ const allContacts = useMemo(() => {
       }
     });
   }, [firestore, self]);
-
-  const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
-    if (!self || !firestore) return;
-    const systemMessage = {
-        senderId: self.id,
-        recipientId: contactId,
-        content: content,
-        type: 'text' as const,
-        isSystem: true,
-        callType: type,
-    };
-    await addDoc(collection(firestore, 'messages'), {
-        ...systemMessage,
-        timestamp: serverTimestamp()
-    });
-  }, [self, firestore]);
 
  const deleteMessage = useCallback(async (messageId: string, deleteForEveryone: boolean = false) => {
     if (!firestore || !self || !messages) return;
@@ -525,33 +537,18 @@ const allContacts = useMemo(() => {
   const acceptVoiceCall = useCallback(async () => {
     if (!firestore || !currentCall || !incomingVoiceCallFrom) return;
     stopAllSounds();
-  
-    console.log('[Chat Context] ==== ACCEPTING VOICE CALL ====');
-    console.log('[Chat Context] Call ID:', currentCall.id);
-    console.log('[Chat Context] Current status:', currentCall.status);
     
     try {
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
         status: 'active',
         acceptedAt: serverTimestamp()
       });
-      
-      console.log('[Chat Context] ✓ Call status updated to ACTIVE');
-      
-      addSystemMessage(
-        `Voice call with ${incomingVoiceCallFrom.name} started`, 
-        incomingVoiceCallFrom.id, 
-        'voice'
-      );
-      
       setAcceptedVoiceCallContact(incomingVoiceCallFrom);
       setIncomingVoiceCallFrom(null);
-      
-      console.log('[Chat Context] ✓ State updated - call accepted');
     } catch (error) {
       console.error('[Chat Context] ✗ Failed to accept voice call:', error);
     }
-  }, [firestore, currentCall, incomingVoiceCallFrom, addSystemMessage, stopAllSounds]);
+  }, [firestore, currentCall, incomingVoiceCallFrom, stopAllSounds]);
 
   const endVoiceCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
@@ -622,23 +619,15 @@ const allContacts = useMemo(() => {
         status: 'active',
         acceptedAt: serverTimestamp()
       });
-      
-      addSystemMessage(
-        `Video call with ${incomingCallFrom.name} started`, 
-        incomingCallFrom.id, 
-        'video'
-      );
-      
       setAcceptedCallContact(incomingCallFrom);
       setIncomingCallFrom(null);
     } catch (error) {
       console.error('Failed to accept video call:', error);
     }
-  }, [firestore, currentCall, incomingCallFrom, addSystemMessage, stopAllSounds]);
+  }, [firestore, currentCall, incomingCallFrom, stopAllSounds]);
   
   const endCall = useCallback(async (contactId: string) => {
     if (!firestore || !currentCall) return;
-    
     try {
       await updateDoc(doc(firestore, 'calls', currentCall.id), { 
         status: 'ended',
