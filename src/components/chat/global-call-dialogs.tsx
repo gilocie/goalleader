@@ -6,6 +6,7 @@ import { VideoCallDialog } from '@/components/chat/video-call-dialog';
 import { IncomingCallDialog } from '@/components/chat/incoming-call-dialog';
 import { IncomingVoiceCallDialog } from '@/components/chat/incoming-voice-call-dialog';
 import { useCallback } from 'react';
+import { useUser } from '@/firebase';
 
 /**
  * Global call dialogs that render across all pages.
@@ -27,56 +28,89 @@ export function GlobalCallDialogs() {
     acceptCall,
     declineCall,
     selectedContact,
+    allContacts,
   } = useChat();
+
+  const { user: firebaseUser } = useUser();
 
   // Determine which contact to show in the call dialog
   const getCallContact = useCallback(() => {
-    if (acceptedCallContact && currentCall?.type === 'video') return acceptedCallContact;
-    if (acceptedVoiceCallContact && currentCall?.type === 'voice') return acceptedVoiceCallContact;
-    if (incomingCallFrom && currentCall?.type === 'video') return incomingCallFrom;
-    if (incomingVoiceCallFrom && currentCall?.type === 'voice') return incomingVoiceCallFrom;
-    if (selectedContact && currentCall?.participantIds?.includes(selectedContact.id)) return selectedContact;
+    if (!currentCall || !firebaseUser) return null;
+
+    // For accepted calls
+    if (acceptedCallContact && currentCall.type === 'video') return acceptedCallContact;
+    if (acceptedVoiceCallContact && currentCall.type === 'voice') return acceptedVoiceCallContact;
+    
+    // For incoming calls
+    if (incomingCallFrom && currentCall.type === 'video') return incomingCallFrom;
+    if (incomingVoiceCallFrom && currentCall.type === 'voice') return incomingVoiceCallFrom;
+    
+    // For outgoing calls (when YOU initiated the call)
+    if (currentCall.callerId === firebaseUser.uid) {
+      const otherParticipantId = currentCall.recipientId;
+      return allContacts.find(c => c.id === otherParticipantId) || null;
+    }
+    
+    // Fallback to selected contact
+    if (selectedContact && currentCall.participantIds?.includes(selectedContact.id)) {
+      return selectedContact;
+    }
+    
     return null;
-  }, [acceptedCallContact, acceptedVoiceCallContact, incomingCallFrom, incomingVoiceCallFrom, currentCall, selectedContact]);
+  }, [
+    acceptedCallContact, 
+    acceptedVoiceCallContact, 
+    incomingCallFrom, 
+    incomingVoiceCallFrom, 
+    currentCall, 
+    selectedContact,
+    allContacts,
+    firebaseUser
+  ]);
 
   const callContact = getCallContact();
 
-  // Show active video call dialog (after accepting or when calling)
-  const showActiveVideoCall = isVideoCallOpen && callContact && currentCall && currentCall.type === 'video';
+  if (!currentCall || !callContact) return null;
+
+  // Determine if this is an incoming call (for the current user)
+  const isIncomingVideoCall = currentCall.type === 'video' && 
+    currentCall.recipientId === firebaseUser?.uid && 
+    currentCall.status === 'ringing';
+    
+  const isIncomingVoiceCall = currentCall.type === 'voice' && 
+    currentCall.recipientId === firebaseUser?.uid && 
+    currentCall.status === 'ringing';
+
+  // Show active video call (during call or ringing out)
+  const showActiveVideoCall = isVideoCallOpen && currentCall.type === 'video' && !isIncomingVideoCall;
   
-  // Show active voice call dialog (after accepting or when calling)
-  const showActiveVoiceCall = isVoiceCallOpen && callContact && currentCall && currentCall.type === 'voice';
-  
-  // Show incoming video call dialog (before accepting)
-  const showIncomingVideoCall = incomingCallFrom && !isVideoCallOpen && currentCall?.status === 'ringing' && currentCall.type === 'video';
-  
-  // Show incoming voice call dialog (before accepting)
-  const showIncomingVoiceCall = incomingVoiceCallFrom && !isVoiceCallOpen && currentCall?.status === 'ringing' && currentCall.type === 'voice';
+  // Show active voice call (during call or ringing out)
+  const showActiveVoiceCall = isVoiceCallOpen && currentCall.type === 'voice' && !isIncomingVoiceCall;
 
   return (
     <>
-      {/* Active Video Call (during call) */}
+      {/* Active Video Call (outgoing or accepted) */}
       {showActiveVideoCall && (
         <VideoCallDialog
           isOpen={true}
           onClose={() => setIsVideoCallOpen(false)}
           contact={callContact}
-          isReceivingCall={!!incomingCallFrom && currentCall.status === 'ringing'}
+          isReceivingCall={false}
         />
       )}
 
-      {/* Active Voice Call (during call) */}
+      {/* Active Voice Call (outgoing or accepted) */}
       {showActiveVoiceCall && (
         <VoiceCallDialog
           isOpen={true}
           onClose={() => setIsVoiceCallOpen(false)}
           contact={callContact}
-          isReceivingCall={!!incomingVoiceCallFrom && currentCall.status === 'ringing'}
+          isReceivingCall={false}
         />
       )}
 
-      {/* Incoming Video Call (ringing) */}
-      {showIncomingVideoCall && (
+      {/* Incoming Video Call (ringing - need to accept/decline) */}
+      {isIncomingVideoCall && (
         <IncomingCallDialog
           isOpen={true}
           onClose={declineCall}
@@ -85,12 +119,12 @@ export function GlobalCallDialogs() {
             setIsVideoCallOpen(true);
           }}
           onDecline={declineCall}
-          contact={incomingCallFrom}
+          contact={callContact}
         />
       )}
 
-      {/* Incoming Voice Call (ringing) */}
-      {showIncomingVoiceCall && (
+      {/* Incoming Voice Call (ringing - need to accept/decline) */}
+      {isIncomingVoiceCall && (
         <IncomingVoiceCallDialog
           isOpen={true}
           onClose={declineVoiceCall}
@@ -99,7 +133,7 @@ export function GlobalCallDialogs() {
             setIsVoiceCallOpen(true);
           }}
           onDecline={declineVoiceCall}
-          contact={incomingVoiceCallFrom}
+          contact={callContact}
         />
       )}
     </>
