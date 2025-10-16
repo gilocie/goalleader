@@ -12,35 +12,15 @@ import { useChat } from '@/context/chat-context';
 import { Skeleton } from '../ui/skeleton';
 import { useUser } from '@/firebase';
 
-import { IncomingCallDialog } from '@/components/chat/incoming-call-dialog';
-import { VideoCallDialog } from '@/components/chat/video-call-dialog';
-import { IncomingVoiceCallDialog } from '@/components/chat/incoming-voice-call-dialog';
-import { VoiceCallDialog } from '@/components/chat/voice-call-dialog';
 import { Sidebar } from './sidebar';
 import { Logo } from '../icons';
+import { GlobalCallDialogs } from '../chat/global-call-dialogs';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const { open, setOpen } = useSidebar();
     const { user, loading } = useUser();
-    const { 
-        incomingCallFrom,
-        acceptCall, 
-        declineCall, 
-        acceptedCallContact, 
-        incomingVoiceCallFrom, 
-        acceptVoiceCall, 
-        declineVoiceCall, 
-        acceptedVoiceCallContact, 
-        isVideoCallOpen, 
-        setIsVideoCallOpen, 
-        isVoiceCallOpen, 
-        setIsVoiceCallOpen, 
-        currentCall,
-        selectedContact
-    } = useChat();
-
     
     const isMeetingPage = pathname.startsWith('/meetings/');
     const isLobbyPage = pathname.includes('/lobby');
@@ -53,27 +33,6 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
             router.push('/login');
         }
     }, [user, loading, router, pathname]);
-
-    useEffect(() => {
-        if (acceptedCallContact) {
-            setIsVideoCallOpen(true);
-        }
-    }, [acceptedCallContact, setIsVideoCallOpen]);
-
-    useEffect(() => {
-        if (acceptedVoiceCallContact) {
-            setIsVoiceCallOpen(true);
-        }
-    }, [acceptedVoiceCallContact, setIsVoiceCallOpen]);
-    
-    const getCallContact = useCallback(() => {
-        if (acceptedCallContact && currentCall?.type === 'video') return acceptedCallContact;
-        if (acceptedVoiceCallContact && currentCall?.type === 'voice') return acceptedVoiceCallContact;
-        if (incomingCallFrom && currentCall?.type === 'video') return incomingCallFrom;
-        if (incomingVoiceCallFrom && currentCall?.type === 'voice') return incomingVoiceCallFrom;
-        return selectedContact;
-    }, [acceptedCallContact, acceptedVoiceCallContact, incomingCallFrom, incomingVoiceCallFrom, currentCall, selectedContact]);
-
 
     // Render children directly for special full-screen layouts
     if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings')) || isSetupPage) {
@@ -127,44 +86,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
           </main>
           {!pathname.startsWith('/chat') && !isMeetingPage && <Footer />}
         </div>
-        
-        {isVideoCallOpen && currentCall && getCallContact() && (
-            <VideoCallDialog
-                isOpen={isVideoCallOpen}
-                onClose={() => setIsVideoCallOpen(false)}
-                contact={getCallContact()!}
-                isReceivingCall={!!incomingCallFrom && currentCall.status === 'ringing'}
-            />
-        )}
-
-        {isVoiceCallOpen && currentCall && getCallContact() && (
-            <VoiceCallDialog
-                isOpen={isVoiceCallOpen}
-                onClose={() => setIsVoiceCallOpen(false)}
-                contact={getCallContact()!}
-                isReceivingCall={!!incomingVoiceCallFrom && currentCall.status === 'ringing'}
-            />
-        )}
-
-        {incomingCallFrom && !isVideoCallOpen && currentCall?.status === 'ringing' && (
-            <IncomingCallDialog
-                isOpen={true}
-                onClose={declineCall}
-                onAccept={() => { acceptCall(); setIsVideoCallOpen(true); }}
-                onDecline={declineCall}
-                contact={incomingCallFrom}
-            />
-        )}
-
-        {incomingVoiceCallFrom && !isVoiceCallOpen && currentCall?.status === 'ringing' && (
-            <IncomingVoiceCallDialog
-                isOpen={true}
-                onClose={declineVoiceCall}
-                onAccept={() => { acceptVoiceCall(); setIsVoiceCallOpen(true); }}
-                onDecline={declineVoiceCall}
-                contact={incomingVoiceCallFrom}
-            />
-        )}
+        <GlobalCallDialogs />
       </div>
     );
   }
