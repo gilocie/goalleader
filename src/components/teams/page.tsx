@@ -1,0 +1,254 @@
+
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { AppLayout } from '@/components/layout/app-layout';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LayoutGrid, List, MessageSquare, Phone, Video, PlusCircle, Edit } from 'lucide-react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
+import { useUser } from '@/context/user-context';
+import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
+import type { TeamMember } from '@/lib/users';
+import { useChat } from '@/context/chat-context';
+import { useOutgoingCall } from '@/hooks/use-outgoing-call';
+
+function TeamsPageContent() {
+  const [layout, setLayout] = useState<'grid' | 'list'>('grid');
+  const { user, allTeamMembers } = useUser();
+  const [isCreateTeamOpen, setCreateTeamOpen] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const { setPendingSelectedContactId } = useChat();
+  const { initiateVoiceCall } = useOutgoingCall();
+  const router = useRouter();
+
+  const getTeamStorageKey = (department: string) => `teamMembers_${department}`;
+
+  useEffect(() => {
+    if (!user?.department) return;
+    try {
+      const storageKey = getTeamStorageKey(user.department);
+      const storedTeamMemberIds = localStorage.getItem(storageKey);
+      if (storedTeamMemberIds) {
+        const memberIds = JSON.parse(storedTeamMemberIds);
+        const savedTeam = allTeamMembers.filter(member => memberIds.includes(member.id));
+        setTeamMembers(savedTeam);
+      } else {
+        setTeamMembers([]); // No team found for this department, reset to empty
+      }
+    } catch (error) {
+      console.error("Failed to load team from localStorage", error);
+      setTeamMembers([]);
+    }
+  }, [user?.department, allTeamMembers]);
+
+  const handleTeamCreated = (selectedMemberIds: string[]) => {
+    if (!user?.department) return;
+    try {
+      const storageKey = getTeamStorageKey(user.department);
+      localStorage.setItem(storageKey, JSON.stringify(selectedMemberIds));
+      const newTeam = allTeamMembers.filter(member => selectedMemberIds.includes(member.id));
+      setTeamMembers(newTeam);
+    } catch (error) {
+       console.error("Failed to save team to localStorage", error);
+    }
+    setCreateTeamOpen(false);
+  };
+  
+  if (!user) {
+    return null; // Or a loading skeleton
+  }
+
+  const membersForDialog = user.role === 'Admin'
+    ? allTeamMembers.filter(m => m.id !== user.id)
+    : allTeamMembers.filter(m => m.department === user.department && m.id !== user.id) || [];
+
+  const shouldRenderPage = user.role === 'Admin' || user.role === 'Team Leader';
+  
+  const handleStartChat = (contact: TeamMember) => {
+    setPendingSelectedContactId(contact.id);
+    router.push('/chat');
+  };
+
+  if (!shouldRenderPage) {
+    return (
+        <main className="flex-grow p-4 md:p-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Access Denied</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>You do not have permission to view this page.</p>
+                </CardContent>
+            </Card>
+        </main>
+    );
+  }
+
+  return (
+    <main className="flex-grow">
+      <Card className="h-full flex flex-col rounded-none border-none">
+        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 md:p-6">
+          <div>
+            <CardTitle>Our Team</CardTitle>
+            <CardDescription>{user.role === 'Admin' ? 'All Departments' : user.department}</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+              <TooltipProvider>
+                   {teamMembers.length > 0 && (
+                        <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button size="sm" onClick={() => setCreateTeamOpen(true)}>
+                                <Edit className="mr-2 h-4 w-4" /> Edit Team
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit the team</TooltipContent>
+                        </Tooltip>
+                   )}
+                  <Tooltip>
+                      <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-9 w-9 hover:bg-primary hover:text-primary-foreground" asChild>
+                              <Link href="/chat">
+                                  <MessageSquare className="h-4 w-4" />
+                                  <span className="sr-only">Start Team Chat</span>
+                              </Link>
+                          </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Start Team Chat</TooltipContent>
+                  </Tooltip>
+                   <Tooltip>
+                      <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-9 w-9 hover:bg-primary hover:text-primary-foreground">
+                              <Video className="h-4 w-4" />
+                              <span className="sr-only">Start Meeting</span>
+                          </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Start Team Meeting</TooltipContent>
+                  </Tooltip>
+              </TooltipProvider>
+            <Separator orientation="vertical" className="h-6 mx-2" />
+            <Button variant={layout === 'grid' ? 'default' : 'outline'} size="icon" className="h-9 w-9 hover:bg-primary hover:text-primary-foreground" onClick={() => setLayout('grid')}>
+              <LayoutGrid className="h-4 w-4" />
+              <span className="sr-only">Grid View</span>
+            </Button>
+            <Button variant={layout === 'list' ? 'default' : 'outline'} size="icon" className="h-9 w-9 hover:bg-primary hover:text-primary-foreground" onClick={() => setLayout('list')}>
+              <List className="h-4 w-4" />
+              <span className="sr-only">List View</span>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-hidden p-2 sm:p-4 md:p-6">
+          <TooltipProvider>
+              <ScrollArea className="h-full">
+                  {teamMembers.length > 0 ? (
+                    <div
+                    className={cn(
+                        'transition-all duration-300',
+                        layout === 'grid'
+                        ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4'
+                        : 'flex flex-col gap-4'
+                    )}
+                    >
+                    {teamMembers.map((member) => {
+                        const avatar = PlaceHolderImages.find((img) => img.id === member.id);
+                        return (
+                        <Card
+                            key={member.id}
+                            className="shadow-md transition-shadow hover:shadow-lg relative"
+                        >
+                            <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
+                                <div className="flex items-center gap-1">
+                                    <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70" onClick={() => handleStartChat(member)}>
+                                            <MessageSquare className="h-4 w-4 text-primary" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Send Message</TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70" onClick={() => initiateVoiceCall(member)}>
+                                            <Phone className="h-4 w-4 text-primary" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Call</TooltipContent>
+                                    </Tooltip>
+                                </div>
+                                <div className={cn(
+                                    'h-2.5 w-2.5 rounded-full border-2 border-background',
+                                    member.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                                )} />
+                            </div>
+                            <CardContent
+                            className={cn(
+                                'p-4 pt-10',
+                                layout === 'grid' ? 'flex flex-col items-center text-center space-y-2' : 'flex items-center space-x-4'
+                            )}
+                            >
+                            <Avatar className={cn(layout === 'grid' ? 'h-16 w-16' : 'h-12 w-12')}>
+                                <AvatarImage src={member.avatarUrl} alt={member.name} className="object-cover" />
+                                <AvatarFallback>
+                                {member.name.split(' ').map((n) => n[0]).join('')}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className={cn(layout === 'grid' ? 'space-y-1.5' : 'flex-grow')}>
+                                <p className="font-semibold text-sm">{member.name}</p>
+                                <p className="text-xs text-muted-foreground">{member.role}</p>
+                                {layout === 'grid' && (
+                                <Button asChild size="sm" className="mt-1">
+                                    <Link href={`/teams/${member.id}`}>View Performance</Link>
+                                </Button>
+                                )}
+                            </div>
+                            {layout === 'list' && (
+                                <Button asChild size="sm">
+                                    <Link href={`/teams/${member.id}`}>View Performance</Link>
+                                </Button>
+                            )}
+                            </CardContent>
+                        </Card>
+                        );
+                    })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-3">
+                      <h3 className="text-xl font-semibold">No Team Members Found</h3>
+                      <p className="text-muted-foreground max-w-md">
+                        Get started by creating a new team and inviting members to collaborate.
+                      </p>
+                      <Button onClick={() => setCreateTeamOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" /> Create New Team
+                      </Button>
+                    </div>
+                  )}
+              </ScrollArea>
+          </TooltipProvider>
+        </CardContent>
+      </Card>
+      <CreateTeamDialog
+        isOpen={isCreateTeamOpen}
+        onOpenChange={setCreateTeamOpen}
+        allMembers={membersForDialog}
+        onTeamCreate={handleTeamCreated}
+        department={user.department}
+      />
+    </main>
+  );
+}
+
+export default function TeamsPage() {
+  return (
+    <AppLayout>
+      <TeamsPageContent />
+    </AppLayout>
+  );
+}

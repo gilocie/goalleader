@@ -9,7 +9,6 @@ import { Phone, Video, MoreVertical, ArrowLeft, Archive, Eraser, Trash2, Play, P
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatInput } from './chat-input';
 import { Contact, Message } from '@/types/chat';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { ReadIndicator } from './read-indicator';
@@ -30,6 +29,7 @@ import { ForwardMessageDialog } from './forward-message-dialog';
 import { format } from 'date-fns';
 import { ConfirmationDialog } from './confirmation-dialog';
 import { useUser } from '@/context/user-context';
+import { useOutgoingCall } from '@/hooks/use-outgoing-call';
 
 
 interface AudioPlayerProps {
@@ -180,8 +180,10 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, selectedContact, onExitChat, onSendMessage, onDeleteMessage, onToggleProfile }: ChatMessagesProps) {
-  const { self, contacts, isTyping, startCall, startVoiceCall, clearChat, deleteChat } = useChat();
+  const { self, contacts, isTyping, clearChat, deleteChat } = useChat();
   const { user } = useUser();
+  const { initiateVideoCall, initiateVoiceCall } = useOutgoingCall();
+
 
   if (!user) {
     return null; // Don't render until user is loaded
@@ -214,14 +216,14 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     if (!isChatEstablished) {
         setShowWaitDialog(true);
     } else {
-        startVoiceCall(selectedContact);
+        initiateVoiceCall(selectedContact);
     }
   };
   const handleVideoClick = () => {
     if (!isChatEstablished) {
         setShowWaitDialog(true);
     } else {
-        startCall(selectedContact);
+        initiateVideoCall(selectedContact);
     }
   };
   const handleImageClick = (imageUrl: string) => { setSelectedImageUrl(imageUrl); setImageViewerOpen(true); };
@@ -301,6 +303,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
   const findMessageById = (id: string) => messages.find(m => m.id === id);
 
   const firstUnreadIndex = messages.findIndex(m => m.senderId === selectedContact.id && m.readStatus !== 'read');
+  const showUnreadMarker = firstUnreadIndex !== -1;
   
   const visibleMessages = messages.filter(m => {
     if (m.senderId === self.id) return !m.deletedBySender;
@@ -405,7 +408,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
                     const isSelf = message.senderId === self.id;
                     const sender = contacts.find(c => c.id === message.senderId) || self;
-                    const showUnreadMarker = firstUnreadIndex !== -1 && index === firstUnreadIndex;
+                    const showUnreadMarkerForThisMessage = firstUnreadIndex !== -1 && index === firstUnreadIndex;
 
 
                     if (message.isSystem) {
@@ -421,7 +424,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
                     return (
                         <div key={message.id}>
-                           {showUnreadMarker && (
+                           {showUnreadMarkerForThisMessage && (
                                 <div ref={firstUnreadRef} className="relative text-center my-4">
                                     <hr className="absolute left-0 right-0 top-1/2 -translate-y-1/2 border-red-500" />
                                     <span className="relative bg-background px-2 text-xs font-semibold text-red-500">New Messages</span>

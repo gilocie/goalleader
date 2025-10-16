@@ -122,7 +122,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       };
     });
   }, [messages, firebaseUser, allTeamMembers]);
-
+  
   const self = useMemo(() => {
     if (!firebaseUser) return undefined;
     const selfInList = allContacts.find((c: Contact) => c.id === firebaseUser.uid);
@@ -137,7 +137,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         lastMessage: '',
         lastMessageTime: '',
     }
-}, [allContacts, firebaseUser]);
+  }, [allContacts, firebaseUser]);
 
   const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self || !firestore) return;
@@ -579,6 +579,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const startCall = useCallback(async (contact: Contact) => {
     if (!self || !firestore) return;
     
+    setIsVideoCallOpen(true);
     try {
       playSound('call-ring', 'default.mp3');
       const callData: Omit<Call, 'id'> = {
@@ -592,7 +593,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       
       const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
       setCurrentCall({ id: callDocRef.id, ...callData });
-      setIsVideoCallOpen(true);
       
       addSystemMessage(`Calling ${contact.name}...`, contact.id, 'video');
       
