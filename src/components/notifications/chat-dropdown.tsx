@@ -22,13 +22,14 @@ import { cn } from "@/lib/utils";
 
 
 export function ChatDropdown({ children }: { children: React.ReactNode }) {
-    const { contacts, setSelectedContact, unreadMessagesCount } = useChat();
+    const { contacts, setPendingSelectedContactId, unreadMessagesCount } = useChat();
     const router = useRouter();
     const unreadContacts = contacts.filter(c => c.unreadCount && c.unreadCount > 0);
 
     const handleNotificationClick = (contact: Contact) => {
-        // Just set the contact and navigate. The ChatContext will handle marking as read.
-        setSelectedContact(contact);
+        // Set the ID of the contact we want to open
+        setPendingSelectedContactId(contact.id);
+        // Then navigate. The chat page will handle opening the contact once it's loaded.
         router.push('/chat');
     };
 

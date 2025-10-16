@@ -2,16 +2,37 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ChatLayout } from '@/components/chat/chat-layout';
 import type { Contact, Message } from '@/types/chat';
 import { useChat } from '@/context/chat-context';
 import { NewChatDialog } from './new-chat-dialog';
 
 export function ChatPageContent() {
-  const { contacts, messages, selectedContact, setSelectedContact, addMessage, deleteMessage, self } = useChat();
+  const { 
+    contacts, 
+    messages, 
+    selectedContact, 
+    setSelectedContact, 
+    addMessage, 
+    deleteMessage, 
+    self, 
+    pendingSelectedContactId, 
+    setPendingSelectedContactId, 
+    allContacts 
+  } = useChat();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+
+  useEffect(() => {
+    if (pendingSelectedContactId && allContacts.length > 0) {
+        const contactToSelect = allContacts.find(c => c.id === pendingSelectedContactId);
+        if (contactToSelect) {
+            setSelectedContact(contactToSelect);
+            setPendingSelectedContactId(null);
+        }
+    }
+  }, [pendingSelectedContactId, allContacts, setSelectedContact, setPendingSelectedContactId]);
 
   const contactMessages = selectedContact && self
     ? messages.filter(

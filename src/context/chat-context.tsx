@@ -24,6 +24,8 @@ interface ChatContextType {
   unreadMessagesCount: number;
   selectedContact: Contact | null;
   setSelectedContact: Dispatch<React.SetStateAction<Contact | null>>;
+  pendingSelectedContactId: string | null;
+  setPendingSelectedContactId: Dispatch<React.SetStateAction<string | null>>;
   inputMessage: string;
   setInputMessage: Dispatch<React.SetStateAction<string>>;
   addMessage: (content: string, recipientId: string, type: 'text' | 'audio' | 'image' | 'file', data?: Partial<Message>) => void;
@@ -74,6 +76,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [isTyping, setIsTyping] = useState(false);
   
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [pendingSelectedContactId, setPendingSelectedContactId] = useState<string | null>(null);
   const [inputMessage, setInputMessage] = useState('');
 
   // Voice & Video Call State
@@ -167,6 +170,16 @@ const allContacts = useMemo(() => {
   });
 }, [messages, firebaseUser, allTeamMembers]);
 
+  // Effect to handle opening a chat from a notification or direct link
+  useEffect(() => {
+    if (pendingSelectedContactId && allContacts.length > 0) {
+      const contactToSelect = allContacts.find(c => c.id === pendingSelectedContactId);
+      if (contactToSelect) {
+        setSelectedContact(contactToSelect);
+        setPendingSelectedContactId(null); // Clear the pending ID
+      }
+    }
+  }, [pendingSelectedContactId, allContacts]);
 
   // --- Real-time call listener ---
   useEffect(() => {
@@ -789,6 +802,8 @@ useEffect(() => {
     unreadMessagesCount,
     selectedContact,
     setSelectedContact,
+    pendingSelectedContactId,
+    setPendingSelectedContactId,
     addMessage,
     updateMessage,
     deleteMessage,
