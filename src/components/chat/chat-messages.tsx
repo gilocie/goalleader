@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { CardHeader } from '@/components/ui/card';
@@ -404,6 +405,8 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
                     const isSelf = message.senderId === self.id;
                     const sender = contacts.find(c => c.id === message.senderId) || self;
+                    const showUnreadMarker = firstUnreadIndex !== -1 && index === firstUnreadIndex;
+
 
                     if (message.isSystem) {
                       const isVideo = message.callType === 'video';
@@ -578,3 +581,4 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     </>
   );
 }
+
