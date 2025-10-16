@@ -96,7 +96,7 @@ export function Sidebar() {
         variant="ghost"
         size="icon"
         className={cn(
-            "absolute top-[76px] -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-50 transition-all duration-300",
+            "absolute top-[76px] -right-4 h-8 w-8 bg-primary text-primary-foreground hover:bg-primary/90 z-50 transition-all duration-300",
             !open && "-right-5"
         )}
         onClick={() => setOpen(!open)}
