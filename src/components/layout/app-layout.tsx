@@ -3,19 +3,13 @@
 
 import { ReactNode, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { TimeTrackerProvider } from '@/context/time-tracker-context';
-import { Sidebar, SidebarProvider, useSidebar } from './sidebar';
+import { useSidebar } from './sidebar';
 import { Header } from './header';
 import { Footer } from '../dashboard/footer';
-import { ReportsProvider } from '@/context/reports-context';
 import { cn } from '@/lib/utils';
-import { NotificationProvider } from '@/context/notification-context';
-import { ChatProvider, useChat } from '@/context/chat-context';
-import { AISuggestionProvider } from '@/context/ai-suggestion-context';
-import { UserProvider } from '@/context/user-context';
+import { useChat } from '@/context/chat-context';
 import { Skeleton } from '../ui/skeleton';
 import { useUser } from '@/firebase';
-import { MarketingProvider } from '@/context/marketing-context';
 
 import { IncomingCallDialog } from '@/components/chat/incoming-call-dialog';
 import { VideoCallDialog } from '@/components/chat/video-call-dialog';
@@ -123,20 +117,20 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
   
     return (
       <div className={cn("flex min-h-screen w-full bg-muted/40")}>
-        <Sidebar />
+        <Header />
         <div className={cn(
             "flex flex-1 flex-col transition-[margin-left] duration-300", 
             open && "md:ml-[220px] lg:ml-[280px]",
             !open && "md:ml-[72px] lg:ml-[72px]",
         )}>
-          <Header />
+          
           {/* 
             This is the main content area.
             - `flex-1` makes it fill the vertical space between header and footer.
             - `flex flex-col` allows its children to also use flex properties.
             - `overflow-hidden` is key to containing children and their scrollbars.
           */}
-          <main className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 flex flex-col overflow-hidden pt-14 lg:pt-[60px]">
             {children}
           </main>
           {/* Footer is only shown on specific pages */}
@@ -187,22 +181,8 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <UserProvider>
-        <SidebarProvider>
-            <NotificationProvider>
-                <ReportsProvider>
-                    <ChatProvider>
-                        <AISuggestionProvider>
-                            <MarketingProvider>
-                                <TimeTrackerProvider>
-                                    <LayoutWithTracker>{children}</LayoutWithTracker>
-                                </TimeTrackerProvider>
-                            </MarketingProvider>
-                        </AISuggestionProvider>
-                    </ChatProvider>
-                </ReportsProvider>
-            </NotificationProvider>
-        </SidebarProvider>
-    </UserProvider>
+    <LayoutWithTracker>
+        {children}
+    </LayoutWithTracker>
   );
 }

@@ -54,7 +54,7 @@ export function Header() {
   const { notifications } = useNotifications();
   const { unreadMessagesCount } = useChat();
   const { branding } = useBranding();
-  const { open } = useSidebar();
+  const { open, setOpen } = useSidebar();
   const { unreadItems } = useAISuggestions();
 
   const isMeetingPage = pathname.startsWith('/meetings/');
@@ -72,7 +72,10 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+    <header className={cn(
+        "fixed top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 transition-[left,width] duration-300",
+        open ? 'left-0 md:left-[220px] lg:left-[280px] w-full md:w-[calc(100%-220px)] lg:w-[calc(100%-280px)]' : 'left-0 md:left-[72px] lg:left-[72px] w-full md:w-[calc(100%-72px)]'
+    )}>
       <Sheet>
         <SheetTrigger asChild>
           <Button

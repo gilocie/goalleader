@@ -8,6 +8,14 @@ import { ThemeProvider } from '@/context/theme-provider';
 import { BrandingProvider } from '@/context/branding-context';
 import { useEffect } from 'react';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { UserProvider } from '@/context/user-context';
+import { SidebarProvider } from '@/components/layout/sidebar';
+import { NotificationProvider } from '@/context/notification-context';
+import { ReportsProvider } from '@/context/reports-context';
+import { ChatProvider } from '@/context/chat-context';
+import { AISuggestionProvider } from '@/context/ai-suggestion-context';
+import { MarketingProvider } from '@/context/marketing-context';
+import { TimeTrackerProvider } from '@/context/time-tracker-context';
 
 // --- Helper Functions ---
 function hexToHsl(hex: string): [number, number, number] | null {
@@ -83,10 +91,26 @@ export default function RootLayout({
         <ThemeProvider>
           <BrandingProvider>
             <FirebaseClientProvider>
-              <BrandingInitializer>
-                {children}
-                <Toaster />
-              </BrandingInitializer>
+                <UserProvider>
+                    <SidebarProvider>
+                        <NotificationProvider>
+                            <ReportsProvider>
+                                <ChatProvider>
+                                    <AISuggestionProvider>
+                                        <MarketingProvider>
+                                            <TimeTrackerProvider>
+                                                <BrandingInitializer>
+                                                    {children}
+                                                    <Toaster />
+                                                </BrandingInitializer>
+                                            </TimeTrackerProvider>
+                                        </MarketingProvider>
+                                    </AISuggestionProvider>
+                                </ChatProvider>
+                            </ReportsProvider>
+                        </NotificationProvider>
+                    </SidebarProvider>
+                </UserProvider>
             </FirebaseClientProvider>
           </BrandingProvider>
         </ThemeProvider>
@@ -94,5 +118,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-    

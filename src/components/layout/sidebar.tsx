@@ -88,14 +88,17 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        'hidden md:fixed md:inset-y-0 md:z-20 md:flex md:flex-col border-r bg-card transition-all duration-300 relative',
+        'hidden md:fixed md:inset-y-0 md:left-0 md:z-40 md:flex md:flex-col border-r bg-card transition-all duration-300',
         open ? 'md:w-[220px] lg:w-[280px]' : 'md:w-[72px] lg:w-[72px]'
       )}
     >
       <Button
         variant="ghost"
         size="icon"
-        className="absolute top-[76px] -right-7 h-8 w-8 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 z-30 transition-all duration-300"
+        className={cn(
+            "absolute top-[76px] -right-4 h-8 w-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 z-50 transition-all duration-300",
+            !open && "-right-5"
+        )}
         onClick={() => setOpen(!open)}
       >
         <ChevronLeft className={cn("h-4 w-4 transition-transform", !open && "rotate-180")} />

@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const AdminPageContent = dynamic(() => import('./admin-page-content').then(mod => mod.AdminPageContent), {
   ssr: false,
-  loading: () => <Skeleton className="w-full h-screen" />,
+  loading: () => <Skeleton className="w-full h-[calc(100vh-80px)]" />,
 });
 
 export default function AdminPage() {
