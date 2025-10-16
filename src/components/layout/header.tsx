@@ -131,7 +131,21 @@ export function Header() {
             </div>
             )}
             <div className="md:hidden">
-              {isActive && <TimeTracker layout="inline" />}
+              {isActive ? (
+                <TimeTracker layout="inline" />
+              ) : (
+                <LibraryDropdown>
+                  <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
+                    <Library className="h-4 w-4" />
+                    {unreadLibraryCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                        {unreadLibraryCount}
+                      </span>
+                    )}
+                    <span className="sr-only">Toggle Library</span>
+                  </Button>
+                </LibraryDropdown>
+              )}
             </div>
 
             <div className="hidden md:block">
