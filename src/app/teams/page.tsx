@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +17,15 @@ import { Separator } from '@/components/ui/separator';
 import { useUser } from '@/context/user-context';
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import type { TeamMember } from '@/lib/users';
+import { useChat } from '@/context/chat-context';
 
 function TeamsPageContent() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
   const { user, allTeamMembers } = useUser();
   const [isCreateTeamOpen, setCreateTeamOpen] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const { startVoiceCall, setPendingSelectedContactId } = useChat();
+  const router = useRouter();
 
   const getTeamStorageKey = (department: string) => `teamMembers_${department}`;
 
@@ -65,6 +69,11 @@ function TeamsPageContent() {
     : allTeamMembers.filter(m => m.department === user.department && m.id !== user.id) || [];
 
   const shouldRenderPage = user.role === 'Admin' || user.role === 'Team Leader';
+  
+  const handleStartChat = (contact: TeamMember) => {
+    setPendingSelectedContactId(contact.id);
+    router.push('/chat');
+  };
 
   if (!shouldRenderPage) {
     return (
@@ -156,16 +165,16 @@ function TeamsPageContent() {
                                 <div className="flex items-center gap-1">
                                     <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
-                                        <MessageSquare className="h-4 w-4 text-primary" />
+                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70" onClick={() => handleStartChat(member)}>
+                                            <MessageSquare className="h-4 w-4 text-primary" />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>Send Message</TooltipContent>
                                     </Tooltip>
                                     <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70">
-                                        <Phone className="h-4 w-4 text-primary" />
+                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70" onClick={() => startVoiceCall(member)}>
+                                            <Phone className="h-4 w-4 text-primary" />
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>Call</TooltipContent>
