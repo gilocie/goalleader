@@ -43,7 +43,6 @@ export function VoiceCallDialog({
   const firestore = useFirestore();
   const { currentCall, endVoiceCall, acceptVoiceCall, self } = useChat();
 
-  const contactAvatar = PlaceHolderImages.find((img) => img.id === contact.id);
   const callStatus = currentCall?.status || 'ringing';
   const isActive = callStatus === 'active';
   const isConnected = connectionState === 'connected';
@@ -297,8 +296,7 @@ export function VoiceCallDialog({
         <div className="flex flex-col items-center justify-center space-y-6">
           <Avatar className="h-40 w-40 border-4 border-purple-500/30 shadow-lg shadow-purple-500/20 ring-2 ring-purple-400/20">
             <AvatarImage 
-              src={contactAvatar?.imageUrl} 
-              data-ai-hint={contactAvatar?.imageHint} 
+              src={contact?.avatarUrl} 
             />
             <AvatarFallback className="text-5xl bg-gradient-to-br from-purple-600 to-blue-600">
               {contact.name.slice(0, 2)}
