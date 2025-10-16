@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Phone, PhoneOff } from 'lucide-react';
 import type { Contact } from '@/types/chat';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface IncomingVoiceCallDialogProps {
   isOpen: boolean;
@@ -24,8 +23,6 @@ interface IncomingVoiceCallDialogProps {
 
 export function IncomingVoiceCallDialog({ isOpen, onClose, onDecline, onAccept, contact }: IncomingVoiceCallDialogProps) {
   if (!contact) return null;
-
-  const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -39,7 +36,7 @@ export function IncomingVoiceCallDialog({ isOpen, onClose, onDecline, onAccept, 
         <div className="flex flex-col items-center justify-center p-8 space-y-6">
           <div className="relative">
             <Avatar className="h-32 w-32 border-4 border-gray-600">
-              <AvatarImage src={avatar?.imageUrl} alt={contact.name} />
+              <AvatarImage src={contact.avatarUrl} alt={contact.name} />
               <AvatarFallback className="text-4xl bg-gray-700">
                 {contact.name.slice(0, 2)}
               </AvatarFallback>
