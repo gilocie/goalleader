@@ -3,6 +3,7 @@
 
 import { ReactNode, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useSidebar } from './sidebar';
 import { Header } from './header';
 import { Footer } from '../dashboard/footer';
@@ -41,7 +42,6 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     } = useChat();
 
     
-    const isChatPage = pathname === '/chat';
     const isMeetingPage = pathname.startsWith('/meetings/');
     const isLobbyPage = pathname.includes('/lobby');
     const isSetupPage = pathname.startsWith('/setup');
@@ -76,7 +76,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
 
 
     // Render children directly for special full-screen layouts
-    if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings') && !isChatPage) || isSetupPage) {
+    if (isLobbyPage || (isMeetingPage && !pathname.endsWith('/meetings')) || isSetupPage) {
       return <>{children}</>;
     }
 
@@ -125,7 +125,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
           <main className="flex-1 flex flex-col overflow-hidden pt-14 lg:pt-[60px]">
             {children}
           </main>
-          {!isChatPage && !isMeetingPage && <Footer />}
+          {!pathname.startsWith('/chat') && !isMeetingPage && <Footer />}
         </div>
         
         {isVideoCallOpen && currentCall && getCallContact() && (
