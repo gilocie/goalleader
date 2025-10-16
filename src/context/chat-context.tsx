@@ -89,67 +89,56 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const isInitialLoad = useRef(true);
   const { playSound, stopAllSounds } = useAudioPlayer();
 
-const allContacts = useMemo(() => {
-  if (!allTeamMembers || !messages) return [];
+  const allContacts = useMemo(() => {
+    if (!allTeamMembers || !messages) return [];
+    
+    return allTeamMembers.map((member: TeamMember) => {
+      const relevantMessages = messages.filter(
+        (msg: Message) => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
+               (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
+      );
+      
+      const lastMessage = relevantMessages.sort((a: Message, b: Message) => {
+        const timeA = a.timestamp?.toMillis() || 0;
+        const timeB = b.timestamp?.toMillis() || 0;
+        return timeB - timeA;
+      })[0];
+      
+      const unreadCount = messages.filter((msg: Message) => 
+          msg.senderId === member.id && 
+          msg.recipientId === firebaseUser?.uid && 
+          msg.readStatus !== 'read' &&
+          !msg.isSystem // Exclude system messages (calls) from unread count
+      ).length;
   
-  return allTeamMembers.map((member: TeamMember) => {
-    const relevantMessages = messages.filter(
-      (msg: Message) => (msg.senderId === member.id && msg.recipientId === firebaseUser?.uid) ||
-             (msg.senderId === firebaseUser?.uid && msg.recipientId === member.id)
-    );
-    
-    const lastMessage = relevantMessages.sort((a: Message, b: Message) => {
-      const timeA = a.timestamp?.toMillis() || 0;
-      const timeB = b.timestamp?.toMillis() || 0;
-      return timeB - timeA;
-    })[0];
-    
-    const unreadCount = messages.filter((msg: Message) => 
-        msg.senderId === member.id && 
-        msg.recipientId === firebaseUser?.uid && 
-        msg.readStatus !== 'read' &&
-        !msg.isSystem // Exclude system messages (calls) from unread count
-    ).length;
+      return {
+        ...member,
+        status: member.status || 'offline',
+        lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
+        lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
+        unreadCount: unreadCount,
+        lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage?.readStatus : undefined,
+        lastMessageSenderId: lastMessage?.senderId,
+      };
+    });
+  }, [messages, firebaseUser, allTeamMembers]);
+
+  const self = useMemo(() => {
+    if (!firebaseUser) return undefined;
+    const selfInList = allContacts.find((c: Contact) => c.id === firebaseUser.uid);
+    if (selfInList) return selfInList;
 
     return {
-      ...member,
-      status: member.status || 'offline',
-      lastMessage: lastMessage?.isSystem ? 'Call' : lastMessage?.content || '',
-      lastMessageTime: lastMessage?.timestamp ? format(lastMessage.timestamp.toDate(), 'p') : '',
-      unreadCount: unreadCount,
-      lastMessageReadStatus: lastMessage?.senderId === firebaseUser?.uid ? lastMessage?.readStatus : undefined,
-      lastMessageSenderId: lastMessage?.senderId,
-    };
-  });
-}, [messages, firebaseUser, allTeamMembers]);
-
-  // Effect to handle opening a chat from a notification or direct link
-  useEffect(() => {
-    if (pendingSelectedContactId && allContacts.length > 0) {
-      const contactToSelect = allContacts.find(c => c.id === pendingSelectedContactId);
-      if (contactToSelect) {
-        setSelectedContact(contactToSelect);
-        setPendingSelectedContactId(null); // Clear the pending ID
-      }
+        id: firebaseUser.uid,
+        name: firebaseUser.isAnonymous ? 'Guest User' : (firebaseUser.displayName || 'You'),
+        role: 'Consultant',
+        department: 'Customer Service',
+        status: 'online',
+        lastMessage: '',
+        lastMessageTime: '',
     }
-  }, [pendingSelectedContactId, allContacts]);
+}, [allContacts, firebaseUser]);
 
-    const self = useMemo(() => {
-      if (!firebaseUser) return undefined;
-      const selfInList = allContacts.find((c: Contact) => c.id === firebaseUser.uid);
-      if (selfInList) return selfInList;
-
-      return {
-          id: firebaseUser.uid,
-          name: firebaseUser.isAnonymous ? 'Guest User' : (firebaseUser.displayName || 'You'),
-          role: 'Consultant',
-          department: 'Customer Service',
-          status: 'online',
-          lastMessage: '',
-          lastMessageTime: '',
-      }
-  }, [allContacts, firebaseUser]);
-  
   const addSystemMessage = useCallback(async (content: string, contactId: string, type: 'video' | 'voice' = 'video') => {
     if (!self || !firestore) return;
     const systemMessage = {
@@ -166,6 +155,17 @@ const allContacts = useMemo(() => {
     });
   }, [self, firestore]);
 
+  // Effect to handle opening a chat from a notification or direct link
+  useEffect(() => {
+    if (pendingSelectedContactId && allContacts.length > 0) {
+      const contactToSelect = allContacts.find(c => c.id === pendingSelectedContactId);
+      if (contactToSelect) {
+        setSelectedContact(contactToSelect);
+        setPendingSelectedContactId(null); // Clear the pending ID
+      }
+    }
+  }, [pendingSelectedContactId, allContacts]);
+  
   // --- Real-time call listener ---
   useEffect(() => {
     if (!firestore || !firebaseUser || allContacts.length === 0) return;
@@ -500,6 +500,8 @@ const allContacts = useMemo(() => {
   const startVoiceCall = useCallback(async (contact: Contact) => {
     if (!self || !firestore) return;
     
+    setIsVoiceCallOpen(true);
+
     try {
       playSound('call-ring', 'default.mp3');
       const callData: Omit<Call, 'id'> = {
@@ -513,7 +515,6 @@ const allContacts = useMemo(() => {
       
       const callDocRef = await addDoc(collection(firestore, 'calls'), callData);
       setCurrentCall({ id: callDocRef.id, ...callData });
-      setIsVoiceCallOpen(true);
       
       addSystemMessage(`Calling ${contact.name}...`, contact.id, 'voice');
       
@@ -531,6 +532,7 @@ const allContacts = useMemo(() => {
     } catch (error) {
       console.error('Failed to start voice call:', error);
       stopAllSounds();
+      setIsVoiceCallOpen(false);
     }
   }, [self, firestore, addSystemMessage, playSound, stopAllSounds]);
   
