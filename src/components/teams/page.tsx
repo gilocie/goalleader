@@ -20,6 +20,7 @@ import { CreateTeamDialog } from '@/components/teams/create-team-dialog';
 import type { TeamMember } from '@/lib/users';
 import { useChat } from '@/context/chat-context';
 import { useOutgoingCall } from '@/hooks/use-outgoing-call';
+import { Contact } from '@/types/chat';
 
 function TeamsPageContent() {
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
@@ -176,7 +177,14 @@ function TeamsPageContent() {
                                     </Tooltip>
                                     <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70" onClick={() => initiateVoiceCall(member)}>
+                                        <Button variant="outline" size="icon" className="h-7 w-7 rounded-full bg-background/70" onClick={() => {
+                                            const contact: Contact = {
+                                                ...member,
+                                                lastMessage: '',
+                                                lastMessageTime: '',
+                                            };
+                                            initiateVoiceCall(contact);
+                                        }}>
                                             <Phone className="h-4 w-4 text-primary" />
                                         </Button>
                                     </TooltipTrigger>
