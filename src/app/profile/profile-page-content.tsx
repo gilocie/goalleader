@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { TeamMember } from '@/lib/users';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { SwitchProfileDialog } from '@/components/profile/switch-profile-dialog';
 
 
 type Kpi = {
@@ -78,7 +79,6 @@ function ProfileTabContent() {
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedCountry, setSelectedCountry] = useState('');
     const [selectedBranch, setSelectedBranch] = useState('');
-    const [isSwitchProfileOpen, setIsSwitchProfileOpen] = useState(false);
 
     const [kpis, setKpis] = useState<Kpi[]>([
         { id: 1, value: '' },
@@ -115,10 +115,9 @@ function ProfileTabContent() {
             reader.onloadend = () => {
                 const base64String = reader.result as string;
                 
-                // Update user's avatar in the local state and in Firestore
                 const updatedUser = { ...user, avatarUrl: base64String };
-                saveUser(updatedUser); // This will save to Firestore
-                setUser(updatedUser); // This updates context immediately for instant UI change
+                saveUser(updatedUser);
+                setUser(updatedUser);
                 
                 toast({ title: "Profile picture updated!" });
                 setIsUploading(false);
@@ -185,7 +184,6 @@ function ProfileTabContent() {
         )
     }
 
-    const userAvatar = PlaceHolderImages.find((img) => img.id === user.id);
     const availableRoles = departmentsAndRoles[selectedDepartment as keyof typeof departmentsAndRoles] || [];
 
     const handleDepartmentChange = (department: string) => {
@@ -224,13 +222,6 @@ function ProfileTabContent() {
         return `KPI #${index + 1}`;
     }
 
-    const handleProfileSwitch = (memberToSwitch: any) => {
-        if (memberToSwitch) {
-            saveUser(memberToSwitch);
-        }
-        setIsSwitchProfileOpen(false);
-    }
-
     return (
         <>
         <input
@@ -241,13 +232,12 @@ function ProfileTabContent() {
             accept="image/png, image/jpeg, image/gif"
         />
         <div className="grid gap-8 lg:grid-cols-3">
-        {/* Left Column: Profile Picture and Details */}
         <div className="lg:col-span-1 space-y-8">
           <Card>
             <CardHeader className="items-center">
                 <div className="relative">
                     <Avatar className="h-32 w-32">
-                        <AvatarImage src={user.avatarUrl || userAvatar?.imageUrl} alt={user.name} data-ai-hint={userAvatar?.imageHint} className="object-cover object-top" />
+                        <AvatarImage src={user.avatarUrl} alt={user.name} className="object-cover object-top" />
                         <AvatarFallback className="text-4xl">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                      <Button variant="outline" size="icon" className="absolute bottom-2 right-2 rounded-full bg-background/80 h-10 w-10" onClick={handleAvatarClick} disabled={isUploading}>
@@ -256,13 +246,7 @@ function ProfileTabContent() {
                 </div>
             </CardHeader>
             <CardContent className="text-center">
-                <div className='flex items-center justify-center gap-2'>
-                    <CardTitle className="text-2xl">{name}</CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => setIsSwitchProfileOpen(true)}>
-                        <Users className='mr-2 h-4 w-4' />
-                        Switch Profile
-                    </Button>
-                </div>
+                <CardTitle className="text-2xl">{name}</CardTitle>
             </CardContent>
           </Card>
 
@@ -310,7 +294,6 @@ function ProfileTabContent() {
 
         </div>
 
-        {/* Right Column: Forms */}
         <div className="lg:col-span-2 space-y-8">
            <Card>
             <CardHeader>
@@ -761,6 +744,7 @@ export function ProfilePageContent() {
     
 
     
+
 
 
 
