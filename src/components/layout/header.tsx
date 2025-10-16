@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library, LogOut, Shield } from 'lucide-react';
@@ -47,7 +48,6 @@ const meetings: { [key: string]: { title: string; category: string } } = {
 export function Header() {
   const { user } = useUser();
   const auth = useAuth();
-  const userAvatar = user ? PlaceHolderImages.find((img) => img.id === user.id) : null;
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
@@ -203,9 +203,8 @@ export function Header() {
                     <Button variant="secondary" size="icon" className="rounded-full">
                     <Avatar className="h-8 w-8">
                         <AvatarImage
-                        src={userAvatar?.imageUrl}
+                        src={user.avatarUrl}
                         alt={user.name}
-                        data-ai-hint={userAvatar?.imageHint}
                         className="object-cover object-top"
                         />
                         <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>

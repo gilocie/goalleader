@@ -18,7 +18,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUser } from '@/context/user-context';
 import type { UserRole } from '@/context/user-context';
-import { SwitchProfileDialog } from '@/components/profile/switch-profile-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type Kpi = {
@@ -42,8 +41,7 @@ function ProfileTabContent() {
     const [email, setEmail] = useState('');
     const [selectedDepartment, setSelectedDepartment] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
-    const [isSwitchProfileOpen, setIsSwitchProfileOpen] = useState(false);
-
+    
     const [kpis, setKpis] = useState<Kpi[]>([
         { id: 1, value: '' },
         { id: 2, value: '' },
@@ -55,7 +53,7 @@ function ProfileTabContent() {
             setName(user.name);
             setSelectedDepartment(user.department);
             setSelectedRole(user.role);
-            setEmail(`${user.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`);
+            setEmail(user.email || `${user.name.toLowerCase().replace(/\s/g, '.')}@goalleader.com`);
         }
     }, [user]);
 
@@ -109,7 +107,6 @@ function ProfileTabContent() {
         )
     }
 
-    const userAvatar = PlaceHolderImages.find((img) => img.id === user.id);
     const availableRoles = departmentsAndRoles[selectedDepartment as keyof typeof departmentsAndRoles] || [];
 
     const handleDepartmentChange = (department: string) => {
@@ -145,14 +142,7 @@ function ProfileTabContent() {
         if (index === 2) return 'Tertiary KPI';
         return `KPI #${index + 1}`;
     }
-
-    const handleProfileSwitch = (memberToSwitch: any) => {
-        if (memberToSwitch) {
-            saveUser(memberToSwitch);
-        }
-        setIsSwitchProfileOpen(false);
-    }
-
+    
     return (
         <>
         <div className="grid gap-8 lg:grid-cols-3">
@@ -162,7 +152,7 @@ function ProfileTabContent() {
             <CardHeader className="items-center">
                 <div className="relative">
                     <Avatar className="h-32 w-32">
-                        <AvatarImage src={userAvatar?.imageUrl} alt={user.name} data-ai-hint={userAvatar?.imageHint} className="object-cover object-top" />
+                        <AvatarImage src={user.avatarUrl} alt={user.name} className="object-cover object-top" />
                         <AvatarFallback className="text-4xl">{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                     <Button variant="outline" size="icon" className="absolute bottom-2 right-2 rounded-full bg-background/80 h-10 w-10">
@@ -173,10 +163,6 @@ function ProfileTabContent() {
             <CardContent className="text-center">
                 <div className='flex items-center justify-center gap-2'>
                     <CardTitle className="text-2xl">{name}</CardTitle>
-                    <Button variant="outline" size="sm" onClick={() => setIsSwitchProfileOpen(true)}>
-                        <Users className='mr-2 h-4 w-4' />
-                        Switch Profile
-                    </Button>
                 </div>
             </CardContent>
           </Card>
@@ -295,11 +281,6 @@ function ProfileTabContent() {
           </div>
         </div>
       </div>
-      <SwitchProfileDialog 
-        isOpen={isSwitchProfileOpen}
-        onOpenChange={setIsSwitchProfileOpen}
-        onSwitchProfile={handleProfileSwitch}
-      />
       </>
     );
 }

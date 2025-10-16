@@ -26,17 +26,11 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { setOpen, open, setAdminSidebarOpen, adminSidebarOpen } = useSidebar()
+  const { setOpen, open } = useSidebar()
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
-    // This trigger is used in both sidebars, so we check which one is active
-    if (adminSidebarOpen) {
-      setAdminSidebarOpen(false);
-      setOpen(true);
-    } else {
-      setOpen(!open);
-    }
+    setOpen(!open)
   };
 
   return (
@@ -49,7 +43,7 @@ const SidebarTrigger = React.forwardRef<
       onClick={handleClick}
       {...props}
     >
-      <PanelLeft className={cn("h-5 w-5 transition-transform duration-300", open || adminSidebarOpen ? "" : "rotate-180")} />
+      <PanelLeft className={cn("h-5 w-5 transition-transform duration-300", open ? "" : "rotate-180")} />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )
