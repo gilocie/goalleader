@@ -186,8 +186,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
     return null; // Don't render until user is loaded
   }
 
-  const contactAvatar = PlaceHolderImages.find((img) => img.id === selectedContact.id);
-  const selfAvatar = self ? PlaceHolderImages.find((img) => img.id === user.id) : undefined;
   const { toast } = useToast();
   const [isImageViewerOpen, setImageViewerOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
@@ -330,7 +328,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
             <button className="flex items-center gap-3 text-left" onClick={onToggleProfile}>
               <div className="relative">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} />
+                  <AvatarImage src={selectedContact.avatarUrl} alt={selectedContact.name} />
                   <AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <span className={cn('absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full border-2 border-background', selectedContact.status === 'online' ? 'bg-green-500' : 'bg-gray-400')} />
@@ -406,8 +404,6 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                     const originalMessage = message.replyTo ? findMessageById(message.replyTo) : null;
                     const isSelf = message.senderId === self.id;
                     const sender = contacts.find(c => c.id === message.senderId) || self;
-                    const senderAvatar = PlaceHolderImages.find(p => p.id === sender.id);
-                    const showUnreadMarker = index === firstUnreadIndex;
 
                     if (message.isSystem) {
                       const isVideo = message.callType === 'video';
@@ -429,7 +425,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
                                 </div>
                             )}
                             <div className={cn('flex items-end gap-2 group', isSelf ? 'justify-end' : 'justify-start')}>
-                                {!isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={contactAvatar?.imageUrl} alt={selectedContact.name} /><AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar> )}
+                                {!isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selectedContact.avatarUrl} alt={selectedContact.name} /><AvatarFallback>{selectedContact.name.slice(0, 2).toUpperCase()}</AvatarFallback></Avatar> )}
                                 
                                 {isSelf && <MessageActions message={message} isSelf={isSelf} onAction={handleAction} onDelete={handleDeleteRequest} />}
 
@@ -504,7 +500,7 @@ export function ChatMessages({ messages, selectedContact, onExitChat, onSendMess
 
                             {!isSelf && <MessageActions message={message} isSelf={isSelf} onAction={handleAction} onDelete={handleDeleteRequest} />}
 
-                            {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={selfAvatar?.imageUrl} alt="You" data-ai-hint={user.name} /><AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar> )}
+                            {isSelf && ( <Avatar className="h-8 w-8 self-end"><AvatarImage src={user.avatarUrl} /><AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback></Avatar> )}
                         </div>
                     </div>
                     )

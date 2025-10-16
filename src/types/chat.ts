@@ -12,6 +12,7 @@ export interface Contact {
     unreadCount?: number;
     lastMessageReadStatus?: 'sent' | 'delivered' | 'read' | 'request_sent' | 'updated';
     lastMessageSenderId?: string;
+    avatarUrl?: string;
 }
 
 export interface Message {

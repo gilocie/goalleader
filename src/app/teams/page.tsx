@@ -183,7 +183,7 @@ function TeamsPageContent() {
                             )}
                             >
                             <Avatar className={cn(layout === 'grid' ? 'h-16 w-16' : 'h-12 w-12')}>
-                                <AvatarImage src={avatar?.imageUrl} alt={member.name} data-ai-hint={avatar?.imageHint} className="object-cover" />
+                                <AvatarImage src={member.avatarUrl} alt={member.name} className="object-cover" />
                                 <AvatarFallback>
                                 {member.name.split(' ').map((n) => n[0]).join('')}
                                 </AvatarFallback>

@@ -75,7 +75,7 @@ const CallLogItem = ({
                     )}
                 </div>
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={PlaceHolderImages.find(p => p.id === contact.id)?.imageUrl} alt={contact.name} />
+                    <AvatarImage src={contact.avatarUrl} alt={contact.name} />
                     <AvatarFallback>{contact.name.slice(0, 2)}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 truncate">
@@ -317,7 +317,6 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
               {filteredContacts.length > 0 ? (
                   <div className="p-2 space-y-2">
                       {filteredContacts.map((contact) => {
-                      const avatar = PlaceHolderImages.find((img) => img.id === contact.id);
                       const isSelected = selectedContactId === contact.id;
                       const isMarked = selectedChats.has(contact.id);
                       const isLastMessageFromSelf = contact.lastMessageSenderId === self?.id;
@@ -347,7 +346,7 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
                                   </div>
                                   <div className="relative" onClick={() => onSelectContact(contact)}>
                                       <Avatar className="h-10 w-10">
-                                      <AvatarImage src={avatar?.imageUrl} alt={contact.name} data-ai-hint={avatar?.imageHint} />
+                                      <AvatarImage src={contact.avatarUrl} alt={contact.name} />
                                       <AvatarFallback>{contact.name.slice(0, 2)}</AvatarFallback>
                                       </Avatar>
                                       <span
@@ -491,4 +490,3 @@ export function ChatContactList({ contacts, onSelectContact, selectedContactId }
     </>
   );
 }
-
