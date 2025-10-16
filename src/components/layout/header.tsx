@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Menu, ChevronLeft, Bell, MessageSquare, User, Settings, LifeBuoy, Calendar, Library, LogOut, Shield } from 'lucide-react';
@@ -133,17 +132,19 @@ export function Header() {
                 <TimeTracker layout="inline" />
             </div>
 
-            <LibraryDropdown>
-                <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
-                    <Library className="h-4 w-4" />
-                    {unreadLibraryCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                        {unreadLibraryCount}
-                    </span>
-                    )}
-                    <span className="sr-only">Toggle Library</span>
-                </Button>
-            </LibraryDropdown>
+            <div className="hidden md:block">
+              <LibraryDropdown>
+                  <Button variant="default" size="icon" className="relative h-8 w-8 hover:bg-primary/90">
+                      <Library className="h-4 w-4" />
+                      {unreadLibraryCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                          {unreadLibraryCount}
+                      </span>
+                      )}
+                      <span className="sr-only">Toggle Library</span>
+                  </Button>
+              </LibraryDropdown>
+            </div>
         </div>
         
         {user?.role === 'Admin' && (
