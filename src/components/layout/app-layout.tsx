@@ -15,6 +15,7 @@ import { IncomingCallDialog } from '@/components/chat/incoming-call-dialog';
 import { VideoCallDialog } from '@/components/chat/video-call-dialog';
 import { IncomingVoiceCallDialog } from '@/components/chat/incoming-voice-call-dialog';
 import { VoiceCallDialog } from '@/components/chat/voice-call-dialog';
+import { Sidebar } from './sidebar';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -117,27 +118,18 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
   
     return (
       <div className={cn("flex min-h-screen w-full bg-muted/40")}>
-        <Header />
+        <Sidebar />
         <div className={cn(
             "flex flex-1 flex-col transition-[margin-left] duration-300", 
-            open && "md:ml-[220px] lg:ml-[280px]",
-            !open && "md:ml-[72px] lg:ml-[72px]",
+            open && !isChatPage ? "md:ml-[220px] lg:ml-[280px]" : "md:ml-[72px] lg:ml-[72px]",
         )}>
-          
-          {/* 
-            This is the main content area.
-            - `flex-1` makes it fill the vertical space between header and footer.
-            - `flex flex-col` allows its children to also use flex properties.
-            - `overflow-hidden` is key to containing children and their scrollbars.
-          */}
+          <Header />
           <main className="flex-1 flex flex-col overflow-hidden pt-14 lg:pt-[60px]">
             {children}
           </main>
-          {/* Footer is only shown on specific pages */}
           {!isChatPage && !isMeetingPage && <Footer />}
         </div>
         
-        {/* Global Call Dialogs */}
         {isVideoCallOpen && currentCall && getCallContact() && (
             <VideoCallDialog
                 isOpen={isVideoCallOpen}
