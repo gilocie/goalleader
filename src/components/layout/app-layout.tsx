@@ -16,6 +16,7 @@ import { VideoCallDialog } from '@/components/chat/video-call-dialog';
 import { IncomingVoiceCallDialog } from '@/components/chat/incoming-voice-call-dialog';
 import { VoiceCallDialog } from '@/components/chat/voice-call-dialog';
 import { Sidebar } from './sidebar';
+import { Logo } from '../icons';
 
 function LayoutWithTracker({ children }: { children: ReactNode }) {
     const pathname = usePathname();
@@ -46,14 +47,8 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
     const isSetupPage = pathname.startsWith('/setup');
 
     useEffect(() => {
-        if (isChatPage) {
-            setOpen(false);
-        }
-    }, [isChatPage, setOpen]);
-    
-    useEffect(() => {
         // Allow access to login, register, landing, and setup pages without authentication
-        const publicPages = ['/login', '/register', '/', '/setup', '/setup/wizard'];
+        const publicPages = ['/login', '/register', '/', '/setup', '/setup/wizard', '/super-admin'];
         if (!loading && !user && !publicPages.includes(pathname)) {
             router.push('/login');
         }
@@ -87,19 +82,22 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
 
     if (loading || !user) {
         // Don't show skeleton for public pages
-        const publicPages = ['/login', '/register', '/'];
+        const publicPages = ['/login', '/register', '/', '/setup', '/setup/wizard', '/super-admin'];
         if (publicPages.includes(pathname)) {
             return <>{children}</>;
         }
 
         return (
-            <div className="flex min-h-screen w-full bg-muted/40">
+             <div className="flex min-h-screen w-full bg-muted/40">
                 <div className={cn("hidden md:flex md:flex-col border-r bg-card transition-all duration-300 md:w-[220px] lg:w-[280px]")}>
                     <div className='flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6'>
-                        <Skeleton className='h-6 w-32' />
+                        <Link href="/" className="flex items-center gap-2 font-semibold">
+                            <Logo className="h-6 w-6" />
+                            <span>GoalLeader</span>
+                        </Link>
                     </div>
                     <div className='flex-1 p-4 space-y-2'>
-                        {[...Array(6)].map((_,i) => <Skeleton key={i} className='h-10 w-full' />)}
+                        {[...Array(8)].map((_,i) => <Skeleton key={i} className='h-10 w-full' />)}
                     </div>
                 </div>
                  <div className="flex flex-1 flex-col">
@@ -121,7 +119,7 @@ function LayoutWithTracker({ children }: { children: ReactNode }) {
         <Sidebar />
         <div className={cn(
             "flex flex-1 flex-col transition-[margin-left] duration-300", 
-            open && !isChatPage ? "md:ml-[220px] lg:ml-[280px]" : "md:ml-[72px] lg:ml-[72px]",
+            open ? "md:ml-[220px] lg:ml-[280px]" : "md:ml-[72px] lg:ml-[72px]",
         )}>
           <Header />
           <main className="flex-1 flex flex-col overflow-hidden pt-14 lg:pt-[60px]">
